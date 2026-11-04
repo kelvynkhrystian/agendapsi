@@ -18,8 +18,8 @@ Legenda de Estados:
 |---|---|---|---|
 | **Fase 0** | Inspeção do ambiente e premissas | `implemented` | MySQL ativo (XAMPP), Node v22, docs iniciais criados |
 | **Fase 1** | Fundações: Next.js, Prisma, Schema, Auth, Design System | `implemented` | Schema migrado no MySQL, seed aplicado, rotas de auth, tokens JWT, dark/light mode e testes unitários |
-| **Fase 2** | Slice Vertical: Dashboard Admin, Serviços, Agenda & Concorrência | `in progress` | Iniciando implementação da gestão de serviços, calendário e engine de agendamento atômico |
-| **Fase 3** | Identidade do Paciente, Responsáveis Legais & Área do Paciente | `not started` | |
+| **Fase 2** | Slice Vertical: Dashboard Admin, Serviços, Agenda & Concorrência | `implemented` | Dashboard com métricas reais, CRUD de Serviços, Agenda semanal com detecção de colisões e overrides, testes unitários |
+| **Fase 3** | Identidade do Paciente, Responsáveis Legais & Área do Paciente | `in progress` | Iniciando gestão de pacientes no admin, portal do paciente, solicitações de alteração cadastral e consentimentos |
 | **Fase 4** | MiniSite Público, Agendamento em 3 Passos & Solicitação WhatsApp | `not started` | |
 | **Fase 5** | Financeiro, Máquina de Estados Fake Payment & Pacotes de Sessões | `not started` | |
 | **Fase 6** | Prontuário Clínico Privado, Anamnese, Escala de Humor & Documentos | `not started` | |
@@ -50,12 +50,12 @@ Legenda de Estados:
 - [x] Testes de autenticação e controle de acesso executados com sucesso
 
 ### Fase 2 — Dashboard Admin, Serviços e Agenda
-- [ ] CRUD de Serviços (duração, modalidade, preço, intervalo/buffer, política de confirmação)
-- [ ] Configuração de Disponibilidade Semanal, Exceções e Bloqueios
-- [ ] Calendário Semanal com visualizações e controle de horários
-- [ ] Concorrência atômica para agendamento (prevenção de colisões)
-- [ ] Dashboard com indicadores reais, filtros e gráficos
-- [ ] Testes de agendamento e sobreposição
+- [x] CRUD de Serviços (duração, modalidade, preço, intervalo/buffer, política de confirmação)
+- [x] Configuração de Disponibilidade Semanal, Exceções e Bloqueios
+- [x] Calendário Semanal com visualizações e controle de horários
+- [x] Concorrência atômica para agendamento (prevenção de colisões)
+- [x] Dashboard com indicadores reais, filtros e gráficos
+- [x] Testes de agendamento e sobreposição executados com sucesso
 
 ### Fase 3 — Pacientes e Área do Paciente
 - [ ] Cadastro e Gestão de Pacientes pelo Admin
