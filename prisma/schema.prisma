@@ -474,8 +474,13 @@ model SiteSettings {
   aboutText      String   @db.Text
   heroTitle      String   @default("Cuidando da sua saúde mental com excelência")
   heroSubtitle   String   @default("Agende sua consulta presencial ou online com praticidade e total sigilo.")
-  logoUrl        String?
-  primaryColor   String   @default("#0d9488")
+  logoUrl           String?
+  logoHorizontalUrl String?
+  faviconUrl        String?
+  primaryColor      String   @default("#0d9488")
+  secondaryColor    String   @default("#0f766e")
+  accentColor       String?  @default("#f59e0b")
+  buttonColor       String?  @default("#0d9488")
   address        String?
   phone          String?
   whatsappNumber String?
@@ -521,8 +526,18 @@ model SystemSettings {
   smtpUser                     String?
   smtpPass                     String?
   smtpFrom                     String?
+  smtpEnabled                  Boolean  @default(false)
+  smtpEncryption               String   @default("TLS")
+  smtpSenderName               String?
   whatsappApiUrl               String?
   whatsappApiToken             String?
+  whatsappEnabled              Boolean  @default(false)
+  whatsappInstanceId           String?
+  whatsappProvider             String   @default("GENERIC")
+  whatsappSenderNumber         String?
+  googleMeetClientId           String?
+  peerJsServerHost             String?
+  peerJsServerPort             Int?
   updatedAt                    DateTime @updatedAt
 }
 
@@ -560,4 +575,32 @@ model BackupJob {
   status         String
   details        String?  @db.Text
   createdAt      DateTime @default(now())
+}
+
+model Notification {
+  id                String    @id @default(cuid())
+  recipientId       String
+  recipientRole     String
+  eventType         String
+  title             String
+  message           String    @db.Text
+  targetUrl         String?
+  isRead            Boolean   @default(false)
+  readAt            DateTime?
+  relatedEntityType String?
+  relatedEntityId   String?
+  createdAt         DateTime  @default(now())
+
+  @@index([recipientId, createdAt])
+  @@index([recipientId, isRead])
+  @@index([recipientRole, isRead])
+}
+
+model SharedNotificationTemplate {
+  id           String   @id @default(cuid())
+  eventType    String   @unique
+  title        String
+  body         String   @db.Text
+  deliveryMode String   @default("APP_ONLY")
+  updatedAt    DateTime @updatedAt
 }

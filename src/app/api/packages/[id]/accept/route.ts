@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
+import { dispatchNotification } from "@/lib/notifications";
 
 export async function POST(
   req: NextRequest,
@@ -15,6 +16,7 @@ export async function POST(
       include: {
         holds: { include: { service: true } },
         payment: true,
+        patient: true,
       },
     });
 
@@ -123,6 +125,40 @@ export async function POST(
         },
       });
     });
+
+    // Notificações
+    const patientName = pkg.patient.fullName;
+
+    // 1. Paciente
+    await dispatchNotification({
+      recipientId: pkg.patientId,
+      recipientRole: "PATIENT",
+      eventType: "PACKAGE_CONFIRMED",
+      targetUrl: "/paciente",
+      relatedEntityType: "AppointmentPackage",
+      relatedEntityId: pkg.id,
+      vars: {
+        patientName,
+        valueCents: pkg.totalPriceCents,
+      },
+    });
+
+    // 2. Administrador
+    const admin = await prisma.adminAccount.findFirst();
+    if (admin) {
+      await dispatchNotification({
+        recipientId: admin.id,
+        recipientRole: "ADMIN",
+        eventType: "ADMIN_PACKAGE_ACCEPTED",
+        targetUrl: "/admin/pacotes",
+        relatedEntityType: "AppointmentPackage",
+        relatedEntityId: pkg.id,
+        vars: {
+          patientName,
+          valueCents: pkg.totalPriceCents,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,

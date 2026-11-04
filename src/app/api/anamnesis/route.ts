@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, requirePatient } from "@/lib/auth";
+import { getSession, requirePatient } from "@/lib/auth";
+import { dispatchNotification } from "@/lib/notifications";
 
 const submitAnamnesisSchema = z.object({
   templateId: z.string().min(1),
@@ -10,6 +11,8 @@ const submitAnamnesisSchema = z.object({
 
 export async function GET() {
   try {
+    const session = await getSession();
+
     const template = await prisma.anamnesisTemplate.findFirst({
       where: { isActive: true },
       orderBy: { version: "desc" },
@@ -19,7 +22,27 @@ export async function GET() {
       return NextResponse.json({ error: "Nenhum modelo de anamnese ativo." }, { status: 404 });
     }
 
-    return NextResponse.json(template);
+    let completed = false;
+    let submission = null;
+
+    if (session && session.role === "PATIENT") {
+      submission = await prisma.anamnesisSubmission.findFirst({
+        where: {
+          patientId: session.userId,
+          templateId: template.id,
+        },
+        orderBy: { createdAt: "desc" },
+      });
+      if (submission) {
+        completed = true;
+      }
+    }
+
+    return NextResponse.json({
+      ...template,
+      completed,
+      submission,
+    });
   } catch (error) {
     console.error("Erro ao buscar template de anamnese:", error);
     return NextResponse.json({ error: "Erro interno." }, { status: 500 });
@@ -49,6 +72,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Modelo de anamnese não encontrado." }, { status: 404 });
     }
 
+    // Regra da Task 1: O paciente só pode responder uma única vez a cada anamnese atribuída
+    const existing = await prisma.anamnesisSubmission.findFirst({
+      where: {
+        patientId: session.userId,
+        templateId,
+      },
+    });
+
+    if (existing) {
+      return NextResponse.json(
+        { error: "Você já respondeu a esta ficha de anamnese. Ela não pode ser editada novamente." },
+        { status: 409 }
+      );
+    }
+
     const submission = await prisma.anamnesisSubmission.create({
       data: {
         templateId,
@@ -71,11 +109,45 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      message: "Anamnese enviada com sucesso! O profissional irá analisar as respostas.",
-      submission,
-    }, { status: 201 });
+    // Notificação para o Paciente
+    await dispatchNotification({
+      recipientId: session.userId,
+      recipientRole: "PATIENT",
+      eventType: "ANAMNESIS_COMPLETED_PATIENT",
+      targetUrl: "/paciente/anamnese",
+      relatedEntityType: "AnamnesisSubmission",
+      relatedEntityId: submission.id,
+      vars: {
+        patientName: session.name,
+      },
+      idempotencyKey: `anamnesis-patient-${submission.id}`,
+    });
+
+    // Notificação para o Administrador (Profissional)
+    const admin = await prisma.adminAccount.findFirst();
+    if (admin) {
+      await dispatchNotification({
+        recipientId: admin.id,
+        recipientRole: "ADMIN",
+        eventType: "ADMIN_ANAMNESIS_COMPLETED",
+        targetUrl: `/admin/pacientes/${session.userId}`,
+        relatedEntityType: "AnamnesisSubmission",
+        relatedEntityId: submission.id,
+        vars: {
+          patientName: session.name,
+        },
+        idempotencyKey: `anamnesis-admin-${submission.id}`,
+      });
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Anamnese enviada com sucesso! O profissional irá analisar as respostas.",
+        submission,
+      },
+      { status: 201 }
+    );
   } catch (error: unknown) {
     if (error instanceof Error && (error.message === "UNAUTHORIZED" || error.message.includes("FORBIDDEN"))) {
       return NextResponse.json({ error: "Acesso restrito ao paciente." }, { status: 403 });

@@ -66,9 +66,9 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     fetch("/api/admin/dashboard-stats")
-      .then((res) => res.json())
+      .then((res) => { if (!res.ok && (res.status === 401 || res.status === 403)) { window.location.href = '/login'; return null; } return res.json(); })
       .then((d) => {
-        setData(d);
+        if (d && !d.error) { setData(d); }
         setIsLoading(false);
       })
       .catch((e) => {
@@ -90,7 +90,7 @@ export default function AdminDashboardPage() {
     );
   }
 
-  const todayCount = data?.todayAppointments.length ?? 0;
+  const todayCount = data?.todayAppointments?.length ?? 0;
 
   return (
     <div className="space-y-8">
@@ -183,10 +183,10 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatBRL(data?.revenueMonth.totalCombinedCents ?? 0)}
+              {formatBRL(data?.revenueMonth?.totalCombinedCents ?? 0)}
             </div>
             <div className="flex items-center gap-2 mt-1">
-              {data?.revenueMonth.simulatedCents ? (
+              {data?.revenueMonth?.simulatedCents ? (
                 <Badge variant="simulated">
                   {formatBRL(data.revenueMonth.simulatedCents)} Simulado
                 </Badge>
@@ -333,12 +333,12 @@ export default function AdminDashboardPage() {
             <CardContent className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-slate-500">Total de Arquivos:</span>
-                <span className="font-semibold">{data?.storage.fileCount ?? 0}</span>
+                <span className="font-semibold">{data?.storage?.fileCount ?? 0}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-slate-500">Espaço Ocupado:</span>
                 <span className="font-semibold">
-                  {((data?.storage.totalBytes ?? 0) / (1024 * 1024)).toFixed(2)} MB
+                  {((data?.storage?.totalBytes ?? 0) / (1024 * 1024)).toFixed(2)} MB
                 </span>
               </div>
               <p className="text-xs text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">

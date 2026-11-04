@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
+import { dispatchNotification } from "@/lib/notifications";
 
 const statusTransitionSchema = z.object({
   status: z.enum([
@@ -50,7 +51,6 @@ export async function PATCH(
 
     // Validação de permissões
     if (session.role === "PATIENT") {
-      // Paciente só pode solicitar cancelamento da sua própria consulta
       if (appointment.patientId !== session.userId) {
         return NextResponse.json({ error: "Acesso não autorizado." }, { status: 403 });
       }
@@ -134,6 +134,80 @@ export async function PATCH(
 
       return appt;
     });
+
+    // Dispara notificações de eventos
+    const patientName = appointment.patient.fullName;
+    const serviceName = appointment.service.name;
+
+    if (finalStatus.includes("CANCELLED")) {
+      // 1. Notifica o paciente
+      await dispatchNotification({
+        recipientId: appointment.patientId,
+        recipientRole: "PATIENT",
+        eventType: "APPOINTMENT_CANCELLED",
+        targetUrl: "/paciente",
+        relatedEntityType: "Appointment",
+        relatedEntityId: appointment.id,
+        vars: {
+          patientName,
+          serviceName,
+          date: appointment.startAt,
+          time: appointment.startAt,
+        },
+      });
+
+      // 2. Se cancelado pelo paciente, notifica o profissional
+      if (session.role === "PATIENT") {
+        const admin = await prisma.adminAccount.findFirst();
+        if (admin) {
+          await dispatchNotification({
+            recipientId: admin.id,
+            recipientRole: "ADMIN",
+            eventType: isLate ? "ADMIN_LATE_CANCELLATION" : "ADMIN_APPOINTMENT_CANCELLED",
+            targetUrl: "/admin/agenda",
+            relatedEntityType: "Appointment",
+            relatedEntityId: appointment.id,
+            vars: {
+              patientName,
+              serviceName,
+              date: appointment.startAt,
+              time: appointment.startAt,
+            },
+          });
+        }
+      }
+    } else if (finalStatus === "CONFIRMED") {
+      await dispatchNotification({
+        recipientId: appointment.patientId,
+        recipientRole: "PATIENT",
+        eventType: "APPOINTMENT_CONFIRMED",
+        targetUrl: "/paciente",
+        relatedEntityType: "Appointment",
+        relatedEntityId: appointment.id,
+        vars: {
+          patientName,
+          serviceName,
+          date: appointment.startAt,
+          time: appointment.startAt,
+          valueCents: appointment.service.priceCents,
+        },
+      });
+    }
+
+    if (refundAction === "REFUND_FULL") {
+      await dispatchNotification({
+        recipientId: appointment.patientId,
+        recipientRole: "PATIENT",
+        eventType: "PAYMENT_REFUNDED",
+        targetUrl: "/paciente/financeiro",
+        relatedEntityType: "Payment",
+        relatedEntityId: appointment.payment?.id,
+        vars: {
+          patientName,
+          valueCents: appointment.payment?.amountCents || 0,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
+import { dispatchNotification } from "@/lib/notifications";
 
 const shareSchema = z.object({
   patientId: z.string().min(1, "Paciente é obrigatório"),
@@ -57,6 +58,23 @@ export async function POST(
         ipAddress: req.headers.get("x-forwarded-for") || "127.0.0.1",
       },
     });
+
+    // Notificação para o paciente
+    const patient = await prisma.patient.findUnique({ where: { id: patientId } });
+    if (patient) {
+      await dispatchNotification({
+        recipientId: patient.id,
+        recipientRole: "PATIENT",
+        eventType: "DOCUMENT_AVAILABLE",
+        targetUrl: "/paciente/documentos",
+        relatedEntityType: "StoredFileShare",
+        relatedEntityId: share.id,
+        vars: {
+          patientName: patient.fullName,
+        },
+        idempotencyKey: `file-shared-${share.id}`,
+      });
+    }
 
     return NextResponse.json({
       success: true,

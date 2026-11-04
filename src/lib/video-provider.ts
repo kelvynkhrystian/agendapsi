@@ -1,18 +1,25 @@
+export type SupportedVideoProvider = "JITSI" | "PEERJS" | "GOOGLE_MEET";
+
 export interface VideoRoom {
-  provider: "JITSI";
+  provider: SupportedVideoProvider;
   roomName: string;
   entryUrl: string;
   rawMeetingUrl: string;
+  isPreparedOnly?: boolean;
 }
 
 export interface VideoProvider {
+  providerKey: SupportedVideoProvider;
+  isFunctional: boolean;
   createRoom(appointmentId: string): Promise<VideoRoom>;
 }
 
 /**
- * Provedor Jitsi Meet (V1)
+ * Provedor 1: Jitsi Meet (Funcional padrão V1)
  */
 export class JitsiVideoProvider implements VideoProvider {
+  providerKey: SupportedVideoProvider = "JITSI";
+  isFunctional = true;
   private domain: string;
 
   constructor(domain: string = process.env.JITSI_DOMAIN || "meet.jit.si") {
@@ -34,6 +41,85 @@ export class JitsiVideoProvider implements VideoProvider {
       entryUrl,
       rawMeetingUrl,
     };
+  }
+}
+
+/**
+ * Provedor 2: PeerJS / WebRTC (Adaptador extensível preparado)
+ * Fluxo: Chamada P2P direta com sinalização STUN/TURN e sala de espera "Aguardando o profissional".
+ */
+export class PeerJsVideoProvider implements VideoProvider {
+  providerKey: SupportedVideoProvider = "PEERJS";
+  isFunctional = false; // Preparado para expansão futura
+  private serverHost: string | null;
+  private serverPort: number | null;
+
+  constructor(serverHost: string | null = null, serverPort: number | null = null) {
+    this.serverHost = serverHost;
+    this.serverPort = serverPort;
+  }
+
+  async createRoom(appointmentId: string): Promise<VideoRoom> {
+    const peerRoomId = `peer-psi-${appointmentId}-${Math.random().toString(36).substring(2, 10)}`;
+    const token = Math.random().toString(36).substring(2, 15);
+    const appUrl = process.env.APP_URL || "http://localhost:3000";
+
+    return {
+      provider: "PEERJS",
+      roomName: peerRoomId,
+      entryUrl: `${appUrl}/consulta-virtual/${token}?provider=PEERJS`,
+      rawMeetingUrl: `${appUrl}/consulta-virtual/${token}`,
+      isPreparedOnly: true,
+    };
+  }
+}
+
+/**
+ * Provedor 3: Google Meet (Adaptador extensível preparado para OAuth/Calendar)
+ */
+export class GoogleMeetVideoProvider implements VideoProvider {
+  providerKey: SupportedVideoProvider = "GOOGLE_MEET";
+  isFunctional = false; // Requer credenciais OAuth do Google Cloud Console
+  private clientId: string | null;
+
+  constructor(clientId: string | null = null) {
+    this.clientId = clientId;
+  }
+
+  async createRoom(appointmentId: string): Promise<VideoRoom> {
+    const token = Math.random().toString(36).substring(2, 15);
+    const appUrl = process.env.APP_URL || "http://localhost:3000";
+
+    return {
+      provider: "GOOGLE_MEET",
+      roomName: `gmeet-${appointmentId}`,
+      entryUrl: `${appUrl}/consulta-virtual/${token}?provider=GOOGLE_MEET`,
+      rawMeetingUrl: `https://meet.google.com/new`,
+      isPreparedOnly: true,
+    };
+  }
+}
+
+/**
+ * Factory para instanciar o provedor configurado
+ */
+export function getVideoProvider(
+  activeKey: string = "JITSI",
+  options?: {
+    jitsiDomain?: string;
+    peerJsHost?: string | null;
+    peerJsPort?: number | null;
+    googleMeetClientId?: string | null;
+  }
+): VideoProvider {
+  switch (activeKey) {
+    case "PEERJS":
+      return new PeerJsVideoProvider(options?.peerJsHost, options?.peerJsPort);
+    case "GOOGLE_MEET":
+      return new GoogleMeetVideoProvider(options?.googleMeetClientId);
+    case "JITSI":
+    default:
+      return new JitsiVideoProvider(options?.jitsiDomain);
   }
 }
 

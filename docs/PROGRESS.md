@@ -26,6 +26,7 @@ Legenda de Estados:
 | **Fase 7** | Teleconsulta Jitsi Gated & Notificações (Email/WhatsApp Simulator) | `implemented` & `tested` | Sala de teleconsulta Jitsi com gating de 15 minutos e sala de espera, rotina idempotente de lembretes cron e testes |
 | **Fase 8** | Operações: Configurações, Backup/Restore, Storage & Monitoramento GET | `implemented` & `tested` | Painel de configurações com abas, endpoint GET /api/technical/status protegido por Bearer Token, backup com checksum SHA256 e testes |
 | **Fase 9** | Hardening, 20 Testes de Aceitação, Build de Produção & Entrega Final | `implemented` & `tested` | Todos os 20 testes de aceitação executados com 100% de sucesso. Build Next.js compilado com 53 rotas e 0 avisos. |
+| **Fase 10**| Atualizações de Paciente, Notificações, Integrações & Provedores de Vídeo | `implemented` & `tested` | Anamnese não reeditável com confirmação visual, sidebar esquerda no paciente, consultas presenciais com modal e Google Maps, notificações persistentes com sino no header, templates compartilhados por evento, integrações SMTP e WhatsApp separadas com testes de conexão, upload de logos e paleta HEX, e 3 provedores de vídeo (Jitsi, PeerJS, Google Meet). 25 testes passando com 100% de sucesso. |
 
 ---
 
@@ -136,3 +137,14 @@ Legenda de Estados:
 - [x] Compilação limpa de produção com Next.js Turbopack (`npm run build`) gerando 53 rotas estáticas e dinâmicas com 0 erros e 0 avisos
 - [x] Elaboração completa dos documentos normativos: `AGENTS.md`, `ARCHITECTURE.md`, `BUSINESS_RULES.md`, `ROUTES.md`, `DEPLOYMENT.md`, `SECURITY.md` e `README.md`
 - [x] Atualização e auditoria completa de status em `PROGRESS.md`
+
+### Fase 10 — Atualizações de Paciente, Notificações, Integrações & Provedores de Vídeo
+- [x] **Tarefa 1 (Anamnese Finalizada):** Bloqueio de reenvio com 409 Conflict no backend e exibição de card de confirmação com data e ícone no frontend do paciente (`/paciente/anamnese`).
+- [x] **Tarefa 2 (Sidebar Lateral do Paciente):** Menu de navegação lateral esquerdo fixo, retrátil no mobile via gaveta com overlay, consistente com o design do Admin e sino de notificações no cabeçalho.
+- [x] **Tarefa 3 (Consultas Presenciais vs. Online):** Modalidade verificada estritamente pelo banco (`PRESENTIAL`). Ocultação de links/botões de vídeo; exibição do botão "Informações da consulta" com modal completo e atalho para o Google Maps.
+- [x] **Tarefas 4 e 5 (Notificações Internas Persistentes & Sino no Header):** Modelo `Notification` no Prisma/MySQL, sino interativo nos cabeçalhos Admin e Paciente com contagem de não lidas e dropdown, páginas de histórico `/admin/notificacoes` e `/paciente/notificacoes`, e disparo automático de eventos de sistema.
+- [x] **Tarefa 6 (Templates Compartilhados por Evento):** Configuração de mensagem única por evento com variáveis dinâmicas (`{nome_paciente}`, `{servico}`, etc.), três modos de entrega (`APP_ONLY`, `APP_EMAIL`, `ALL_CHANNELS`), preview em tempo real e restauração de padrão.
+- [x] **Tarefa 7 (Integrações Independentes):** Rota `/admin/integracoes` com cartões separados de E-mail (SMTP) e WhatsApp, mascaramento de credenciais e botões de teste de envio/conexão.
+- [x] **Tarefa 8 (Identidade Visual):** Configuração de logotipos (padrão, horizontal, favicon) com upload e paleta de cores customizável em código HEX e color pickers com preview ao vivo.
+- [x] **Tarefa 9 (Provedores de Vídeo):** Seleção de provedor ativo de teleconsulta (Jitsi Meet padrão funcional, PeerJS e Google Meet com adaptadores estruturados).
+- [x] **Tarefa 10 (Testes Automatizados & Build):** 25 testes automatizados em `tests/**/*.test.js` passando com 100% de sucesso e build Next.js com 68 rotas estáticas/dinâmicas.

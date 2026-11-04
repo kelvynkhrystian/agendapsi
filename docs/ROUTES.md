@@ -37,7 +37,9 @@ Este documento relaciona todas as páginas e rotas de API disponíveis no sistem
 | `/admin/pacotes` | Criação e monitoramento de propostas de pacotes de sessões |
 | `/admin/minisite` | Editor de conteúdo do MiniSite (biografia, endereço, cores, redes sociais) |
 | `/admin/arquivos` | Monitor de uso de disco e rotina de geração de backup com checksum SHA-256 |
-| `/admin/configuracoes` | Parâmetros do consultório, fuso horário, teleconsulta, notificações e logs |
+| `/admin/integracoes` | Central independente de integrações: E-mail (SMTP) e WhatsApp com testes de conexão |
+| `/admin/notificacoes` | Central administrativa de notificações internas e histórico |
+| `/admin/configuracoes` | Parâmetros do consultório, identidade visual, templates de notificação, teleconsulta e logs |
 
 ---
 
@@ -48,6 +50,7 @@ Este documento relaciona todas as páginas e rotas de API disponíveis no sistem
 | :--- | :--- |
 | `/paciente` | Painel do paciente: próximas consultas, status e atalho para consulta virtual |
 | `/paciente/perfil` | Visualização e atualização de dados pessoais e contato |
+| `/paciente/notificacoes` | Histórico e central de notificações internas do paciente |
 | `/paciente/anamnese` | Formulário estruturado de anamnese para resposta do paciente |
 | `/paciente/financeiro` | Histórico de pagamentos e painel de aceite/rejeição de pacotes propostos |
 | `/paciente/documentos` | Arquivos, recibos e declarações compartilhados pelo profissional |
@@ -106,6 +109,26 @@ Este documento relaciona todas as páginas e rotas de API disponíveis no sistem
 | :--- | :--- | :--- | :--- |
 | `GET` | `/api/virtual-meeting/[token]` | Autenticado | Validação de gating temporal e geração de sala Jitsi segura |
 | `POST` | `/api/notifications/run-reminders` | Admin / Cron | Disparo idempotente de lembretes automáticos de consulta |
+| `GET` | `/api/notifications` | Autenticado | Listagem de notificações do usuário com contagem de não lidas |
+| `PATCH`| `/api/notifications/[id]/read` | Autenticado | Marcação de notificação específica como lida |
+| `POST` | `/api/notifications/mark-all-read` | Autenticado | Marcação de todas as notificações do usuário como lidas |
+| `GET` | `/api/admin/notification-templates` | Admin | Listagem de templates compartilhados e canais de entrega |
+| `PUT` | `/api/admin/notification-templates/[eventType]` | Admin | Atualização de template compartilhado por evento com preview |
+| `POST` | `/api/admin/notification-templates/restore-default` | Admin | Restauração do template original padrão do evento |
+
+### 4.6 Integrações e Customização Visual
+| Método | Endpoint | Permissão | Descrição |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/admin/integrations` | Admin | Consulta status e credenciais mascaradas de SMTP e WhatsApp |
+| `PUT` | `/api/admin/integrations/email` | Admin | Configuração independente de servidor SMTP e remetente |
+| `POST` | `/api/admin/integrations/email/test` | Admin | Envio de e-mail de teste para validação de conectividade |
+| `PUT` | `/api/admin/integrations/whatsapp` | Admin | Configuração independente da API/provedor de WhatsApp |
+| `POST` | `/api/admin/integrations/whatsapp/test` | Admin | Teste de conectividade e envio de mensagem WhatsApp |
+| `GET` | `/api/admin/appearance` | Admin | Consulta configurações de logotipo, favicon e paleta de cores |
+| `PUT` | `/api/admin/appearance` | Admin | Atualização de paleta HEX (primária, secundária, destaque, botões) |
+| `POST` | `/api/admin/appearance/upload` | Admin | Upload seguro de logotipo padrão, logotipo horizontal e favicon |
+| `GET` | `/api/admin/video-providers` | Admin | Consulta do provedor de videoconferência ativo e opções disponíveis |
+| `PUT` | `/api/admin/video-providers` | Admin | Seleção de provedor ativo (Jitsi Meet, PeerJS ou Google Meet) |
 
 ### 4.6 Operações e Monitoramento Técnico
 | Método | Endpoint | Permissão | Descrição |

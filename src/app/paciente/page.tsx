@@ -14,8 +14,12 @@ import {
   Video,
   Plus,
   AlertTriangle,
-  XCircle,
   FileCheck2,
+  MapPin,
+  Building2,
+  User,
+  ExternalLink,
+  Info,
 } from "lucide-react";
 
 interface Appointment {
@@ -24,12 +28,17 @@ interface Appointment {
   endAt: string;
   modality: string;
   status: string;
-  meetingUrlSnapshot?: string;
+  meetingUrlSnapshot?: string | null;
   isLateCancellation?: boolean;
   service: {
     name: string;
     durationMinutes: number;
     cancellationNoticeDays: number;
+  };
+  establishment?: {
+    name: string;
+    address: string | null;
+    professionalName: string;
   };
 }
 
@@ -37,6 +46,7 @@ export default function PatientAppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [cancellingAppt, setCancellingAppt] = useState<Appointment | null>(null);
+  const [selectedInPersonAppt, setSelectedInPersonAppt] = useState<Appointment | null>(null);
   const [cancelReason, setCancelReason] = useState("");
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -113,12 +123,12 @@ export default function PatientAppointmentsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Minhas Consultas</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Acompanhe suas sessões agendadas, acesse a teleconsulta ou solicite novo horário.
+            Acompanhe suas sessões presenciais ou online, confira a localização e acesse a teleconsulta.
           </p>
         </div>
 
         <Link href="/agendar">
-          <Button className="gap-1.5">
+          <Button className="gap-1.5 bg-teal-600 hover:bg-teal-700 text-white">
             <Plus className="h-4 w-4" />
             <span>Agendar Nova Consulta</span>
           </Button>
@@ -135,58 +145,84 @@ export default function PatientAppointmentsPage() {
           <div className="h-32 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
         ) : upcomingAppointments.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {upcomingAppointments.map((appt) => (
-              <Card key={appt.id} className="border-teal-200 dark:border-teal-900 shadow-xs">
-                <CardHeader className="flex flex-row items-start justify-between pb-2">
+            {upcomingAppointments.map((appt) => {
+              const isPresential = appt.modality === "PRESENTIAL";
+
+              return (
+                <Card key={appt.id} className="border-teal-200 dark:border-teal-900 shadow-xs flex flex-col justify-between">
                   <div>
-                    <CardTitle className="text-base">{appt.service.name}</CardTitle>
-                    <CardDescription className="text-xs">
-                      Duração de {appt.service.durationMinutes} minutos
-                    </CardDescription>
-                  </div>
-                  <Badge variant="success">{appt.status}</Badge>
-                </CardHeader>
+                    <CardHeader className="flex flex-row items-start justify-between pb-2">
+                      <div>
+                        <CardTitle className="text-base">{appt.service.name}</CardTitle>
+                        <CardDescription className="text-xs">
+                          {isPresential ? "Atendimento Presencial" : "Teleconsulta Online"} • {appt.service.durationMinutes} minutos
+                        </CardDescription>
+                      </div>
+                      <Badge variant={appt.status === "CONFIRMED" ? "success" : "warning"}>
+                        {appt.status}
+                      </Badge>
+                    </CardHeader>
 
-                <CardContent className="space-y-4 pt-0">
-                  <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-1 text-xs">
-                    <div className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-200">
-                      <Calendar className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-                      <span>{formatDate(appt.startAt)}</span>
-                    </div>
-                    <div className="flex items-center gap-2 font-mono text-slate-600 dark:text-slate-400">
-                      <Clock className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-                      <span>
-                        {formatTime(appt.startAt)} às {formatTime(appt.endAt)}
-                      </span>
-                    </div>
+                    <CardContent className="space-y-4 pt-0">
+                      <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-1.5 text-xs">
+                        <div className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-200">
+                          <Calendar className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                          <span>{formatDate(appt.startAt)}</span>
+                        </div>
+                        <div className="flex items-center gap-2 font-mono text-slate-600 dark:text-slate-400">
+                          <Clock className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                          <span>
+                            {formatTime(appt.startAt)} às {formatTime(appt.endAt)}
+                          </span>
+                        </div>
+                        {isPresential && appt.establishment?.address && (
+                          <div className="flex items-start gap-2 text-slate-500 pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+                            <MapPin className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
+                            <span className="truncate">{appt.establishment.address}</span>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
                   </div>
 
-                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                    {appt.modality !== "PRESENTIAL" && appt.meetingUrlSnapshot ? (
-                      <Link href={appt.meetingUrlSnapshot} target="_blank">
-                        <Button size="sm" className="gap-1.5 text-xs">
-                          <Video className="h-3.5 w-3.5" />
-                          <span>Entrar na Sessão Virtual</span>
+                  {/* Actions Bar */}
+                  <div className="p-4 pt-0">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                      {/* TASK 3: Presencial -> Informações da consulta; Virtual -> Entrar na sala */}
+                      {isPresential ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setSelectedInPersonAppt(appt)}
+                          className="gap-1.5 text-xs border-teal-300 dark:border-teal-800 text-teal-700 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-950/40"
+                        >
+                          <Info className="h-3.5 w-3.5 text-teal-600" />
+                          <span>Informações da consulta</span>
                         </Button>
-                      </Link>
-                    ) : (
-                      <span className="text-xs text-slate-500">
-                        Atendimento presencial no consultório
-                      </span>
-                    )}
+                      ) : appt.meetingUrlSnapshot ? (
+                        <Link href={appt.meetingUrlSnapshot} target="_blank">
+                          <Button size="sm" className="gap-1.5 text-xs bg-teal-600 hover:bg-teal-700 text-white">
+                            <Video className="h-3.5 w-3.5" />
+                            <span>Entrar na sala</span>
+                          </Button>
+                        </Link>
+                      ) : (
+                        <span className="text-xs text-slate-400 italic">Link sendo preparado</span>
+                      )}
 
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setCancellingAppt(appt)}
-                      className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
-                    >
-                      Cancelar Consulta
-                    </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setCancellingAppt(appt)}
+                        className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+                      >
+                        Cancelar Consulta
+                      </Button>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </div>
         ) : (
           <Card className="p-8 text-center text-slate-500 space-y-2">
@@ -201,61 +237,158 @@ export default function PatientAppointmentsPage() {
         )}
       </div>
 
-      {/* Histórico Anterior */}
+      {/* Histórico de Consultas Passadas / Canceladas */}
       {pastAppointments.length > 0 && (
-        <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800">
-          <h2 className="text-lg font-bold">Histórico Anterior</h2>
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
+        <div className="space-y-4 pt-6">
+          <h2 className="text-lg font-bold">Histórico de Atendimentos</h2>
+          <div className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4">
             {pastAppointments.map((appt) => (
-              <div key={appt.id} className="py-3 flex items-center justify-between text-xs">
+              <div
+                key={appt.id}
+                className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+              >
                 <div>
-                  <span className="font-semibold block">{appt.service.name}</span>
-                  <span className="text-slate-500">
-                    {formatDate(appt.startAt)} às {formatTime(appt.startAt)} • {appt.modality}
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">
+                    {appt.service.name}
+                  </span>
+                  <span className="text-slate-400 block">
+                    {formatDate(appt.startAt)} às {formatTime(appt.startAt)} •{" "}
+                    {appt.modality === "PRESENTIAL" ? "Presencial" : "Online"}
                   </span>
                 </div>
-                <Badge
-                  variant={
-                    appt.status === "COMPLETED"
-                      ? "default"
-                      : appt.status.includes("CANCELLED")
-                      ? "destructive"
-                      : "warning"
-                  }
-                >
-                  {appt.status}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant={
+                      appt.status === "COMPLETED"
+                        ? "default"
+                        : appt.status === "CONFIRMED"
+                        ? "success"
+                        : "destructive"
+                    }
+                  >
+                    {appt.status}
+                  </Badge>
+                </div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Modal Confirmar Cancelamento */}
+      {/* TASK 3: Modal com Informações da Consulta Presencial */}
+      {selectedInPersonAppt && (
+        <Modal
+          isOpen={true}
+          onClose={() => setSelectedInPersonAppt(null)}
+          title="Informações da Consulta Presencial"
+        >
+          <div className="space-y-5 text-xs">
+            {/* Header com serviço e profissional */}
+            <div className="p-4 rounded-xl bg-teal-50/60 dark:bg-teal-950/30 border border-teal-100 dark:border-teal-900/40 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-sm text-teal-900 dark:text-teal-200">
+                  {selectedInPersonAppt.service.name}
+                </span>
+                <Badge variant="outline" className="text-[10px]">Presencial</Badge>
+              </div>
+
+              <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                <User className="h-4 w-4 text-teal-600 shrink-0" />
+                <span>Profissional: <strong>{selectedInPersonAppt.establishment?.professionalName || "Dr(a). Profissional PSI"}</strong></span>
+              </div>
+            </div>
+
+            {/* Data e Horário */}
+            <div className="grid grid-cols-2 gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+              <div className="space-y-1">
+                <span className="text-slate-400 block text-[11px]">Data da Sessão</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <Calendar className="h-3.5 w-3.5 text-teal-600" />
+                  {formatDate(selectedInPersonAppt.startAt)}
+                </span>
+              </div>
+              <div className="space-y-1">
+                <span className="text-slate-400 block text-[11px]">Horário e Duração</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5 text-teal-600" />
+                  {formatTime(selectedInPersonAppt.startAt)} ({selectedInPersonAppt.service.durationMinutes} min)
+                </span>
+              </div>
+            </div>
+
+            {/* Estabelecimento e Endereço */}
+            <div className="space-y-2 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+              <div className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-200">
+                <Building2 className="h-4 w-4 text-teal-600" />
+                <span>{selectedInPersonAppt.establishment?.name || "Consultório"}</span>
+              </div>
+
+              {selectedInPersonAppt.establishment?.address ? (
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-start gap-2 text-slate-600 dark:text-slate-300">
+                    <MapPin className="h-4 w-4 text-teal-600 shrink-0 mt-0.5" />
+                    <p className="leading-relaxed">{selectedInPersonAppt.establishment.address}</p>
+                  </div>
+
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                      selectedInPersonAppt.establishment.address
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block"
+                  >
+                    <Button size="sm" className="gap-2 bg-teal-600 hover:bg-teal-700 text-white text-xs">
+                      <MapPin className="h-3.5 w-3.5" />
+                      <span>Ver localização no Google Maps</span>
+                      <ExternalLink className="h-3 w-3 ml-0.5" />
+                    </Button>
+                  </a>
+                </div>
+              ) : (
+                <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 text-amber-800 dark:text-amber-300 text-xs">
+                  O profissional ainda não cadastrou o endereço físico completo nas configurações do consultório. Por gentileza, entre em contato via mensagem para confirmar o local de atendimento.
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button variant="outline" onClick={() => setSelectedInPersonAppt(null)}>
+                Fechar
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal de Confirmação de Cancelamento */}
       {cancellingAppt && (
         <Modal
-          isOpen={!!cancellingAppt}
+          isOpen={true}
           onClose={() => setCancellingAppt(null)}
-          title="Cancelar Consulta"
-          description="Confirme o cancelamento do seu atendimento"
+          title="Confirmar Cancelamento de Consulta"
         >
-          <form onSubmit={handleConfirmCancel} className="space-y-4 text-sm">
+          <form onSubmit={handleConfirmCancel} className="space-y-4 text-xs">
+            <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 rounded-xl space-y-1 text-red-900 dark:text-red-200">
+              <div className="flex items-center gap-2 font-semibold">
+                <AlertTriangle className="h-4 w-4 text-red-600 shrink-0" />
+                <span>Atenção à Política de Cancelamento</span>
+              </div>
+              <p className="text-[11px] leading-relaxed">
+                Cancelamentos informados com menos de{" "}
+                <strong>{cancellingAppt.service.cancellationNoticeDays} dias</strong> de antecedência são
+                registrados como cancelamento tardio no histórico terapêutico.
+              </p>
+            </div>
+
             {cancelError && <Alert variant="destructive">{cancelError}</Alert>}
 
-            <Alert variant="warning" title="Política de Cancelamento">
-              A política de cancelamento prevê aviso prévio de{" "}
-              <strong>{cancellingAppt.service.cancellationNoticeDays} dias</strong>.
-              Caso o cancelamento ocorra em prazo inferior, ele será registrado como cancelamento tardio.
-            </Alert>
-
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium">
-                Motivo do cancelamento (opcional):
-              </label>
+            <div className="space-y-1">
+              <label className="block font-medium">Motivo do cancelamento (opcional):</label>
               <textarea
-                rows={2}
-                className="flex w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs"
-                placeholder="Informe brevemente a razão do cancelamento..."
+                rows={3}
+                className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-2.5 outline-none focus:ring-2 focus:ring-red-500"
+                placeholder="Informe o motivo do imprevisto se desejar..."
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
               />
@@ -266,11 +399,12 @@ export default function PatientAppointmentsPage() {
                 type="button"
                 variant="ghost"
                 onClick={() => setCancellingAppt(null)}
+                disabled={isSubmitting}
               >
                 Voltar
               </Button>
-              <Button type="submit" variant="destructive" isLoading={isSubmitting}>
-                Confirmar Cancelamento
+              <Button type="submit" variant="destructive" disabled={isSubmitting}>
+                {isSubmitting ? "Cancelando..." : "Confirmar Cancelamento"}
               </Button>
             </div>
           </form>

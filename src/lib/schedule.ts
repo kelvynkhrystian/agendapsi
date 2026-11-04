@@ -374,7 +374,7 @@ export async function createAtomicAppointment({
     });
 
     // Se o agendamento for virtual, provisiona snapshot da sala Jitsi
-    if (modality === "ONLINE" || modality === "BOTH") {
+    if (modality === "ONLINE") {
       const roomSuffix = Math.random().toString(36).substring(2, 10);
       const roomName = `psi-session-${appointment.id}-${roomSuffix}`;
       const psiEntryToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);

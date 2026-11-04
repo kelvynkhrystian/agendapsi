@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSession, requireAuth } from "@/lib/auth";
 import { createAtomicAppointment } from "@/lib/schedule";
+import { dispatchNotification } from "@/lib/notifications";
 
 const createAppointmentSchema = z.object({
   patientId: z.string().min(1, "Paciente é obrigatório"),
@@ -50,26 +51,41 @@ export async function GET(req: NextRequest) {
       whereClause.status = status;
     }
 
-    const appointments = await prisma.appointment.findMany({
-      where: whereClause,
-      include: {
-        patient: {
-          select: {
-            id: true,
-            fullName: true,
-            phone: true,
-            email: true,
-            isMinor: true,
+    const [appointments, site, profile] = await Promise.all([
+      prisma.appointment.findMany({
+        where: whereClause,
+        include: {
+          patient: {
+            select: {
+              id: true,
+              fullName: true,
+              phone: true,
+              email: true,
+              isMinor: true,
+            },
           },
+          service: true,
+          payment: true,
+          videoMeeting: true,
         },
-        service: true,
-        payment: true,
-        videoMeeting: true,
-      },
-      orderBy: { startAt: "asc" },
-    });
+        orderBy: { startAt: "asc" },
+      }),
+      prisma.siteSettings.findUnique({ where: { id: "default" } }),
+      prisma.professionalProfile.findUnique({ where: { id: "default" } }),
+    ]);
 
-    return NextResponse.json(appointments);
+    const enriched = appointments.map((appt) => ({
+      ...appt,
+      // TASK 3: Para agendamentos presenciais, NUNCA expõe link de sala virtual
+      meetingUrlSnapshot: appt.modality === "PRESENTIAL" ? null : appt.meetingUrlSnapshot,
+      establishment: {
+        name: site?.clinicName || "Consultório de Psicologia & Psiquiatria",
+        address: site?.address || null,
+        professionalName: profile?.fullName || "Dr(a). Profissional PSI",
+      },
+    }));
+
+    return NextResponse.json(enriched);
   } catch (error: unknown) {
     if (error instanceof Error && error.message === "UNAUTHORIZED") {
       return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
@@ -98,25 +114,14 @@ export async function POST(req: NextRequest) {
 
     const data = result.data;
 
-    // Se for paciente agendando, só pode agendar para si mesmo e não pode forçar override
-    if (session.role === "PATIENT") {
-      data.patientId = session.userId;
-      data.isAdminOverride = false;
-    }
-
-    // Busca o serviço
-    const service = await prisma.service.findUnique({
-      where: { id: data.serviceId },
-    });
-
-    if (!service || !service.isActive) {
-      return NextResponse.json({ error: "Serviço indisponível." }, { status: 400 });
+    // Se for paciente agendando diretamente, só pode agendar para si mesmo
+    if (session.role === "PATIENT" && data.patientId !== session.userId) {
+      return NextResponse.json({ error: "Operação não permitida." }, { status: 403 });
     }
 
     const startAt = new Date(data.startAt);
     const endAt = new Date(data.endAt);
 
-    // Validação atômica de agenda
     const appointment = await createAtomicAppointment({
       patientId: data.patientId,
       serviceId: data.serviceId,
@@ -125,51 +130,79 @@ export async function POST(req: NextRequest) {
       endAt,
       modality: data.modality,
       status: data.status,
-      isAdminOverride: data.isAdminOverride && session.role === "ADMIN",
+      isAdminOverride: session.role === "ADMIN" ? data.isAdminOverride : false,
       holdToken: data.holdToken,
     });
 
-    // Cria registro de pagamento associado se não for gratuito
-    const isFree = data.isFreeOneOff || service.isFree || service.priceCents === 0;
-    if (!isFree) {
-      await prisma.payment.create({
-        data: {
-          appointmentId: appointment.id,
-          patientId: data.patientId,
-          amountCents: service.priceCents,
-          status: "PENDING",
-          method: "ONLINE_SIMULATED",
-          isSimulated: true,
+    const [service, patient, site, profile] = await Promise.all([
+      prisma.service.findUnique({ where: { id: data.serviceId } }),
+      prisma.patient.findUnique({ where: { id: data.patientId } }),
+      prisma.siteSettings.findUnique({ where: { id: "default" } }),
+      prisma.professionalProfile.findUnique({ where: { id: "default" } }),
+    ]);
+
+    // Dispara notificações automáticas
+    const patientName = patient?.fullName || "Paciente";
+    const professionalName = profile?.fullName || "Profissional";
+    const location =
+      data.modality === "PRESENTIAL"
+        ? site?.address || "Consultório Presencial"
+        : "Sala de Teleconsulta Virtual";
+
+    if (patient) {
+      await dispatchNotification({
+        recipientId: patient.id,
+        recipientRole: "PATIENT",
+        eventType: data.status === "CONFIRMED" ? "APPOINTMENT_CONFIRMED" : "APPOINTMENT_REGISTERED",
+        targetUrl: "/paciente",
+        relatedEntityType: "Appointment",
+        relatedEntityId: appointment.id,
+        vars: {
+          patientName,
+          professionalName,
+          serviceName: service?.name || "Consulta",
+          date: startAt,
+          time: startAt,
+          valueCents: service?.priceCents || 0,
+          location,
+          meetingLink: data.modality === "PRESENTIAL" ? "" : appointment.meetingUrlSnapshot || "",
         },
+        idempotencyKey: `appt-patient-${appointment.id}-${data.status}`,
       });
     }
 
-    // Auditoria
-    await prisma.auditLog.create({
-      data: {
-        userId: session.userId,
-        userRole: session.role,
-        action: "APPOINTMENT_CREATED",
-        resource: "Appointment",
-        resourceId: appointment.id,
-        details: JSON.stringify({
-          startAt: appointment.startAt,
-          isAdminOverride: appointment.isAdminOverride,
-          isFree,
-        }),
-        ipAddress: req.headers.get("x-forwarded-for") || "127.0.0.1",
-      },
-    });
+    // Notificação ao Admin se agendado por paciente
+    if (session.role === "PATIENT") {
+      const admin = await prisma.adminAccount.findFirst();
+      if (admin) {
+        await dispatchNotification({
+          recipientId: admin.id,
+          recipientRole: "ADMIN",
+          eventType: "ADMIN_NEW_APPOINTMENT",
+          targetUrl: "/admin/agenda",
+          relatedEntityType: "Appointment",
+          relatedEntityId: appointment.id,
+          vars: {
+            patientName,
+            serviceName: service?.name || "Consulta",
+            date: startAt,
+            time: startAt,
+            valueCents: service?.priceCents || 0,
+          },
+          idempotencyKey: `appt-admin-${appointment.id}`,
+        });
+      }
+    }
 
     return NextResponse.json(appointment, { status: 201 });
   } catch (error: unknown) {
-    if (error instanceof Error && error.message === "HORARIO_JA_OCUPADO") {
+    if (error instanceof Error && error.message.includes("CONFLITO_AGENDA")) {
       return NextResponse.json(
-        { error: "Este horário já está ocupado ou colide com outro agendamento." },
+        { error: "Conflito de agenda: o horário selecionado já está ocupado ou reservado." },
         { status: 409 }
       );
     }
     console.error("Erro ao criar agendamento:", error);
-    return NextResponse.json({ error: "Erro ao processar agendamento." }, { status: 500 });
+    return NextResponse.json({ error: "Erro interno ao criar agendamento." }, { status: 500 });
   }
 }

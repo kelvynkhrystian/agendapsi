@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { FakePaymentProvider } from "@/lib/payment-provider";
+import { dispatchNotification } from "@/lib/notifications";
 
 export async function POST(
   _req: NextRequest,
@@ -14,6 +16,24 @@ export async function POST(
       id,
       adminSession.userId
     );
+
+    // Notificação ao paciente
+    const patient = await prisma.patient.findUnique({ where: { id: payment.patientId } });
+    if (patient) {
+      await dispatchNotification({
+        recipientId: patient.id,
+        recipientRole: "PATIENT",
+        eventType: "PAYMENT_APPROVED",
+        targetUrl: "/paciente/financeiro",
+        relatedEntityType: "Payment",
+        relatedEntityId: payment.id,
+        vars: {
+          patientName: patient.fullName,
+          valueCents: payment.amountCents,
+        },
+        idempotencyKey: `payment-approved-${payment.id}`,
+      });
+    }
 
     return NextResponse.json({
       success: true,

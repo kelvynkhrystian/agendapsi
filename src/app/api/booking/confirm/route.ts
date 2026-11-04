@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { createAtomicAppointment } from "@/lib/schedule";
-import { sendNotification } from "@/lib/notifications";
+import { dispatchNotification } from "@/lib/notifications";
 
 const confirmBookingSchema = z.object({
   holdToken: z.string().min(8),
@@ -77,32 +77,76 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Envia notificação confirmada/solicitada
-    const patient = await prisma.patient.findUnique({ where: { id: session.userId } });
+    // Busca detalhes do paciente e da clínica
+    const [patient, site, profile] = await Promise.all([
+      prisma.patient.findUnique({ where: { id: session.userId } }),
+      prisma.siteSettings.findUnique({ where: { id: "default" } }),
+      prisma.professionalProfile.findUnique({ where: { id: "default" } }),
+    ]);
+
+    const patientName = patient?.fullName || "Paciente";
+    const professionalName = profile?.fullName || "Profissional";
+    const location =
+      modality === "PRESENTIAL"
+        ? site?.address || "Consultório Presencial"
+        : "Sala de Teleconsulta Virtual";
+
+    // 1. Notificação para o Paciente
     if (patient) {
-      await sendNotification({
-        recipient: patient.email,
-        channel: "EMAIL",
-        templateType: initialStatus === "CONFIRMED" ? "APPOINTMENT_CONFIRMED" : "APPOINTMENT_CREATED",
-        variables: {
-          patientName: patient.fullName,
-          professionalName: "Consultório PSI",
-          appointmentDateTime: appointment.startAt.toISOString(),
-          modality,
-          entryUrl: appointment.meetingUrlSnapshot || "",
+      await dispatchNotification({
+        recipientId: patient.id,
+        recipientRole: "PATIENT",
+        eventType: initialStatus === "CONFIRMED" ? "APPOINTMENT_CONFIRMED" : "APPOINTMENT_REGISTERED",
+        targetUrl: "/paciente",
+        relatedEntityType: "Appointment",
+        relatedEntityId: appointment.id,
+        vars: {
+          patientName,
+          professionalName,
+          serviceName: hold.service.name,
+          date: appointment.startAt,
+          time: appointment.startAt,
+          valueCents: hold.service.priceCents,
+          location,
+          meetingLink: modality === "PRESENTIAL" ? "" : appointment.meetingUrlSnapshot || "",
         },
+        idempotencyKey: `booking-patient-${appointment.id}`,
       });
     }
 
-    return NextResponse.json({
-      success: true,
-      appointment,
-      payment,
-      message:
-        initialStatus === "CONFIRMED"
-          ? "Consulta agendada e confirmada com sucesso!"
-          : "Consulta solicitada! Aguardando confirmação do profissional.",
-    }, { status: 201 });
+    // 2. Notificação para o Administrador
+    const admin = await prisma.adminAccount.findFirst();
+    if (admin) {
+      await dispatchNotification({
+        recipientId: admin.id,
+        recipientRole: "ADMIN",
+        eventType: "ADMIN_NEW_APPOINTMENT",
+        targetUrl: "/admin/agenda",
+        relatedEntityType: "Appointment",
+        relatedEntityId: appointment.id,
+        vars: {
+          patientName,
+          serviceName: hold.service.name,
+          date: appointment.startAt,
+          time: appointment.startAt,
+          valueCents: hold.service.priceCents,
+        },
+        idempotencyKey: `booking-admin-${appointment.id}`,
+      });
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        appointment,
+        payment,
+        message:
+          initialStatus === "CONFIRMED"
+            ? "Consulta agendada e confirmada com sucesso!"
+            : "Consulta solicitada! Aguardando confirmação do profissional.",
+      },
+      { status: 201 }
+    );
   } catch (error: unknown) {
     if (error instanceof Error && error.message === "UNAUTHORIZED") {
       return NextResponse.json({ error: "Faça login para concluir o agendamento." }, { status: 401 });

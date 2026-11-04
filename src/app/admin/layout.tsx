@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import {
   LayoutDashboard,
   Calendar,
@@ -22,6 +23,8 @@ import {
   X,
   Stethoscope,
   ChevronRight,
+  Bell,
+  Share2,
 } from "lucide-react";
 
 const navItems = [
@@ -33,6 +36,8 @@ const navItems = [
   { href: "/admin/pacotes", label: "Pacotes de Sessões", icon: Boxes },
   { href: "/admin/financeiro", label: "Financeiro", icon: DollarSign },
   { href: "/admin/minisite", label: "MiniSite & Páginas", icon: Globe },
+  { href: "/admin/notificacoes", label: "Notificações", icon: Bell },
+  { href: "/admin/integracoes", label: "Integrações", icon: Share2 },
   { href: "/admin/arquivos", label: "Armazenamento & Backup", icon: HardDrive },
   { href: "/admin/configuracoes", label: "Configurações Gerais", icon: Settings },
 ];
@@ -112,11 +117,7 @@ export default function AdminLayout({
           })}
         </nav>
 
-        <div className="p-4 border-t border-slate-200 dark:border-slate-800 space-y-2">
-          <div className="flex items-center justify-between px-2">
-            <div className="text-xs text-slate-500">Tema do Painel</div>
-            <ThemeToggle />
-          </div>
+        <div className="p-4 border-t border-slate-200 dark:border-slate-800">
           <Button
             variant="ghost"
             className="w-full justify-start text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 gap-2"
@@ -155,6 +156,8 @@ export default function AdminLayout({
                 <span>Ver MiniSite</span>
               </Button>
             </Link>
+            <ThemeToggle />
+            <NotificationBell role="ADMIN" />
           </div>
         </header>
 

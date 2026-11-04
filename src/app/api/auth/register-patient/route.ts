@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { AUTH_COOKIE_NAME, hashPassword, signToken } from "@/lib/auth";
+import { dispatchNotification } from "@/lib/notifications";
 
 const registerSchema = z
   .object({
@@ -135,6 +136,23 @@ export async function POST(req: NextRequest) {
         ipAddress: req.headers.get("x-forwarded-for") || "127.0.0.1",
       },
     });
+
+    // Notificação ao administrador sobre novo paciente
+    const admin = await prisma.adminAccount.findFirst();
+    if (admin) {
+      await dispatchNotification({
+        recipientId: admin.id,
+        recipientRole: "ADMIN",
+        eventType: "ADMIN_NEW_PATIENT",
+        targetUrl: `/admin/pacientes/${patient.id}`,
+        relatedEntityType: "Patient",
+        relatedEntityId: patient.id,
+        vars: {
+          patientName: patient.fullName,
+        },
+        idempotencyKey: `new-patient-${patient.id}`,
+      });
+    }
 
     const token = await signToken({
       userId: patient.id,

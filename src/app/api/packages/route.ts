@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, requireAdmin } from "@/lib/auth";
 import { intervalsOverlap } from "@/lib/schedule";
+import { dispatchNotification } from "@/lib/notifications";
 
 const createPackageSchema = z.object({
   patientId: z.string().min(1, "Paciente é obrigatório"),
@@ -151,6 +152,23 @@ export async function POST(req: NextRequest) {
 
       return pkg;
     });
+
+    const patient = await prisma.patient.findUnique({ where: { id: data.patientId } });
+    if (patient) {
+      await dispatchNotification({
+        recipientId: patient.id,
+        recipientRole: "PATIENT",
+        eventType: "PACKAGE_AWAITING_ACCEPTANCE",
+        targetUrl: "/paciente/financeiro",
+        relatedEntityType: "AppointmentPackage",
+        relatedEntityId: createdPackage.id,
+        vars: {
+          patientName: patient.fullName,
+          valueCents: data.totalPriceCents,
+        },
+        idempotencyKey: `pkg-proposed-${createdPackage.id}`,
+      });
+    }
 
     return NextResponse.json(createdPackage, { status: 201 });
   } catch (error: unknown) {
