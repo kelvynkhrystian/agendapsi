@@ -31,8 +31,8 @@ Este documento relaciona todas as páginas e rotas de API disponíveis no sistem
 | `/admin/agenda` | Calendário de atendimentos, alteração de status, faltas e cancelamentos |
 | `/admin/servicos` | Gestão dos serviços oferecidos, modalidades, durações, preços e tempos de buffer |
 | `/admin/pacientes` | Gestão de pacientes cadastrados, responsáveis de menores e aprovação de alterações |
-| `/admin/pacientes/[id]` | Ficha detalhada do paciente, histórico de consultas e dados cadastrais |
-| `/admin/prontuarios` | Registro e histórico de evolução clínica, seletor de humor e versionamento |
+| `/admin/pacientes/[id]` | Ficha detalhada do paciente, gestão privativa de prontuários clínicos (criação, edição e histórico auditado de revisões), agendamentos e finanças |
+| `/admin/prontuarios` | Redirecionamento de segurança para `/admin/pacientes` (prontuários clínicos são privativos e geridos na ficha do paciente) |
 | `/admin/financeiro` | Balanço financeiro, confirmação de pagamentos manuais e estornos |
 | `/admin/pacotes` | Criação e monitoramento de propostas de pacotes de sessões |
 | `/admin/minisite` | Editor de conteúdo do MiniSite (biografia, endereço, cores, redes sociais) |

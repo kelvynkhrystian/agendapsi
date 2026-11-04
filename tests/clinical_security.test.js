@@ -49,3 +49,15 @@ test("Compartilhamento de Documentos: Validação de titularidade e expiração"
   assert.strictEqual(expiredCheck.allowed, false);
   assert.strictEqual(expiredCheck.error, "SHARE_EXPIRED");
 });
+
+test("Segurança e Privacidade: Prontuário clínico não deve constar na barra lateral pública do menu admin", () => {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const layoutContent = fs.readFileSync(path.resolve(__dirname, "../src/app/admin/layout.tsx"), "utf-8");
+
+  assert.strictEqual(
+    layoutContent.includes('href: "/admin/prontuarios"'),
+    false,
+    "Menu lateral do Admin não deve conter item direto de Prontuários (deve ser acessado exclusivamente dentro da ficha do paciente)"
+  );
+});

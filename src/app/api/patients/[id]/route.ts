@@ -38,6 +38,10 @@ export async function GET(
           orderBy: { createdAt: "desc" },
         },
         clinicalRecords: {
+          include: {
+            revisions: { orderBy: { revisedAt: "desc" } },
+            appointment: { include: { service: true } },
+          },
           orderBy: { sessionDate: "desc" },
         },
         fileShares: {
