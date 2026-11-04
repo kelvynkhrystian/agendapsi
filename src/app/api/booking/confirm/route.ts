@@ -1,0 +1,113 @@
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/auth";
+import { createAtomicAppointment } from "@/lib/schedule";
+import { sendNotification } from "@/lib/notifications";
+
+const confirmBookingSchema = z.object({
+  holdToken: z.string().min(8),
+  modality: z.enum(["PRESENTIAL", "ONLINE", "BOTH"]),
+  paymentMethod: z.enum(["ONLINE_SIMULATED", "IN_PERSON", "WHATSAPP_ARRANGED"]).default("ONLINE_SIMULATED"),
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await requireAuth();
+    const body = await req.json();
+    const result = confirmBookingSchema.safeParse(body);
+
+    if (!result.success) {
+      return NextResponse.json(
+        { error: "Dados inválidos", details: result.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+
+    const { holdToken, modality, paymentMethod } = result.data;
+
+    // Busca o hold ativo
+    const hold = await prisma.appointmentHold.findUnique({
+      where: { holdToken },
+      include: { service: true },
+    });
+
+    if (!hold || hold.expiresAt < new Date()) {
+      return NextResponse.json(
+        { error: "O tempo de reserva deste horário expirou. Por favor, selecione o horário novamente." },
+        { status: 410 }
+      );
+    }
+
+    // Define status inicial baseado na política de confirmação do serviço
+    const policy = hold.service.confirmationPolicy;
+    let initialStatus: "PENDING_CONFIRMATION" | "CONFIRMED" = "CONFIRMED";
+
+    if (policy === "MANUAL_ADMIN" || policy === "PAYMENT_AND_ADMIN") {
+      initialStatus = "PENDING_CONFIRMATION";
+    }
+
+    // Criação atômica do agendamento
+    const appointment = await createAtomicAppointment({
+      patientId: session.userId,
+      serviceId: hold.serviceId,
+      startAt: hold.startAt,
+      endAt: hold.endAt,
+      modality,
+      status: initialStatus,
+      holdToken,
+    });
+
+    // Se o serviço não for gratuito, cria o pagamento
+    const isFree = hold.service.isFree || hold.service.priceCents === 0;
+    let payment = null;
+
+    if (!isFree) {
+      payment = await prisma.payment.create({
+        data: {
+          appointmentId: appointment.id,
+          patientId: session.userId,
+          amountCents: hold.service.priceCents,
+          status: paymentMethod === "ONLINE_SIMULATED" ? "APPROVED" : "PENDING",
+          method: paymentMethod,
+          isSimulated: paymentMethod === "ONLINE_SIMULATED",
+          confirmedAt: paymentMethod === "ONLINE_SIMULATED" ? new Date() : null,
+          confirmedBy: paymentMethod === "ONLINE_SIMULATED" ? "SIMULATOR" : null,
+        },
+      });
+    }
+
+    // Envia notificação confirmada/solicitada
+    const patient = await prisma.patient.findUnique({ where: { id: session.userId } });
+    if (patient) {
+      await sendNotification({
+        recipient: patient.email,
+        channel: "EMAIL",
+        templateType: initialStatus === "CONFIRMED" ? "APPOINTMENT_CONFIRMED" : "APPOINTMENT_CREATED",
+        variables: {
+          patientName: patient.fullName,
+          professionalName: "Consultório PSI",
+          appointmentDateTime: appointment.startAt.toISOString(),
+          modality,
+          entryUrl: appointment.meetingUrlSnapshot || "",
+        },
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      appointment,
+      payment,
+      message:
+        initialStatus === "CONFIRMED"
+          ? "Consulta agendada e confirmada com sucesso!"
+          : "Consulta solicitada! Aguardando confirmação do profissional.",
+    }, { status: 201 });
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message === "UNAUTHORIZED") {
+      return NextResponse.json({ error: "Faça login para concluir o agendamento." }, { status: 401 });
+    }
+    console.error("Erro ao confirmar agendamento:", error);
+    return NextResponse.json({ error: "Erro interno ao confirmar agendamento." }, { status: 500 });
+  }
+}

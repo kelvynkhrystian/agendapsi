@@ -20,8 +20,8 @@ Legenda de Estados:
 | **Fase 1** | Fundações: Next.js, Prisma, Schema, Auth, Design System | `implemented` | Schema migrado no MySQL, seed aplicado, rotas de auth, tokens JWT, dark/light mode e testes unitários |
 | **Fase 2** | Slice Vertical: Dashboard Admin, Serviços, Agenda & Concorrência | `implemented` | Dashboard com métricas reais, CRUD de Serviços, Agenda semanal com detecção de colisões e overrides, testes unitários |
 | **Fase 3** | Identidade do Paciente, Responsáveis Legais & Área do Paciente | `implemented` | Cadastro com detecção de menores, responsável legal, área do paciente, solicitações de alteração cadastral com aprovação e testes |
-| **Fase 4** | MiniSite Público, Agendamento em 3 Passos & Solicitação WhatsApp | `in progress` | Iniciando MiniSite em / e /site, fluxo de 3 etapas com persistência de rascunho e solicitação WhatsApp sem bloqueio |
-| **Fase 5** | Financeiro, Máquina de Estados Fake Payment & Pacotes de Sessões | `not started` | |
+| **Fase 4** | MiniSite Público, Agendamento em 3 Passos & Solicitação WhatsApp | `implemented` | MiniSite responsivo em / e /site, fluxo de agendamento em 3 etapas com hold atômico, sanitização de HTML e testes |
+| **Fase 5** | Financeiro, Máquina de Estados Fake Payment & Pacotes de Sessões | `in progress` | Iniciando FakePaymentProvider, tela financeira com tag SIMULADO, pacotes atômicos e estornos |
 | **Fase 6** | Prontuário Clínico Privado, Anamnese, Escala de Humor & Documentos | `not started` | |
 | **Fase 7** | Teleconsulta Jitsi Gated & Notificações (Email/WhatsApp Simulator) | `not started` | |
 | **Fase 8** | Operações: Configurações, Backup/Restore, Storage & Monitoramento GET | `not started` | |
@@ -66,11 +66,12 @@ Legenda de Estados:
 - [x] Testes de identidade e fluxo de aprovação de dados sensíveis executados
 
 ### Fase 4 — MiniSite e Agendamento Público
-- [ ] MiniSite editável acessível em `/` e `/site`
-- [ ] Seções: Hero, Sobre, Serviços, Localização, Contato, Agendar
-- [ ] Fluxo de agendamento em 3 etapas com persistência de rascunho
-- [ ] Fluxo de solicitação via WhatsApp (apenas mensagem, sem reserva indevida)
-- [ ] Sanitização estrita de HTML customizado no MiniSite
+- [x] MiniSite editável acessível em `/` e `/site` (com canonical/rewrites)
+- [x] Seções: Hero, Sobre, Serviços, Localização, Contato, Agendar
+- [x] Fluxo de agendamento em 3 etapas com persistência de rascunho e holds atômicos
+- [x] Fluxo de solicitação via WhatsApp (apenas mensagem, sem reserva indevida)
+- [x] Sanitização estrita de HTML customizado no MiniSite
+- [x] Testes de segurança de HTML e solicitação WhatsApp executados
 
 ### Fase 5 — Financeiro e Pacotes
 - [ ] Implementação do `FakePaymentProvider` (estados e transações)
