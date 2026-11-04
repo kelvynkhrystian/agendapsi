@@ -21,8 +21,8 @@ Legenda de Estados:
 | **Fase 2** | Slice Vertical: Dashboard Admin, Serviços, Agenda & Concorrência | `implemented` | Dashboard com métricas reais, CRUD de Serviços, Agenda semanal com detecção de colisões e overrides, testes unitários |
 | **Fase 3** | Identidade do Paciente, Responsáveis Legais & Área do Paciente | `implemented` | Cadastro com detecção de menores, responsável legal, área do paciente, solicitações de alteração cadastral com aprovação e testes |
 | **Fase 4** | MiniSite Público, Agendamento em 3 Passos & Solicitação WhatsApp | `implemented` | MiniSite responsivo em / e /site, fluxo de agendamento em 3 etapas com hold atômico, sanitização de HTML e testes |
-| **Fase 5** | Financeiro, Máquina de Estados Fake Payment & Pacotes de Sessões | `in progress` | Iniciando FakePaymentProvider, tela financeira com tag SIMULADO, pacotes atômicos e estornos |
-| **Fase 6** | Prontuário Clínico Privado, Anamnese, Escala de Humor & Documentos | `not started` | |
+| **Fase 5** | Financeiro, Máquina de Estados Fake Payment & Pacotes de Sessões | `implemented` | FakePaymentProvider com idempotência, estornos, confirmação manual, pacotes pré-definidos com aceite atômico e testes |
+| **Fase 6** | Prontuário Clínico Privado, Anamnese, Escala de Humor & Documentos | `in progress` | Iniciando prontuário eletrônico confidencial, escala de humor de 10 faces, formulário de anamnese e compartilhamento de arquivos com expiração |
 | **Fase 7** | Teleconsulta Jitsi Gated & Notificações (Email/WhatsApp Simulator) | `not started` | |
 | **Fase 8** | Operações: Configurações, Backup/Restore, Storage & Monitoramento GET | `not started` | |
 | **Fase 9** | Hardening, 20 Testes de Aceitação, Build de Produção & Entrega Final | `not started` | |
@@ -74,11 +74,12 @@ Legenda de Estados:
 - [x] Testes de segurança de HTML e solicitação WhatsApp executados
 
 ### Fase 5 — Financeiro e Pacotes
-- [ ] Implementação do `FakePaymentProvider` (estados e transações)
-- [ ] Confirmação manual de pagamentos presenciais / WhatsApp
-- [ ] Gestão de Pacientes: pacotes fechados com datas atômicas
-- [ ] Relatórios financeiros com distinção visual de valores simulados e reais
-- [ ] Política de retenção/estorno em cancelamentos tardios e no-shows
+- [x] Implementação do `FakePaymentProvider` (estados e transações)
+- [x] Confirmação manual de pagamentos presenciais / WhatsApp
+- [x] Gestão de Pacotes fechados com datas e horários atômicos
+- [x] Relatórios financeiros com distinção visual de valores simulados e reais
+- [x] Política de retenção/estorno em cancelamentos tardios e no-shows
+- [x] Testes de idempotência de pagamento e aceitação de pacotes executados
 
 ### Fase 6 — Módulo Clínico
 - [ ] Templates de Anamnese e resposta pelo paciente com revisão do Admin
