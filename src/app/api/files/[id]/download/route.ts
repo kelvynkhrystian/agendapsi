@@ -41,16 +41,14 @@ export async function GET(
       }
     }
 
-    const storageDir = process.env.STORAGE_DIR || "./storage/uploads";
-    // Previne path traversal validando que o caminho final está dentro do storageDir
-    const safePath = path.resolve(storageDir, file.storedFileName);
-    const resolvedStorageDir = path.resolve(storageDir);
+    const baseDir = path.join(/*turbopackIgnore: true*/ process.cwd(), process.env.STORAGE_DIR || "storage/uploads");
+    const safePath = path.join(/*turbopackIgnore: true*/ baseDir, path.basename(file.storedFileName));
 
-    if (!safePath.startsWith(resolvedStorageDir)) {
+    if (!safePath.startsWith(baseDir)) {
       return NextResponse.json({ error: "Acesso inválido ao sistema de arquivos." }, { status: 403 });
     }
 
-    const fileBuffer = await fs.readFile(safePath);
+    const fileBuffer = await fs.readFile(/*turbopackIgnore: true*/ safePath);
 
     return new NextResponse(fileBuffer, {
       status: 200,

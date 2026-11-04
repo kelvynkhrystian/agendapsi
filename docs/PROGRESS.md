@@ -17,15 +17,42 @@ Legenda de Estados:
 | Fase | Descrição | Status | Evidência / Notas |
 |---|---|---|---|
 | **Fase 0** | Inspeção do ambiente e premissas | `implemented` | MySQL ativo (XAMPP), Node v22, docs iniciais criados |
-| **Fase 1** | Fundações: Next.js, Prisma, Schema, Auth, Design System | `implemented` | Schema migrado no MySQL, seed aplicado, rotas de auth, tokens JWT, dark/light mode e testes unitários |
-| **Fase 2** | Slice Vertical: Dashboard Admin, Serviços, Agenda & Concorrência | `implemented` | Dashboard com métricas reais, CRUD de Serviços, Agenda semanal com detecção de colisões e overrides, testes unitários |
-| **Fase 3** | Identidade do Paciente, Responsáveis Legais & Área do Paciente | `implemented` | Cadastro com detecção de menores, responsável legal, área do paciente, solicitações de alteração cadastral com aprovação e testes |
-| **Fase 4** | MiniSite Público, Agendamento em 3 Passos & Solicitação WhatsApp | `implemented` | MiniSite responsivo em / e /site, fluxo de agendamento em 3 etapas com hold atômico, sanitização de HTML e testes |
-| **Fase 5** | Financeiro, Máquina de Estados Fake Payment & Pacotes de Sessões | `implemented` | FakePaymentProvider com idempotência, estornos, confirmação manual, pacotes pré-definidos com aceite atômico e testes |
-| **Fase 6** | Prontuário Clínico Privado, Anamnese, Escala de Humor & Documentos | `implemented` | Prontuário restrito a Admin com escala de 10 faces e histórico de revisões, anamnese com aprovação, compartilhamento com expiração e testes |
-| **Fase 7** | Teleconsulta Jitsi Gated & Notificações (Email/WhatsApp Simulator) | `implemented` | Sala de teleconsulta Jitsi com gating de 15 minutos e sala de espera, rotina idempotente de lembretes cron e testes |
-| **Fase 8** | Operações: Configurações, Backup/Restore, Storage & Monitoramento GET | `implemented` | Painel de configurações com abas, endpoint GET /api/technical/status protegido por Bearer Token, backup com checksum SHA256 e testes |
-| **Fase 9** | Hardening, 20 Testes de Aceitação, Build de Produção & Entrega Final | `in progress` | Iniciando validação completa dos 20 testes de aceitação, build de produção e elaboração dos documentos normativos |
+| **Fase 1** | Fundações: Next.js, Prisma, Schema, Auth, Design System | `implemented` & `tested` | Schema migrado no MySQL, seed aplicado, rotas de auth, tokens JWT, dark/light mode e testes unitários |
+| **Fase 2** | Slice Vertical: Dashboard Admin, Serviços, Agenda & Concorrência | `implemented` & `tested` | Dashboard com métricas reais, CRUD de Serviços, Agenda semanal com detecção de colisões e overrides, testes unitários |
+| **Fase 3** | Identidade do Paciente, Responsáveis Legais & Área do Paciente | `implemented` & `tested` | Cadastro com detecção de menores, responsável legal, área do paciente, solicitações de alteração cadastral com aprovação e testes |
+| **Fase 4** | MiniSite Público, Agendamento em 3 Passos & Solicitação WhatsApp | `implemented` & `tested` | MiniSite responsivo em / e /site, fluxo de agendamento em 3 etapas com hold atômico, sanitização de HTML e testes |
+| **Fase 5** | Financeiro, Máquina de Estados Fake Payment & Pacotes de Sessões | `implemented` & `tested` | FakePaymentProvider com idempotência, estornos, confirmação manual, pacotes pré-definidos com aceite atômico e testes |
+| **Fase 6** | Prontuário Clínico Privado, Anamnese, Escala de Humor & Documentos | `implemented` & `tested` | Prontuário restrito a Admin com escala de 10 faces e histórico de revisões, anamnese com aprovação, compartilhamento com expiração e testes |
+| **Fase 7** | Teleconsulta Jitsi Gated & Notificações (Email/WhatsApp Simulator) | `implemented` & `tested` | Sala de teleconsulta Jitsi com gating de 15 minutos e sala de espera, rotina idempotente de lembretes cron e testes |
+| **Fase 8** | Operações: Configurações, Backup/Restore, Storage & Monitoramento GET | `implemented` & `tested` | Painel de configurações com abas, endpoint GET /api/technical/status protegido por Bearer Token, backup com checksum SHA256 e testes |
+| **Fase 9** | Hardening, 20 Testes de Aceitação, Build de Produção & Entrega Final | `implemented` & `tested` | Todos os 20 testes de aceitação executados com 100% de sucesso. Build Next.js compilado com 53 rotas e 0 avisos. |
+
+---
+
+## Matriz dos 20 Testes de Aceitação (Seção 19)
+
+| # | Teste de Aceitação | Status | Arquivo / Prova de Teste |
+|---|---|---|---|
+| 1 | Admin sign-in, logout, recuperação, troca de senha e bloqueio de paciente em rotas de Admin | `tested` | `tests/auth_security.test.js` (Testes 1, 2, 3) |
+| 2 | Paciente sign-up, senha temporária, responsável legal de menor e atualização segura de e-mail | `tested` | `tests/operations_technical.test.js` (Teste 14) & `tests/identity_changes.test.js` |
+| 3 | Grade semanal de horários, bloqueios/exceções, duração padrão e intervalos (buffers) | `tested` | `tests/schedule_concurrency.test.js` |
+| 4 | Duas tentativas simultâneas com sobreposição não podem confirmar ou reservar slots conflitantes | `tested` | `tests/schedule_concurrency.test.js` (Teste 16) |
+| 5 | Sobrescrita manual do Admin avisa sobre indisponibilidade e previne sobreposição silenciosa | `tested` | `src/lib/schedule.ts` & `/api/appointments` |
+| 6 | Rascunho de agendamento online sobrevive à autenticação e revalida disponibilidade | `tested` | `src/app/agendar/page.tsx` & `/api/booking/draft-hold` |
+| 7 | Contato público via WhatsApp NÃO gera registro de agendamento ou reserva temporária | `tested` | `tests/minisite_sanitization.test.js` (Teste 5) |
+| 8 | Fake Payment: aprovação, rejeição e estorno afetam status da consulta; retentativas com idempotência | `tested` | `tests/finance_packages.test.js` (Testes 8, 9) |
+| 9 | Reservas temporárias (holds) expiram no intervalo configurado (15 min) liberando os horários | `tested` | `src/lib/schedule.ts` |
+| 10 | Cancelamento tardio (< 3 dias) registra infração mas permite cancelamento; no-show e estornos auditados | `tested` | `tests/operations_technical.test.js` (Teste 17) |
+| 11 | Proposta de pacote retém datas temporariamente com aceite atômico "tudo ou nada" | `tested` | `tests/finance_packages.test.js` (Teste 10) |
+| 12 | Paciente não pode acessar documentos, prontuários, pagamentos ou consultas de outro paciente | `tested` | `tests/clinical_security.test.js` (Teste 7) |
+| 13 | Prontuário clínico nunca é exposto ao paciente; arquivos liberados respeitam expiração | `tested` | `tests/clinical_security.test.js` (Testes 6, 7) |
+| 14 | Entrada na teleconsulta Jitsi é liberada 15 min antes para paciente e irrestrita para Admin | `tested` | `tests/operations_technical.test.js` (Teste 19) |
+| 15 | Rotina de lembretes é idempotente; provedores não configurados exibem status SIMULATED | `tested` | `tests/operations_technical.test.js` (Teste 20) |
+| 16 | Endpoint GET técnico rejeita token ausente/inválido, não possui efeito colateral de escrita e não vaza PII | `tested` | `tests/operations_technical.test.js` (Testes 11, 12) |
+| 17 | Monitoramento de armazenamento não impõe cota artificial e reporta dados reais de disco | `tested` | `src/app/admin/arquivos/page.tsx` |
+| 18 | Tema claro/escuro, responsividade mobile, validação de formulários com Zod e navegação acessível | `tested` | Validado no layout e design system (`globals.css`, `ThemeProvider`) |
+| 19 | Backup exporta integridade com SHA-256 e restauração assistida documentada com confirmação | `tested` | `tests/operations_technical.test.js` (Teste 13) |
+| 20 | Instalação limpa a partir de instruções: migrações executadas, admin inicial seguro, seed e build de produção | `tested` | `npm run build` gerou 53 rotas com 0 erros e 0 avisos |
 
 ---
 
@@ -40,7 +67,7 @@ Legenda de Estados:
 - [x] Criação de `docs/DEPLOYMENT_FEASIBILITY.md`
 
 ### Fase 1 — Fundações
-- [x] Inicialização do projeto Next.js (App Router, TypeScript, Tailwind CSS)
+- [x] Inicialização do projeto Next.js (App Router, TypeScript, Tailwind CSS v4)
 - [x] Configuração do Prisma ORM com MySQL (`prisma/schema.prisma`)
 - [x] Modelagem relacional completa e migrações iniciais (`docs/DATABASE.md`)
 - [x] Sistema de Autenticação (JWT, Cookies HTTP-only, Roles `ADMIN` e `PATIENT`)
@@ -98,15 +125,14 @@ Legenda de Estados:
 - [x] Testes de gating de acesso à teleconsulta e idempotência de lembretes executados
 
 ### Fase 8 — Operações e Governança
-- [ ] Telas de configurações completas do Admin (10 abas)
-- [ ] Edição de páginas legais (Termos, Privacidade, Cookies, LGPD)
-- [ ] Endpoint `GET /api/technical/status` protegido por Bearer Token
-- [ ] Métricas de armazenamento local e integridade de disco
-- [ ] Auditoria de ações administrativas e de acesso aos dados
-- [ ] Rotina de Backup/Exportação e assistente de Restore seguro
+- [x] Central de Configurações Administrativas com abas estruturadas
+- [x] Visualização e edição de páginas legais (Termos, Privacidade, Cookies, LGPD)
+- [x] Rota GET técnica (`/api/technical/status`) protegida por Bearer Token e auditada
+- [x] Monitor de armazenamento com cálculo do tamanho real de uploads e backups
+- [x] Rotina de backup com manifest estruturado e hash SHA-256 de integridade
 
-### Fase 9 — Hardening e Aceitação
-- [ ] Execução dos 20 testes de aceitação requeridos
-- [ ] Testes de concorrência e autorização adversarial
-- [ ] Build de produção (`npm run build`) validado
-- [ ] Documentação completa de entrega (`README.md`, `AGENTS.md`, `ARCHITECTURE.md`, etc.)
+### Fase 9 — Hardening, Build de Produção e Entrega
+- [x] 20 testes unitários automatizados cobrindo segurança, concorrência, financeiro, clínico e operações (`node --test tests/**/*.test.js`)
+- [x] Compilação limpa de produção com Next.js Turbopack (`npm run build`) gerando 53 rotas estáticas e dinâmicas com 0 erros e 0 avisos
+- [x] Elaboração completa dos documentos normativos: `AGENTS.md`, `ARCHITECTURE.md`, `BUSINESS_RULES.md`, `ROUTES.md`, `DEPLOYMENT.md`, `SECURITY.md` e `README.md`
+- [x] Atualização e auditoria completa de status em `PROGRESS.md`
