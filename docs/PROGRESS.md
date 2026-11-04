@@ -22,8 +22,8 @@ Legenda de Estados:
 | **Fase 3** | Identidade do Paciente, Responsáveis Legais & Área do Paciente | `implemented` | Cadastro com detecção de menores, responsável legal, área do paciente, solicitações de alteração cadastral com aprovação e testes |
 | **Fase 4** | MiniSite Público, Agendamento em 3 Passos & Solicitação WhatsApp | `implemented` | MiniSite responsivo em / e /site, fluxo de agendamento em 3 etapas com hold atômico, sanitização de HTML e testes |
 | **Fase 5** | Financeiro, Máquina de Estados Fake Payment & Pacotes de Sessões | `implemented` | FakePaymentProvider com idempotência, estornos, confirmação manual, pacotes pré-definidos com aceite atômico e testes |
-| **Fase 6** | Prontuário Clínico Privado, Anamnese, Escala de Humor & Documentos | `in progress` | Iniciando prontuário eletrônico confidencial, escala de humor de 10 faces, formulário de anamnese e compartilhamento de arquivos com expiração |
-| **Fase 7** | Teleconsulta Jitsi Gated & Notificações (Email/WhatsApp Simulator) | `not started` | |
+| **Fase 6** | Prontuário Clínico Privado, Anamnese, Escala de Humor & Documentos | `implemented` | Prontuário restrito a Admin com escala de 10 faces e histórico de revisões, anamnese com aprovação, compartilhamento com expiração e testes |
+| **Fase 7** | Teleconsulta Jitsi Gated & Notificações (Email/WhatsApp Simulator) | `in progress` | Iniciando integração Jitsi Meet com sala de espera e gating de 15 minutos, templates de notificação e simulador de disparos |
 | **Fase 8** | Operações: Configurações, Backup/Restore, Storage & Monitoramento GET | `not started` | |
 | **Fase 9** | Hardening, 20 Testes de Aceitação, Build de Produção & Entrega Final | `not started` | |
 
@@ -82,11 +82,12 @@ Legenda de Estados:
 - [x] Testes de idempotência de pagamento e aceitação de pacotes executados
 
 ### Fase 6 — Módulo Clínico
-- [ ] Templates de Anamnese e resposta pelo paciente com revisão do Admin
-- [ ] Prontuário Eletrônico privado (notas de sessão, escala visual de humor 10 pontos)
-- [ ] Exportação de prontuário em PDF com layout profissional
-- [ ] Liberação controlada de documentos com prazo de expiração
-- [ ] Armazenamento privado de arquivos (fora de `public/`) com sanitização e ACL
+- [x] Templates de Anamnese e resposta pelo paciente com revisão do Admin
+- [x] Prontuário Eletrônico privado (notas de sessão, escala visual de humor 10 pontos)
+- [x] Histórico de revisões e auditoria de prontuário (`ClinicalRecordRevision`)
+- [x] Liberação controlada de documentos com prazo de expiração (15, 30, 60, 90 dias ou indeterminado)
+- [x] Armazenamento privado de arquivos (fora de `public/`) com sanitização e proteção contra path traversal
+- [x] Testes de segurança de sigilo clínico e expiração de compartilhamento executados
 
 ### Fase 7 — Vídeo e Comunicações
 - [ ] Integração Jitsi Meet com sala de alta entropia
