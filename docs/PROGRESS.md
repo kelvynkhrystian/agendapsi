@@ -19,8 +19,8 @@ Legenda de Estados:
 | **Fase 0** | Inspeção do ambiente e premissas | `implemented` | MySQL ativo (XAMPP), Node v22, docs iniciais criados |
 | **Fase 1** | Fundações: Next.js, Prisma, Schema, Auth, Design System | `implemented` | Schema migrado no MySQL, seed aplicado, rotas de auth, tokens JWT, dark/light mode e testes unitários |
 | **Fase 2** | Slice Vertical: Dashboard Admin, Serviços, Agenda & Concorrência | `implemented` | Dashboard com métricas reais, CRUD de Serviços, Agenda semanal com detecção de colisões e overrides, testes unitários |
-| **Fase 3** | Identidade do Paciente, Responsáveis Legais & Área do Paciente | `in progress` | Iniciando gestão de pacientes no admin, portal do paciente, solicitações de alteração cadastral e consentimentos |
-| **Fase 4** | MiniSite Público, Agendamento em 3 Passos & Solicitação WhatsApp | `not started` | |
+| **Fase 3** | Identidade do Paciente, Responsáveis Legais & Área do Paciente | `implemented` | Cadastro com detecção de menores, responsável legal, área do paciente, solicitações de alteração cadastral com aprovação e testes |
+| **Fase 4** | MiniSite Público, Agendamento em 3 Passos & Solicitação WhatsApp | `in progress` | Iniciando MiniSite em / e /site, fluxo de 3 etapas com persistência de rascunho e solicitação WhatsApp sem bloqueio |
 | **Fase 5** | Financeiro, Máquina de Estados Fake Payment & Pacotes de Sessões | `not started` | |
 | **Fase 6** | Prontuário Clínico Privado, Anamnese, Escala de Humor & Documentos | `not started` | |
 | **Fase 7** | Teleconsulta Jitsi Gated & Notificações (Email/WhatsApp Simulator) | `not started` | |
@@ -58,11 +58,12 @@ Legenda de Estados:
 - [x] Testes de agendamento e sobreposição executados com sucesso
 
 ### Fase 3 — Pacientes e Área do Paciente
-- [ ] Cadastro e Gestão de Pacientes pelo Admin
-- [ ] Registro público de paciente e login com senha temporária
-- [ ] Suporte a pacientes menores de idade com dados de responsável legal
-- [ ] Área do paciente (`/paciente`): visualização de sessões, documentos e perfil
-- [ ] Solicitação de alteração de dados sensíveis com aprovação pelo Admin
+- [x] Cadastro e Gestão de Pacientes pelo Admin
+- [x] Registro público de paciente e login com senha temporária
+- [x] Suporte a pacientes menores de idade com dados de responsável legal
+- [x] Área do paciente (`/paciente`): visualização de sessões, documentos e perfil
+- [x] Solicitação de alteração de dados sensíveis com aprovação pelo Admin
+- [x] Testes de identidade e fluxo de aprovação de dados sensíveis executados
 
 ### Fase 4 — MiniSite e Agendamento Público
 - [ ] MiniSite editável acessível em `/` e `/site`
