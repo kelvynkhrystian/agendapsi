@@ -23,8 +23,8 @@ Legenda de Estados:
 | **Fase 4** | MiniSite Público, Agendamento em 3 Passos & Solicitação WhatsApp | `implemented` | MiniSite responsivo em / e /site, fluxo de agendamento em 3 etapas com hold atômico, sanitização de HTML e testes |
 | **Fase 5** | Financeiro, Máquina de Estados Fake Payment & Pacotes de Sessões | `implemented` | FakePaymentProvider com idempotência, estornos, confirmação manual, pacotes pré-definidos com aceite atômico e testes |
 | **Fase 6** | Prontuário Clínico Privado, Anamnese, Escala de Humor & Documentos | `implemented` | Prontuário restrito a Admin com escala de 10 faces e histórico de revisões, anamnese com aprovação, compartilhamento com expiração e testes |
-| **Fase 7** | Teleconsulta Jitsi Gated & Notificações (Email/WhatsApp Simulator) | `in progress` | Iniciando integração Jitsi Meet com sala de espera e gating de 15 minutos, templates de notificação e simulador de disparos |
-| **Fase 8** | Operações: Configurações, Backup/Restore, Storage & Monitoramento GET | `not started` | |
+| **Fase 7** | Teleconsulta Jitsi Gated & Notificações (Email/WhatsApp Simulator) | `implemented` | Sala de teleconsulta Jitsi com gating de 15 minutos e sala de espera, rotina idempotente de lembretes cron e testes |
+| **Fase 8** | Operações: Configurações, Backup/Restore, Storage & Monitoramento GET | `in progress` | Iniciando telas de configurações (10 abas), endpoint GET /api/technical/status, painel de storage, backup e restore seguro |
 | **Fase 9** | Hardening, 20 Testes de Aceitação, Build de Produção & Entrega Final | `not started` | |
 
 ---
@@ -90,11 +90,12 @@ Legenda de Estados:
 - [x] Testes de segurança de sigilo clínico e expiração de compartilhamento executados
 
 ### Fase 7 — Vídeo e Comunicações
-- [ ] Integração Jitsi Meet com sala de alta entropia
-- [ ] Sala de espera do PSI com liberação 15 minutos antes da sessão
-- [ ] Adaptador de e-mail (SMTP/API) com Outbox de desenvolvimento
-- [ ] Simulador de mensagens WhatsApp e fila de lembretes idempotente
-- [ ] Templates de notificação personalizáveis
+- [x] Integração Jitsi Meet com sala de alta entropia
+- [x] Sala de espera do PSI com liberação 15 minutos antes da sessão
+- [x] Adaptador de e-mail (SMTP/API) com Outbox de desenvolvimento
+- [x] Simulador de mensagens WhatsApp e fila de lembretes idempotente
+- [x] Templates de notificação personalizáveis
+- [x] Testes de gating de acesso à teleconsulta e idempotência de lembretes executados
 
 ### Fase 8 — Operações e Governança
 - [ ] Telas de configurações completas do Admin (10 abas)
