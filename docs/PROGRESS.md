@@ -24,8 +24,8 @@ Legenda de Estados:
 | **Fase 5** | Financeiro, Máquina de Estados Fake Payment & Pacotes de Sessões | `implemented` | FakePaymentProvider com idempotência, estornos, confirmação manual, pacotes pré-definidos com aceite atômico e testes |
 | **Fase 6** | Prontuário Clínico Privado, Anamnese, Escala de Humor & Documentos | `implemented` | Prontuário restrito a Admin com escala de 10 faces e histórico de revisões, anamnese com aprovação, compartilhamento com expiração e testes |
 | **Fase 7** | Teleconsulta Jitsi Gated & Notificações (Email/WhatsApp Simulator) | `implemented` | Sala de teleconsulta Jitsi com gating de 15 minutos e sala de espera, rotina idempotente de lembretes cron e testes |
-| **Fase 8** | Operações: Configurações, Backup/Restore, Storage & Monitoramento GET | `in progress` | Iniciando telas de configurações (10 abas), endpoint GET /api/technical/status, painel de storage, backup e restore seguro |
-| **Fase 9** | Hardening, 20 Testes de Aceitação, Build de Produção & Entrega Final | `not started` | |
+| **Fase 8** | Operações: Configurações, Backup/Restore, Storage & Monitoramento GET | `implemented` | Painel de configurações com abas, endpoint GET /api/technical/status protegido por Bearer Token, backup com checksum SHA256 e testes |
+| **Fase 9** | Hardening, 20 Testes de Aceitação, Build de Produção & Entrega Final | `in progress` | Iniciando validação completa dos 20 testes de aceitação, build de produção e elaboração dos documentos normativos |
 
 ---
 
