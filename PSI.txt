@@ -1,0 +1,57 @@
+PSI 
+
+  Telas 
+    Publicas 
+      404 
+      Login/Cadastro Admin e SuperAdmin 
+      Políticas de Privacidade 
+      Termos de Uso 
+      Cookies 
+      LGPD 
+      Página de Serviço de chamada virtual, vão receber o link e poder entrar 
+    user 
+      Painel 
+      Perfil 
+      Configurações 
+    admin 
+      MiniSite 
+      site 
+      site personalizado 
+      Painel 
+      Pacientes 
+        Geral 
+        Anamnese 
+        Prontuário 
+      Pagamentos 
+        Online 
+        Presencial 
+      Relatório 
+      Serviços 
+        Adicionar 
+          pode ser virtual ou presencial 
+        Editar 
+      Perfil 
+        Visual 
+        Informações gerais/ local do estabelecimento 
+      Integrações 
+        whatsapp para enviar os lembretes dos pacientes 
+        talvez a AI para atendimento automático 
+      Configurações 
+      Página de Login/cadastro do Paciente com logo do profissional. 
+
+  Tecnologias 
+    Next 
+    Typescript 
+    Prisma (ORM) 
+    SQL 
+    API Rest ( dentro do NEXT ) 
+
+  Principais Funcionalidades 
+    Agendamento 
+    Prontuário 
+    Financeiro 
+    Mini Site 
+    Lembretes ( API Whatsapp ) 
+    Chamadas de Vídeo 
+    Pagamento Online 
+    Área do Paciente 

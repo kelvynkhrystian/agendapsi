@@ -1,0 +1,563 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  PATIENT
+}
+
+enum Modality {
+  PRESENTIAL
+  ONLINE
+  BOTH
+}
+
+enum AppointmentStatus {
+  PENDING_CONFIRMATION
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  LATE_CANCELLED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  ONLINE_SIMULATED
+  IN_PERSON
+  WHATSAPP_ARRANGED
+}
+
+enum ConfirmationPolicy {
+  AUTOMATIC
+  UPON_PAYMENT
+  MANUAL_ADMIN
+  PAYMENT_AND_ADMIN
+}
+
+enum PackageAcceptanceStatus {
+  PROPOSED
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+enum AnamnesisSubmissionStatus {
+  PENDING_REVIEW
+  APPROVED
+  REVISION_REQUESTED
+}
+
+enum NotificationChannel {
+  EMAIL
+  WHATSAPP
+}
+
+enum NotificationType {
+  APPOINTMENT_CREATED
+  APPOINTMENT_CONFIRMED
+  APPOINTMENT_CANCELLED
+  APPOINTMENT_RESCHEDULED
+  PAYMENT_RECEIVED
+  PACKAGE_PROPOSAL
+  VIDEO_ACCESS
+  REMINDER_24H
+  REMINDER_2H
+}
+
+model AdminAccount {
+  id                 String     @id @default(cuid())
+  name               String
+  email              String     @unique
+  passwordHash       String
+  phone              String
+  crpCrm             String?
+  mustChangePassword Boolean    @default(false)
+  failedLogins       Int        @default(0)
+  lockedUntil        DateTime?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  sessions           Session[]
+}
+
+model Patient {
+  id                 String     @id @default(cuid())
+  fullName           String
+  email              String     @unique
+  passwordHash       String?
+  tempPassword       String?
+  mustChangePassword Boolean    @default(false)
+  phone              String
+  cpf                String?
+  birthDate          DateTime?
+  isMinor            Boolean    @default(false)
+  gender             String?
+  address            String?
+  emergencyContact   String?
+  isActive           Boolean    @default(true)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  guardians          Guardian[]
+  consentAcceptances ConsentAcceptance[]
+  profileChanges     PatientProfileChangeRequest[]
+  appointments       Appointment[]
+  appointmentHolds   AppointmentHold[]
+  packages           AppointmentPackage[]
+  anamnesisSubmits   AnamnesisSubmission[]
+  clinicalRecords    ClinicalRecord[]
+  fileShares         StoredFileShare[]
+  payments           Payment[]
+  sessions           Session[]
+}
+
+model Guardian {
+  id           String   @id @default(cuid())
+  patientId    String
+  patient      Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  fullName     String
+  cpf          String
+  phone        String
+  email        String
+  relationship String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model PatientProfileChangeRequest {
+  id         String    @id @default(cuid())
+  patientId  String
+  patient    Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  field      String
+  oldValue   String?
+  newValue   String
+  status     String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  reviewedAt DateTime?
+  reviewedBy String?
+  createdAt  DateTime  @default(now())
+}
+
+model ConsentAcceptance {
+  id            String   @id @default(cuid())
+  patientId     String
+  patient       Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  policyType    String
+  policyVersion String
+  ipAddress     String?
+  userAgent     String?
+  context       String?
+  acceptedAt    DateTime @default(now())
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  userRole  Role
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  adminAccount AdminAccount? @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Session_admin_fk")
+  patient      Patient?      @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Session_patient_fk")
+
+  @@index([userId])
+}
+
+model Service {
+  id                     String             @id @default(cuid())
+  name                   String
+  description            String?            @db.Text
+  priceCents             Int                @default(0)
+  isFree                 Boolean            @default(false)
+  durationMinutes        Int                @default(60)
+  bufferMinutes          Int                @default(0)
+  modality               Modality           @default(BOTH)
+  confirmationPolicy     ConfirmationPolicy @default(AUTOMATIC)
+  cancellationNoticeDays Int                @default(3)
+  isActive               Boolean            @default(true)
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  appointments           Appointment[]
+  holds                  AppointmentHold[]
+}
+
+model WeeklyAvailability {
+  id        String   @id @default(cuid())
+  dayOfWeek Int      // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  startTime String   // "08:00"
+  endTime   String   // "18:00"
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AvailabilityException {
+  id        String   @id @default(cuid())
+  date      DateTime
+  startTime String?
+  endTime   String?
+  isBlocked Boolean  @default(true)
+  reason    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Appointment {
+  id                 String            @id @default(cuid())
+  patientId          String
+  patient            Patient           @relation(fields: [patientId], references: [id])
+  serviceId          String
+  service            Service           @relation(fields: [serviceId], references: [id])
+  packageId          String?
+  package            AppointmentPackage? @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  startAt            DateTime
+  endAt              DateTime
+  modality           Modality
+  status             AppointmentStatus @default(CONFIRMED)
+  isAdminOverride    Boolean           @default(false)
+  cancellationReason String?           @db.Text
+  cancelledAt        DateTime?
+  cancelledBy        String?
+  isLateCancellation Boolean           @default(false)
+  noShowRecordedAt   DateTime?
+  noShowHandled      Boolean           @default(false)
+  meetingUrlSnapshot String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  payment            Payment?
+  clinicalRecord     ClinicalRecord?
+  videoMeeting       VideoMeeting?
+
+  @@index([startAt, endAt])
+  @@index([patientId])
+  @@index([status])
+}
+
+model AppointmentHold {
+  id           String              @id @default(cuid())
+  holdToken    String              @unique
+  patientId    String?
+  patient      Patient?            @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  serviceId    String
+  service      Service             @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  packageId    String?
+  package      AppointmentPackage? @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  startAt      DateTime
+  endAt        DateTime
+  expiresAt    DateTime
+  ownerSession String?
+  reason       String?             // BOOKING_DRAFT, PACKAGE_PROPOSAL
+  createdAt    DateTime            @default(now())
+
+  @@index([expiresAt])
+  @@index([startAt, endAt])
+}
+
+model AppointmentPackage {
+  id              String                  @id @default(cuid())
+  patientId       String
+  patient         Patient                 @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  title           String
+  description     String?                 @db.Text
+  totalPriceCents Int                     @default(0)
+  status          PackageAcceptanceStatus @default(PROPOSED)
+  expiresAt       DateTime?
+  acceptedAt      DateTime?
+  rejectedAt      DateTime?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  appointments    Appointment[]
+  payment         Payment?
+  holds           AppointmentHold[]
+}
+
+model Payment {
+  id                 String         @id @default(cuid())
+  appointmentId      String?        @unique
+  appointment        Appointment?   @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  packageId          String?        @unique
+  package            AppointmentPackage? @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  patientId          String
+  patient            Patient        @relation(fields: [patientId], references: [id])
+  amountCents        Int
+  status             PaymentStatus  @default(PENDING)
+  method             PaymentMethod  @default(ONLINE_SIMULATED)
+  isSimulated        Boolean        @default(true)
+  externalReference  String?
+  idempotencyKey     String?        @unique
+  confirmedAt        DateTime?
+  confirmedBy        String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  attempts           PaymentAttempt[]
+  refunds            Refund[]
+
+  @@index([patientId])
+  @@index([status])
+}
+
+model PaymentAttempt {
+  id          String   @id @default(cuid())
+  paymentId   String
+  payment     Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  amountCents Int
+  rawStatus   String
+  rawResponse String?  @db.Text
+  createdAt   DateTime @default(now())
+}
+
+model Refund {
+  id          String   @id @default(cuid())
+  paymentId   String
+  payment     Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  amountCents Int
+  reason      String?
+  refundedAt  DateTime @default(now())
+  refundedBy  String
+}
+
+model GatewayConfiguration {
+  id                  String   @id @default(cuid())
+  slotNumber          Int      @unique
+  providerKey         String
+  name                String
+  isEnabled           Boolean  @default(false)
+  configDataEncrypted String?  @db.Text
+  updatedAt           DateTime @updatedAt
+}
+
+model AnamnesisTemplate {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  version     Int      @default(1)
+  fieldsJson  String   @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  submissions AnamnesisSubmission[]
+}
+
+model AnamnesisSubmission {
+  id              String                    @id @default(cuid())
+  templateId      String
+  template        AnamnesisTemplate         @relation(fields: [templateId], references: [id])
+  patientId       String
+  patient         Patient                   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  templateVersion Int
+  answersJson     String                    @db.Text
+  status          AnamnesisSubmissionStatus @default(PENDING_REVIEW)
+  reviewedAt      DateTime?
+  reviewerNotes   String?                   @db.Text
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+
+  @@index([patientId])
+}
+
+model ClinicalRecord {
+  id            String                   @id @default(cuid())
+  appointmentId String?                  @unique
+  appointment   Appointment?             @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  patientId     String
+  patient       Patient                  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  sessionDate   DateTime
+  noteRichText  String                   @db.MediumText
+  summary       String?                  @db.Text
+  moodRating    Int?
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+
+  revisions     ClinicalRecordRevision[]
+  attachments   StoredFile[]
+
+  @@index([patientId])
+}
+
+model ClinicalRecordRevision {
+  id                 String         @id @default(cuid())
+  recordId           String
+  record             ClinicalRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  contentSnapshot    String         @db.MediumText
+  moodRatingSnapshot Int?
+  revisedAt          DateTime       @default(now())
+  revisedBy          String
+}
+
+model StoredFile {
+  id               String            @id @default(cuid())
+  originalName     String
+  storedFileName   String            @unique
+  mimeType         String
+  sizeBytes        Int
+  category         String            // CLINICAL_NOTE_EXPORT, PATIENT_DOCUMENT, SYSTEM_BACKUP
+  clinicalRecordId String?
+  clinicalRecord   ClinicalRecord?   @relation(fields: [clinicalRecordId], references: [id], onDelete: SetNull)
+  uploadedBy       String
+  createdAt        DateTime          @default(now())
+
+  shares           StoredFileShare[]
+}
+
+model StoredFileShare {
+  id          String     @id @default(cuid())
+  fileId      String
+  file        StoredFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  patientId   String
+  patient     Patient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  canDownload Boolean    @default(true)
+  expiresAt   DateTime?
+  sharedAt    DateTime   @default(now())
+
+  @@index([patientId])
+}
+
+model VideoMeeting {
+  id            String      @id @default(cuid())
+  appointmentId String      @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  provider      String      @default("JITSI")
+  roomName      String      @unique
+  psiEntryToken String      @unique
+  createdAt     DateTime    @default(now())
+}
+
+model NotificationTemplate {
+  id           String              @id @default(cuid())
+  type         NotificationType
+  channel      NotificationChannel
+  subject      String?
+  bodyTemplate String              @db.Text
+  isActive     Boolean             @default(true)
+  updatedAt    DateTime            @updatedAt
+
+  @@unique([type, channel])
+}
+
+model NotificationDelivery {
+  id             String              @id @default(cuid())
+  recipient      String
+  channel        NotificationChannel
+  templateType   NotificationType
+  status         String              // DELIVERED, SIMULATED, FAILED
+  simulated      Boolean             @default(true)
+  errorDetails   String?
+  idempotencyKey String?             @unique
+  sentAt         DateTime            @default(now())
+}
+
+model SiteSettings {
+  id             String   @id @default("default")
+  clinicName     String   @default("Consultório de Psicologia & Psiquiatria")
+  tagline        String   @default("Atendimento ético, acolhedor e humanizado.")
+  aboutText      String   @db.Text
+  heroTitle      String   @default("Cuidando da sua saúde mental com excelência")
+  heroSubtitle   String   @default("Agende sua consulta presencial ou online com praticidade e total sigilo.")
+  logoUrl        String?
+  primaryColor   String   @default("#0d9488")
+  address        String?
+  phone          String?
+  whatsappNumber String?
+  email          String?
+  instagram      String?
+  customHtml     String?  @db.Text
+  updatedAt      DateTime @updatedAt
+}
+
+model ProfessionalProfile {
+  id        String   @id @default("default")
+  fullName  String   @default("Dr(a). Profissional PSI")
+  title     String   @default("Psicólogo(a) Clínico(a)")
+  crpCrm    String   @default("CRP 06/123456")
+  bio       String   @db.Text
+  avatarUrl String?
+  updatedAt DateTime @updatedAt
+}
+
+model LegalPage {
+  id          String   @id // "privacy", "terms", "cookies", "lgpd"
+  title       String
+  contentHtml String   @db.MediumText
+  version     String   @default("1.0")
+  updatedAt   DateTime @updatedAt
+}
+
+model SystemSettings {
+  id                           String   @id @default("default")
+  timezone                     String   @default("America/Sao_Paulo")
+  minBookingNoticeHours        Int      @default(24)
+  maxBookingHorizonDays        Int      @default(30)
+  holdExpiryMinutes            Int      @default(60)
+  defaultCancellationNoticeDays Int      @default(3)
+  allowPatientReschedule       Boolean  @default(true)
+  activeVideoProvider          String   @default("JITSI")
+  jitsiDomain                  String   @default("meet.jit.si")
+  enableOnlinePayment          Boolean  @default(true)
+  enableInPersonPayment        Boolean  @default(true)
+  enableWhatsAppPayment        Boolean  @default(true)
+  smtpHost                     String?
+  smtpPort                     Int?
+  smtpUser                     String?
+  smtpPass                     String?
+  smtpFrom                     String?
+  whatsappApiUrl               String?
+  whatsappApiToken             String?
+  updatedAt                    DateTime @updatedAt
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  userRole   String?
+  action     String
+  resource   String
+  resourceId String?
+  details    String?  @db.Text
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([action])
+}
+
+model TechnicalAccessLog {
+  id        String   @id @default(cuid())
+  endpoint  String
+  ipAddress String?
+  userAgent String?
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model BackupJob {
+  id             String   @id @default(cuid())
+  filename       String
+  sizeBytes      Int
+  checksumSha256 String
+  status         String
+  details        String?  @db.Text
+  createdAt      DateTime @default(now())
+}
