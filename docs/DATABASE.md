@@ -95,12 +95,15 @@ erDiagram
 - `StoredFileShare`: Permissões de visualização/download pelo paciente com expiração (`id`, `fileId`, `patientId`, `expiresAt`, `sharedAt`).
 
 ### 3.8 Comunicação, Configuração e Auditoria
-- `VideoMeeting`: Dados da sala de vídeo (`id`, `appointmentId`, `provider`, `roomName`, `createdAt`).
-- `NotificationTemplate`: Modelos de mensagens (`id`, `type`, `channel` [EMAIL/WHATSAPP], `subject`, `bodyTemplate`).
-- `NotificationDelivery`: Registro de disparos e status de entrega (`id`, `recipient`, `channel`, `templateType`, `status`, `simulated`, `sentAt`, `errorDetails`).
-- `SiteSettings`: Configurações visuais, textos do MiniSite, endereço e redes sociais.
+- `VideoMeeting`: Dados da sala de vídeo (`id`, `appointmentId`, `provider`, `roomName`, `psiEntryToken`, `createdAt`).
+- `NotificationTemplate`: Modelos de mensagens legados (`id`, `type`, `channel` [EMAIL/WHATSAPP], `subject`, `bodyTemplate`).
+- `NotificationDelivery`: Registro de disparos e status de entrega externa (`id`, `recipient`, `channel`, `templateType`, `status`, `simulated`, `sentAt`, `errorDetails`).
+- `Notification`: Notificações internas persistentes no aplicativo para Admin e Paciente (`id`, `recipientId`, `recipientRole`, `eventType`, `title`, `message`, `targetUrl`, `isRead`, `readAt`, `relatedEntityType`, `relatedEntityId`, `createdAt`).
+- `SharedNotificationTemplate`: Mensagens padrão unificadas por tipo de evento (`id`, `eventType`, `title`, `body`, `deliveryMode`, `updatedAt`).
+- `SiteSettings`: Configurações visuais, textos do MiniSite, logos (padrão e horizontal), favicon, paleta de cores (primária, secundária, destaque, botões), endereço e redes sociais.
 - `ProfessionalProfile`: Dados do profissional (nome, biografia, foto, CRP/CRM).
 - `LegalPage`: Conteúdo dos termos legais (Privacidade, Termos, Cookies, LGPD).
-- `AuditLog`: Log de segurança de operações sensíveis (`id`, `userId`, `userRole`, `action`, `resource`, `resourceId`, `detailsJson`, `ipAddress`, `createdAt`).
+- `SystemSettings`: Preferências globais (fuso horário, prazos, provedor de vídeo ativo [Jitsi/PeerJS/Meet], credenciais SMTP independentes, credenciais WhatsApp independentes, flags de pagamento).
+- `AuditLog`: Log de segurança de operações sensíveis (`id`, `userId`, `userRole`, `action`, `resource`, `resourceId`, `details`, `ipAddress`, `createdAt`).
 - `TechnicalAccessLog`: Log de acessos ao endpoint `/api/technical/status`.
-- `BackupJob`: Registro de backups gerados e integridade.
+- `BackupJob`: Registro de backups gerados e integridade (`id`, `filename`, `sizeBytes`, `checksumSha256`, `status`, `details`, `createdAt`).

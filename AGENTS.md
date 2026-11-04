@@ -41,6 +41,13 @@ Este documento estabelece as diretrizes permanentes de arquitetura, princípios 
 - **Testes Automatizados:** O runner nativo `node --test tests/**/*.test.js` deve ser executado antes de qualquer entrega, garantindo cobertura de segurança, concorrência e regras de negócio.
 - **Migrações Seguras:** Utilizar `npx prisma migrate dev` em desenvolvimento. Nunca executar `db push --force-reset` em ambientes de produção.
 
+---
+
+## 6. Manutenção Permanente do Dicionário de Dados e Documentação do Banco
+- **Regra Obrigatória de Atualização Contínua:** Sempre que você modificar o esquema Prisma (`prisma/schema.prisma`), modelos de banco de dados, migrações, relacionamentos, enums de banco ou o comportamento de persistência de dados, você **DEVE** atualizar obrigatoriamente `docs/DICIONARIO_DADOS.md` e a documentação correlata (`docs/GUIA_BANCO.md`, `docs/DATABASE.md`, `docs/BUSINESS_RULES.md`) na **MESMA tarefa de desenvolvimento** antes de considerar o trabalho concluído (*Definition of Done*).
+- **Verificação Automática:** Execute `npm run docs:db:check` sempre que houver alterações no esquema para garantir que nenhum modelo ou campo fique sem documentação.
+- **Nunca Adiar Documentação:** Nunca encerre uma tarefa relacionada a dados com a documentação defasada nem postergue atualizações do dicionário para fases futuras.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 ## This is NOT the Next.js you know
