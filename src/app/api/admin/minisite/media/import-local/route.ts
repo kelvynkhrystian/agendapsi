@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import path from "path";
 import { requireAdmin } from "@/lib/auth";
-import { importLocalFrames, MediaSlot } from "@/lib/minisite-media";
+import { detectExistingFrames, MediaSlot } from "@/lib/minisite-media";
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,10 +13,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Slot de mídia inválido. Use 'hero' ou 'about'." }, { status: 400 });
     }
 
-    const sourceFolder = slot === "hero" ? "top" : "mid";
-    const sourceDir = path.join(process.cwd(), "storage", "minisite", sourceFolder);
+    const result = await detectExistingFrames(slot);
 
-    const result = await importLocalFrames(sourceDir, slot);
+    if (!result) {
+      const folderName = slot === "hero" ? "top" : "sobre";
+      return NextResponse.json(
+        { error: `Nenhum frame ou arquivo ZIP encontrado em storage/minisite/${folderName}.` },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
@@ -26,8 +30,7 @@ export async function POST(req: NextRequest) {
       frameCount: result.frameCount,
       frames: result.frames,
       posterUrl: result.posterUrl,
-      source: sourceDir,
-      message: `${result.frameCount} frames importados com sucesso a partir de ${sourceFolder}!`,
+      message: `${result.frameCount} frames importados e sincronizados com sucesso a partir do storage!`,
     });
   } catch (error: unknown) {
     if (error instanceof Error && error.message === "FORBIDDEN") {

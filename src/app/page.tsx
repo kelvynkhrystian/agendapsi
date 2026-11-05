@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MiniSiteMediaPlayer } from "@/components/minisite/media-player";
 import { ThemeIcon } from "@/components/minisite/theme-icon";
 import { DEFAULT_HERO_BENEFITS, HeroBenefitItem } from "@/lib/minisite-icons";
+import { detectExistingFrames } from "@/lib/minisite-media";
 import {
   formatFullAddress,
   getGoogleMapsDestinationUrl,
@@ -60,12 +61,26 @@ export default async function HomePage() {
     site?.aboutText ||
     "Sou psicóloga clínica, com mais de 10 anos de experiência, dedicada ao cuidado da saúde mental, ao autoconhecimento e à promoção de uma vida com mais equilíbrio.";
 
-  // Frames da Animação do MiniSite (Fase 3/5)
+  // Frames da Animação do MiniSite (Fase 3/5 & Suporte a Mídias Reais)
   let heroFrames: string[] = [];
   if (site?.heroFramesJson) {
     try {
       heroFrames = JSON.parse(site.heroFramesJson);
     } catch {}
+  }
+  let heroMediaType = site?.heroMediaType || (profile?.avatarUrl ? "IMAGE" : "IMAGE");
+  let heroMediaUrl = site?.heroMediaUrl || profile?.avatarUrl;
+  let heroPosterUrl = site?.heroPosterUrl;
+
+  // Fallback inteligente: se não configurado explicitamente ou sem frames, busca mídias em storage/minisite/top
+  if (heroFrames.length === 0 && (!site?.heroMediaUrl || site?.heroMediaType === "FRAME_ANIMATION")) {
+    const detectedHero = await detectExistingFrames("hero");
+    if (detectedHero && detectedHero.frames.length > 0) {
+      heroFrames = detectedHero.frames;
+      heroMediaType = "FRAME_ANIMATION";
+      heroMediaUrl = heroMediaUrl || detectedHero.frames[0];
+      heroPosterUrl = heroPosterUrl || detectedHero.posterUrl;
+    }
   }
 
   let aboutFrames: string[] = [];
@@ -73,6 +88,20 @@ export default async function HomePage() {
     try {
       aboutFrames = JSON.parse(site.aboutFramesJson);
     } catch {}
+  }
+  let aboutMediaType = site?.aboutMediaType || "IMAGE";
+  let aboutMediaUrl = site?.aboutMediaUrl;
+  let aboutPosterUrl = site?.aboutPosterUrl;
+
+  // Fallback inteligente: se não configurado explicitamente ou sem frames, busca mídias em storage/minisite/sobre
+  if (aboutFrames.length === 0 && (!site?.aboutMediaUrl || site?.aboutMediaType === "FRAME_ANIMATION")) {
+    const detectedAbout = await detectExistingFrames("about");
+    if (detectedAbout && detectedAbout.frames.length > 0) {
+      aboutFrames = detectedAbout.frames;
+      aboutMediaType = "FRAME_ANIMATION";
+      aboutMediaUrl = aboutMediaUrl || detectedAbout.frames[0];
+      aboutPosterUrl = aboutPosterUrl || detectedAbout.posterUrl;
+    }
   }
 
   // Indicadores de Benefício do Hero (Fase 4/5)
@@ -233,9 +262,9 @@ export default async function HomePage() {
             <div className="w-56 h-64 sm:w-64 sm:h-72 rounded-full p-2 bg-gradient-to-b from-white to-[var(--primary)]/15 border-2 border-[var(--primary)]/25 shadow-md flex items-center justify-center overflow-hidden">
               <MiniSiteMediaPlayer
                 slot="hero"
-                mediaType={site?.heroMediaType || (profile?.avatarUrl ? "IMAGE" : "IMAGE")}
-                mediaUrl={site?.heroMediaUrl || profile?.avatarUrl}
-                posterUrl={site?.heroPosterUrl}
+                mediaType={heroMediaType}
+                mediaUrl={heroMediaUrl}
+                posterUrl={heroPosterUrl}
                 frames={heroFrames}
                 fps={site?.heroFps ?? 24}
                 loop={site?.heroLoop ?? true}
@@ -428,9 +457,9 @@ export default async function HomePage() {
               <div className="w-full aspect-4/3 rounded-2xl border border-slate-200 overflow-hidden relative shadow-inner bg-gradient-to-tr from-[#EBE3D5] to-[#F5EFEB]">
                 <MiniSiteMediaPlayer
                   slot="about"
-                  mediaType={site?.aboutMediaType || "IMAGE"}
-                  mediaUrl={site?.aboutMediaUrl}
-                  posterUrl={site?.aboutPosterUrl}
+                  mediaType={aboutMediaType}
+                  mediaUrl={aboutMediaUrl}
+                  posterUrl={aboutPosterUrl}
                   frames={aboutFrames}
                   fps={site?.aboutFps ?? 24}
                   loop={site?.aboutLoop ?? true}

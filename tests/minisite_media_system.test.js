@@ -338,21 +338,23 @@ test("MiniSite Media System — 7. Validação de Limites de FPS (10 a 60)", () 
 
 test("MiniSite Media System — 8. Presença e Existência dos 40 Frames Locais Fornecidos pelo Usuário", () => {
   const topDir = path.join(process.cwd(), "storage", "minisite", "top");
-  const midDir = path.join(process.cwd(), "storage", "minisite", "mid");
+  const sobreDir = fs.existsSync(path.join(process.cwd(), "storage", "minisite", "sobre"))
+    ? path.join(process.cwd(), "storage", "minisite", "sobre")
+    : path.join(process.cwd(), "storage", "minisite", "mid");
 
   assert.strictEqual(fs.existsSync(topDir), true, "Diretório storage/minisite/top deve existir");
-  assert.strictEqual(fs.existsSync(midDir), true, "Diretório storage/minisite/mid deve existir");
+  assert.strictEqual(fs.existsSync(sobreDir), true, "Diretório storage/minisite/sobre deve existir");
 
   const topFiles = fs.readdirSync(topDir);
-  const midFiles = fs.readdirSync(midDir);
+  const sobreFiles = fs.readdirSync(sobreDir);
 
   const topPngs = topFiles.filter((f) => f.endsWith(".png"));
-  const midPngs = midFiles.filter((f) => f.endsWith(".png"));
+  const sobrePngs = sobreFiles.filter((f) => f.endsWith(".png"));
 
   assert.strictEqual(topPngs.length, 40, "storage/minisite/top deve conter exatamente 40 frames PNG");
-  assert.strictEqual(midPngs.length, 40, "storage/minisite/mid deve conter exatamente 40 frames PNG");
+  assert.strictEqual(sobrePngs.length, 40, "storage/minisite/sobre deve conter exatamente 40 frames PNG");
   assert.strictEqual(fs.existsSync(path.join(topDir, "b.zip")), true, "b.zip deve existir no top");
-  assert.strictEqual(fs.existsSync(path.join(midDir, "a.zip")), true, "a.zip deve existir no mid");
+  assert.strictEqual(fs.existsSync(path.join(sobreDir, "a.zip")), true, "a.zip deve existir no sobre");
 });
 
 test("MiniSite Media System — 9. Conformidade do Schema Prisma e Dicionário de Dados", () => {

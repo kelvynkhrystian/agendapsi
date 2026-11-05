@@ -10,10 +10,12 @@ const AdmZip = require("adm-zip");
 
 test("Phase 5 Audit — 1. Teste Real de Extração e Ordenação de ZIP de 40 Frames", () => {
   const topZipPath = path.join(process.cwd(), "storage", "minisite", "top", "b.zip");
-  const midZipPath = path.join(process.cwd(), "storage", "minisite", "mid", "a.zip");
+  const sobreZipPath = fs.existsSync(path.join(process.cwd(), "storage", "minisite", "sobre", "a.zip"))
+    ? path.join(process.cwd(), "storage", "minisite", "sobre", "a.zip")
+    : path.join(process.cwd(), "storage", "minisite", "mid", "a.zip");
 
   assert.strictEqual(fs.existsSync(topZipPath), true, "storage/minisite/top/b.zip deve existir");
-  assert.strictEqual(fs.existsSync(midZipPath), true, "storage/minisite/mid/a.zip deve existir");
+  assert.strictEqual(fs.existsSync(sobreZipPath), true, "storage/minisite/sobre/a.zip deve existir");
 
   // Testa b.zip
   const topZip = new AdmZip(topZipPath);
@@ -27,7 +29,7 @@ test("Phase 5 Audit — 1. Teste Real de Extração e Ordenação de ZIP de 40 F
   assert.strictEqual(path.basename(topEntries[39].entryName), "ezgif-frame-040.png");
 
   // Testa a.zip
-  const midZip = new AdmZip(midZipPath);
+  const midZip = new AdmZip(sobreZipPath);
   const midEntries = midZip.getEntries().filter((e) => !e.isDirectory && e.entryName.endsWith(".png"));
   assert.strictEqual(midEntries.length, 40, "a.zip deve conter exatamente 40 frames PNG");
 

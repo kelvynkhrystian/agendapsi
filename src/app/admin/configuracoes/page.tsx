@@ -41,6 +41,8 @@ import {
   Film,
   FileArchive,
   Play,
+  Folder,
+  Images,
 } from "lucide-react";
 
 interface VideoProviderItem {
@@ -372,15 +374,30 @@ export default function AdminSettingsPage() {
     setAppearanceFeedback("Cores restauradas para a paleta padrão do PSI (Verde). Clique em Salvar para persistir.");
   };
 
-  // Upload de Mídia para Slots do MiniSite (Fase 3/5)
-  const handleUploadSlotMedia = async (slot: "hero" | "about", mediaType: string, file: File) => {
+  // Upload de Mídia para Slots do MiniSite (Fase 3/5 & Suporte a Frames e Pastas)
+  const handleUploadSlotMedia = async (
+    slot: "hero" | "about",
+    mediaType: string,
+    filesOrFile: File | File[] | FileList
+  ) => {
     setUploadingSlot(`${slot}-${mediaType}`);
     setMediaFeedback(null);
     try {
       const formData = new FormData();
-      formData.append("file", file);
       formData.append("slot", slot);
       formData.append("mediaType", mediaType);
+
+      if (filesOrFile instanceof FileList || Array.isArray(filesOrFile)) {
+        const fileList = Array.from(filesOrFile);
+        if (fileList.length === 1 && fileList[0].name.toLowerCase().endsWith(".zip")) {
+          formData.append("file", fileList[0]);
+        } else {
+          formData.append("isMultiple", "true");
+          fileList.forEach((f) => formData.append("files", f));
+        }
+      } else {
+        formData.append("file", filesOrFile);
+      }
 
       const res = await fetch("/api/admin/minisite/media/upload", {
         method: "POST",
@@ -1398,14 +1415,16 @@ export default function AdminSettingsPage() {
                     </div>
                   </div>
 
-                  {/* Dropzone de Upload */}
+                  {/* Dropzone de Upload e Opções de Envio */}
                   <div className="space-y-2">
                     <div
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={(e) => {
                         e.preventDefault();
-                        const file = e.dataTransfer.files?.[0];
-                        if (file) handleUploadSlotMedia("hero", heroMediaType, file);
+                        const dropped = e.dataTransfer.files;
+                        if (dropped && dropped.length > 0) {
+                          handleUploadSlotMedia("hero", heroMediaType, dropped);
+                        }
                       }}
                       className="p-4 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl text-center hover:bg-slate-100/50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors"
                     >
@@ -1428,23 +1447,65 @@ export default function AdminSettingsPage() {
                         />
                         <Upload className="h-5 w-5 text-teal-600 dark:text-teal-400 mx-auto mb-1" />
                         <p className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
-                          {uploadingSlot === "hero"
+                          {uploadingSlot === "hero-FRAME_ANIMATION" || uploadingSlot === "hero-IMAGE" || uploadingSlot === "hero-VIDEO"
                             ? "Processando e enviando arquivo..."
                             : heroMediaType === "FRAME_ANIMATION"
-                            ? "Clique para enviar arquivo ZIP com os frames"
+                            ? "Clique ou arraste arquivo ZIP com os frames"
                             : heroMediaType === "VIDEO"
                             ? "Clique para enviar vídeo (WebM / MP4)"
                             : "Clique para enviar imagem (JPG, PNG, WebP)"}
                         </p>
                         <p className="text-[10px] text-slate-400 mt-0.5">
                           {heroMediaType === "FRAME_ANIMATION"
-                            ? "Frames numerados ordenadamente (ex: 001.webp ... 040.webp). Máx 150 frames / 100MB."
+                            ? "Frames numerados ordenadamente (ex: 001.png ... 040.png). Máx 150 frames / 100MB."
                             : heroMediaType === "VIDEO"
                             ? "Vídeos rodam sem áudio (muted) para compatibilidade mobile. Máx 50MB."
                             : "Imagens com alta resolução. Máx 10MB."}
                         </p>
                       </label>
                     </div>
+
+                    {/* Opções alternativas para Animação: Múltiplos Arquivos ou Pasta Inteira */}
+                    {heroMediaType === "FRAME_ANIMATION" && (
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <label className="cursor-pointer block">
+                          <input
+                            type="file"
+                            multiple
+                            accept="image/png,image/jpeg,image/webp"
+                            className="hidden"
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files.length > 0) {
+                                handleUploadSlotMedia("hero", "FRAME_ANIMATION", e.target.files);
+                              }
+                            }}
+                          />
+                          <div className="p-2 border border-slate-200 dark:border-slate-800 rounded-lg text-center hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
+                            <Images className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                            <span>Múltiplos Frames</span>
+                          </div>
+                        </label>
+
+                        <label className="cursor-pointer block">
+                          <input
+                            type="file"
+                            multiple
+                            {...({ webkitdirectory: "", directory: "" } as any)}
+                            accept="image/png,image/jpeg,image/webp"
+                            className="hidden"
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files.length > 0) {
+                                handleUploadSlotMedia("hero", "FRAME_ANIMATION", e.target.files);
+                              }
+                            }}
+                          />
+                          <div className="p-2 border border-slate-200 dark:border-slate-800 rounded-lg text-center hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
+                            <Folder className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                            <span>Pasta de Frames</span>
+                          </div>
+                        </label>
+                      </div>
+                    )}
 
                     {/* Botão de Atalho para Importar storage/minisite/top */}
                     {heroMediaType === "FRAME_ANIMATION" && (
@@ -1697,14 +1758,16 @@ export default function AdminSettingsPage() {
                     </div>
                   </div>
 
-                  {/* Dropzone de Upload */}
+                  {/* Dropzone de Upload e Opções de Envio */}
                   <div className="space-y-2">
                     <div
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={(e) => {
                         e.preventDefault();
-                        const file = e.dataTransfer.files?.[0];
-                        if (file) handleUploadSlotMedia("about", aboutMediaType, file);
+                        const dropped = e.dataTransfer.files;
+                        if (dropped && dropped.length > 0) {
+                          handleUploadSlotMedia("about", aboutMediaType, dropped);
+                        }
                       }}
                       className="p-4 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl text-center hover:bg-slate-100/50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors"
                     >
@@ -1727,17 +1790,17 @@ export default function AdminSettingsPage() {
                         />
                         <Upload className="h-5 w-5 text-teal-600 dark:text-teal-400 mx-auto mb-1" />
                         <p className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
-                          {uploadingSlot === "about"
+                          {uploadingSlot === "about-FRAME_ANIMATION" || uploadingSlot === "about-IMAGE" || uploadingSlot === "about-VIDEO"
                             ? "Processando e enviando arquivo..."
                             : aboutMediaType === "FRAME_ANIMATION"
-                            ? "Clique para enviar arquivo ZIP com os frames"
+                            ? "Clique ou arraste arquivo ZIP com os frames"
                             : aboutMediaType === "VIDEO"
                             ? "Clique para enviar vídeo (WebM / MP4)"
                             : "Clique para enviar imagem (JPG, PNG, WebP)"}
                         </p>
                         <p className="text-[10px] text-slate-400 mt-0.5">
                           {aboutMediaType === "FRAME_ANIMATION"
-                            ? "Frames numerados ordenadamente (ex: 001.webp ... 040.webp). Máx 150 frames / 100MB."
+                            ? "Frames numerados ordenadamente (ex: 001.png ... 040.png). Máx 150 frames / 100MB."
                             : aboutMediaType === "VIDEO"
                             ? "Vídeos rodam sem áudio (muted) para compatibilidade mobile. Máx 50MB."
                             : "Imagens com alta resolução. Máx 10MB."}
@@ -1745,7 +1808,49 @@ export default function AdminSettingsPage() {
                       </label>
                     </div>
 
-                    {/* Botão de Atalho para Importar storage/minisite/mid */}
+                    {/* Opções alternativas para Animação: Múltiplos Arquivos ou Pasta Inteira */}
+                    {aboutMediaType === "FRAME_ANIMATION" && (
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <label className="cursor-pointer block">
+                          <input
+                            type="file"
+                            multiple
+                            accept="image/png,image/jpeg,image/webp"
+                            className="hidden"
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files.length > 0) {
+                                handleUploadSlotMedia("about", "FRAME_ANIMATION", e.target.files);
+                              }
+                            }}
+                          />
+                          <div className="p-2 border border-slate-200 dark:border-slate-800 rounded-lg text-center hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
+                            <Images className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                            <span>Múltiplos Frames</span>
+                          </div>
+                        </label>
+
+                        <label className="cursor-pointer block">
+                          <input
+                            type="file"
+                            multiple
+                            {...({ webkitdirectory: "", directory: "" } as any)}
+                            accept="image/png,image/jpeg,image/webp"
+                            className="hidden"
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files.length > 0) {
+                                handleUploadSlotMedia("about", "FRAME_ANIMATION", e.target.files);
+                              }
+                            }}
+                          />
+                          <div className="p-2 border border-slate-200 dark:border-slate-800 rounded-lg text-center hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
+                            <Folder className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                            <span>Pasta de Frames</span>
+                          </div>
+                        </label>
+                      </div>
+                    )}
+
+                    {/* Botão de Atalho para Importar storage/minisite/sobre */}
                     {aboutMediaType === "FRAME_ANIMATION" && (
                       <Button
                         type="button"
@@ -1759,7 +1864,7 @@ export default function AdminSettingsPage() {
                         <span>
                           {uploadingSlot === "about-import"
                             ? "Importando frames locais..."
-                            : "⚡ Importar frames existentes (storage/minisite/mid)"}
+                            : "⚡ Importar frames existentes (storage/minisite/sobre)"}
                         </span>
                       </Button>
                     )}

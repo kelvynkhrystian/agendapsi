@@ -1,21 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { promises as fs } from "fs";
 import path from "path";
 import { requireAdmin } from "@/lib/auth";
-import { processZipBuffer, MediaSlot, MediaType } from "@/lib/minisite-media";
+import {
+  processZipBuffer,
+  processMultipleImageFiles,
+  saveStaticMediaFile,
+  MediaSlot,
+  MediaType,
+  ALLOWED_IMAGE_EXTENSIONS,
+  ALLOWED_VIDEO_EXTENSIONS,
+} from "@/lib/minisite-media";
 
 export async function POST(req: NextRequest) {
   try {
     await requireAdmin();
 
     const formData = await req.formData();
-    const file = formData.get("file") as File | null;
     const slot = formData.get("slot") as MediaSlot | null; // "hero" | "about"
     const mediaType = formData.get("mediaType") as MediaType | null; // "IMAGE" | "FRAME_ANIMATION" | "VIDEO"
+    const isFolderOrMultiple = formData.get("isMultiple") === "true";
 
-    if (!file || !slot || !mediaType) {
+    if (!slot || !mediaType) {
       return NextResponse.json(
-        { error: "Arquivo, slot de mídia ou tipo não fornecido." },
+        { error: "Slot de mídia ou tipo não fornecido." },
         { status: 400 }
       );
     }
@@ -24,11 +31,45 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Slot de mídia inválido. Use 'hero' ou 'about'." }, { status: 400 });
     }
 
+    // Caso A: Upload de Múltiplos Arquivos ou Pasta de Frames
+    const multiFiles = formData.getAll("files") as File[];
+    if (isFolderOrMultiple || (multiFiles && multiFiles.length > 1)) {
+      const fileBuffers: { name: string; buffer: Buffer }[] = [];
+      for (const f of multiFiles) {
+        if (f.size > 15 * 1024 * 1024) {
+          return NextResponse.json(
+            { error: `O frame ${f.name} excede o limite individual de 15MB.` },
+            { status: 400 }
+          );
+        }
+        const buf = Buffer.from(await f.arrayBuffer());
+        fileBuffers.push({ name: f.name, buffer: buf });
+      }
+
+      const result = await processMultipleImageFiles(fileBuffers, slot);
+      return NextResponse.json({
+        success: true,
+        slot,
+        mediaType: "FRAME_ANIMATION",
+        frameCount: result.frameCount,
+        frames: result.frames,
+        posterUrl: result.posterUrl,
+        message: `${result.frameCount} frames processados e salvos com sucesso!`,
+      });
+    }
+
+    // Caso B: Upload de Arquivo Único (ZIP, Imagem ou Vídeo)
+    const file = (formData.get("file") as File | null) || (multiFiles.length === 1 ? multiFiles[0] : null);
+    if (!file) {
+      return NextResponse.json({ error: "Nenhum arquivo enviado." }, { status: 400 });
+    }
+
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+    const rawExt = path.extname(file.name).toLowerCase();
 
-    // Caso 1: Frame Animation via ZIP
-    if (mediaType === "FRAME_ANIMATION") {
+    // 1. Frame Animation via ZIP
+    if (mediaType === "FRAME_ANIMATION" || rawExt === ".zip") {
       const MAX_ZIP_SIZE = 100 * 1024 * 1024; // 100MB
       if (file.size > MAX_ZIP_SIZE) {
         return NextResponse.json(
@@ -42,51 +83,44 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: true,
         slot,
-        mediaType,
+        mediaType: "FRAME_ANIMATION",
         frameCount: result.frameCount,
         frames: result.frames,
         posterUrl: result.posterUrl,
+        message: `Animação ZIP com ${result.frameCount} frames descompactada e persistida com sucesso!`,
       });
     }
 
-    // Caso 2: Imagem Estática
+    // 2. Imagem Estática (JPG, PNG, WebP)
     if (mediaType === "IMAGE") {
-      const MAX_IMG_SIZE = 10 * 1024 * 1024; // 10MB
+      const MAX_IMG_SIZE = 15 * 1024 * 1024; // 15MB
       if (file.size > MAX_IMG_SIZE) {
         return NextResponse.json(
-          { error: "A imagem excede o limite máximo permitido de 10 MB." },
+          { error: "A imagem excede o limite máximo permitido de 15 MB." },
           { status: 400 }
         );
       }
 
-      const allowedImageMimes = ["image/jpeg", "image/png", "image/webp"];
-      if (!allowedImageMimes.includes(file.type)) {
+      if (!ALLOWED_IMAGE_EXTENSIONS.includes(rawExt)) {
         return NextResponse.json(
           { error: "Formato de imagem inválido. Formatos suportados: JPG, PNG e WebP." },
           { status: 400 }
         );
       }
 
-      const uploadDir = path.join(process.cwd(), "public", "uploads", "minisite");
-      await fs.mkdir(uploadDir, { recursive: true });
-
-      const ext = path.extname(file.name).toLowerCase() || (file.type === "image/webp" ? ".webp" : ".png");
-      const filename = `${slot}-${Date.now()}${ext}`;
-      const destPath = path.join(uploadDir, filename);
-
-      await fs.writeFile(destPath, buffer);
-      const publicUrl = `/uploads/minisite/${filename}`;
+      const publicUrl = await saveStaticMediaFile(file.name, buffer, slot, "image");
 
       return NextResponse.json({
         success: true,
         slot,
-        mediaType,
+        mediaType: "IMAGE",
         url: publicUrl,
         posterUrl: publicUrl,
+        message: "Imagem estática salva com sucesso!",
       });
     }
 
-    // Caso 3: Vídeo (WebM / MP4)
+    // 3. Vídeo (WebM / MP4)
     if (mediaType === "VIDEO") {
       const MAX_VID_SIZE = 50 * 1024 * 1024; // 50MB
       if (file.size > MAX_VID_SIZE) {
@@ -96,29 +130,22 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const allowedVideoMimes = ["video/mp4", "video/webm"];
-      if (!allowedVideoMimes.includes(file.type)) {
+      if (!ALLOWED_VIDEO_EXTENSIONS.includes(rawExt)) {
         return NextResponse.json(
           { error: "Formato de vídeo inválido. Formatos suportados: MP4 e WebM." },
           { status: 400 }
         );
       }
 
-      const uploadDir = path.join(process.cwd(), "public", "uploads", "minisite");
-      await fs.mkdir(uploadDir, { recursive: true });
-
-      const ext = path.extname(file.name).toLowerCase() || (file.type === "video/webm" ? ".webm" : ".mp4");
-      const filename = `${slot}-video-${Date.now()}${ext}`;
-      const destPath = path.join(uploadDir, filename);
-
-      await fs.writeFile(destPath, buffer);
-      const publicUrl = `/uploads/minisite/${filename}`;
+      const publicUrl = await saveStaticMediaFile(file.name, buffer, slot, "video");
 
       return NextResponse.json({
         success: true,
         slot,
-        mediaType,
+        mediaType: "VIDEO",
         url: publicUrl,
+        posterUrl: publicUrl,
+        message: "Vídeo salvo com sucesso!",
       });
     }
 
@@ -127,8 +154,8 @@ export async function POST(req: NextRequest) {
     if (error instanceof Error && error.message === "FORBIDDEN") {
       return NextResponse.json({ error: "Acesso restrito ao administrador." }, { status: 403 });
     }
-    const message = error instanceof Error ? error.message : "Erro interno no upload de mídia.";
-    console.error("Erro no upload de mídia do MiniSite:", error);
+    const message = error instanceof Error ? error.message : "Erro interno ao processar o upload.";
+    console.error("Erro no upload de mídia:", error);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -95,20 +95,28 @@ export function MiniSiteMediaPlayer({
     let isCancelled = false;
     loadedImagesRef.current = [];
 
-    // Pré-carrega o primeiro lote (poster e primeiros 10 frames)
-    const initialBatchSize = Math.min(10, frames.length);
+    // Pré-carrega o primeiro lote (poster e primeiros 5 frames para renderização instantânea)
+    const initialBatchSize = Math.min(5, frames.length);
     let loadedCount = 0;
 
     for (let i = 0; i < frames.length; i++) {
       const img = new Image();
       img.src = frames[i];
-      img.onload = () => {
+
+      const onDone = () => {
         if (isCancelled) return;
         loadedCount++;
         if (loadedCount >= initialBatchSize) {
           setImagesLoaded(true);
         }
       };
+
+      if (img.complete && img.naturalWidth > 0) {
+        onDone();
+      } else {
+        img.onload = onDone;
+        img.onerror = onDone;
+      }
       loadedImagesRef.current[i] = img;
     }
 
@@ -215,7 +223,7 @@ export function MiniSiteMediaPlayer({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const img = loadedImagesRef.current[currentFrameIndex];
+    const img = loadedImagesRef.current[currentFrameIndex] || loadedImagesRef.current[0];
     if (img && img.complete && img.naturalWidth > 0) {
       if (canvas.width !== img.naturalWidth || canvas.height !== img.naturalHeight) {
         canvas.width = img.naturalWidth;
