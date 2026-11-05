@@ -784,8 +784,8 @@ export default function AdminSettingsPage() {
       {activeTab === "appearance" && (
         <div className="space-y-6">
           <div className="p-4 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 space-y-1">
-            <p className="font-semibold flex items-center gap-1.5 text-[var(--primary)]">
-              <Palette className="h-4 w-4" />
+            <p className="font-bold flex items-center gap-1.5 text-[#111827] dark:text-[#F5F5F5]">
+              <Palette className="h-4 w-4 text-[var(--primary)]" />
               <span>Sistema Global de Aparência e Temas (Fase 1 de 5)</span>
             </p>
             <p>

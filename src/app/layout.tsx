@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { prisma } from "@/lib/prisma";
+import { calculateContrastRatio } from "@/lib/theme-presets";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -38,16 +39,20 @@ export default async function RootLayout({
   const secondary = site?.secondaryColor || "#f1f5f9";
   const accent = site?.accentColor || "#f0fdfa";
   const buttonBg = site?.buttonColor || primary;
-  const bgColor = site?.backgroundColor || "#f8fafc";
-  const textColor = site?.textColor || "#0f172a";
+  const bgColor = site?.backgroundColor || "#f8f9fa";
+  const textColor = site?.textColor || "#111827";
+
+  // Cálculo automático de contraste acessível para o texto do botão primário
+  const buttonForeground = calculateContrastRatio("#ffffff", buttonBg) >= 4.5 ? "#ffffff" : "#111827";
 
   const dynamicCss = `
     :root {
       --primary: ${primary};
-      --primary-foreground: #ffffff;
+      --primary-foreground: ${buttonForeground};
       --secondary: ${secondary};
       --accent: ${accent};
       --button-bg: ${buttonBg};
+      --button-fg: ${buttonForeground};
       --ring: ${primary};
       --theme-bg: ${bgColor};
       --theme-text: ${textColor};
@@ -58,22 +63,25 @@ export default async function RootLayout({
       --color-background: ${bgColor};
       --color-surface: #ffffff;
       --color-text: ${textColor};
-      --color-text-muted: #64748b;
-      --color-border: #e2e8f0;
+      --color-text-muted: #6b7280;
+      --color-border: #e2e4e8;
     }
-    .dark {
+    .dark, [data-theme="dark"] {
       --primary: ${primary};
+      --primary-foreground: ${buttonForeground};
       --button-bg: ${buttonBg};
+      --button-fg: ${buttonForeground};
       --ring: ${primary};
       --color-primary: ${primary};
       --color-primary-hover: ${buttonBg};
-      --color-secondary: #353535;
-      --color-accent: #353535;
-      --color-background: #202020;
-      --color-surface: #2D2D2D;
-      --color-text: #F5F5F5;
-      --color-text-muted: #BDBDBD;
-      --color-border: #444444;
+      --color-secondary: #222226;
+      --color-accent: #222226;
+      --color-background: #080809;
+      --color-surface: #19191c;
+      --color-text: #f5f5f5;
+      --color-text-secondary: #c7c7cc;
+      --color-text-muted: #a3a3ad;
+      --color-border: #303034;
     }
   `;
 
@@ -82,8 +90,36 @@ export default async function RootLayout({
       <head>
         {site?.faviconUrl && <link rel="icon" href={site.faviconUrl} />}
         <style id="psi-theme-vars" dangerouslySetInnerHTML={{ __html: dynamicCss }} />
+        <script
+          id="psi-theme-init"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var path = window.location.pathname;
+                  var isAuth = path.startsWith('/admin') || path.startsWith('/paciente');
+                  if (isAuth) {
+                    var key = path.startsWith('/admin') ? 'psi_theme_admin' : 'psi_theme_patient';
+                    var saved = localStorage.getItem(key) || localStorage.getItem('psi_theme');
+                    var isDark = saved === 'dark' || (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                    if (isDark) {
+                      document.documentElement.classList.add('dark');
+                      document.documentElement.setAttribute('data-theme', 'dark');
+                    } else {
+                      document.documentElement.classList.remove('dark');
+                      document.documentElement.setAttribute('data-theme', 'light');
+                    }
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.setAttribute('data-theme', 'light');
+                  }
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
       </head>
-      <body className="min-h-screen bg-slate-50 dark:bg-[#202020] text-slate-900 dark:text-[#F5F5F5] antialiased selection:bg-[var(--primary)] selection:text-white">
+      <body className="min-h-screen bg-[#F8F9FA] dark:bg-[#080809] text-[#111827] dark:text-[#F5F5F5] antialiased selection:bg-[var(--primary)] selection:text-white">
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

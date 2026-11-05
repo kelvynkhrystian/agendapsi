@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
 
 type Theme = "light" | "dark";
@@ -22,21 +22,44 @@ const ThemeContext = createContext<ThemeContextType>({
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || "";
   const [theme, setThemeState] = useState<Theme>("light");
+  const [mounted, setMounted] = useState(false);
 
   // Regra Estrita de Isolamento de Modo Escuro:
   // Modo escuro é permitido e preservado EXCLUSIVAMENTE nas rotas autenticadas (/admin/* e /paciente/*).
   // O MiniSite público e telas abertas operam SEMPRE no modo claro.
   const isAuthRoute = pathname.startsWith("/admin") || pathname.startsWith("/paciente");
 
-  const getStorageKey = (path: string) => {
+  const getStorageKey = useCallback((path: string) => {
     if (path.startsWith("/admin")) return "psi_theme_admin";
     if (path.startsWith("/paciente")) return "psi_theme_patient";
     return null;
-  };
+  }, []);
+
+  const applyDomTheme = useCallback((isDark: boolean) => {
+    if (typeof document === "undefined") return;
+    const body = document.body;
+
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+      document.documentElement.setAttribute("data-theme", "dark");
+      if (body) {
+        body.classList.add("dark");
+        body.setAttribute("data-theme", "dark");
+      }
+    } else {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.setAttribute("data-theme", "light");
+      if (body) {
+        body.classList.remove("dark");
+        body.setAttribute("data-theme", "light");
+      }
+    }
+  }, []);
 
   useEffect(() => {
+    setMounted(true);
     if (!isAuthRoute) {
-      document.documentElement.classList.remove("dark");
+      applyDomTheme(false);
       setThemeState("light");
       return;
     }
@@ -50,43 +73,43 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       saved = localStorage.getItem("psi_theme_patient");
     }
 
-    if (saved === "light" || saved === "dark") {
-      setThemeState(saved as Theme);
-      document.documentElement.classList.toggle("dark", saved === "dark");
-    } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      setThemeState("dark");
-      document.documentElement.classList.add("dark");
-    } else {
-      setThemeState("light");
-      document.documentElement.classList.remove("dark");
-    }
-  }, [pathname, isAuthRoute]);
+    const wantsDark =
+      saved === "dark" ||
+      (!saved && typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
-  const setTheme = (newTheme: Theme) => {
+    const activeTheme: Theme = wantsDark ? "dark" : "light";
+    setThemeState(activeTheme);
+    applyDomTheme(wantsDark);
+  }, [pathname, isAuthRoute, getStorageKey, applyDomTheme]);
+
+  const setTheme = useCallback(
+    (newTheme: Theme) => {
+      if (!isAuthRoute) return;
+      setThemeState(newTheme);
+      const isDark = newTheme === "dark";
+      applyDomTheme(isDark);
+
+      const storageKey = getStorageKey(pathname);
+      if (storageKey === "psi_theme_admin") {
+        localStorage.setItem("psi_theme_admin", newTheme);
+        localStorage.setItem("psi_theme", newTheme);
+      } else if (storageKey === "psi_theme_patient") {
+        localStorage.setItem("psi_theme_patient", newTheme);
+      }
+    },
+    [isAuthRoute, pathname, getStorageKey, applyDomTheme]
+  );
+
+  const toggleTheme = useCallback(() => {
     if (!isAuthRoute) return;
-    setThemeState(newTheme);
-    const storageKey = getStorageKey(pathname);
-
-    if (storageKey === "psi_theme_admin") {
-      localStorage.setItem("psi_theme_admin", newTheme);
-      localStorage.setItem("psi_theme", newTheme);
-    } else if (storageKey === "psi_theme_patient") {
-      localStorage.setItem("psi_theme_patient", newTheme);
-    }
-
-    document.documentElement.classList.toggle("dark", newTheme === "dark");
-  };
-
-  const toggleTheme = () => {
-    if (!isAuthRoute) return;
-    const next = theme === "light" ? "dark" : "light";
-    setTheme(next);
-  };
+    const nextTheme: Theme = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+  }, [isAuthRoute, theme, setTheme]);
 
   return (
     <ThemeContext.Provider
       value={{
-        theme: isAuthRoute ? theme : "light",
+        theme: isAuthRoute && mounted ? theme : "light",
         toggleTheme,
         setTheme,
         isDarkAllowed: isAuthRoute,

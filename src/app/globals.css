@@ -1,100 +1,135 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
+
 @layer base {
   :root {
-    --background: #f8fafc;
-    --foreground: #0f172a;
+    --background: #f8f9fa;
+    --foreground: #111827;
     --card: #ffffff;
-    --card-foreground: #0f172a;
+    --card-foreground: #111827;
+    --sidebar: #ffffff;
+    --sidebar-foreground: #111827;
+    --header: #ffffff;
     --popover: #ffffff;
-    --popover-foreground: #0f172a;
+    --popover-foreground: #111827;
     --primary: #0d9488;
     --primary-foreground: #ffffff;
-    --secondary: #f1f5f9;
-    --secondary-foreground: #0f172a;
-    --muted: #f8fafc;
-    --muted-foreground: #64748b;
-    --accent: #f0fdfa;
-    --accent-foreground: #0f766e;
+    --secondary: #f3f4f6;
+    --secondary-foreground: #111827;
+    --muted: #f3f4f6;
+    --muted-foreground: #6b7280;
+    --accent: #f3f4f6;
+    --accent-foreground: #111827;
     --destructive: #ef4444;
     --destructive-foreground: #ffffff;
-    --border: #e2e8f0;
-    --input: #e2e8f0;
+    --border: #e2e4e8;
+    --input: #ffffff;
     --ring: #0d9488;
 
-    /* Semantic Design Tokens (Shared with MiniSite & Dashboards) */
+    /* Semantic Design Tokens (Shared across PSI and MiniSite) */
     --color-primary: var(--primary);
     --color-primary-hover: var(--button-bg, var(--primary));
     --color-secondary: var(--secondary);
     --color-accent: var(--accent);
     --color-background: var(--background);
     --color-surface: var(--card);
+    --color-sidebar: var(--sidebar);
+    --color-header: var(--header);
+    --color-input: var(--input);
     --color-text: var(--foreground);
+    --color-text-secondary: #4b5563;
     --color-text-muted: var(--muted-foreground);
     --color-border: var(--border);
   }
 
-  /* Internal Dark Mode: Strictly Neutral Gray Palette (No Blue Tint) */
-  .dark {
-    --background: #202020;
-    --foreground: #F5F5F5;
-    --card: #2D2D2D;
-    --card-foreground: #F5F5F5;
-    --popover: #2D2D2D;
-    --popover-foreground: #F5F5F5;
-    --secondary: #353535;
-    --secondary-foreground: #F5F5F5;
-    --muted: #2D2D2D;
-    --muted-foreground: #BDBDBD;
-    --accent: #353535;
-    --accent-foreground: #F5F5F5;
+  /* Internal Deep Black Dark Mode */
+  .dark,
+  [data-theme="dark"] {
+    --background: #080809;
+    --foreground: #f5f5f5;
+    --card: #19191c;
+    --card-foreground: #f5f5f5;
+    --sidebar: #101012;
+    --sidebar-foreground: #f5f5f5;
+    --header: #101012;
+    --popover: #222226;
+    --popover-foreground: #f5f5f5;
+    --secondary: #222226;
+    --secondary-foreground: #f5f5f5;
+    --muted: #19191c;
+    --muted-foreground: #a3a3ad;
+    --accent: #222226;
+    --accent-foreground: #f5f5f5;
     --destructive: #dc2626;
     --destructive-foreground: #ffffff;
-    --border: #444444;
-    --input: #444444;
+    --border: #303034;
+    --input: #141416;
 
-    /* Semantic Design Tokens in Dark Mode */
+    /* Semantic Design Tokens in Deep Black Mode */
     --color-primary: var(--primary);
     --color-primary-hover: var(--button-bg, var(--primary));
-    --color-secondary: #353535;
-    --color-accent: #353535;
-    --color-background: #202020;
-    --color-surface: #2D2D2D;
-    --color-text: #F5F5F5;
-    --color-text-muted: #BDBDBD;
-    --color-border: #444444;
+    --color-secondary: #222226;
+    --color-accent: #222226;
+    --color-background: #080809;
+    --color-surface: #19191c;
+    --color-sidebar: #101012;
+    --color-header: #101012;
+    --color-input: #141416;
+    --color-text: #f5f5f5;
+    --color-text-secondary: #c7c7cc;
+    --color-text-muted: #a3a3ad;
+    --color-border: #303034;
   }
 
-  /* Neutral Gray Dark Mode Overrides (Prevents blue-tinted slate) */
+  /* Deep Black Dark Mode Class Overrides (Prevents blue-tinted slate or warm browns) */
   .dark .bg-slate-950,
-  .dark.bg-slate-950 {
-    background-color: #202020 !important;
+  .dark.bg-slate-950,
+  [data-theme="dark"] .bg-slate-950,
+  [data-theme="dark"].bg-slate-950 {
+    background-color: #080809 !important;
   }
   .dark .bg-slate-900,
-  .dark.bg-slate-900 {
-    background-color: #2D2D2D !important;
+  .dark.bg-slate-900,
+  [data-theme="dark"] .bg-slate-900,
+  [data-theme="dark"].bg-slate-900 {
+    background-color: #19191c !important;
   }
-  .dark .bg-slate-850 {
-    background-color: #262626 !important;
+  .dark .bg-slate-850,
+  [data-theme="dark"] .bg-slate-850 {
+    background-color: #141416 !important;
   }
   .dark .bg-slate-800,
-  .dark.bg-slate-800 {
-    background-color: #353535 !important;
+  .dark.bg-slate-800,
+  [data-theme="dark"] .bg-slate-800,
+  [data-theme="dark"].bg-slate-800 {
+    background-color: #222226 !important;
   }
   .dark .border-slate-800,
   .dark.border-slate-800,
   .dark .border-slate-700,
-  .dark.border-slate-700 {
-    border-color: #444444 !important;
+  .dark.border-slate-700,
+  [data-theme="dark"] .border-slate-800,
+  [data-theme="dark"] .border-slate-700 {
+    border-color: #303034 !important;
   }
   .dark .text-slate-100,
-  .dark.text-slate-100,
-  .dark .text-slate-50 {
-    color: #F5F5F5 !important;
+  .dark .text-slate-50,
+  [data-theme="dark"] .text-slate-100,
+  [data-theme="dark"] .text-slate-50 {
+    color: #f5f5f5 !important;
   }
+  .dark .text-slate-200,
   .dark .text-slate-300,
-  .dark .text-slate-400 {
-    color: #BDBDBD !important;
+  [data-theme="dark"] .text-slate-200,
+  [data-theme="dark"] .text-slate-300 {
+    color: #c7c7cc !important;
+  }
+  .dark .text-slate-400,
+  .dark .text-slate-50,
+  [data-theme="dark"] .text-slate-400,
+  [data-theme="dark"] .text-slate-500 {
+    color: #a3a3ad !important;
   }
 
   /* MiniSite Light-Only Isolation Boundary */

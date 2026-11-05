@@ -69,7 +69,7 @@ function EmailVerificationContent() {
       <Card className="max-w-md w-full shadow-lg border-slate-200 dark:border-slate-800">
         <CardHeader className="text-center pb-2">
           {isLoading && (
-            <div className="mx-auto w-12 h-12 flex items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 mb-3">
+            <div className="mx-auto w-12 h-12 flex items-center justify-center rounded-full bg-[var(--primary)]/10 text-[var(--primary)] mb-3">
               <Loader2 className="w-6 h-6 animate-spin" />
             </div>
           )}

@@ -186,7 +186,7 @@ export default function PatientDocumentsPage() {
                               : `Válido até ${formatDate(doc.expiresAt)}`}
                           </span>
                         ) : (
-                          <span className="text-[var(--primary)] font-medium">
+                          <span className="text-emerald-700 dark:text-emerald-300 font-medium">
                             Acesso permanente (Sem expiração)
                           </span>
                         )}

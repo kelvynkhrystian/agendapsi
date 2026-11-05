@@ -17,7 +17,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-[#E0E0E0]"
+            className="block text-xs font-bold uppercase tracking-wider text-[#374151] dark:text-[#C7C7CC]"
           >
             {label}
           </label>
@@ -27,10 +27,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           type={type}
           ref={ref}
           className={cn(
-            "flex h-10 w-full rounded-xl border bg-white dark:bg-[#2D2D2D] px-3.5 py-2 text-sm text-slate-900 dark:text-[#F5F5F5] placeholder:text-slate-400 dark:placeholder:text-[#757575] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 focus-visible:border-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-50 transition-all",
+            "flex h-10 w-full rounded-xl border bg-white dark:bg-[#141416] px-3.5 py-2 text-sm text-[#111827] dark:text-[#F5F5F5] placeholder:text-slate-400 dark:placeholder:text-[#A3A3AD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 focus-visible:border-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-50 transition-all",
             error
               ? "border-red-500 focus-visible:ring-red-500/30"
-              : "border-slate-200 dark:border-[#444444]",
+              : "border-[#E2E4E8] dark:border-[#303034]",
             className
           )}
           {...props}
@@ -41,7 +41,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </p>
         )}
         {!error && helperText && (
-          <p className="text-xs text-slate-500 dark:text-[#BDBDBD]">
+          <p className="text-xs text-[#6B7280] dark:text-[#A3A3AD]">
             {helperText}
           </p>
         )}

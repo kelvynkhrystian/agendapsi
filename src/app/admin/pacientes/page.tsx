@@ -242,9 +242,9 @@ export default function AdminPatientsPage() {
               Uma senha temporária foi gerada automaticamente. Forneça os dados de acesso ao paciente:
             </Alert>
 
-            <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-xl space-y-2 font-mono text-sm">
+            <div className="p-4 bg-slate-100 dark:bg-[#19191C] border border-[#E2E4E8] dark:border-[#303034] rounded-xl space-y-2 font-mono text-sm text-[#111827] dark:text-[#F5F5F5]">
               <div><strong>E-mail:</strong> {email}</div>
-              <div><strong>Senha Temporária:</strong> <span className="text-[var(--primary)] font-bold">{createdTempPass}</span></div>
+              <div><strong>Senha Temporária:</strong> <span className="font-bold text-[#111827] dark:text-[#F5F5F5] bg-[var(--primary)]/15 px-2 py-0.5 rounded">{createdTempPass}</span></div>
             </div>
 
             <p className="text-xs text-slate-500">

@@ -304,8 +304,8 @@ export default function AdminAgendaPage() {
               <div
                 className={`p-3 text-center border-b ${
                   isToday
-                    ? "border-[var(--primary)] bg-[var(--primary)]/15 text-[var(--primary)] font-bold"
-                    : "border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-300"
+                    ? "border-[var(--primary)]/30 bg-[var(--primary)]/10 text-[#111827] dark:text-[#F5F5F5] font-bold"
+                    : "border-slate-100 dark:border-[#303034] text-[#4B5563] dark:text-[#C7C7CC]"
                 }`}
               >
                 <div className="text-xs font-semibold uppercase tracking-wider">
@@ -364,7 +364,7 @@ export default function AdminAgendaPage() {
                           <span
                             className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
                               appt.status === "CONFIRMED"
-                                ? "bg-[var(--primary)]/15 text-[var(--primary)] font-semibold"
+                                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 font-semibold"
                                 : appt.status === "COMPLETED"
                                 ? "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
                                 : appt.status === "NO_SHOW"
@@ -428,10 +428,10 @@ export default function AdminAgendaPage() {
             {selectedAppt.meetingUrlSnapshot && (
               <div className="p-3 bg-[var(--primary)]/10 dark:bg-[var(--primary)]/15 border border-[var(--primary)]/20 rounded-xl flex items-center justify-between">
                 <div>
-                  <span className="font-semibold text-[var(--primary)] block text-xs">
+                  <span className="font-bold text-[#111827] dark:text-[#F5F5F5] block text-xs">
                     Sala de Teleconsulta (Jitsi)
                   </span>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-[#6B7280] dark:text-[#A3A3AD]">
                     Acesso exclusivo e com sala de espera do PSI
                   </span>
                 </div>

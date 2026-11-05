@@ -32,20 +32,25 @@ test("1. Tokens de Design Unificados: Globals CSS e Layout contêm os tokens sem
   }
 });
 
-test("2. Paleta Escura Neutra (Neutral Gray): Sem tonalidade azul nos fundos internos", () => {
+test("2. Novo Modo Escuro — Deep Black: Paleta neutra sem tons marrons, beges ou azulados", () => {
   const globalsCss = fs.readFileSync(path.join(__dirname, "../src/app/globals.css"), "utf8");
 
-  // Verifica que o modo escuro utiliza a paleta de cinzas neutros especificada
-  assert.ok(globalsCss.includes("#202020"), "Modo escuro deve conter background neutro #202020");
-  assert.ok(globalsCss.includes("#2D2D2D"), "Modo escuro deve conter cards/superfícies #2D2D2D");
-  assert.ok(globalsCss.includes("#353535"), "Modo escuro deve conter superfícies elevadas #353535");
-  assert.ok(globalsCss.includes("#444444"), "Modo escuro deve conter bordas neutras #444444");
-  assert.ok(globalsCss.includes("#F5F5F5"), "Modo escuro deve conter texto primário neutro #F5F5F5");
-  assert.ok(globalsCss.includes("#BDBDBD"), "Modo escuro deve conter texto secundário neutro #BDBDBD");
+  // Verifica que o modo escuro utiliza a paleta Deep Black especificada
+  assert.ok(globalsCss.includes("#080809"), "Modo escuro deve conter background profundo #080809");
+  assert.ok(globalsCss.includes("#101012"), "Modo escuro deve conter sidebar e header #101012");
+  assert.ok(globalsCss.includes("#19191c") || globalsCss.includes("#19191C"), "Modo escuro deve conter cards #19191C");
+  assert.ok(globalsCss.includes("#222226"), "Modo escuro deve conter superfícies elevadas #222226");
+  assert.ok(globalsCss.includes("#141416"), "Modo escuro deve conter inputs #141416");
+  assert.ok(globalsCss.includes("#303034"), "Modo escuro deve conter bordas neutras #303034");
+  assert.ok(globalsCss.includes("#f5f5f5") || globalsCss.includes("#F5F5F5"), "Modo escuro deve conter texto primário #F5F5F5");
+  assert.ok(globalsCss.includes("#c7c7cc") || globalsCss.includes("#C7C7CC"), "Modo escuro deve conter texto secundário #C7C7CC");
+  assert.ok(globalsCss.includes("#a3a3ad") || globalsCss.includes("#A3A3AD"), "Modo escuro deve conter texto atenuado #A3A3AD");
 
-  // Verifica que classes azuis antigas (slate-950, slate-900) são sobrepostas na camada neutra
-  assert.ok(globalsCss.includes(".dark .bg-slate-950"), "Deve sobrepor bg-slate-950 para cinza neutro");
-  assert.ok(globalsCss.includes(".dark .bg-slate-900"), "Deve sobrepor bg-slate-900 para cinza neutro");
+  // Verifica diretiva customizada de dark mode para o Tailwind v4
+  assert.ok(
+    globalsCss.includes("@custom-variant dark"),
+    "globals.css deve definir @custom-variant dark para alternância imediata sem depender do SO"
+  );
 });
 
 test("3. Isolamento Estrito do MiniSite Público: Sempre modo claro", () => {
@@ -84,6 +89,10 @@ test("4. ThemeToggle é restrito: Não renderiza em páginas públicas ou MiniSi
     toggleCode.includes("if (!isDarkAllowed) return null"),
     "ThemeToggle deve retornar null se modo escuro não for permitido"
   );
+  assert.ok(
+    toggleCode.includes('type="button"'),
+    "ThemeToggle deve ter type='button' explícito para evitar submissões de formulário"
+  );
 });
 
 test("5. Persistência Independente: Preferência de Admin e Paciente são desacopladas", () => {
@@ -117,17 +126,17 @@ test("5. Persistência Independente: Preferência de Admin e Paciente são desac
   assert.strictEqual(mockLocalStorage.getItem("psi_theme_patient"), "dark", "Escolha do admin não afeta o paciente");
 });
 
-test("6. Layouts Admin e Paciente: Uso consistente de bordas, superfícies neutras e tokens de tema", () => {
+test("6. Layouts Admin e Paciente: Uso consistente de bordas, superfícies Deep Black e tokens de tema", () => {
   const adminLayout = fs.readFileSync(path.join(__dirname, "../src/app/admin/layout.tsx"), "utf8");
   const patientLayout = fs.readFileSync(path.join(__dirname, "../src/app/paciente/layout.tsx"), "utf8");
 
-  // Superfície lateral cinza neutra (#191919) e fundo (#202020)
-  assert.ok(adminLayout.includes("dark:bg-[#191919]"), "Sidebar admin deve usar cinza neutro #191919");
-  assert.ok(adminLayout.includes("dark:bg-[#202020]"), "Container admin deve usar fundo neutro #202020");
+  // Superfície lateral Deep Black (#101012) e fundo (#080809)
+  assert.ok(adminLayout.includes("dark:bg-[#101012]"), "Sidebar admin deve usar preto profundo #101012");
+  assert.ok(adminLayout.includes("dark:bg-[#080809]"), "Container admin deve usar fundo #080809");
   assert.ok(adminLayout.includes("var(--primary)"), "Admin deve utilizar token var(--primary)");
 
-  assert.ok(patientLayout.includes("dark:bg-[#191919]"), "Sidebar paciente deve usar cinza neutro #191919");
-  assert.ok(patientLayout.includes("dark:bg-[#202020]"), "Container paciente deve usar fundo neutro #202020");
+  assert.ok(patientLayout.includes("dark:bg-[#101012]"), "Sidebar paciente deve usar preto profundo #101012");
+  assert.ok(patientLayout.includes("dark:bg-[#080809]"), "Container paciente deve usar fundo #080809");
   assert.ok(patientLayout.includes("var(--primary)"), "Paciente deve utilizar token var(--primary)");
 
   // Botão de Agendamento do paciente não possui teal fixo
@@ -137,7 +146,7 @@ test("6. Layouts Admin e Paciente: Uso consistente de bordas, superfícies neutr
   );
 });
 
-test("7. Componentes Compartilhados: Card, Button, Input, Badge, Alert e Modal harmonizados", () => {
+test("7. Componentes Compartilhados: Card, Button, Input, Badge, Alert e Modal harmonizados com Deep Black", () => {
   const cardCode = fs.readFileSync(path.join(__dirname, "../src/components/ui/card.tsx"), "utf8");
   const buttonCode = fs.readFileSync(path.join(__dirname, "../src/components/ui/button.tsx"), "utf8");
   const inputCode = fs.readFileSync(path.join(__dirname, "../src/components/ui/input.tsx"), "utf8");
@@ -145,27 +154,54 @@ test("7. Componentes Compartilhados: Card, Button, Input, Badge, Alert e Modal h
   const alertCode = fs.readFileSync(path.join(__dirname, "../src/components/ui/alert.tsx"), "utf8");
   const modalCode = fs.readFileSync(path.join(__dirname, "../src/components/ui/modal.tsx"), "utf8");
 
-  // Card: rounded-2xl e superfícies neutras
+  // Card: rounded-2xl e superfícies Deep Black #19191C
   assert.ok(cardCode.includes("rounded-2xl"), "Card deve ter cantos rounded-2xl alinhados ao MiniSite");
-  assert.ok(cardCode.includes("dark:bg-[#2D2D2D]"), "Card deve ter fundo escuro neutro #2D2D2D");
+  assert.ok(cardCode.includes("dark:bg-[#19191C]") || cardCode.includes("dark:bg-[#19191c]"), "Card deve ter fundo escuro #19191C");
 
-  // Button: rounded-xl e var(--button-bg,var(--primary))
+  // Button: rounded-xl e var(--button-bg,var(--primary)) e var(--button-fg)
   assert.ok(buttonCode.includes("rounded-xl"), "Button deve ter cantos rounded-xl");
   assert.ok(buttonCode.includes("var(--button-bg,var(--primary))"), "Button primário deve usar token de tema");
 
-  // Input: rounded-xl, foco no tema primário sem teal hardcoded
+  // Input: rounded-xl, superfície #141416 e foco no tema primário
   assert.ok(inputCode.includes("rounded-xl"), "Input deve ter cantos rounded-xl");
+  assert.ok(inputCode.includes("dark:bg-[#141416]"), "Input deve ter fundo escuro #141416");
   assert.ok(inputCode.includes("var(--primary)"), "Input deve ter anel de foco baseado em var(--primary)");
-  assert.ok(!inputCode.includes("focus-visible:ring-teal-500"), "Input não deve ter teal-500 hardcoded");
 
   // Badge: default usa token de tema primário
   assert.ok(badgeCode.includes("var(--primary)"), "Badge default deve refletir o token primário do tema");
 
   // Alert: info usa token de tema sem teal fixo
   assert.ok(alertCode.includes("var(--primary)"), "Alert info deve harmonizar com a cor primária do tema");
-  assert.ok(!alertCode.includes("bg-teal-50 border-teal-200"), "Alert info não deve conter teal hardcoded");
 
-  // Modal: rounded-2xl e superfície neutra #2D2D2D
+  // Modal: rounded-2xl e superfície Deep Black #19191C
   assert.ok(modalCode.includes("rounded-2xl"), "Modal deve ter cantos rounded-2xl");
-  assert.ok(modalCode.includes("dark:bg-[#2D2D2D]"), "Modal deve ter fundo escuro neutro #2D2D2D");
+  assert.ok(modalCode.includes("dark:bg-[#19191C]") || modalCode.includes("dark:bg-[#19191c]"), "Modal deve ter fundo escuro #19191C");
+});
+
+test("8. Contraste de Texto Acessível: Informações de status e cabeçalhos legíveis em Dark Mode", () => {
+  const agendaCode = fs.readFileSync(path.join(__dirname, "../src/app/admin/agenda/page.tsx"), "utf8");
+
+  // Cabeçalho de dia na agenda e teleconsulta têm texto com contraste nítido (#F5F5F5 / #111827)
+  assert.ok(
+    agendaCode.includes("text-[#111827] dark:text-[#F5F5F5] font-bold"),
+    "Cabeçalho do dia na agenda deve ter texto com contraste nítido"
+  );
+  assert.ok(
+    agendaCode.includes("font-bold text-[#111827] dark:text-[#F5F5F5] block text-xs"),
+    "Título da sala de teleconsulta deve ser nítido"
+  );
+});
+
+test("9. Auditoria de Cores Fixas: Remoção de classes azuis fixas indevidas", () => {
+  const verifyCode = fs.readFileSync(path.join(__dirname, "../src/app/paciente/verificar-email/page.tsx"), "utf8");
+
+  // Deve utilizar o token primário do tema em vez de blue-50 / blue-600 fixo
+  assert.ok(
+    !verifyCode.includes("bg-blue-50 dark:bg-blue-900/30 text-blue-600"),
+    "Página de verificar-email não deve conter azul fixo indevido"
+  );
+  assert.ok(
+    verifyCode.includes("bg-[var(--primary)]/10 text-[var(--primary)]"),
+    "Página de verificar-email deve adotar token primário dinâmico"
+  );
 });

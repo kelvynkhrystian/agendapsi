@@ -17,6 +17,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       isLoading = false,
       disabled,
       children,
+      type = "button",
       ...props
     },
     ref
@@ -26,13 +27,13 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantStyles = {
       primary:
-        "bg-[var(--button-bg,var(--primary))] text-white hover:brightness-105 active:brightness-95 focus-visible:ring-[var(--primary)] shadow-xs",
+        "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,var(--primary-foreground,#ffffff))] hover:brightness-105 active:brightness-95 focus-visible:ring-[var(--primary)] shadow-xs",
       secondary:
-        "bg-slate-100 text-slate-800 hover:bg-slate-200 dark:bg-[#353535] dark:text-[#F5F5F5] dark:hover:bg-[#404040] focus-visible:ring-slate-400",
+        "bg-[#F3F4F6] text-[#111827] hover:bg-[#E5E7EB] dark:bg-[#222226] dark:text-[#F5F5F5] dark:hover:bg-[#303034] focus-visible:ring-slate-400",
       outline:
-        "border border-slate-200 dark:border-[#444444] bg-transparent hover:bg-slate-100/80 dark:hover:bg-[#353535] text-slate-800 dark:text-[#E0E0E0] focus-visible:ring-[var(--primary)]",
+        "border border-[#E2E4E8] dark:border-[#303034] bg-transparent hover:bg-[#F3F4F6] dark:hover:bg-[#222226] text-[#111827] dark:text-[#F5F5F5] focus-visible:ring-[var(--primary)]",
       ghost:
-        "bg-transparent hover:bg-slate-100/80 dark:hover:bg-[#353535] text-slate-700 dark:text-[#BDBDBD] hover:text-slate-900 dark:hover:text-[#F5F5F5] focus-visible:ring-[var(--primary)]",
+        "bg-transparent hover:bg-[#F3F4F6] dark:hover:bg-[#222226] text-[#4B5563] dark:text-[#C7C7CC] hover:text-[#111827] dark:hover:text-[#F5F5F5] focus-visible:ring-[var(--primary)]",
       destructive:
         "bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 focus-visible:ring-red-500 shadow-xs",
     };
@@ -47,6 +48,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
+        type={type}
         disabled={disabled || isLoading}
         className={cn(baseStyles, variantStyles[variant], sizeStyles[size], className)}
         {...props}
