@@ -7,7 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
 import { Modal } from "@/components/ui/modal";
-import { User, Mail, Shield, Phone, KeyRound, CheckCircle2, AlertTriangle, ShieldCheck } from "lucide-react";
+import { User, Phone, KeyRound, CheckCircle2, AlertTriangle, ShieldCheck, Info } from "lucide-react";
+
+interface GuardianInfo {
+  id: string;
+  fullName: string;
+  cpf: string;
+  phone: string;
+  relationship?: string;
+}
 
 interface PatientProfile {
   id: string;
@@ -20,6 +28,7 @@ interface PatientProfile {
   gender?: string | null;
   address?: string | null;
   emergencyContact?: string | null;
+  guardians?: GuardianInfo[];
 }
 
 function maskCpf(value: string): string {
@@ -40,7 +49,6 @@ function maskPhone(value: string): string {
 
 export default function PatientProfilePage() {
   const [profile, setProfile] = useState<PatientProfile | null>(null);
-  const [emailDeliveryConfigured, setEmailDeliveryConfigured] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // Campos do formulário de dados cadastrais
@@ -56,14 +64,6 @@ export default function PatientProfilePage() {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileSaveSuccess, setProfileSaveSuccess] = useState(false);
   const [profileSaveError, setProfileSaveError] = useState<string | null>(null);
-
-  // Estados do Modal de Alteração de E-mail
-  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
-  const [newEmail, setNewEmail] = useState("");
-  const [isSubmittingEmail, setIsSubmittingEmail] = useState(false);
-  const [emailSuccessMessage, setEmailSuccessMessage] = useState<string | null>(null);
-  const [emailErrorMessage, setEmailErrorMessage] = useState<string | null>(null);
-  const [devVerificationUrl, setDevVerificationUrl] = useState<string | null>(null);
 
   // Estados do Modal de Alteração de Senha
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -92,7 +92,6 @@ export default function PatientProfilePage() {
           setAddress(data.patient.address || "");
           setEmergencyContact(data.patient.emergencyContact || "");
         }
-        setEmailDeliveryConfigured(!!data.emailDeliveryConfigured);
       }
     } catch (e) {
       console.error("Falha ao carregar perfil:", e);
@@ -105,7 +104,7 @@ export default function PatientProfilePage() {
     fetchProfile();
   }, []);
 
-  // Salvamento direto do perfil (sem aprovação de Admin)
+  // Salvamento direto do perfil (sem necessidade de aprovação de Administrador)
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setProfileSaveError(null);
@@ -142,41 +141,6 @@ export default function PatientProfilePage() {
       setProfileSaveError("Erro de comunicação com o servidor.");
     } finally {
       setIsSavingProfile(false);
-    }
-  };
-
-  // Solicitação de alteração segura de e-mail
-  const handleRequestEmailChange = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setEmailErrorMessage(null);
-    setEmailSuccessMessage(null);
-    setDevVerificationUrl(null);
-    setIsSubmittingEmail(true);
-
-    try {
-      const res = await fetch("/api/patient/email-change/request", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ newEmail }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setEmailErrorMessage(data.error || "Falha ao solicitar alteração de e-mail.");
-        setIsSubmittingEmail(false);
-        return;
-      }
-
-      setEmailSuccessMessage(data.message);
-      if (data.devVerificationUrl) {
-        setDevVerificationUrl(data.devVerificationUrl);
-      }
-      setNewEmail("");
-    } catch {
-      setEmailErrorMessage("Erro de conexão com o servidor ao solicitar troca de e-mail.");
-    } finally {
-      setIsSubmittingEmail(false);
     }
   };
 
@@ -306,6 +270,24 @@ export default function PatientProfilePage() {
                 onChange={(e) => setGender(e.target.value)}
                 placeholder="Ex: Feminino, Masculino, Não-binário..."
               />
+
+              {profile.isMinor && (
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-lg border border-amber-200 dark:border-amber-800 text-xs space-y-1.5">
+                  <div className="flex items-center gap-1.5 font-semibold text-amber-900 dark:text-amber-200">
+                    <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <span>Paciente Menor de Idade</span>
+                  </div>
+                  <p className="text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
+                    Cadastro sob proteção de menor de idade vinculado a responsável legal.
+                  </p>
+                  {profile.guardians && profile.guardians.length > 0 && (
+                    <div className="pt-1 border-t border-amber-200 dark:border-amber-800/60 text-[11px] text-amber-900 dark:text-amber-200">
+                      <strong>Responsável:</strong> {profile.guardians[0].fullName} ({profile.guardians[0].relationship || "Responsável"})<br />
+                      <strong>CPF:</strong> {maskCpf(profile.guardians[0].cpf || "")} • <strong>Tel:</strong> {maskPhone(profile.guardians[0].phone || "")}
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -317,7 +299,7 @@ export default function PatientProfilePage() {
                 <CardTitle className="text-base">Informações de Contato</CardTitle>
               </div>
               <CardDescription>
-                Telefone, endereço e contato para emergências clínicas
+                Telefone, endereço e canais para contato clínico
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -328,6 +310,15 @@ export default function PatientProfilePage() {
                 placeholder="(00) 00000-0000"
                 required
                 maxLength={15}
+              />
+
+              <Input
+                label="E-mail de Cadastro"
+                type="email"
+                value={profile.email}
+                disabled
+                readOnly
+                helperText="O e-mail de acesso está desabilitado para edição direta nesta etapa e será tratado separadamente com confirmação segura por token."
               />
 
               <Input
@@ -350,7 +341,7 @@ export default function PatientProfilePage() {
         {/* BOTÃO DE SALVAMENTO DIRETO DO PERFIL */}
         <div className="flex justify-end">
           <Button type="submit" size="md" isLoading={isSavingProfile}>
-            Salvar Alterações
+            Salvar alterações
           </Button>
         </div>
       </form>
@@ -363,7 +354,7 @@ export default function PatientProfilePage() {
             <CardTitle className="text-base">Acesso e Segurança da Conta</CardTitle>
           </div>
           <CardDescription>
-            Gerenciamento do seu e-mail de autenticação e credenciais de acesso
+            Gerenciamento do seu identificador de login e credenciais de acesso
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -380,25 +371,13 @@ export default function PatientProfilePage() {
                   </Badge>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                  Utilizado para autenticação no sistema. Por segurança, alterações exigem confirmação via e-mail.
+                  Utilizado para autenticação no sistema. A alteração de e-mail é tratada em fluxo de segurança dedicado (Fase 2).
                 </p>
               </div>
 
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="gap-1.5 shrink-0"
-                onClick={() => {
-                  setEmailErrorMessage(null);
-                  setEmailSuccessMessage(null);
-                  setDevVerificationUrl(null);
-                  setIsEmailModalOpen(true);
-                }}
-              >
-                <Mail className="h-3.5 w-3.5 text-blue-500" />
-                <span>Alterar E-mail</span>
-              </Button>
+              <Badge variant="outline" className="text-[11px] text-slate-500 dark:text-slate-400 self-start sm:self-center">
+                Edição desabilitada nesta etapa
+              </Badge>
             </div>
 
             {/* SENHA DE ACESSO */}
@@ -430,96 +409,6 @@ export default function PatientProfilePage() {
           </div>
         </CardContent>
       </Card>
-
-      {/* MODAL: ALTERAR E-MAIL */}
-      <Modal
-        isOpen={isEmailModalOpen}
-        onClose={() => setIsEmailModalOpen(false)}
-        title="Alteração Segura de E-mail"
-        description="Atualize seu e-mail de acesso sem necessidade de aprovação pelo administrador"
-      >
-        <form onSubmit={handleRequestEmailChange} className="space-y-4 text-xs">
-          {emailErrorMessage && <Alert variant="destructive">{emailErrorMessage}</Alert>}
-          {emailSuccessMessage && (
-            <Alert variant="success" className="space-y-1">
-              <p>{emailSuccessMessage}</p>
-              {devVerificationUrl && (
-                <div className="pt-1">
-                  <a
-                    href={devVerificationUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="underline font-semibold text-blue-600 dark:text-blue-400"
-                  >
-                    [Modo Desenvolvimento] Clique aqui para validar o e-mail
-                  </a>
-                </div>
-              )}
-            </Alert>
-          )}
-
-          {!emailDeliveryConfigured ? (
-            <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-900 dark:text-amber-200 text-xs space-y-2">
-              <div className="flex items-center gap-1.5 font-semibold">
-                <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600" />
-                <span>Serviço de Envio de E-mails Desativado</span>
-              </div>
-              <p className="text-[11px] leading-relaxed">
-                Por motivos de conformidade e segurança da sua conta, a alteração de e-mail de acesso exige confirmação obrigatória de recebimento na nova caixa postal.
-              </p>
-              <p className="text-[11px] leading-relaxed">
-                Como o servidor de e-mail (SMTP) não foi configurado pelo consultório, o seu e-mail de acesso <strong>{profile.email}</strong> permanecerá ativo e inalterado. Solicite ao profissional responsável a ativação do serviço de e-mail no painel de integrações.
-              </p>
-            </div>
-          ) : (
-            <div className="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-lg text-blue-900 dark:text-blue-200 text-xs space-y-1.5">
-              <div className="flex items-center gap-1.5 font-semibold">
-                <Shield className="h-4 w-4 shrink-0 text-blue-600" />
-                <span>Como funciona a validação</span>
-              </div>
-              <p className="text-[11px] leading-relaxed">
-                Um link de uso único válido por <strong>15 minutos</strong> será enviado para o novo endereço digitado. Seu e-mail de login atual permanecerá ativo e válido até que você abra o link e confirme a nova titularidade.
-              </p>
-            </div>
-          )}
-
-          <div className="space-y-1.5">
-            <label className="block font-medium text-slate-700 dark:text-slate-300">
-              E-mail atual de login
-            </label>
-            <input
-              type="text"
-              disabled
-              value={profile.email}
-              className="flex h-9 w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 px-3 py-1 text-xs text-slate-500 font-mono cursor-not-allowed"
-            />
-          </div>
-
-          <Input
-            label="Novo E-mail Pretendido *"
-            type="email"
-            placeholder="seu.novo.email@exemplo.com"
-            value={newEmail}
-            onChange={(e) => setNewEmail(e.target.value)}
-            required
-            disabled={isSubmittingEmail}
-          />
-
-          <div className="flex justify-end gap-2 pt-2">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setIsEmailModalOpen(false)}
-              disabled={isSubmittingEmail}
-            >
-              Fechar
-            </Button>
-            <Button type="submit" isLoading={isSubmittingEmail}>
-              Enviar Link de Confirmação
-            </Button>
-          </div>
-        </form>
-      </Modal>
 
       {/* MODAL: ALTERAR SENHA */}
       <Modal

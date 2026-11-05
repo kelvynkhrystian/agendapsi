@@ -38,6 +38,15 @@ export async function GET() {
         address: true,
         emergencyContact: true,
         mustChangePassword: true,
+        guardians: {
+          select: {
+            id: true,
+            fullName: true,
+            cpf: true,
+            phone: true,
+            relationship: true,
+          },
+        },
       },
     });
 
@@ -96,7 +105,7 @@ export async function PATCH(req: NextRequest) {
       if (existingCpf) {
         return NextResponse.json(
           { error: "Este CPF já está cadastrado para outro paciente." },
-          { status: 409 }
+          { status: 400 }
         );
       }
     }
@@ -131,6 +140,15 @@ export async function PATCH(req: NextRequest) {
         address: true,
         emergencyContact: true,
         isMinor: true,
+        guardians: {
+          select: {
+            id: true,
+            fullName: true,
+            cpf: true,
+            phone: true,
+            relationship: true,
+          },
+        },
       },
     });
 
@@ -166,3 +184,6 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Erro interno do servidor." }, { status: 500 });
   }
 }
+
+export const PUT = PATCH;
+
