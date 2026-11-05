@@ -60,10 +60,14 @@ Este documento detalha as políticas de funcionamento, transições de estado e 
   - Grau de parentesco / relação legal.
 - O consentimento para o atendimento deve ser formalizado pelo responsável legal.
 
-### 4.2 Alteração de Dados Cadastrais Sensíveis
-- Dados de contato direto (nome social, telefone) podem ser atualizados imediatamente pelo paciente.
-- Alterações em dados sensíveis (nome civil, CPF, e-mail de acesso) geram uma solicitação em `PatientProfileChangeRequest`.
-- Os valores atuais permanecem vigentes até que o profissional aprove a alteração no painel `/admin/pacientes`. Em caso de rejeição, a justificativa é registrada.
+### 4.2 Edição de Perfil e Alteração Segura de E-mail
+- **Edição Direta do Perfil:** O paciente autenticado pode editar diretamente seus dados cadastrais (nome completo, CPF, data de nascimento, telefone, endereço, gênero e contato de emergência) em `/paciente/perfil` sem necessidade de aprovação pelo Administrador.
+- **Validação e Unicidade do CPF:** O CPF informado é validado numericamente e verificado contra duplicidade no banco de dados (rejeitando CPFs já cadastrados para outros pacientes).
+- **Alteração Segura de E-mail de Acesso:**
+  - Caso o envio de e-mails (SMTP) esteja ativo: o paciente solicita a troca de e-mail, gerando um token de verificação de uso único com expiração curta (15 minutos) e armazenamento de hash seguro SHA-256 (`PatientEmailChangeToken`). O e-mail de login atual permanece ativo até a confirmação via link recebido na nova caixa postal.
+  - Caso o serviço de e-mail (SMTP) esteja indisponível: o sistema **não** altera o e-mail silenciosamente nem finge sucesso. Uma mensagem clara instrui o paciente e o e-mail de login vigente permanece totalmente ativo e seguro.
+- **Auditoria Interna e Privacidade:** Atualizações cadastrais e solicitações de troca de e-mail são registradas em `AuditLog` de forma anonimizada, sem expor senhas, tokens brutos ou informações médicas privadas.
+- **Histórico Legado:** Registros prévios de `PatientProfileChangeRequest` permanecem preservados para histórico e auditoria administrativa.
 
 ### 4.3 Inativação e Retenção de Prontuários
 - O profissional pode inativar um paciente para impedir novos agendamentos.

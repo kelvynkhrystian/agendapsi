@@ -49,7 +49,8 @@ Este documento relaciona todas as páginas e rotas de API disponíveis no sistem
 | Rota | Descrição |
 | :--- | :--- |
 | `/paciente` | Painel do paciente: próximas consultas, status e atalho para consulta virtual |
-| `/paciente/perfil` | Visualização e atualização de dados pessoais e contato |
+| `/paciente/perfil` | Visualização e atualização direta de dados pessoais, contatos e alteração segura de e-mail |
+| `/paciente/verificar-email` | Validação de token de alteração de e-mail com migração segura de credenciais |
 | `/paciente/notificacoes` | Histórico e central de notificações internas do paciente |
 | `/paciente/anamnese` | Formulário estruturado de anamnese para resposta do paciente |
 | `/paciente/financeiro` | Histórico de pagamentos e painel de aceite/rejeição de pacotes propostos |
@@ -68,6 +69,10 @@ Este documento relaciona todas as páginas e rotas de API disponíveis no sistem
 | `POST` | `/api/auth/register-patient` | Público | Cadastro de novo paciente (inclui validação de menor de idade) |
 | `POST` | `/api/auth/recover-password` | Público | Geração de token seguro para recuperação de senha |
 | `POST` | `/api/auth/change-password` | Autenticado | Alteração de senha do usuário autenticado |
+| `GET`  | `/api/patient/profile` | Paciente | Consulta dados do perfil do paciente e status de conectividade de e-mail |
+| `PATCH`| `/api/patient/profile` | Paciente | Atualização direta de perfil (nome, CPF, nascimento, telefone, endereço) |
+| `POST` | `/api/patient/email-change/request` | Paciente | Solicitação segura de alteração de e-mail com token SHA-256 e rate limit |
+| `POST` | `/api/patient/email-change/verify` | Público/Autenticado | Verificação de token de uso único, expiração e migração segura do e-mail |
 
 ### 4.2 Agendamento e Concorrência
 | Método | Endpoint | Permissão | Descrição |

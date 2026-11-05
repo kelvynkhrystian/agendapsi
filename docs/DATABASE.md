@@ -65,7 +65,8 @@ erDiagram
 ### 3.2 Pacientes e Responsáveis
 - `Patient`: Cadastro completo do paciente (`id`, `fullName`, `email`, `passwordHash`, `phone`, `cpf`, `birthDate`, `isMinor`, `gender`, `address`, `emergencyContact`, `isActive`, `createdAt`, `updatedAt`).
 - `Guardian`: Dados do responsável legal caso o paciente seja menor (`id`, `patientId`, `fullName`, `cpf`, `phone`, `email`, `relationship`).
-- `PatientProfileChangeRequest`: Solicitações de alteração de dados sensíveis sujeitas a aprovação do Admin (`id`, `patientId`, `field`, `oldValue`, `newValue`, `status`, `reviewedAt`, `reviewedBy`).
+- `PatientProfileChangeRequest`: Histórico de solicitações de alteração de dados sensíveis (`id`, `patientId`, `field`, `oldValue`, `newValue`, `status`, `reviewedAt`, `reviewedBy`).
+- `PatientEmailChangeToken`: Tokens temporários e criptografados (SHA-256) para validação autônoma e segura de troca de e-mail (`id`, `patientId`, `oldEmail`, `newEmail`, `tokenHash`, `expiresAt`, `usedAt`, `ipAddress`, `createdAt`).
 - `ConsentAcceptance`: Aceite formal de termos e políticas LGPD (`id`, `patientId`, `policyType`, `policyVersion`, `ipAddress`, `acceptedAt`).
 
 ### 3.3 Serviços e Disponibilidade

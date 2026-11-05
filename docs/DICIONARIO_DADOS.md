@@ -227,6 +227,7 @@ erDiagram
 - `guardians` (`Guardian[]`): 1:N — Responsáveis legais (se `isMinor = true`). `onDelete: Cascade`.
 - `consentAcceptances` (`ConsentAcceptance[]`): 1:N — Termos LGPD e consentimentos. `onDelete: Cascade`.
 - `profileChanges` (`PatientProfileChangeRequest[]`): 1:N — Pedidos de alteração pendentes. `onDelete: Cascade`.
+- `emailChangeTokens` (`PatientEmailChangeToken[]`): 1:N — Tokens seguros de verificação de troca de e-mail. `onDelete: Cascade`.
 - `appointments` (`Appointment[]`): 1:N — Consultas do paciente.
 - `appointmentHolds` (`AppointmentHold[]`): 1:N — Bloqueios provisórios de agenda.
 - `packages` (`AppointmentPackage[]`): 1:N — Propostas de pacotes de sessões.
@@ -327,6 +328,45 @@ erDiagram
 #### E. Uso na Aplicação
 - **Telas:** `/paciente/perfil`, `/admin/pacientes/[id]`.
 - **Rotas de API:** `/api/patient/profile-requests`, `/api/admin/profile-requests/[id]`.
+
+---
+
+### 3.4.1 Modelo: `PatientEmailChangeToken`
+
+#### A. Identificação
+- **Modelo Prisma:** `PatientEmailChangeToken`
+- **Tabela MySQL:** `PatientEmailChangeToken`
+- **Descrição sucinta:** Tokens criptografados de curta duração e uso único para verificação de alteração de e-mail de pacientes.
+- **Finalidade de negócio:** Permitir que o paciente altere de forma autônoma e segura seu e-mail de acesso sem aprovação manual do profissional, garantindo prova de titularidade da nova caixa postal via token seguro (SHA-256) com validade curta e uso único.
+- **Módulo do PSI:** Autenticação e Perfil do Paciente (`/paciente/perfil`).
+- **Informações sensíveis:** **Sim** (e-mails envolvidos e hash criptográfico de token).
+
+#### B. Conteúdo Esperado
+- Registros criados quando o paciente autenticado solicita alteração do seu e-mail de login com infraestrutura SMTP ativa.
+- O token bruto (`rawToken`) é enviado exclusivamente por link ao novo e-mail e nunca persistido no banco; o banco armazena apenas o `tokenHash` (SHA-256).
+- O e-mail de login anterior permanece ativo e inalterado até a validação bem-sucedida do token.
+- Expiração padrão de 15 minutos e descarte/marcação após o uso (`usedAt`).
+
+#### C. Dicionário Completo de Campos
+
+| Campo | Tipo | Obrigatório? | Padrão | Significado | Exemplo |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `id` | `String` (cuid) | Sim | `cuid()` | Identificador primário do token | `"clz12a98b000108l0h9z9a12"` |
+| `patientId` | `String` | Sim | Nenhum | Chave estrangeira para `Patient.id` | `"cly78a02x000108l0h8a9bc12"` |
+| `oldEmail` | `String` | Sim | Nenhum | E-mail de login vigente do paciente | `"paciente.antigo@gmail.com"` |
+| `newEmail` | `String` | Sim | Nenhum | Novo endereço de e-mail pretendido | `"paciente.novo@gmail.com"` |
+| `tokenHash` | `String` | Sim | Nenhum | Hash criptográfico SHA-256 do token único (64 hex) | `"a3f1...e98b"` |
+| `expiresAt` | `DateTime` | Sim | Nenhum | Data e hora limite para expiração (15 minutos) | `2026-11-05T01:30:00.000Z` |
+| `usedAt` | `DateTime?` | Não | `null` | Data e hora em que a validação foi consumida | `null` |
+| `ipAddress` | `String?` | Não | `null` | Endereço IP do solicitante para auditoria | `"189.120.45.10"` |
+| `createdAt` | `DateTime` | Sim | `now()` | Data e hora de emissão da solicitação | `2026-11-05T01:15:00.000Z` |
+
+#### D. Relacionamentos
+- `patient` (`Patient`): N:1 via `patientId`. `onDelete: Cascade`.
+
+#### E. Uso na Aplicação
+- **Telas:** `/paciente/perfil`, `/paciente/verificar-email`.
+- **Rotas de API:** `/api/patient/email-change/request`, `/api/patient/email-change/verify`.
 
 ---
 

@@ -115,6 +115,7 @@ model Patient {
   guardians          Guardian[]
   consentAcceptances ConsentAcceptance[]
   profileChanges     PatientProfileChangeRequest[]
+  emailChangeTokens  PatientEmailChangeToken[]
   appointments       Appointment[]
   appointmentHolds   AppointmentHold[]
   packages           AppointmentPackage[]
@@ -149,6 +150,22 @@ model PatientProfileChangeRequest {
   reviewedAt DateTime?
   reviewedBy String?
   createdAt  DateTime  @default(now())
+}
+
+model PatientEmailChangeToken {
+  id        String    @id @default(cuid())
+  patientId String
+  patient   Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  oldEmail  String
+  newEmail  String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  ipAddress String?
+  createdAt DateTime  @default(now())
+
+  @@index([patientId])
+  @@index([tokenHash])
 }
 
 model ConsentAcceptance {
