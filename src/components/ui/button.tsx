@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "outline" | "ghost" | "destructive";
+  variant?: "primary" | "secondary" | "outline" | "ghost" | "destructive" | "link";
   size?: "sm" | "md" | "lg" | "icon";
   isLoading?: boolean;
 }
@@ -23,26 +23,28 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none cursor-pointer active:scale-[0.98]";
+      "inline-flex items-center justify-center font-heading font-semibold rounded-xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#080809] disabled:opacity-50 disabled:pointer-events-none cursor-pointer active:scale-[0.98] select-none";
 
     const variantStyles = {
       primary:
         "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,var(--primary-foreground,#ffffff))] hover:brightness-105 active:brightness-95 focus-visible:ring-[var(--primary)] shadow-xs",
       secondary:
-        "bg-[#F3F4F6] text-[#111827] hover:bg-[#E5E7EB] dark:bg-[#222226] dark:text-[#F5F5F5] dark:hover:bg-[#303034] focus-visible:ring-slate-400",
+        "bg-[#F3F4F6] text-[#111827] hover:bg-[#E5E7EB] dark:bg-[#222226] dark:text-[#F5F5F5] dark:hover:bg-[#303034] focus-visible:ring-[#9CA3AF] dark:focus-visible:ring-[#4B5563] shadow-xs",
       outline:
-        "border border-[#E2E4E8] dark:border-[#303034] bg-transparent hover:bg-[#F3F4F6] dark:hover:bg-[#222226] text-[#111827] dark:text-[#F5F5F5] focus-visible:ring-[var(--primary)]",
+        "border border-[#E2E4E8] dark:border-[#303034] bg-white dark:bg-[#19191C] hover:bg-[#F3F4F6] dark:hover:bg-[#222226] text-[#111827] dark:text-[#F5F5F5] focus-visible:ring-[var(--primary)] shadow-xs",
       ghost:
         "bg-transparent hover:bg-[#F3F4F6] dark:hover:bg-[#222226] text-[#4B5563] dark:text-[#C7C7CC] hover:text-[#111827] dark:hover:text-[#F5F5F5] focus-visible:ring-[var(--primary)]",
       destructive:
         "bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 focus-visible:ring-red-500 shadow-xs",
+      link:
+        "bg-transparent text-[var(--primary)] hover:underline underline-offset-4 p-0 h-auto font-medium focus-visible:ring-[var(--primary)]",
     };
 
     const sizeStyles = {
-      sm: "text-xs px-3 py-1.5 gap-1.5 rounded-lg",
-      md: "text-sm px-4 py-2 gap-2 rounded-xl",
-      lg: "text-base px-5 py-2.5 gap-2.5 rounded-xl",
-      icon: "h-9 w-9 p-0 rounded-xl",
+      sm: "text-xs px-3 py-1.5 min-h-[34px] gap-1.5 rounded-lg",
+      md: "text-sm px-4 py-2 min-h-[40px] gap-2 rounded-xl",
+      lg: "text-base px-5 py-2.5 min-h-[46px] gap-2.5 rounded-xl",
+      icon: "h-9 w-9 min-h-[36px] min-w-[36px] p-0 rounded-xl",
     };
 
     return (
@@ -59,6 +61,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
+            aria-hidden="true"
           >
             <circle
               className="opacity-25"

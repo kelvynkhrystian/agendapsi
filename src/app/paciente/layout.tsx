@@ -86,14 +86,14 @@ export default function PatientLayout({
               <HeartHandshake className="h-5 w-5" />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-extrabold tracking-tight text-[#111827] dark:text-[#F5F5F5]">Área do Paciente</span>
+              <span className="font-heading text-sm font-bold tracking-tight text-[#111827] dark:text-[#F5F5F5]">Área do Paciente</span>
               <span className="text-[10px] text-[#6B7280] dark:text-[#A3A3AD] font-medium">Portal de Saúde</span>
             </div>
           </Link>
           <button
             type="button"
             onClick={() => setSidebarOpen(false)}
-            className="md:hidden p-1.5 rounded-xl text-[#6B7280] hover:bg-slate-100 dark:hover:bg-[#222226] transition-colors"
+            className="md:hidden p-2 rounded-xl text-[#6B7280] hover:bg-slate-100 dark:hover:bg-[#222226] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
             aria-label="Fechar menu"
           >
             <X className="h-5 w-5" />
@@ -103,7 +103,7 @@ export default function PatientLayout({
         {/* Patient Profile Card Snippet */}
         <div className="px-4 py-3 mx-3 mt-3 rounded-xl bg-[#F3F4F6] dark:bg-[#19191C] border border-[#E2E4E8] dark:border-[#303034]">
           <p className="text-[10px] text-[#6B7280] dark:text-[#A3A3AD] uppercase tracking-wider font-semibold">Conectado como</p>
-          <p className="text-xs font-bold text-[#111827] dark:text-[#F5F5F5] truncate mt-0.5">{patientName}</p>
+          <p className="font-heading text-xs font-semibold text-[#111827] dark:text-[#F5F5F5] truncate mt-0.5">{patientName}</p>
         </div>
 
         {/* Nav Links */}
@@ -120,14 +120,14 @@ export default function PatientLayout({
                 href={item.href}
                 onClick={() => setSidebarOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all",
+                  "flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-heading font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]",
                   isActive
                     ? "bg-[var(--primary)]/10 text-[var(--primary)] font-bold shadow-xs border border-[var(--primary)]/20"
                     : "text-[#4B5563] dark:text-[#C7C7CC] hover:bg-[#F3F4F6] dark:hover:bg-[#19191C] hover:text-[#111827] dark:hover:text-[#F5F5F5]"
                 )}
               >
-                <Icon className={cn("h-4 w-4", isActive ? "text-[var(--primary)]" : "text-[#9CA3AF] dark:text-[#A3A3AD]")} />
-                <span>{item.label}</span>
+                <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-[var(--primary)]" : "text-[#9CA3AF] dark:text-[#A3A3AD]")} />
+                <span className="truncate">{item.label}</span>
               </Link>
             );
           })}
@@ -155,7 +155,7 @@ export default function PatientLayout({
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="md:hidden p-2 rounded-xl text-[#4B5563] dark:text-[#C7C7CC] hover:bg-slate-100 dark:hover:bg-[#222226] transition-colors"
+              className="md:hidden p-2 rounded-xl text-[#4B5563] dark:text-[#C7C7CC] hover:bg-slate-100 dark:hover:bg-[#222226] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
               aria-label="Abrir menu"
             >
               <Menu className="h-5 w-5" />
@@ -163,7 +163,7 @@ export default function PatientLayout({
             <div className="flex items-center gap-1.5 text-xs sm:text-sm text-[#6B7280] dark:text-[#A3A3AD]">
               <span>Paciente</span>
               <ChevronRight className="h-3.5 w-3.5 text-[#9CA3AF] dark:text-[#71717A]" />
-              <span className="font-bold text-[#111827] dark:text-[#F5F5F5]">
+              <span className="font-heading font-semibold text-[#111827] dark:text-[#F5F5F5]">
                 {patientNavItems.find((n) => n.href === pathname)?.label || "Painel"}
               </span>
             </div>

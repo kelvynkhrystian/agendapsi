@@ -60,18 +60,18 @@ export function Modal({
       >
         <div className="flex items-center justify-between pb-4 border-b border-[#E2E4E8] dark:border-[#303034]">
           <div>
-            <h2 className="text-lg font-bold text-[#111827] dark:text-[#F5F5F5] tracking-tight">
+            <h2 className="font-heading text-lg font-semibold text-[#111827] dark:text-[#F5F5F5] tracking-tight">
               {title}
             </h2>
             {description && (
-              <p className="text-xs sm:text-sm text-[#4B5563] dark:text-[#C7C7CC] mt-1">
+              <p className="text-xs sm:text-sm text-[#4B5563] dark:text-[#A3A3AD] mt-1 leading-relaxed">
                 {description}
               </p>
             )}
           </div>
           <button
             onClick={onClose}
-            className="rounded-xl p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-[#F5F5F5] hover:bg-slate-100 dark:hover:bg-[#222226] transition-colors cursor-pointer"
+            className="rounded-xl p-2 text-[#6B7280] hover:text-[#111827] dark:text-[#A3A3AD] dark:hover:text-[#F5F5F5] hover:bg-[#F3F4F6] dark:hover:bg-[#222226] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
             aria-label="Fechar modal"
           >
             <X className="h-5 w-5" />
@@ -82,3 +82,5 @@ export function Modal({
     </div>
   );
 }
+
+export const Dialog = Modal;
