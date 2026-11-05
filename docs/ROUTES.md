@@ -140,8 +140,46 @@ Este documento relaciona todas as páginas e rotas de API disponíveis no sistem
 ### 4.6 Operações e Monitoramento Técnico
 | Método | Endpoint | Permissão | Descrição |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/api/technical/status` | Bearer Token | Endpoint técnico protegido por segredo para status e métricas |
+| `GET` | `/api/technical/status` | Bearer Token / Admin | Endpoint técnico para diagnóstico e monitoramento estruturado de saúde da instalação |
 | `POST` | `/api/admin/backup` | Admin | Execução de rotina de backup com manifest e checksum SHA-256 |
 | `GET` | `/api/admin/dashboard-stats` | Admin | Agregação de estatísticas para o painel principal |
+
+#### Detalhamento Técnico: `GET /api/technical/status`
+Endpoint de leitura (PULL) para monitoramento da saúde e métricas agregadas da instância standalone.
+
+**Autenticação e Segurança:**
+- Exige `Authorization: Bearer <TECHNICAL_STATUS_BEARER_TOKEN>` ou sessão ativa com papel `ADMIN`.
+- Todas as tentativas sem autorização são registradas em `TechnicalAccessLog` com IP e User-Agent, retornando `401 Unauthorized`.
+- **Sigilo Absoluto:** Nunca expõe senhas, hashes, tokens, chaves de API, credenciais de integração, prontuários clínicos ou identidades individuais de pacientes.
+
+**Grupos de Resposta:**
+1. `installation`:
+   - `applicationVersion`: Versão do PSI (`package.json`).
+   - `installationId`: Identificador da instância standalone (`INSTALLATION_ID`).
+   - `timestamp`: Timestamp UTC da coleta (`ISO 8601`).
+   - `applicationStatus`: Status da aplicação (`OPERATIONAL`).
+2. `administrator`:
+   - `name`: Nome do profissional titular (`AdminAccount.name`).
+   - `email`: E-mail de contato administrativo (`AdminAccount.email`).
+   - `phone`: Telefone profissional (`AdminAccount.phone`).
+3. `storage`:
+   - `totalFileSizeBytes`: Total acumulado de bytes dos arquivos (`StoredFile._sum.sizeBytes`).
+   - `totalFileCount`: Quantidade total de arquivos persistidos (`StoredFile.count()`).
+   - `usageMB`: Espaço ocupado em Megabytes com 2 casas decimais.
+   - `availableDiskSpaceBytes`: Espaço livre real no disco (`statfsSync`). Retorna `null` caso o host não suporte mensuração.
+4. `application`:
+   - `totalPatients`: Quantidade total de pacientes cadastrados (`Patient.count()`).
+   - `totalAppointments`: Quantidade total de consultas agendadas (`Appointment.count()`).
+   - `totalServices`: Quantidade de serviços/procedimentos configurados (`Service.count()`).
+5. `integrations`:
+   - `emailStatus`: `"OPERATIONAL"`, `"CONFIGURED_UNTESTED"`, `"CONFIGURED_SIMULATED"`, `"DELIVERY_FAILED"`, `"MISCONFIGURED"`, `"DISABLED"`. A mera presença de variáveis não assume operacionalidade; considera o histórico real de envios em `NotificationDelivery`.
+   - `whatsappStatus`: `"OPERATIONAL"`, `"CONFIGURED_UNTESTED"`, `"CONFIGURED_SIMULATED"`, `"MISCONFIGURED"`, `"DISABLED"`.
+   - `paymentGatewayStatus`: `"SIMULATED_ACTIVE"` ou `"DISABLED"` conforme `SystemSettings.enableOnlinePayment`.
+   - `videoProvider`: Provedor ativo de teleconsulta (`"JITSI"`, `"PEERJS"`, `"GOOGLE_MEET"`).
+6. `payments`:
+   - `totalPayments`: Total de cobranças geradas (`Payment.count()`).
+   - `pendingPayments`: Cobranças aguardando quitação (`status === "PENDING"`).
+   - `approvedPayments`: Cobranças liquidadas com sucesso (`status === "APPROVED"`).
+   - `integrationStatus`: `"ONLINE_SIMULATED"` ou `"MANUAL_IN_PERSON"`.
 | `GET` | `/api/site/settings` | Público | Consulta parâmetros e customizações do MiniSite |
 | `PUT` | `/api/admin/site/settings` | Admin | Atualização de conteúdo e textos do MiniSite e páginas legais |

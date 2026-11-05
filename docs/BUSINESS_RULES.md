@@ -98,4 +98,19 @@ Este documento detalha as políticas de funcionamento, transições de estado e 
 ## 7. Mensageria e Notificações
 
 - O disparador de lembretes (`/api/notifications/run-reminders`) é idempotente: verifica registros já existentes em `NotificationDelivery` antes de realizar novos disparos.
+
+---
+
+## 8. Monitoramento Técnico e Métricas de Instalação (`/api/technical/status`)
+
+- **Objetivo e Governança:** Fornece métricas estruturadas de saúde física e operacional da instância standalone em tempo real, sem necessidade de varreduras pesadas de banco ou disco.
+- **Isolamento de Segurança:**
+  - O endpoint requer Bearer Token de alta entropia (`TECHNICAL_STATUS_BEARER_TOKEN`) ou sessão administrativa autenticada.
+  - Tentativas sem autorização são registradas em `TechnicalAccessLog`.
+  - Dados sensíveis como senhas, hashes bcrypt, chaves de API, credenciais SMTP/WhatsApp, anotações de evolução clínica ou listas nominais de pacientes **nunca** são expostos.
+  - Dados cadastrais do administrador são isolados no grupo `administrator`, permitindo restrição granular caso o endpoint seja exposto a sistemas externos.
+- **Veracidade e Integridade dos Dados:**
+  - Todos os números correspondem a agregações reais do banco de dados MySQL e do sistema de arquivos.
+  - Métricas não mensuráveis pelo ambiente retornam explicitamente `null` (ex.: espaço livre em disco quando não suportado pelo sistema operacional).
+  - A configuração de variáveis de integração (como host de e-mail ou API de WhatsApp) não é considerada sinônimo de disponibilidade operacional; o status reflete o histórico real de disparos registrado em `NotificationDelivery`.
 - Caso os serviços reais de SMTP ou WhatsApp não estejam configurados no ambiente, o sistema utiliza o modo **Simulador**, registrando o conteúdo na tabela com status `SIMULATED` para validação em desenvolvimento sem falhas de execução.
