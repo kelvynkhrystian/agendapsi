@@ -76,7 +76,7 @@ export default function PatientDocumentsPage() {
     if (mimeType.includes("pdf")) {
       return <FileText className="h-6 w-6 text-rose-600 dark:text-rose-400" />;
     }
-    return <FileText className="h-6 w-6 text-teal-600 dark:text-teal-400" />;
+    return <FileText className="h-6 w-6 text-[var(--primary)]" />;
   };
 
   const getFormatLabel = (mimeType: string, originalName: string) => {
@@ -100,8 +100,8 @@ export default function PatientDocumentsPage() {
         </p>
       </div>
 
-      <div className="p-3.5 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-xl flex items-start sm:items-center gap-3 text-xs text-teal-900 dark:text-teal-200 shadow-xs">
-        <ShieldCheck className="h-5 w-5 text-teal-600 dark:text-teal-400 shrink-0 mt-0.5 sm:mt-0" />
+      <div className="p-3.5 bg-teal-50 dark:bg-teal-950/40 border border-[var(--primary)]/20 rounded-xl flex items-start sm:items-center gap-3 text-xs text-slate-800 dark:text-[#F5F5F5] shadow-xs">
+        <ShieldCheck className="h-5 w-5 text-[var(--primary)] shrink-0 mt-0.5 sm:mt-0" />
         <span>
           <strong>Ambiente Protegido e Confidencial:</strong> Os arquivos disponibilizados nesta área foram emitidos exclusivamente para você. Documentos com prazo de expiração devem ser baixados para sua guarda pessoal antes do término da vigência.
         </span>
@@ -125,7 +125,7 @@ export default function PatientDocumentsPage() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-base font-bold flex items-center gap-2">
-                <FileCheck2 className="h-4 w-4 text-teal-600" />
+                <FileCheck2 className="h-4 w-4 text-[var(--primary)]" />
                 <span>Documentos Disponíveis para Download</span>
               </CardTitle>
               <CardDescription className="text-xs">
@@ -143,7 +143,7 @@ export default function PatientDocumentsPage() {
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-12 text-center text-xs text-slate-500 space-y-2">
-              <div className="w-6 h-6 border-2 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto" />
+              <div className="w-6 h-6 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin mx-auto" />
               <p>Carregando seus documentos...</p>
             </div>
           ) : activeDocs.length > 0 ? (
@@ -186,7 +186,7 @@ export default function PatientDocumentsPage() {
                               : `Válido até ${formatDate(doc.expiresAt)}`}
                           </span>
                         ) : (
-                          <span className="text-teal-600 dark:text-teal-400 font-medium">
+                          <span className="text-[var(--primary)] font-medium">
                             Acesso permanente (Sem expiração)
                           </span>
                         )}
@@ -206,7 +206,7 @@ export default function PatientDocumentsPage() {
                       </Button>
                     </a>
                     <a href={`/api/files/${doc.id}/download`} download>
-                      <Button size="sm" className="h-8 text-xs gap-1.5 bg-teal-600 hover:bg-teal-700 text-white cursor-pointer">
+                      <Button size="sm" className="h-8 text-xs gap-1.5 bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer">
                         <Download className="h-3.5 w-3.5" />
                         <span>Baixar</span>
                       </Button>

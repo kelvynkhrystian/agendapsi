@@ -558,7 +558,7 @@ export default function AdminPatientDetailPage({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <Link
           href="/admin/pacientes"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-teal-600 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[var(--primary)] transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Voltar para Lista de Pacientes</span>
@@ -591,7 +591,7 @@ export default function AdminPatientDetailPage({
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-teal-100 dark:bg-teal-950/60 flex items-center justify-center text-teal-700 dark:text-teal-300 font-bold text-xl shrink-0">
+              <div className="w-14 h-14 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] font-bold text-xl shrink-0">
                 {patient.fullName.charAt(0)}
               </div>
               <div>
@@ -682,7 +682,7 @@ export default function AdminPatientDetailPage({
               onClick={() => setActiveTab(tab.key as typeof activeTab)}
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
                 isActive
-                  ? "border-teal-600 text-teal-600 dark:border-teal-400 dark:text-teal-400 font-semibold"
+                  ? "border-[var(--primary)] text-[var(--primary)] font-bold"
                   : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-100"
               }`}
             >
@@ -740,7 +740,7 @@ export default function AdminPatientDetailPage({
               <CardTitle className="text-base">Sigilo e Guarda de Prontuário</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-xs text-slate-500">
-              <div className="p-3 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-xl space-y-2 text-teal-900 dark:text-teal-200">
+              <div className="p-3 bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-xl space-y-2 text-slate-800 dark:text-[#F5F5F5]">
                 <div className="flex items-center gap-2 font-semibold">
                   <ShieldCheck className="h-4 w-4" />
                   <span>Área Privativa e Sigilosa (CFP & CFM)</span>
@@ -759,12 +759,12 @@ export default function AdminPatientDetailPage({
 
       {/* 2. PRONTUÁRIO CLÍNICO (PRIVADO DO CLIENTE) */}
       {activeTab === "records" && (
-        <Card className="border-teal-100 dark:border-teal-950/50 shadow-xs">
+        <Card className="border-slate-200 dark:border-[#444444] shadow-xs">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
             <div>
               <div className="flex items-center gap-2">
                 <CardTitle className="text-base font-bold">Prontuário & Evolução Clínica</CardTitle>
-                <Badge variant="outline" className="text-[10px] text-teal-700 dark:text-teal-400 border-teal-300">
+                <Badge variant="outline" className="text-[10px] text-[var(--primary)] border-[var(--primary)]/30">
                   <Lock className="h-3 w-3 mr-1 inline" /> Privado do Paciente
                 </Badge>
               </div>
@@ -776,7 +776,7 @@ export default function AdminPatientDetailPage({
               <Button
                 size="sm"
                 onClick={() => setIsNewRecordModalOpen(true)}
-                className="gap-1.5 text-xs bg-teal-600 hover:bg-teal-700 text-white cursor-pointer"
+                className="gap-1.5 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer"
               >
                 <Plus className="h-4 w-4" />
                 <span>Nova Evolução de Sessão</span>
@@ -816,9 +816,9 @@ export default function AdminPatientDetailPage({
 
                         <div className="flex items-center gap-2">
                           {moodInfo && (
-                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-full text-xs">
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-full text-xs">
                               <span>{moodInfo.emoji}</span>
-                              <span className="font-semibold text-teal-800 dark:text-teal-300">
+                              <span className="font-semibold text-[var(--primary)]">
                                 {record.moodRating}/10: {moodInfo.label}
                               </span>
                             </div>
@@ -852,7 +852,7 @@ export default function AdminPatientDetailPage({
                                 setViewingRecord(record);
                                 setIsRevisionsModalOpen(true);
                               }}
-                              className="text-teal-600 dark:text-teal-400 hover:underline cursor-pointer"
+                              className="text-[var(--primary)] hover:underline cursor-pointer"
                             >
                               Ver histórico completo
                             </button>
@@ -879,7 +879,7 @@ export default function AdminPatientDetailPage({
                 <Button
                   size="sm"
                   onClick={() => setIsNewRecordModalOpen(true)}
-                  className="gap-1.5 text-xs bg-teal-600 hover:bg-teal-700 text-white mt-2 cursor-pointer"
+                  className="gap-1.5 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white mt-2 cursor-pointer"
                 >
                   <Plus className="h-4 w-4" />
                   <span>Registrar Primeira Evolução</span>
@@ -918,7 +918,7 @@ export default function AdminPatientDetailPage({
                 {patient.anamnesisSubmits.map((sub) => (
                   <div
                     key={sub.id}
-                    className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:border-teal-300 dark:hover:border-teal-700 transition-colors"
+                    className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:border-[var(--primary)]/50 transition-colors"
                   >
                     <div>
                       <div className="flex items-center gap-2">
@@ -952,7 +952,7 @@ export default function AdminPatientDetailPage({
                         setIsViewAnamnesisModalOpen(true);
                       }}
                     >
-                      <Eye className="h-3.5 w-3.5 text-teal-600" />
+                      <Eye className="h-3.5 w-3.5 text-[var(--primary)]" />
                       <span>Visualizar respostas</span>
                     </Button>
                   </div>
@@ -1021,7 +1021,7 @@ export default function AdminPatientDetailPage({
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
             <div>
               <CardTitle className="text-base font-bold flex items-center gap-2">
-                <FolderLock className="h-4 w-4 text-teal-600" />
+                <FolderLock className="h-4 w-4 text-[var(--primary)]" />
                 <span>Documentos e Atestados do Paciente</span>
               </CardTitle>
               <CardDescription className="text-xs">
@@ -1030,7 +1030,7 @@ export default function AdminPatientDetailPage({
             </div>
             <Button
               size="sm"
-              className="gap-2 text-xs bg-teal-600 hover:bg-teal-700 text-white cursor-pointer"
+              className="gap-2 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer"
               onClick={() => setIsUploadDocModalOpen(true)}
             >
               <Upload className="h-4 w-4" />
@@ -1123,7 +1123,7 @@ export default function AdminPatientDetailPage({
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-7 text-xs text-teal-600 border-teal-300 hover:bg-teal-50 cursor-pointer"
+                            className="h-7 text-xs text-[var(--primary)] border-teal-300 hover:bg-teal-50 cursor-pointer"
                             onClick={() => handleReactivateShare(share.id)}
                           >
                             Reativar (+30d)
@@ -1147,7 +1147,7 @@ export default function AdminPatientDetailPage({
                 </div>
                 <Button
                   size="sm"
-                  className="gap-2 text-xs bg-teal-600 hover:bg-teal-700 text-white cursor-pointer mt-2"
+                  className="gap-2 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer mt-2"
                   onClick={() => setIsUploadDocModalOpen(true)}
                 >
                   <Upload className="h-4 w-4" />
@@ -1251,7 +1251,7 @@ export default function AdminPatientDetailPage({
                   title={m.label}
                   className={`p-2 rounded-xl text-center border transition-all cursor-pointer ${
                     newMood === m.val
-                      ? "border-teal-600 bg-teal-50 dark:bg-teal-950/60 font-bold text-teal-800 dark:text-teal-300 ring-2 ring-teal-500/30"
+                      ? "border-teal-600 bg-teal-50 dark:bg-teal-950/60 font-bold text-[var(--primary)] ring-2 ring-teal-500/30"
                       : "border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800"
                   }`}
                 >
@@ -1265,7 +1265,7 @@ export default function AdminPatientDetailPage({
           {/* Modelos Rápidos */}
           <div>
             <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mb-1.5">
-              <Sparkles className="h-3.5 w-3.5 text-teal-600" />
+              <Sparkles className="h-3.5 w-3.5 text-[var(--primary)]" />
               <span>Inserir Modelo Clínico Rápido:</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -1300,7 +1300,7 @@ export default function AdminPatientDetailPage({
               Evolução e Anotações Clínicas da Sessão: *
             </label>
             <textarea
-              className="flex min-h-[160px] w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs leading-relaxed focus:ring-2 focus:ring-teal-500 font-mono"
+              className="flex min-h-[160px] w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs leading-relaxed focus:ring-2 focus:ring-[var(--primary)] font-mono"
               placeholder="Descreva as queixas, intervenções realizadas, tarefas e evolução do paciente..."
               value={newNoteContent}
               onChange={(e) => setNewNoteContent(e.target.value)}
@@ -1320,7 +1320,7 @@ export default function AdminPatientDetailPage({
             <Button
               type="submit"
               size="sm"
-              className="bg-teal-600 hover:bg-teal-700 text-white cursor-pointer"
+              className="bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer"
               disabled={isSubmittingRecord}
             >
               {isSubmittingRecord ? "Salvando..." : "Gravar no Prontuário"}
@@ -1370,7 +1370,7 @@ export default function AdminPatientDetailPage({
                   title={m.label}
                   className={`p-2 rounded-xl text-center border transition-all cursor-pointer ${
                     editMood === m.val
-                      ? "border-teal-600 bg-teal-50 dark:bg-teal-950/60 font-bold text-teal-800 dark:text-teal-300 ring-2 ring-teal-500/30"
+                      ? "border-teal-600 bg-teal-50 dark:bg-teal-950/60 font-bold text-[var(--primary)] ring-2 ring-teal-500/30"
                       : "border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800"
                   }`}
                 >
@@ -1397,7 +1397,7 @@ export default function AdminPatientDetailPage({
               Conteúdo do Prontuário Clínico: *
             </label>
             <textarea
-              className="flex min-h-[180px] w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs leading-relaxed focus:ring-2 focus:ring-teal-500 font-mono"
+              className="flex min-h-[180px] w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs leading-relaxed focus:ring-2 focus:ring-[var(--primary)] font-mono"
               value={editNoteContent}
               onChange={(e) => setEditNoteContent(e.target.value)}
               required
@@ -1419,7 +1419,7 @@ export default function AdminPatientDetailPage({
             <Button
               type="submit"
               size="sm"
-              className="bg-teal-600 hover:bg-teal-700 text-white cursor-pointer"
+              className="bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer"
               disabled={isUpdatingRecord}
             >
               {isUpdatingRecord ? "Salvando Revisão..." : "Salvar Revisão do Prontuário"}
@@ -1513,7 +1513,7 @@ export default function AdminPatientDetailPage({
               required
               accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx"
               onChange={(e) => setDocFile(e.target.files?.[0] || null)}
-              className="flex h-10 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs file:mr-3 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100"
+              className="flex h-10 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs file:mr-3 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[var(--primary)]/10 file:text-[var(--primary)] hover:file:bg-[var(--primary)]/20"
             />
             <span className="text-[11px] text-slate-400 mt-0.5 block">
               Tamanho máximo permitido: 25 MB.
@@ -1526,7 +1526,7 @@ export default function AdminPatientDetailPage({
             </label>
             <textarea
               rows={2}
-              className="flex w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs focus:ring-2 focus:ring-teal-500 outline-none"
+              className="flex w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs focus:ring-2 focus:ring-[var(--primary)] outline-none"
               placeholder="Ex: Declaração para comprovação de presença em sessão psicológica."
               value={docDescription}
               onChange={(e) => setDocDescription(e.target.value)}
@@ -1551,8 +1551,8 @@ export default function AdminPatientDetailPage({
           </div>
 
           {/* Preview da data calculada de expiração (Task 2) */}
-          <div className="p-3 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-xl text-teal-900 dark:text-teal-200 text-xs flex items-center gap-2">
-            <Clock className="h-4 w-4 shrink-0 text-teal-600 dark:text-teal-400" />
+          <div className="p-3 bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-xl text-slate-800 dark:text-[#F5F5F5] text-xs flex items-center gap-2">
+            <Clock className="h-4 w-4 shrink-0 text-[var(--primary)]" />
             <span>
               <strong>Previsão de vigência:</strong> {getCalculatedExpirationText(docShareDays)}
             </span>
@@ -1570,7 +1570,7 @@ export default function AdminPatientDetailPage({
             <Button
               type="submit"
               size="sm"
-              className="bg-teal-600 hover:bg-teal-700 text-white cursor-pointer"
+              className="bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer"
               disabled={isUploadingDoc || !docFile}
             >
               {isUploadingDoc ? "Enviando arquivo..." : "Enviar e Liberar ao Paciente"}
@@ -1639,7 +1639,7 @@ export default function AdminPatientDetailPage({
                           className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 space-y-1.5"
                         >
                           <div className="font-semibold text-slate-800 dark:text-slate-200 flex items-start gap-1.5">
-                            <span className="text-teal-600 font-bold">{idx + 1}.</span>
+                            <span className="text-[var(--primary)] font-bold">{idx + 1}.</span>
                             <span>{q.label}</span>
                           </div>
                           <div className="pl-4 text-slate-700 dark:text-slate-300 leading-relaxed">

@@ -1279,13 +1279,13 @@ export default function AdminSettingsPage() {
             <CardHeader className="pb-4 border-b border-slate-200 dark:border-slate-800">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400">
+                  <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
                     <Film className="h-5 w-5" />
                   </div>
                   <div>
                     <CardTitle className="text-base font-semibold flex items-center gap-2">
                       Imagens & Animações do MiniSite
-                      <Badge variant="outline" className="text-[10px] bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20">
+                      <Badge variant="outline" className="text-[10px] bg-[var(--primary)]/10 text-[var(--primary)] border-[var(--primary)]/20">
                         Fase 3: Mídias Dinâmicas
                       </Badge>
                     </CardTitle>
@@ -1299,7 +1299,7 @@ export default function AdminSettingsPage() {
                   type="button"
                   onClick={handleSaveMediaSettings}
                   disabled={isSavingMedia}
-                  className="gap-2 text-xs self-start sm:self-auto bg-teal-600 hover:bg-teal-700 text-white"
+                  className="gap-2 text-xs self-start sm:self-auto bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white"
                 >
                   <Save className="h-4 w-4" />
                   <span>{isSavingMedia ? "Salvando Mídias..." : "Salvar Mídias do MiniSite"}</span>
@@ -1379,7 +1379,7 @@ export default function AdminSettingsPage() {
                         onClick={() => setHeroMediaType("IMAGE")}
                         className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
                           heroMediaType === "IMAGE"
-                            ? "border-teal-500 bg-teal-500/10 text-teal-600 dark:text-teal-400 font-semibold"
+                            ? "border-teal-500 bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
                             : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
                         }`}
                       >
@@ -1392,7 +1392,7 @@ export default function AdminSettingsPage() {
                         onClick={() => setHeroMediaType("FRAME_ANIMATION")}
                         className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
                           heroMediaType === "FRAME_ANIMATION"
-                            ? "border-teal-500 bg-teal-500/10 text-teal-600 dark:text-teal-400 font-semibold"
+                            ? "border-teal-500 bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
                             : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
                         }`}
                       >
@@ -1405,7 +1405,7 @@ export default function AdminSettingsPage() {
                         onClick={() => setHeroMediaType("VIDEO")}
                         className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
                           heroMediaType === "VIDEO"
-                            ? "border-teal-500 bg-teal-500/10 text-teal-600 dark:text-teal-400 font-semibold"
+                            ? "border-teal-500 bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
                             : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
                         }`}
                       >
@@ -1445,7 +1445,7 @@ export default function AdminSettingsPage() {
                             }
                           }}
                         />
-                        <Upload className="h-5 w-5 text-teal-600 dark:text-teal-400 mx-auto mb-1" />
+                        <Upload className="h-5 w-5 text-[var(--primary)] mx-auto mb-1" />
                         <p className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
                           {uploadingSlot === "hero-FRAME_ANIMATION" || uploadingSlot === "hero-IMAGE" || uploadingSlot === "hero-VIDEO"
                             ? "Processando e enviando arquivo..."
@@ -1481,7 +1481,7 @@ export default function AdminSettingsPage() {
                             }}
                           />
                           <div className="p-2 border border-slate-200 dark:border-slate-800 rounded-lg text-center hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
-                            <Images className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                            <Images className="h-3.5 w-3.5 text-[var(--primary)]" />
                             <span>Múltiplos Frames</span>
                           </div>
                         </label>
@@ -1500,7 +1500,7 @@ export default function AdminSettingsPage() {
                             }}
                           />
                           <div className="p-2 border border-slate-200 dark:border-slate-800 rounded-lg text-center hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
-                            <Folder className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                            <Folder className="h-3.5 w-3.5 text-[var(--primary)]" />
                             <span>Pasta de Frames</span>
                           </div>
                         </label>
@@ -1515,9 +1515,9 @@ export default function AdminSettingsPage() {
                         size="sm"
                         onClick={() => handleImportLocalFrames("hero")}
                         disabled={uploadingSlot === "hero-import"}
-                        className="w-full text-xs gap-1.5 border-teal-500/30 hover:bg-teal-500/10 text-teal-700 dark:text-teal-300"
+                        className="w-full text-xs gap-1.5 border-[var(--primary)]/30 hover:bg-[var(--primary)]/10 text-[var(--primary)]"
                       >
-                        <Sparkles className="h-3.5 w-3.5 text-teal-500" />
+                        <Sparkles className="h-3.5 w-3.5 text-[var(--primary)]" />
                         <span>
                           {uploadingSlot === "hero-import"
                             ? "Importando frames locais..."
@@ -1535,7 +1535,7 @@ export default function AdminSettingsPage() {
                         <div className="space-y-1">
                           <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
                             <span className="font-semibold">Velocidade (FPS)</span>
-                            <span className="font-mono text-teal-600 dark:text-teal-400 font-bold">{heroFps} quadros/s</span>
+                            <span className="font-mono text-[var(--primary)] font-bold">{heroFps} quadros/s</span>
                           </div>
                           <input
                             type="range"
@@ -1544,7 +1544,7 @@ export default function AdminSettingsPage() {
                             step="1"
                             value={heroFps}
                             onChange={(e) => setHeroFps(Number(e.target.value))}
-                            className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-teal-600"
+                            className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[var(--primary)]"
                           />
                         </div>
 
@@ -1584,7 +1584,7 @@ export default function AdminSettingsPage() {
                               type="checkbox"
                               checked={heroLoop}
                               onChange={(e) => setHeroLoop(e.target.checked)}
-                              className="rounded text-teal-600 focus:ring-teal-500"
+                              className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
                             />
                             <span>Repetir (Loop)</span>
                           </label>
@@ -1594,7 +1594,7 @@ export default function AdminSettingsPage() {
                               type="checkbox"
                               checked={heroAutoplay}
                               onChange={(e) => setHeroAutoplay(e.target.checked)}
-                              className="rounded text-teal-600 focus:ring-teal-500"
+                              className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
                             />
                             <span>Reprodução Automática</span>
                           </label>
@@ -1610,7 +1610,7 @@ export default function AdminSettingsPage() {
                             type="checkbox"
                             checked={heroLoop}
                             onChange={(e) => setHeroLoop(e.target.checked)}
-                            className="rounded text-teal-600 focus:ring-teal-500"
+                            className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
                           />
                           <span>Repetir (Loop)</span>
                         </label>
@@ -1620,7 +1620,7 @@ export default function AdminSettingsPage() {
                             type="checkbox"
                             checked={heroAutoplay}
                             onChange={(e) => setHeroAutoplay(e.target.checked)}
-                            className="rounded text-teal-600 focus:ring-teal-500"
+                            className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
                           />
                           <span>Autoplay</span>
                         </label>
@@ -1722,7 +1722,7 @@ export default function AdminSettingsPage() {
                         onClick={() => setAboutMediaType("IMAGE")}
                         className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
                           aboutMediaType === "IMAGE"
-                            ? "border-teal-500 bg-teal-500/10 text-teal-600 dark:text-teal-400 font-semibold"
+                            ? "border-teal-500 bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
                             : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
                         }`}
                       >
@@ -1735,7 +1735,7 @@ export default function AdminSettingsPage() {
                         onClick={() => setAboutMediaType("FRAME_ANIMATION")}
                         className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
                           aboutMediaType === "FRAME_ANIMATION"
-                            ? "border-teal-500 bg-teal-500/10 text-teal-600 dark:text-teal-400 font-semibold"
+                            ? "border-teal-500 bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
                             : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
                         }`}
                       >
@@ -1748,7 +1748,7 @@ export default function AdminSettingsPage() {
                         onClick={() => setAboutMediaType("VIDEO")}
                         className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
                           aboutMediaType === "VIDEO"
-                            ? "border-teal-500 bg-teal-500/10 text-teal-600 dark:text-teal-400 font-semibold"
+                            ? "border-teal-500 bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
                             : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
                         }`}
                       >
@@ -1788,7 +1788,7 @@ export default function AdminSettingsPage() {
                             }
                           }}
                         />
-                        <Upload className="h-5 w-5 text-teal-600 dark:text-teal-400 mx-auto mb-1" />
+                        <Upload className="h-5 w-5 text-[var(--primary)] mx-auto mb-1" />
                         <p className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
                           {uploadingSlot === "about-FRAME_ANIMATION" || uploadingSlot === "about-IMAGE" || uploadingSlot === "about-VIDEO"
                             ? "Processando e enviando arquivo..."
@@ -1824,7 +1824,7 @@ export default function AdminSettingsPage() {
                             }}
                           />
                           <div className="p-2 border border-slate-200 dark:border-slate-800 rounded-lg text-center hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
-                            <Images className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                            <Images className="h-3.5 w-3.5 text-[var(--primary)]" />
                             <span>Múltiplos Frames</span>
                           </div>
                         </label>
@@ -1843,7 +1843,7 @@ export default function AdminSettingsPage() {
                             }}
                           />
                           <div className="p-2 border border-slate-200 dark:border-slate-800 rounded-lg text-center hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
-                            <Folder className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                            <Folder className="h-3.5 w-3.5 text-[var(--primary)]" />
                             <span>Pasta de Frames</span>
                           </div>
                         </label>
@@ -1858,9 +1858,9 @@ export default function AdminSettingsPage() {
                         size="sm"
                         onClick={() => handleImportLocalFrames("about")}
                         disabled={uploadingSlot === "about-import"}
-                        className="w-full text-xs gap-1.5 border-teal-500/30 hover:bg-teal-500/10 text-teal-700 dark:text-teal-300"
+                        className="w-full text-xs gap-1.5 border-[var(--primary)]/30 hover:bg-[var(--primary)]/10 text-[var(--primary)]"
                       >
-                        <Sparkles className="h-3.5 w-3.5 text-teal-500" />
+                        <Sparkles className="h-3.5 w-3.5 text-[var(--primary)]" />
                         <span>
                           {uploadingSlot === "about-import"
                             ? "Importando frames locais..."
@@ -1878,7 +1878,7 @@ export default function AdminSettingsPage() {
                         <div className="space-y-1">
                           <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
                             <span className="font-semibold">Velocidade (FPS)</span>
-                            <span className="font-mono text-teal-600 dark:text-teal-400 font-bold">{aboutFps} quadros/s</span>
+                            <span className="font-mono text-[var(--primary)] font-bold">{aboutFps} quadros/s</span>
                           </div>
                           <input
                             type="range"
@@ -1887,7 +1887,7 @@ export default function AdminSettingsPage() {
                             step="1"
                             value={aboutFps}
                             onChange={(e) => setAboutFps(Number(e.target.value))}
-                            className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-teal-600"
+                            className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[var(--primary)]"
                           />
                         </div>
 
@@ -1927,7 +1927,7 @@ export default function AdminSettingsPage() {
                               type="checkbox"
                               checked={aboutLoop}
                               onChange={(e) => setAboutLoop(e.target.checked)}
-                              className="rounded text-teal-600 focus:ring-teal-500"
+                              className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
                             />
                             <span>Repetir (Loop)</span>
                           </label>
@@ -1937,7 +1937,7 @@ export default function AdminSettingsPage() {
                               type="checkbox"
                               checked={aboutAutoplay}
                               onChange={(e) => setAboutAutoplay(e.target.checked)}
-                              className="rounded text-teal-600 focus:ring-teal-500"
+                              className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
                             />
                             <span>Reprodução Automática</span>
                           </label>
@@ -1953,7 +1953,7 @@ export default function AdminSettingsPage() {
                             type="checkbox"
                             checked={aboutLoop}
                             onChange={(e) => setAboutLoop(e.target.checked)}
-                            className="rounded text-teal-600 focus:ring-teal-500"
+                            className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
                           />
                           <span>Repetir (Loop)</span>
                         </label>
@@ -1963,7 +1963,7 @@ export default function AdminSettingsPage() {
                             type="checkbox"
                             checked={aboutAutoplay}
                             onChange={(e) => setAboutAutoplay(e.target.checked)}
-                            className="rounded text-teal-600 focus:ring-teal-500"
+                            className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
                           />
                           <span>Autoplay</span>
                         </label>
@@ -2015,7 +2015,7 @@ export default function AdminSettingsPage() {
                   type="button"
                   onClick={handleSaveMediaSettings}
                   disabled={isSavingMedia}
-                  className="gap-2 text-xs bg-teal-600 hover:bg-teal-700 text-white"
+                  className="gap-2 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white"
                 >
                   <Save className="h-4 w-4" />
                   <span>{isSavingMedia ? "Salvando Mídias..." : "Salvar Mídias do MiniSite"}</span>
@@ -2029,9 +2029,9 @@ export default function AdminSettingsPage() {
       {/* ================= ABA 3: CONSULTAS VIRTUAIS (TASK 9) ================= */}
       {activeTab === "video" && (
         <div className="space-y-6">
-          <div className="p-4 rounded-xl bg-teal-50/50 dark:bg-teal-950/20 border border-teal-200/60 dark:border-teal-900/40 text-xs text-teal-800 dark:text-teal-300 space-y-1">
+          <div className="p-4 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-xs text-slate-800 dark:text-[#F5F5F5] space-y-1">
             <p className="font-semibold flex items-center gap-1.5">
-              <Video className="h-4 w-4 text-teal-600" />
+              <Video className="h-4 w-4 text-[var(--primary)]" />
               <span>Opções de Teleconsulta e Provedores de Vídeo (Task 9)</span>
             </p>
             <p>
@@ -2050,7 +2050,7 @@ export default function AdminSettingsPage() {
                   key={provider.key}
                   className={`flex flex-col justify-between transition-all ${
                     isSelected
-                      ? "border-teal-500 ring-2 ring-teal-500/20 bg-teal-50/20 dark:bg-teal-950/20"
+                      ? "border-[var(--primary)] ring-2 ring-[var(--primary)]/20 bg-[var(--primary)]/10"
                       : "border-slate-200 dark:border-slate-800"
                   }`}
                 >
@@ -2135,7 +2135,7 @@ export default function AdminSettingsPage() {
                               size="sm"
                               onClick={handleTestJitsi}
                               disabled={isTestingJitsi || !jitsiDomain}
-                              className="w-full gap-2 text-xs border-teal-600/30 text-teal-700 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/40"
+                              className="w-full gap-2 text-xs border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/10"
                             >
                               <Activity className="h-3.5 w-3.5" />
                               <span>{isTestingJitsi ? "Testando Jitsi..." : "Testar Servidor Jitsi"}</span>
@@ -2191,7 +2191,7 @@ export default function AdminSettingsPage() {
                                   type="checkbox"
                                   checked={peerJsSecure}
                                   onChange={(e) => setPeerJsSecure(e.target.checked)}
-                                  className="rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                                  className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]"
                                 />
                                 <span>Conexão Segura SSL/TLS (HTTPS/WSS)</span>
                               </label>
@@ -2245,7 +2245,7 @@ export default function AdminSettingsPage() {
                               size="sm"
                               onClick={handleTestPeerJs}
                               disabled={isTestingPeerJs || !peerJsHost}
-                              className="w-full gap-2 text-xs border-teal-600/30 text-teal-700 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/40"
+                              className="w-full gap-2 text-xs border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/10"
                             >
                               <Activity className="h-3.5 w-3.5" />
                               <span>{isTestingPeerJs ? "Testando Sinalização..." : "Testar Servidor de Sinalização"}</span>
@@ -2301,7 +2301,7 @@ export default function AdminSettingsPage() {
                           {/* Caixa de Instruções Google Cloud Console */}
                           <div className="p-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl space-y-2 text-[11px] text-slate-600 dark:text-slate-400">
                             <div className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                              <Info className="h-3.5 w-3.5 text-teal-600" />
+                              <Info className="h-3.5 w-3.5 text-[var(--primary)]" />
                               <span>Passo a passo no Google Cloud Console:</span>
                             </div>
                             <ol className="list-decimal list-inside space-y-1 pl-1 text-[10px] leading-relaxed">
@@ -2310,7 +2310,7 @@ export default function AdminSettingsPage() {
                               <li>Em <em>Tela de consentimento OAuth</em>, configure como <em>Externo</em> e inclua o escopo <code>calendar.events</code>.</li>
                               <li>Em <em>Credenciais</em>, crie um <strong>ID do cliente OAuth</strong> do tipo <em>Aplicativo da Web</em>.</li>
                               <li>Adicione em <strong>URIs de redirecionamento autorizados</strong>:
-                                <div className="mt-1 font-mono text-[10px] bg-white dark:bg-slate-800 p-1.5 rounded border border-slate-200 dark:border-slate-700 break-all select-all text-teal-700 dark:text-teal-400">
+                                <div className="mt-1 font-mono text-[10px] bg-white dark:bg-slate-800 p-1.5 rounded border border-slate-200 dark:border-slate-700 break-all select-all text-[var(--primary)]">
                                   {typeof window !== "undefined" ? `${window.location.origin}/api/admin/integrations/google/callback` : "http://localhost:3000/api/admin/integrations/google/callback"}
                                 </div>
                               </li>
@@ -2369,7 +2369,7 @@ export default function AdminSettingsPage() {
                                 type="button"
                                 onClick={handleConnectGoogle}
                                 disabled={!googleMeetClientId || (!googleMeetClientSecret && !provider.config?.hasClientSecret)}
-                                className="w-full gap-2 text-xs bg-teal-600 hover:bg-teal-700 text-white"
+                                className="w-full gap-2 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white"
                               >
                                 <Link2 className="h-3.5 w-3.5" />
                                 <span>Conectar Conta Google via OAuth</span>
@@ -2390,7 +2390,7 @@ export default function AdminSettingsPage() {
                               <div className="text-[11px] space-y-1">
                                 <p>{googleMeetFeedback.message}</p>
                                 {googleMeetFeedback.meetUrl && (
-                                  <p className="text-[10px] font-mono break-all text-teal-700 dark:text-teal-300">
+                                  <p className="text-[10px] font-mono break-all text-[var(--primary)]">
                                     Sala gerada com sucesso: {googleMeetFeedback.meetUrl}
                                   </p>
                                 )}
@@ -2412,7 +2412,7 @@ export default function AdminSettingsPage() {
                       }}
                       disabled={!provider.isFunctional}
                       className={`w-full text-xs gap-1.5 ${
-                        isSelected ? "bg-teal-600 text-white font-semibold" : ""
+                        isSelected ? "bg-[var(--button-bg,var(--primary))] text-white font-semibold" : ""
                       }`}
                     >
                       {isSelected ? (
@@ -2445,7 +2445,7 @@ export default function AdminSettingsPage() {
               type="button"
               onClick={handleSaveVideoProviders}
               disabled={isSavingVideo}
-              className="gap-2 text-xs bg-teal-600 hover:bg-teal-700 text-white"
+              className="gap-2 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white"
             >
               <Save className="h-4 w-4" />
               <span>{isSavingVideo ? "Salvando..." : "Salvar Configurações de Teleconsulta"}</span>
@@ -2525,7 +2525,7 @@ export default function AdminSettingsPage() {
             <div className="flex justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
               <Button
                 onClick={() => setGeneralFeedback("Políticas de agendamento salvas com sucesso!")}
-                className="gap-2 text-xs bg-teal-600 hover:bg-teal-700 text-white"
+                className="gap-2 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white"
               >
                 <Save className="h-4 w-4" />
                 <span>Salvar Políticas</span>

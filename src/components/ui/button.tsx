@@ -22,26 +22,26 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none cursor-pointer";
+      "inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none cursor-pointer active:scale-[0.98]";
 
     const variantStyles = {
       primary:
-        "bg-[var(--button-bg,var(--primary))] text-white hover:opacity-90 dark:hover:opacity-95 focus-visible:ring-[var(--primary)] shadow-xs",
+        "bg-[var(--button-bg,var(--primary))] text-white hover:brightness-105 active:brightness-95 focus-visible:ring-[var(--primary)] shadow-xs",
       secondary:
-        "bg-slate-100 text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 focus-visible:ring-slate-400",
+        "bg-slate-100 text-slate-800 hover:bg-slate-200 dark:bg-[#353535] dark:text-[#F5F5F5] dark:hover:bg-[#404040] focus-visible:ring-slate-400",
       outline:
-        "border border-slate-300 dark:border-slate-700 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 focus-visible:ring-[var(--primary)]",
+        "border border-slate-200 dark:border-[#444444] bg-transparent hover:bg-slate-100/80 dark:hover:bg-[#353535] text-slate-800 dark:text-[#E0E0E0] focus-visible:ring-[var(--primary)]",
       ghost:
-        "bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 focus-visible:ring-[var(--primary)]",
+        "bg-transparent hover:bg-slate-100/80 dark:hover:bg-[#353535] text-slate-700 dark:text-[#BDBDBD] hover:text-slate-900 dark:hover:text-[#F5F5F5] focus-visible:ring-[var(--primary)]",
       destructive:
-        "bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 focus-visible:ring-red-500",
+        "bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 focus-visible:ring-red-500 shadow-xs",
     };
 
     const sizeStyles = {
-      sm: "text-xs px-2.5 py-1.5 gap-1.5",
-      md: "text-sm px-4 py-2 gap-2",
-      lg: "text-base px-5 py-2.5 gap-2.5",
-      icon: "h-9 w-9 p-0",
+      sm: "text-xs px-3 py-1.5 gap-1.5 rounded-lg",
+      md: "text-sm px-4 py-2 gap-2 rounded-xl",
+      lg: "text-base px-5 py-2.5 gap-2.5 rounded-xl",
+      icon: "h-9 w-9 p-0 rounded-xl",
     };
 
     return (

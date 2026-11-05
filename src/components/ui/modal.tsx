@@ -46,32 +46,32 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
         className={cn(
-          "w-full rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-xl relative animate-in zoom-in-95 duration-200",
+          "w-full rounded-2xl bg-white dark:bg-[#2D2D2D] border border-slate-200 dark:border-[#444444] p-6 shadow-2xl relative animate-in zoom-in-95 duration-200",
           maxStyles[maxWidth]
         )}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
       >
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-[#383838]">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-[#F5F5F5] tracking-tight">
               {title}
             </h2>
             {description && (
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-[#BDBDBD] mt-1">
                 {description}
               </p>
             )}
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="rounded-xl p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-[#F5F5F5] hover:bg-slate-100 dark:hover:bg-[#353535] transition-colors cursor-pointer"
             aria-label="Fechar modal"
           >
             <X className="h-5 w-5" />

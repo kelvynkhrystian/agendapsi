@@ -307,7 +307,7 @@ export default function AdminMiniSitePage() {
         <Card className="border-slate-200 dark:border-slate-800">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Globe className="h-4 w-4 text-teal-600" />
+              <Globe className="h-4 w-4 text-[var(--primary)]" />
               <span>Identidade e Textos Principais</span>
             </CardTitle>
             <CardDescription>
@@ -363,9 +363,9 @@ export default function AdminMiniSitePage() {
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
             <div>
               <CardTitle className="text-base flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-teal-600" />
+                <Sparkles className="h-4 w-4 text-[var(--primary)]" />
                 <span>Ícones e Diferenciais do Hero</span>
-                <Badge variant="outline" className="text-[10px] bg-teal-500/10 text-teal-600 border-teal-500/20">
+                <Badge variant="outline" className="text-[10px] bg-[var(--primary)]/10 text-[var(--primary)] border-[var(--primary)]/20">
                   Fase 4: Ícones Temáticos
                 </Badge>
               </CardTitle>
@@ -403,7 +403,7 @@ export default function AdminMiniSitePage() {
                           type="checkbox"
                           checked={item.isVisible}
                           onChange={(e) => handleUpdateBenefit(index, { isVisible: e.target.checked })}
-                          className="rounded text-teal-600 focus:ring-teal-500"
+                          className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
                         />
                         <span>Visível</span>
                       </label>
@@ -411,11 +411,11 @@ export default function AdminMiniSitePage() {
 
                     {/* Prévia do Ícone Atual */}
                     <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-center space-y-2 shadow-xs">
-                      <div className="w-12 h-12 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center">
                         <ThemeIcon
                           iconName={item.icon}
                           customIconUrl={item.customIconUrl}
-                          className="h-6 w-6 text-teal-600 dark:text-teal-400"
+                          className="h-6 w-6 text-[var(--primary)]"
                           alt={item.title}
                         />
                       </div>
@@ -436,7 +436,7 @@ export default function AdminMiniSitePage() {
                         }}
                         className="text-[11px] gap-1 px-2"
                       >
-                        <Compass className="h-3.5 w-3.5 text-teal-600" />
+                        <Compass className="h-3.5 w-3.5 text-[var(--primary)]" />
                         <span>Biblioteca</span>
                       </Button>
 
@@ -452,7 +452,7 @@ export default function AdminMiniSitePage() {
                           }}
                         />
                         <div className="h-8 px-2 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-[11px] font-medium flex items-center justify-center gap-1 text-slate-700 dark:text-slate-300 transition-colors">
-                          <Upload className="h-3.5 w-3.5 text-teal-600" />
+                          <Upload className="h-3.5 w-3.5 text-[var(--primary)]" />
                           <span>{uploadingIconIndex === index ? "Enviando..." : "Upload"}</span>
                         </div>
                       </label>
@@ -520,9 +520,9 @@ export default function AdminMiniSitePage() {
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
             <div>
               <CardTitle className="text-base flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-teal-600" />
+                <MapPin className="h-4 w-4 text-[var(--primary)]" />
                 <span>Localização do Consultório & Google Maps</span>
-                <Badge variant="outline" className="text-[10px] bg-teal-500/10 text-teal-600 border-teal-500/20">
+                <Badge variant="outline" className="text-[10px] bg-[var(--primary)]/10 text-[var(--primary)] border-[var(--primary)]/20">
                   Fase 4: Mapas & Endereço
                 </Badge>
               </CardTitle>
@@ -536,7 +536,7 @@ export default function AdminMiniSitePage() {
                 type="checkbox"
                 checked={showLocation}
                 onChange={(e) => setShowLocation(e.target.checked)}
-                className="rounded text-teal-600 focus:ring-teal-500"
+                className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
               />
               <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                 Exibir seção no MiniSite
@@ -667,7 +667,7 @@ export default function AdminMiniSitePage() {
                         href={destinationMapsUrlPreview}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-1 font-semibold"
+                        className="text-[var(--primary)] hover:underline flex items-center gap-1 font-semibold"
                       >
                         <ExternalLink className="h-3 w-3" />
                         <span>Testar rota &quot;Como chegar&quot;</span>
@@ -863,7 +863,7 @@ export default function AdminMiniSitePage() {
 
         {/* Botão de Salvar Alterações */}
         <div className="flex justify-end pt-2">
-          <Button type="submit" size="lg" disabled={isSaving} className="gap-2 bg-teal-600 hover:bg-teal-700 text-white">
+          <Button type="submit" size="lg" disabled={isSaving} className="gap-2 bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white">
             <Save className="h-4 w-4" />
             <span>{isSaving ? "Salvando Alterações..." : "Salvar Alterações do MiniSite"}</span>
           </Button>

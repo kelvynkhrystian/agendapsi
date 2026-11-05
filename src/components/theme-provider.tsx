@@ -28,17 +28,32 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // O MiniSite público e telas abertas operam SEMPRE no modo claro.
   const isAuthRoute = pathname.startsWith("/admin") || pathname.startsWith("/paciente");
 
+  const getStorageKey = (path: string) => {
+    if (path.startsWith("/admin")) return "psi_theme_admin";
+    if (path.startsWith("/paciente")) return "psi_theme_patient";
+    return null;
+  };
+
   useEffect(() => {
     if (!isAuthRoute) {
       document.documentElement.classList.remove("dark");
+      setThemeState("light");
       return;
     }
 
-    const saved = localStorage.getItem("psi_theme") as Theme | null;
+    const storageKey = getStorageKey(pathname);
+    let saved: string | null = null;
+
+    if (storageKey === "psi_theme_admin") {
+      saved = localStorage.getItem("psi_theme_admin") || localStorage.getItem("psi_theme");
+    } else if (storageKey === "psi_theme_patient") {
+      saved = localStorage.getItem("psi_theme_patient");
+    }
+
     if (saved === "light" || saved === "dark") {
-      setThemeState(saved);
+      setThemeState(saved as Theme);
       document.documentElement.classList.toggle("dark", saved === "dark");
-    } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
       setThemeState("dark");
       document.documentElement.classList.add("dark");
     } else {
@@ -50,7 +65,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setTheme = (newTheme: Theme) => {
     if (!isAuthRoute) return;
     setThemeState(newTheme);
-    localStorage.setItem("psi_theme", newTheme);
+    const storageKey = getStorageKey(pathname);
+
+    if (storageKey === "psi_theme_admin") {
+      localStorage.setItem("psi_theme_admin", newTheme);
+      localStorage.setItem("psi_theme", newTheme);
+    } else if (storageKey === "psi_theme_patient") {
+      localStorage.setItem("psi_theme_patient", newTheme);
+    }
+
     document.documentElement.classList.toggle("dark", newTheme === "dark");
   };
 

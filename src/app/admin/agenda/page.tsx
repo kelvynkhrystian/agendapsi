@@ -296,7 +296,7 @@ export default function AdminAgendaPage() {
               key={dayIdx}
               className={`flex flex-col rounded-xl border ${
                 isToday
-                  ? "border-teal-500 bg-teal-50/20 dark:bg-teal-950/20"
+                  ? "border-[var(--primary)] bg-[var(--primary)]/10"
                   : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
               } min-h-[420px]`}
             >
@@ -304,7 +304,7 @@ export default function AdminAgendaPage() {
               <div
                 className={`p-3 text-center border-b ${
                   isToday
-                    ? "border-teal-500 bg-teal-100/50 dark:bg-teal-900/40 text-teal-900 dark:text-teal-200"
+                    ? "border-[var(--primary)] bg-[var(--primary)]/15 text-[var(--primary)] font-bold"
                     : "border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-300"
                 }`}
               >
@@ -332,7 +332,7 @@ export default function AdminAgendaPage() {
                             ? "border-red-200 bg-red-50/40 dark:border-red-900 dark:bg-red-950/20 opacity-70"
                             : appt.status === "COMPLETED"
                             ? "border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/40"
-                            : "border-teal-200 bg-teal-50/50 dark:border-teal-900 dark:bg-teal-950/30"
+                            : "border-[var(--primary)]/30 bg-[var(--primary)]/5"
                         }`}
                       >
                         <div className="flex items-center justify-between font-semibold mb-1">
@@ -364,7 +364,7 @@ export default function AdminAgendaPage() {
                           <span
                             className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
                               appt.status === "CONFIRMED"
-                                ? "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200"
+                                ? "bg-[var(--primary)]/15 text-[var(--primary)] font-semibold"
                                 : appt.status === "COMPLETED"
                                 ? "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
                                 : appt.status === "NO_SHOW"
@@ -426,9 +426,9 @@ export default function AdminAgendaPage() {
             </div>
 
             {selectedAppt.meetingUrlSnapshot && (
-              <div className="p-3 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-xl flex items-center justify-between">
+              <div className="p-3 bg-[var(--primary)]/10 dark:bg-[var(--primary)]/15 border border-[var(--primary)]/20 rounded-xl flex items-center justify-between">
                 <div>
-                  <span className="font-semibold text-teal-800 dark:text-teal-300 block text-xs">
+                  <span className="font-semibold text-[var(--primary)] block text-xs">
                     Sala de Teleconsulta (Jitsi)
                   </span>
                   <span className="text-xs text-slate-500">
@@ -592,7 +592,7 @@ export default function AdminAgendaPage() {
                 type="checkbox"
                 checked={isAdminOverride}
                 onChange={(e) => setIsAdminOverride(e.target.checked)}
-                className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
+                className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)] h-4 w-4"
               />
               <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
                 Encaixe com override de disponibilidade (fora da grade padrão)
@@ -604,7 +604,7 @@ export default function AdminAgendaPage() {
                 type="checkbox"
                 checked={isFreeOneOff}
                 onChange={(e) => setIsFreeOneOff(e.target.checked)}
-                className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
+                className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)] h-4 w-4"
               />
               <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
                 Tornar esta sessão específica gratuita (cortesia pontual)

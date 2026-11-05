@@ -109,14 +109,14 @@ export default function PatientFinancePage() {
       {/* Propostas de Pacotes Pendentes */}
       {pendingProposals.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-lg font-bold flex items-center gap-2 text-teal-700 dark:text-teal-400">
+          <h2 className="text-lg font-bold flex items-center gap-2 text-[var(--primary)]">
             <Boxes className="h-5 w-5" />
             <span>Propostas de Pacotes Aguardando sua Aprovação</span>
           </h2>
 
           <div className="grid grid-cols-1 gap-4">
             {pendingProposals.map((pkg) => (
-              <Card key={pkg.id} className="border-teal-500 shadow-md">
+              <Card key={pkg.id} className="border-[var(--primary)]/60 shadow-md">
                 <CardHeader className="flex flex-row items-start justify-between pb-2">
                   <div>
                     <CardTitle className="text-lg font-bold">{pkg.title}</CardTitle>
@@ -124,7 +124,7 @@ export default function PatientFinancePage() {
                       {pkg.description || "Pacote de sessões terapêuticas personalizadas"}
                     </CardDescription>
                   </div>
-                  <span className="text-xl font-extrabold text-teal-600 dark:text-teal-400">
+                  <span className="text-xl font-extrabold text-[var(--primary)]">
                     {formatBRL(pkg.totalPriceCents)}
                   </span>
                 </CardHeader>

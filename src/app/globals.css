@@ -12,7 +12,7 @@
     --primary-foreground: #ffffff;
     --secondary: #f1f5f9;
     --secondary-foreground: #0f172a;
-    --muted: #f1f5f9;
+    --muted: #f8fafc;
     --muted-foreground: #64748b;
     --accent: #f0fdfa;
     --accent-foreground: #0f766e;
@@ -21,28 +21,86 @@
     --border: #e2e8f0;
     --input: #e2e8f0;
     --ring: #0d9488;
+
+    /* Semantic Design Tokens (Shared with MiniSite & Dashboards) */
+    --color-primary: var(--primary);
+    --color-primary-hover: var(--button-bg, var(--primary));
+    --color-secondary: var(--secondary);
+    --color-accent: var(--accent);
+    --color-background: var(--background);
+    --color-surface: var(--card);
+    --color-text: var(--foreground);
+    --color-text-muted: var(--muted-foreground);
+    --color-border: var(--border);
   }
 
+  /* Internal Dark Mode: Strictly Neutral Gray Palette (No Blue Tint) */
   .dark {
-    --background: #090d16;
-    --foreground: #f8fafc;
-    --card: #0f172a;
-    --card-foreground: #f8fafc;
-    --popover: #0f172a;
-    --popover-foreground: #f8fafc;
-    --primary: #14b8a6;
-    --primary-foreground: #042f2e;
-    --secondary: #1e293b;
-    --secondary-foreground: #f8fafc;
-    --muted: #1e293b;
-    --muted-foreground: #94a3b8;
-    --accent: #134e4a;
-    --accent-foreground: #ccfbf1;
-    --destructive: #7f1d1d;
-    --destructive-foreground: #fef2f2;
-    --border: #334155;
-    --input: #334155;
-    --ring: #14b8a6;
+    --background: #202020;
+    --foreground: #F5F5F5;
+    --card: #2D2D2D;
+    --card-foreground: #F5F5F5;
+    --popover: #2D2D2D;
+    --popover-foreground: #F5F5F5;
+    --secondary: #353535;
+    --secondary-foreground: #F5F5F5;
+    --muted: #2D2D2D;
+    --muted-foreground: #BDBDBD;
+    --accent: #353535;
+    --accent-foreground: #F5F5F5;
+    --destructive: #dc2626;
+    --destructive-foreground: #ffffff;
+    --border: #444444;
+    --input: #444444;
+
+    /* Semantic Design Tokens in Dark Mode */
+    --color-primary: var(--primary);
+    --color-primary-hover: var(--button-bg, var(--primary));
+    --color-secondary: #353535;
+    --color-accent: #353535;
+    --color-background: #202020;
+    --color-surface: #2D2D2D;
+    --color-text: #F5F5F5;
+    --color-text-muted: #BDBDBD;
+    --color-border: #444444;
+  }
+
+  /* Neutral Gray Dark Mode Overrides (Prevents blue-tinted slate) */
+  .dark .bg-slate-950,
+  .dark.bg-slate-950 {
+    background-color: #202020 !important;
+  }
+  .dark .bg-slate-900,
+  .dark.bg-slate-900 {
+    background-color: #2D2D2D !important;
+  }
+  .dark .bg-slate-850 {
+    background-color: #262626 !important;
+  }
+  .dark .bg-slate-800,
+  .dark.bg-slate-800 {
+    background-color: #353535 !important;
+  }
+  .dark .border-slate-800,
+  .dark.border-slate-800,
+  .dark .border-slate-700,
+  .dark.border-slate-700 {
+    border-color: #444444 !important;
+  }
+  .dark .text-slate-100,
+  .dark.text-slate-100,
+  .dark .text-slate-50 {
+    color: #F5F5F5 !important;
+  }
+  .dark .text-slate-300,
+  .dark .text-slate-400 {
+    color: #BDBDBD !important;
+  }
+
+  /* MiniSite Light-Only Isolation Boundary */
+  [data-theme="light"],
+  .minisite-root {
+    color-scheme: light !important;
   }
 
   html {

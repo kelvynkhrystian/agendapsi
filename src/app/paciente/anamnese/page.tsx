@@ -157,7 +157,7 @@ export default function PatientAnamnesisPage() {
 
             <div className="rounded-lg bg-slate-50 dark:bg-slate-800/40 p-4 border border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 space-y-2">
               <div className="flex items-center gap-2 font-medium text-slate-700 dark:text-slate-300">
-                <Clock className="h-4 w-4 text-teal-600" />
+                <Clock className="h-4 w-4 text-[var(--primary)]" />
                 <span>Sigilo Ético e Confidencialidade</span>
               </div>
               <p>
@@ -204,7 +204,7 @@ export default function PatientAnamnesisPage() {
                   {field.type === "textarea" ? (
                     <textarea
                       rows={4}
-                      className="flex w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs focus:ring-2 focus:ring-teal-500 outline-none leading-relaxed"
+                      className="flex w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs focus:ring-2 focus:ring-[var(--primary)] outline-none leading-relaxed"
                       placeholder="Sua resposta..."
                       value={answers[field.id] || ""}
                       onChange={(e) => handleAnswerChange(field.id, e.target.value)}
@@ -224,7 +224,7 @@ export default function PatientAnamnesisPage() {
                             checked={answers[field.id] === opt}
                             onChange={(e) => handleAnswerChange(field.id, e.target.value)}
                             required={field.required}
-                            className="text-teal-600 focus:ring-teal-500"
+                            className="text-[var(--primary)] focus:ring-[var(--primary)]"
                           />
                           <span>{opt}</span>
                         </label>
@@ -233,7 +233,7 @@ export default function PatientAnamnesisPage() {
                   ) : (
                     <input
                       type="text"
-                      className="flex h-10 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs focus:ring-2 focus:ring-teal-500 outline-none"
+                      className="flex h-10 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs focus:ring-2 focus:ring-[var(--primary)] outline-none"
                       placeholder="Sua resposta..."
                       value={answers[field.id] || ""}
                       onChange={(e) => handleAnswerChange(field.id, e.target.value)}
@@ -251,7 +251,7 @@ export default function PatientAnamnesisPage() {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-teal-600 hover:bg-teal-700 text-white gap-2 text-xs"
+                  className="bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white gap-2 text-xs"
                 >
                   <Send className="h-3.5 w-3.5" />
                   <span>{isSubmitting ? "Enviando..." : "Enviar Ficha de Anamnese"}</span>

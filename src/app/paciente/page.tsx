@@ -128,7 +128,7 @@ export default function PatientAppointmentsPage() {
         </div>
 
         <Link href="/agendar">
-          <Button className="gap-1.5 bg-teal-600 hover:bg-teal-700 text-white">
+          <Button className="gap-1.5 bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white">
             <Plus className="h-4 w-4" />
             <span>Agendar Nova Consulta</span>
           </Button>
@@ -149,7 +149,7 @@ export default function PatientAppointmentsPage() {
               const isPresential = appt.modality === "PRESENTIAL";
 
               return (
-                <Card key={appt.id} className="border-teal-200 dark:border-teal-900 shadow-xs flex flex-col justify-between">
+                <Card key={appt.id} className="border-slate-200 dark:border-[#444444] shadow-xs flex flex-col justify-between">
                   <div>
                     <CardHeader className="flex flex-row items-start justify-between pb-2">
                       <div>
@@ -166,11 +166,11 @@ export default function PatientAppointmentsPage() {
                     <CardContent className="space-y-4 pt-0">
                       <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-1.5 text-xs">
                         <div className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-200">
-                          <Calendar className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                          <Calendar className="h-4 w-4 text-[var(--primary)]" />
                           <span>{formatDate(appt.startAt)}</span>
                         </div>
                         <div className="flex items-center gap-2 font-mono text-slate-600 dark:text-slate-400">
-                          <Clock className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                          <Clock className="h-4 w-4 text-[var(--primary)]" />
                           <span>
                             {formatTime(appt.startAt)} às {formatTime(appt.endAt)}
                           </span>
@@ -194,14 +194,14 @@ export default function PatientAppointmentsPage() {
                           size="sm"
                           variant="outline"
                           onClick={() => setSelectedInPersonAppt(appt)}
-                          className="gap-1.5 text-xs border-teal-300 dark:border-teal-800 text-teal-700 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-950/40"
+                          className="gap-1.5 text-xs border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/10"
                         >
-                          <Info className="h-3.5 w-3.5 text-teal-600" />
+                          <Info className="h-3.5 w-3.5 text-[var(--primary)]" />
                           <span>Informações da consulta</span>
                         </Button>
                       ) : appt.meetingUrlSnapshot ? (
                         <Link href={appt.meetingUrlSnapshot} target="_blank">
-                          <Button size="sm" className="gap-1.5 text-xs bg-teal-600 hover:bg-teal-700 text-white">
+                          <Button size="sm" className="gap-1.5 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white">
                             <Video className="h-3.5 w-3.5" />
                             <span>Entrar na sala</span>
                           </Button>
@@ -284,16 +284,16 @@ export default function PatientAppointmentsPage() {
         >
           <div className="space-y-5 text-xs">
             {/* Header com serviço e profissional */}
-            <div className="p-4 rounded-xl bg-teal-50/60 dark:bg-teal-950/30 border border-teal-100 dark:border-teal-900/40 space-y-2">
+            <div className="p-4 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-sm text-teal-900 dark:text-teal-200">
+                <span className="font-bold text-sm text-slate-800 dark:text-[#F5F5F5]">
                   {selectedInPersonAppt.service.name}
                 </span>
                 <Badge variant="outline" className="text-[10px]">Presencial</Badge>
               </div>
 
               <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                <User className="h-4 w-4 text-teal-600 shrink-0" />
+                <User className="h-4 w-4 text-[var(--primary)] shrink-0" />
                 <span>Profissional: <strong>{selectedInPersonAppt.establishment?.professionalName || "Dr(a). Profissional PSI"}</strong></span>
               </div>
             </div>
@@ -303,14 +303,14 @@ export default function PatientAppointmentsPage() {
               <div className="space-y-1">
                 <span className="text-slate-400 block text-[11px]">Data da Sessão</span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5 text-teal-600" />
+                  <Calendar className="h-3.5 w-3.5 text-[var(--primary)]" />
                   {formatDate(selectedInPersonAppt.startAt)}
                 </span>
               </div>
               <div className="space-y-1">
                 <span className="text-slate-400 block text-[11px]">Horário e Duração</span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5 text-teal-600" />
+                  <Clock className="h-3.5 w-3.5 text-[var(--primary)]" />
                   {formatTime(selectedInPersonAppt.startAt)} ({selectedInPersonAppt.service.durationMinutes} min)
                 </span>
               </div>
@@ -319,14 +319,14 @@ export default function PatientAppointmentsPage() {
             {/* Estabelecimento e Endereço */}
             <div className="space-y-2 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
               <div className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-200">
-                <Building2 className="h-4 w-4 text-teal-600" />
+                <Building2 className="h-4 w-4 text-[var(--primary)]" />
                 <span>{selectedInPersonAppt.establishment?.name || "Consultório"}</span>
               </div>
 
               {selectedInPersonAppt.establishment?.address ? (
                 <div className="space-y-3 pt-2">
                   <div className="flex items-start gap-2 text-slate-600 dark:text-slate-300">
-                    <MapPin className="h-4 w-4 text-teal-600 shrink-0 mt-0.5" />
+                    <MapPin className="h-4 w-4 text-[var(--primary)] shrink-0 mt-0.5" />
                     <p className="leading-relaxed">{selectedInPersonAppt.establishment.address}</p>
                   </div>
 
@@ -338,7 +338,7 @@ export default function PatientAppointmentsPage() {
                     rel="noopener noreferrer"
                     className="inline-block"
                   >
-                    <Button size="sm" className="gap-2 bg-teal-600 hover:bg-teal-700 text-white text-xs">
+                    <Button size="sm" className="gap-2 bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white text-xs">
                       <MapPin className="h-3.5 w-3.5" />
                       <span>Ver localização no Google Maps</span>
                       <ExternalLink className="h-3 w-3 ml-0.5" />

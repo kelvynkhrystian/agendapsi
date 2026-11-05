@@ -196,7 +196,7 @@ export default function AdminServicesPage() {
                   </CardDescription>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="text-lg font-bold text-teal-600 dark:text-teal-400">
+                  <div className="text-lg font-bold text-[var(--primary)]">
                     {service.isFree ? "Gratuito" : formatBRL(service.priceCents)}
                   </div>
                 </div>
@@ -276,7 +276,7 @@ export default function AdminServicesPage() {
               <label className="block text-sm font-medium">Descrição Detalhada</label>
               <textarea
                 rows={2}
-                className="flex w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+                className="flex w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
                 placeholder="Explique o objetivo e o formato deste atendimento..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -296,7 +296,7 @@ export default function AdminServicesPage() {
                   type="checkbox"
                   checked={isFree}
                   onChange={(e) => setIsFree(e.target.checked)}
-                  className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
+                  className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)] h-4 w-4"
                 />
                 <span className="text-xs text-slate-600 dark:text-slate-400">
                   Serviço gratuito por padrão (ex: alinhamento breve)
@@ -372,7 +372,7 @@ export default function AdminServicesPage() {
                 type="checkbox"
                 checked={isActive}
                 onChange={(e) => setIsActive(e.target.checked)}
-                className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
+                className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)] h-4 w-4"
               />
               <span className="text-sm font-medium">
                 Serviço ativo e visível para agendamento público

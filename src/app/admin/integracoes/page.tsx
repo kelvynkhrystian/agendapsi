@@ -218,9 +218,9 @@ export default function AdminIntegrationsPage() {
         </p>
       </div>
 
-      <div className="p-4 rounded-xl bg-teal-50/50 dark:bg-teal-950/20 border border-teal-200/60 dark:border-teal-900/40 text-xs text-teal-800 dark:text-teal-300 space-y-1">
+      <div className="p-4 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-xs text-slate-800 dark:text-[#F5F5F5] space-y-1">
         <p className="font-semibold flex items-center gap-1.5">
-          <ShieldCheck className="h-4 w-4 text-teal-600" />
+          <ShieldCheck className="h-4 w-4 text-[var(--primary)]" />
           <span>Arquitetura Desacoplada e Segura</span>
         </p>
         <p>
@@ -236,7 +236,7 @@ export default function AdminIntegrationsPage() {
             <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-lg bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300">
+                  <div className="p-2 rounded-lg bg-teal-100 dark:bg-teal-950 text-[var(--primary)]">
                     <Mail className="h-5 w-5" />
                   </div>
                   <div>
@@ -267,7 +267,7 @@ export default function AdminIntegrationsPage() {
                     type="checkbox"
                     checked={emailEnabled}
                     onChange={(e) => setEmailEnabled(e.target.checked)}
-                    className="h-4 w-4 rounded text-teal-600 focus:ring-teal-500 cursor-pointer"
+                    className="h-4 w-4 rounded text-[var(--primary)] focus:ring-[var(--primary)] cursor-pointer"
                   />
                 </div>
 
@@ -329,7 +329,7 @@ export default function AdminIntegrationsPage() {
                   </div>
                   <div className="space-y-1">
                     <label className="font-medium text-slate-700 dark:text-slate-300">
-                      Senha {hasExistingPassword && <span className="text-teal-600 font-normal">(Gravada)</span>}
+                      Senha {hasExistingPassword && <span className="text-[var(--primary)] font-normal">(Gravada)</span>}
                     </label>
                     <Input
                       type="password"
@@ -383,7 +383,7 @@ export default function AdminIntegrationsPage() {
                     disabled={isTestingEmail || !smtpHost}
                     className="shrink-0 gap-1.5 text-xs"
                   >
-                    <Send className="h-3.5 w-3.5 text-teal-600" />
+                    <Send className="h-3.5 w-3.5 text-[var(--primary)]" />
                     <span>{isTestingEmail ? "Enviando..." : "Disparar Teste"}</span>
                   </Button>
                 </div>
@@ -429,7 +429,7 @@ export default function AdminIntegrationsPage() {
                     type="checkbox"
                     checked={whatsappEnabled}
                     onChange={(e) => setWhatsappEnabled(e.target.checked)}
-                    className="h-4 w-4 rounded text-teal-600 focus:ring-teal-500 cursor-pointer"
+                    className="h-4 w-4 rounded text-[var(--primary)] focus:ring-[var(--primary)] cursor-pointer"
                   />
                 </div>
 
@@ -458,7 +458,7 @@ export default function AdminIntegrationsPage() {
 
                 <div className="space-y-1">
                   <label className="font-medium text-slate-700 dark:text-slate-300">
-                    Chave de API / Token {hasExistingToken && <span className="text-teal-600 font-normal">(Gravado)</span>}
+                    Chave de API / Token {hasExistingToken && <span className="text-[var(--primary)] font-normal">(Gravado)</span>}
                   </label>
                   <Input
                     type="password"

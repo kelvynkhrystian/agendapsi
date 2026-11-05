@@ -148,7 +148,10 @@ export default async function HomePage() {
   const shouldShowLocation = site?.showLocation !== false && !!(formattedAddress || mapsDestinationUrl);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FDFCFB] text-slate-900 selection:bg-[var(--primary)] selection:text-white font-sans overflow-x-hidden">
+    <div
+      data-theme="light"
+      className="minisite-root light min-h-screen flex flex-col bg-[#FDFCFB] text-slate-900 selection:bg-[var(--primary)] selection:text-white font-sans overflow-x-hidden"
+    >
       {/* ================= TOP NAVIGATION (DESKTOP & MOBILE STICKY HEADER) ================= */}
       <MiniSiteHeader
         logoHorizontalUrl={site?.logoHorizontalUrl}

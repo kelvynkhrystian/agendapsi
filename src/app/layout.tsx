@@ -51,11 +51,29 @@ export default async function RootLayout({
       --ring: ${primary};
       --theme-bg: ${bgColor};
       --theme-text: ${textColor};
+      --color-primary: ${primary};
+      --color-primary-hover: ${buttonBg};
+      --color-secondary: ${secondary};
+      --color-accent: ${accent};
+      --color-background: ${bgColor};
+      --color-surface: #ffffff;
+      --color-text: ${textColor};
+      --color-text-muted: #64748b;
+      --color-border: #e2e8f0;
     }
     .dark {
       --primary: ${primary};
       --button-bg: ${buttonBg};
       --ring: ${primary};
+      --color-primary: ${primary};
+      --color-primary-hover: ${buttonBg};
+      --color-secondary: #353535;
+      --color-accent: #353535;
+      --color-background: #202020;
+      --color-surface: #2D2D2D;
+      --color-text: #F5F5F5;
+      --color-text-muted: #BDBDBD;
+      --color-border: #444444;
     }
   `;
 
@@ -65,7 +83,7 @@ export default async function RootLayout({
         {site?.faviconUrl && <link rel="icon" href={site.faviconUrl} />}
         <style id="psi-theme-vars" dangerouslySetInnerHTML={{ __html: dynamicCss }} />
       </head>
-      <body className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased selection:bg-[var(--primary)] selection:text-white">
+      <body className="min-h-screen bg-slate-50 dark:bg-[#202020] text-slate-900 dark:text-[#F5F5F5] antialiased selection:bg-[var(--primary)] selection:text-white">
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

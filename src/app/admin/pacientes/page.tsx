@@ -170,7 +170,7 @@ export default function AdminPatientsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {patients.map((patient) => (
             <Link key={patient.id} href={`/admin/pacientes/${patient.id}`}>
-              <Card className="hover:border-teal-500 transition-all cursor-pointer h-full">
+              <Card className="hover:border-[var(--primary)] transition-all cursor-pointer h-full">
                 <CardHeader className="flex flex-row items-start justify-between pb-2">
                   <div>
                     <div className="flex items-center gap-2">
@@ -244,7 +244,7 @@ export default function AdminPatientsPage() {
 
             <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-xl space-y-2 font-mono text-sm">
               <div><strong>E-mail:</strong> {email}</div>
-              <div><strong>Senha Temporária:</strong> <span className="text-teal-600 font-bold">{createdTempPass}</span></div>
+              <div><strong>Senha Temporária:</strong> <span className="text-[var(--primary)] font-bold">{createdTempPass}</span></div>
             </div>
 
             <p className="text-xs text-slate-500">
@@ -316,7 +316,7 @@ export default function AdminPatientsPage() {
                   type="checkbox"
                   checked={isMinor}
                   onChange={(e) => setIsMinor(e.target.checked)}
-                  className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
+                  className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)] h-4 w-4"
                 />
                 <span className="text-sm font-medium">Paciente menor de 18 anos</span>
               </label>

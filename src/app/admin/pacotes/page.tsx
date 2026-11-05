@@ -212,7 +212,7 @@ export default function AdminPackagesPage() {
                   </CardDescription>
                 </div>
                 <div className="text-right">
-                  <span className="text-base font-bold text-teal-600 dark:text-teal-400">
+                  <span className="text-base font-bold text-[var(--primary)]">
                     {formatBRL(pkg.totalPriceCents)}
                   </span>
                 </div>

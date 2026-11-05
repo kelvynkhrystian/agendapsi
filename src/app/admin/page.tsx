@@ -140,7 +140,7 @@ export default function AdminDashboardPage() {
             <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
               Atendimentos Hoje
             </CardTitle>
-            <Calendar className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+            <Calendar className="h-4 w-4 text-[var(--primary)]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{todayCount}</div>
@@ -156,7 +156,7 @@ export default function AdminDashboardPage() {
             <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
               Pacientes Cadastrados
             </CardTitle>
-            <Users className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+            <Users className="h-4 w-4 text-[var(--primary)]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data?.activePatientsCount ?? 0}</div>
@@ -240,7 +240,7 @@ export default function AdminDashboardPage() {
                       className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                     >
                       <div className="flex items-start gap-3">
-                        <div className="px-2.5 py-1.5 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 font-mono text-sm font-semibold text-center shrink-0">
+                        <div className="px-2.5 py-1.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] font-mono text-sm font-semibold text-center shrink-0">
                           {formatTime(appt.startAt)}
                         </div>
                         <div>
@@ -269,7 +269,7 @@ export default function AdminDashboardPage() {
                         {appt.modality !== "PRESENTIAL" && appt.meetingUrlSnapshot && (
                           <Link href={appt.meetingUrlSnapshot} target="_blank">
                             <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs">
-                              <Video className="h-3.5 w-3.5 text-teal-600" />
+                              <Video className="h-3.5 w-3.5 text-[var(--primary)]" />
                               <span>Entrar na Sessão</span>
                             </Button>
                           </Link>
@@ -369,7 +369,7 @@ export default function AdminDashboardPage() {
                 <div className="space-y-3 text-xs">
                   {data.recentActivity.map((act) => (
                     <div key={act.id} className="flex items-start gap-2">
-                      <div className="h-2 w-2 rounded-full bg-teal-500 mt-1 shrink-0" />
+                      <div className="h-2 w-2 rounded-full bg-[var(--primary)] mt-1 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-slate-800 dark:text-slate-200 truncate">
                           {act.action}
