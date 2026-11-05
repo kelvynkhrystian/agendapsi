@@ -558,6 +558,14 @@ model SystemSettings {
   googleMeetClientId           String?
   peerJsServerHost             String?
   peerJsServerPort             Int?
+  peerJsPath                   String?  @default("/peerjs")
+  peerJsSecure                 Boolean  @default(true)
+  peerJsStunServer             String?
+  peerJsTurnServer             String?
+  peerJsTurnUser               String?
+  peerJsTurnSecret             String?
+  peerJsLastTestedAt           DateTime?
+  peerJsTestStatus             String?
   updatedAt                    DateTime @updatedAt
 }
 

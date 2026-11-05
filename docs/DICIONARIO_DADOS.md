@@ -1164,6 +1164,14 @@ erDiagram
 | `googleMeetClientId`| `String?`| Não | `null` | Client ID para integração com API do Google Meet | `null` |
 | `peerJsServerHost`| `String?` | Não | `null` | Host de servidor próprio WebRTC / PeerJS | `null` |
 | `peerJsServerPort`| `Int?` | Não | `null` | Porta do servidor PeerJS | `null` |
+| `peerJsPath` | `String?` | Não | `"/peerjs"` | Caminho raiz da API de sinalização PeerJS | `"/peerjs"` |
+| `peerJsSecure` | `Boolean` | Sim | `true` | Se a conexão WebSocket utiliza SSL/TLS (WSS/HTTPS) | `true` |
+| `peerJsStunServer` | `String?` | Não | `null` | URL do servidor STUN para descoberta NAT WebRTC | `"stun:stun.l.google.com:19302"` |
+| `peerJsTurnServer` | `String?` | Não | `null` | URL do servidor TURN para relay WebRTC quando P2P direto falha | `"turn:turn.meuconsultorio.com.br:3478"` |
+| `peerJsTurnUser` | `String?` | Não | `null` | Usuário de autenticação no servidor TURN | `"turnuser"` |
+| `peerJsTurnSecret` | `String?` | Não | `null` | Credencial/segredo do servidor TURN (criptografado/mascarado) | `"secret123"` |
+| `peerJsLastTestedAt`| `DateTime?`| Não | `null` | Data e hora do último teste de conectividade realizado | `2026-11-05T08:00:00.000Z` |
+| `peerJsTestStatus` | `String?` | Não | `null` | Status do teste: `"SUCCESS"`, `"FAILED"` | `"SUCCESS"` |
 | `updatedAt` | `DateTime` | Sim | Auto | Data da última alteração de configurações | `2026-11-04T12:00:00.000Z` |
 
 ---

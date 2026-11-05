@@ -373,16 +373,20 @@ export async function createAtomicAppointment({
       },
     });
 
-    // Se o agendamento for virtual, provisiona snapshot da sala Jitsi
+    // Se o agendamento for virtual, provisiona sala com o provedor de vídeo ativo (Jitsi ou PeerJS)
     if (modality === "ONLINE") {
+      const settings = await tx.systemSettings.findFirst();
+      const activeProvider = settings?.activeVideoProvider === "PEERJS" ? "PEERJS" : "JITSI";
+
+      const roomPrefix = activeProvider === "PEERJS" ? "peer-psi" : "psi-session";
       const roomSuffix = Math.random().toString(36).substring(2, 10);
-      const roomName = `psi-session-${appointment.id}-${roomSuffix}`;
+      const roomName = `${roomPrefix}-${appointment.id}-${roomSuffix}`;
       const psiEntryToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
       await tx.videoMeeting.create({
         data: {
           appointmentId: appointment.id,
-          provider: "JITSI",
+          provider: activeProvider,
           roomName,
           psiEntryToken,
         },

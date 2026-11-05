@@ -104,7 +104,7 @@ erDiagram
 - `SiteSettings`: Configurações visuais, textos do MiniSite, logos (padrão e horizontal), favicon, paleta de cores (primária, secundária, destaque, botões), endereço e redes sociais.
 - `ProfessionalProfile`: Dados do profissional (nome, biografia, foto, CRP/CRM).
 - `LegalPage`: Conteúdo dos termos legais (Privacidade, Termos, Cookies, LGPD).
-- `SystemSettings`: Preferências globais (fuso horário, prazos, provedor de vídeo ativo [Jitsi/PeerJS/Meet], credenciais SMTP independentes, credenciais WhatsApp independentes, flags de pagamento).
+- `SystemSettings`: Preferências globais (fuso horário, prazos, provedor de vídeo ativo [Jitsi/PeerJS/Meet], configurações completas de sinalização PeerJS WebRTC com suporte STUN/TURN, credenciais SMTP independentes, credenciais WhatsApp independentes, flags de pagamento).
 - `AuditLog`: Log de segurança de operações sensíveis (`id`, `userId`, `userRole`, `action`, `resource`, `resourceId`, `details`, `ipAddress`, `createdAt`).
 - `TechnicalAccessLog`: Log de acessos ao endpoint `/api/technical/status`.
 - `BackupJob`: Registro de backups gerados e integridade (`id`, `filename`, `sizeBytes`, `checksumSha256`, `status`, `details`, `createdAt`).

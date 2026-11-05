@@ -11,6 +11,16 @@ export async function GET(
     const { token } = await params;
     const session = await getSession();
 
+    if (!session) {
+      return NextResponse.json(
+        {
+          error: "Autenticação obrigatória para acessar a sala de teleconsulta.",
+          requiresLogin: true,
+        },
+        { status: 401 }
+      );
+    }
+
     const videoMeeting = await prisma.videoMeeting.findUnique({
       where: { psiEntryToken: token },
       include: {
@@ -31,11 +41,21 @@ export async function GET(
     }
 
     const { appointment } = videoMeeting;
-    const userRole = session?.role || "PATIENT";
 
-    // Validação de acesso com janela de 15 minutos
+    // Regra de Autorização estrita: apenas o Admin (profissional titular) ou o paciente dono da consulta
+    const isAdmin = session.role === "ADMIN";
+    const isOwnerPatient = session.role === "PATIENT" && session.userId === appointment.patientId;
+
+    if (!isAdmin && !isOwnerPatient) {
+      return NextResponse.json(
+        { error: "Você não possui permissão para acessar esta teleconsulta." },
+        { status: 403 }
+      );
+    }
+
+    // Validação de acesso com janela de tempo (Admin irrestrito, paciente 15 minutos antes)
     const access = checkMeetingAccess({
-      userRole,
+      userRole: session.role,
       startAt: appointment.startAt,
       endAt: appointment.endAt,
     });
@@ -43,13 +63,37 @@ export async function GET(
     const settings = await prisma.systemSettings.findUnique({ where: { id: "default" } });
     const profile = await prisma.professionalProfile.findUnique({ where: { id: "default" } });
 
+    const role = isAdmin ? "doctor" : "patient";
+    const peerId = `${videoMeeting.roomName}-${role}`;
+    const targetPeerId = isAdmin ? `${videoMeeting.roomName}-patient` : `${videoMeeting.roomName}-doctor`;
+
+    const peerJsConfig =
+      videoMeeting.provider === "PEERJS"
+        ? {
+            host: settings?.peerJsServerHost || "localhost",
+            port: settings?.peerJsServerPort || 9000,
+            path: settings?.peerJsPath || "/peerjs",
+            secure: settings?.peerJsSecure ?? false,
+            stunServer: settings?.peerJsStunServer || "stun:stun.l.google.com:19302",
+            turnServer: settings?.peerJsTurnServer || null,
+            turnUser: settings?.peerJsTurnUser || null,
+            turnSecret: settings?.peerJsTurnSecret || null,
+            role,
+            peerId,
+            targetPeerId,
+          }
+        : null;
+
     return NextResponse.json({
+      provider: videoMeeting.provider,
       roomName: videoMeeting.roomName,
       domain: settings?.jitsiDomain || "meet.jit.si",
+      peerJsConfig,
       canEnter: access.canEnter,
       isEarly: access.isEarly,
       minutesUntilOpen: access.minutesUntilOpen,
       message: access.message,
+      currentUserRole: session.role,
       appointment: {
         startAt: appointment.startAt,
         endAt: appointment.endAt,

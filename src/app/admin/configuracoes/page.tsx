@@ -24,6 +24,8 @@ import {
   Sparkles,
   Layers,
   Monitor,
+  Activity,
+  Radio,
 } from "lucide-react";
 
 interface NotificationTemplate {
@@ -76,6 +78,18 @@ export default function AdminSettingsPage() {
   const [jitsiDomain, setJitsiDomain] = useState("meet.jit.si");
   const [peerJsHost, setPeerJsHost] = useState("");
   const [peerJsPort, setPeerJsPort] = useState(9000);
+  const [peerJsPath, setPeerJsPath] = useState("/peerjs");
+  const [peerJsSecure, setPeerJsSecure] = useState(false);
+  const [peerJsStunServer, setPeerJsStunServer] = useState("stun:stun.l.google.com:19302");
+  const [peerJsTurnServer, setPeerJsTurnServer] = useState("");
+  const [peerJsTurnUser, setPeerJsTurnUser] = useState("");
+  const [peerJsTurnSecret, setPeerJsTurnSecret] = useState("");
+  const [isTestingPeerJs, setIsTestingPeerJs] = useState(false);
+  const [peerJsTestFeedback, setPeerJsTestFeedback] = useState<{
+    success: boolean;
+    message: string;
+    date?: string;
+  } | null>(null);
   const [googleMeetClientId, setGoogleMeetClientId] = useState("");
   const [isSavingVideo, setIsSavingVideo] = useState(false);
   const [videoFeedback, setVideoFeedback] = useState<string | null>(null);
@@ -135,6 +149,22 @@ export default function AdminSettingsPage() {
         if (peer) {
           setPeerJsHost(peer.config?.host || "");
           setPeerJsPort(peer.config?.port || 9000);
+          setPeerJsPath(peer.config?.path || "/peerjs");
+          setPeerJsSecure(peer.config?.secure ?? false);
+          setPeerJsStunServer(peer.config?.stunServer || "stun:stun.l.google.com:19302");
+          setPeerJsTurnServer(peer.config?.turnServer || "");
+          setPeerJsTurnUser(peer.config?.turnUser || "");
+          setPeerJsTurnSecret(peer.config?.turnSecret || "");
+          if (peer.config?.lastTestedAt) {
+            setPeerJsTestFeedback({
+              success: peer.config?.testStatus === "SUCCESS",
+              message:
+                peer.config?.testStatus === "SUCCESS"
+                  ? "Servidor de sinalização operacional e verificado."
+                  : "Último teste de sinalização falhou.",
+              date: peer.config?.lastTestedAt,
+            });
+          }
         }
         const gmeet = vidData.providers?.find((p: any) => p.key === "GOOGLE_MEET");
         if (gmeet) setGoogleMeetClientId(gmeet.config?.clientId || "");
@@ -290,7 +320,47 @@ export default function AdminSettingsPage() {
     setAppearanceFeedback("Cores restauradas para a paleta padrão do PSI. Clique em Salvar para persistir.");
   };
 
-  // Salva Provedores de Vídeo (Task 9)
+  // Testar Conexão de Sinalização PeerJS
+  const handleTestPeerJs = async () => {
+    setIsTestingPeerJs(true);
+    setPeerJsTestFeedback(null);
+    try {
+      const res = await fetch("/api/admin/video-providers/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          host: peerJsHost,
+          port: Number(peerJsPort) || 9000,
+          path: peerJsPath || "/peerjs",
+          secure: peerJsSecure,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPeerJsTestFeedback({
+          success: true,
+          message: data.message || "Conexão de sinalização validada com sucesso!",
+          date: data.lastTestedAt,
+        });
+        loadData();
+      } else {
+        setPeerJsTestFeedback({
+          success: false,
+          message: data.error || "Falha ao conectar no servidor de sinalização.",
+          date: data.lastTestedAt,
+        });
+      }
+    } catch {
+      setPeerJsTestFeedback({
+        success: false,
+        message: "Erro de rede ao conectar no servidor de sinalização.",
+      });
+    } finally {
+      setIsTestingPeerJs(false);
+    }
+  };
+
+  // Salva Provedores de Vídeo (Task 9 & Phase 1 WebRTC)
   const handleSaveVideoProviders = async () => {
     setIsSavingVideo(true);
     setVideoFeedback(null);
@@ -304,6 +374,12 @@ export default function AdminSettingsPage() {
           jitsiDomain,
           peerJsServerHost: peerJsHost || null,
           peerJsServerPort: Number(peerJsPort) || 9000,
+          peerJsPath: peerJsPath || "/peerjs",
+          peerJsSecure: peerJsSecure,
+          peerJsStunServer: peerJsStunServer || null,
+          peerJsTurnServer: peerJsTurnServer || null,
+          peerJsTurnUser: peerJsTurnUser || null,
+          peerJsTurnSecret: peerJsTurnSecret || null,
           googleMeetClientId: googleMeetClientId || null,
         }),
       });
@@ -1010,6 +1086,14 @@ export default function AdminSettingsPage() {
                           variant={
                             provider.key === "JITSI"
                               ? "success"
+                              : provider.key === "PEERJS"
+                              ? provider.status === "OPERATIONAL"
+                                ? "success"
+                                : provider.status === "FAILED"
+                                ? "destructive"
+                                : provider.status === "CONFIGURED"
+                                ? "outline"
+                                : "default"
                               : provider.status === "CONFIGURED"
                               ? "outline"
                               : "default"
@@ -1017,6 +1101,14 @@ export default function AdminSettingsPage() {
                         >
                           {provider.key === "JITSI"
                             ? "Funcional (Ativo)"
+                            : provider.key === "PEERJS"
+                            ? provider.status === "OPERATIONAL"
+                              ? "Sinalização Operacional"
+                              : provider.status === "FAILED"
+                              ? "Falha na Conexão"
+                              : provider.status === "CONFIGURED"
+                              ? "Configurado (Não Testado)"
+                              : "Configuração Necessária"
                             : provider.status === "CONFIGURED"
                             ? "Configurado"
                             : "Configuração Necessária"}
@@ -1045,25 +1137,119 @@ export default function AdminSettingsPage() {
                       )}
 
                       {provider.key === "PEERJS" && (
-                        <div className="space-y-2">
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                              <label className="font-medium text-slate-700 dark:text-slate-300">
+                                Host do Servidor PeerJS
+                              </label>
+                              <Input
+                                placeholder="localhost ou peerjs.meuconsultorio.com"
+                                value={peerJsHost}
+                                onChange={(e) => setPeerJsHost(e.target.value)}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="font-medium text-slate-700 dark:text-slate-300">Porta</label>
+                              <Input
+                                type="number"
+                                value={peerJsPort}
+                                onChange={(e) => setPeerJsPort(Number(e.target.value))}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                              <label className="font-medium text-slate-700 dark:text-slate-300">Caminho (Path)</label>
+                              <Input
+                                placeholder="/peerjs"
+                                value={peerJsPath}
+                                onChange={(e) => setPeerJsPath(e.target.value)}
+                              />
+                            </div>
+                            <div className="space-y-1 flex flex-col justify-end">
+                              <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700 dark:text-slate-300 pb-2">
+                                <input
+                                  type="checkbox"
+                                  checked={peerJsSecure}
+                                  onChange={(e) => setPeerJsSecure(e.target.checked)}
+                                  className="rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                                />
+                                <span>Conexão Segura SSL/TLS (HTTPS/WSS)</span>
+                              </label>
+                            </div>
+                          </div>
+
                           <div className="space-y-1">
                             <label className="font-medium text-slate-700 dark:text-slate-300">
-                              Host de Sinalização STUN/TURN
+                              Servidor STUN (Público ou Dedicado)
                             </label>
                             <Input
-                              placeholder="peerjs.meuconsultorio.com.br"
-                              value={peerJsHost}
-                              onChange={(e) => setPeerJsHost(e.target.value)}
+                              placeholder="stun:stun.l.google.com:19302"
+                              value={peerJsStunServer}
+                              onChange={(e) => setPeerJsStunServer(e.target.value)}
                             />
+                            <p className="text-[10px] text-slate-400">
+                              Utilizado para descoberta de IP reflexivo através de NAT.
+                            </p>
                           </div>
-                          <div className="space-y-1">
-                            <label className="font-medium text-slate-700 dark:text-slate-300">Porta</label>
-                            <Input
-                              type="number"
-                              value={peerJsPort}
-                              onChange={(e) => setPeerJsPort(Number(e.target.value))}
-                            />
+
+                          <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+                            <label className="font-semibold text-slate-700 dark:text-slate-300 text-[11px]">
+                              Servidor TURN Opcional (Para NATs Restritivos e Firewalls)
+                            </label>
+                            <div className="space-y-1">
+                              <Input
+                                placeholder="turn:turn.meuconsultorio.com:3478"
+                                value={peerJsTurnServer}
+                                onChange={(e) => setPeerJsTurnServer(e.target.value)}
+                              />
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              <Input
+                                placeholder="Usuário TURN"
+                                value={peerJsTurnUser}
+                                onChange={(e) => setPeerJsTurnUser(e.target.value)}
+                              />
+                              <Input
+                                type="password"
+                                placeholder="Senha / Secret TURN"
+                                value={peerJsTurnSecret}
+                                onChange={(e) => setPeerJsTurnSecret(e.target.value)}
+                              />
+                            </div>
                           </div>
+
+                          <div className="pt-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={handleTestPeerJs}
+                              disabled={isTestingPeerJs || !peerJsHost}
+                              className="w-full gap-2 text-xs border-teal-600/30 text-teal-700 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/40"
+                            >
+                              <Activity className="h-3.5 w-3.5" />
+                              <span>{isTestingPeerJs ? "Testando Sinalização..." : "Testar Servidor de Sinalização"}</span>
+                            </Button>
+                          </div>
+
+                          {peerJsTestFeedback && (
+                            <Alert
+                              variant={peerJsTestFeedback.success ? "success" : "destructive"}
+                              title={peerJsTestFeedback.success ? "Sinalização Validada" : "Falha na Sinalização"}
+                            >
+                              <div className="text-[11px] space-y-0.5">
+                                <p>{peerJsTestFeedback.message}</p>
+                                {peerJsTestFeedback.date && (
+                                  <p className="text-[10px] opacity-75">
+                                    Testado em: {new Date(peerJsTestFeedback.date).toLocaleString("pt-BR")}
+                                  </p>
+                                )}
+                              </div>
+                            </Alert>
+                          )}
                         </div>
                       )}
 
@@ -1090,7 +1276,7 @@ export default function AdminSettingsPage() {
                       type="button"
                       variant={isSelected ? "primary" : "outline"}
                       onClick={() => setActiveVideoKey(provider.key)}
-                      disabled={provider.key !== "JITSI" && !peerJsHost && !googleMeetClientId}
+                      disabled={provider.key === "PEERJS" ? !provider.isFunctional : (provider.key !== "JITSI" && !googleMeetClientId)}
                       className={`w-full text-xs gap-1.5 ${
                         isSelected ? "bg-teal-600 text-white" : ""
                       }`}

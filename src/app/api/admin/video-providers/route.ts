@@ -8,6 +8,12 @@ const updateVideoProvidersSchema = z.object({
   jitsiDomain: z.string().optional(),
   peerJsServerHost: z.string().optional().nullable(),
   peerJsServerPort: z.number().int().optional().nullable(),
+  peerJsPath: z.string().optional().nullable(),
+  peerJsSecure: z.boolean().optional(),
+  peerJsStunServer: z.string().optional().nullable(),
+  peerJsTurnServer: z.string().optional().nullable(),
+  peerJsTurnUser: z.string().optional().nullable(),
+  peerJsTurnSecret: z.string().optional().nullable(),
   googleMeetClientId: z.string().optional().nullable(),
 });
 
@@ -18,6 +24,18 @@ export async function GET() {
     const sys = await prisma.systemSettings.findFirst();
 
     const activeProvider = sys?.activeVideoProvider || "JITSI";
+    const isPeerJsFunctional = !!(sys?.peerJsServerHost && sys?.peerJsTestStatus === "SUCCESS");
+
+    let peerJsStatus = "CONFIG_REQUIRED";
+    if (!sys?.peerJsServerHost) {
+      peerJsStatus = "CONFIG_REQUIRED";
+    } else if (sys?.peerJsTestStatus === "SUCCESS") {
+      peerJsStatus = "OPERATIONAL";
+    } else if (sys?.peerJsTestStatus === "FAILED") {
+      peerJsStatus = "FAILED";
+    } else {
+      peerJsStatus = "CONFIGURED";
+    }
 
     const providers = [
       {
@@ -35,12 +53,21 @@ export async function GET() {
         key: "PEERJS",
         name: "PeerJS / WebRTC Direto",
         description: "Comunicação P2P ponta a ponta sem servidores intermediários de mídia. Requer servidor de sinalização STUN/TURN.",
-        status: sys?.peerJsServerHost ? "CONFIGURED" : "CONFIG_REQUIRED",
-        isFunctional: false, // Adaptador preparado para expansão
+        status: peerJsStatus,
+        isFunctional: isPeerJsFunctional,
         isActive: activeProvider === "PEERJS",
         config: {
           host: sys?.peerJsServerHost || "",
           port: sys?.peerJsServerPort || 9000,
+          path: sys?.peerJsPath || "/peerjs",
+          secure: sys?.peerJsSecure ?? false,
+          stunServer: sys?.peerJsStunServer || "stun:stun.l.google.com:19302",
+          turnServer: sys?.peerJsTurnServer || "",
+          turnUser: sys?.peerJsTurnUser || "",
+          hasTurnSecret: !!sys?.peerJsTurnSecret,
+          turnSecret: sys?.peerJsTurnSecret ? "••••••••" : "",
+          lastTestedAt: sys?.peerJsLastTestedAt || null,
+          testStatus: sys?.peerJsTestStatus || null,
         },
       },
       {
@@ -82,15 +109,36 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const { activeVideoProvider, jitsiDomain, peerJsServerHost, peerJsServerPort, googleMeetClientId } =
-      result.data;
+    const {
+      activeVideoProvider,
+      jitsiDomain,
+      peerJsServerHost,
+      peerJsServerPort,
+      peerJsPath,
+      peerJsSecure,
+      peerJsStunServer,
+      peerJsTurnServer,
+      peerJsTurnUser,
+      peerJsTurnSecret,
+      googleMeetClientId,
+    } = result.data;
 
-    // Regra da Task 9: Não permitir que um provedor indisponível/não funcional se torne o ativo
-    if (activeVideoProvider === "PEERJS" && !peerJsServerHost) {
-      return NextResponse.json(
-        { error: "O provedor PeerJS não pode ser ativado sem configurar o host do servidor de sinalização." },
-        { status: 400 }
-      );
+    const existing = await prisma.systemSettings.findFirst();
+
+    // Regra: Não permitir que um provedor indisponível/não funcional se torne o ativo
+    if (activeVideoProvider === "PEERJS") {
+      if (!peerJsServerHost) {
+        return NextResponse.json(
+          { error: "O provedor PeerJS não pode ser ativado sem configurar o host do servidor de sinalização." },
+          { status: 400 }
+        );
+      }
+      if (existing?.peerJsTestStatus !== "SUCCESS") {
+        return NextResponse.json(
+          { error: "O provedor PeerJS requer um teste de conexão bem-sucedido antes de ser ativado como provedor padrão." },
+          { status: 400 }
+        );
+      }
     }
 
     if (activeVideoProvider === "GOOGLE_MEET" && !googleMeetClientId) {
@@ -100,13 +148,25 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    // Preserva secret existente se mascarado ou omitido
+    let finalTurnSecret = existing?.peerJsTurnSecret || null;
+    if (peerJsTurnSecret !== undefined && peerJsTurnSecret !== "••••••••") {
+      finalTurnSecret = peerJsTurnSecret ? peerJsTurnSecret.trim() : null;
+    }
+
     const updated = await prisma.systemSettings.upsert({
       where: { id: "default" },
       update: {
         activeVideoProvider,
         jitsiDomain: jitsiDomain || "meet.jit.si",
         peerJsServerHost: peerJsServerHost || null,
-        peerJsServerPort: peerJsServerPort || null,
+        peerJsServerPort: peerJsServerPort || 9000,
+        peerJsPath: peerJsPath || "/peerjs",
+        peerJsSecure: peerJsSecure ?? false,
+        peerJsStunServer: peerJsStunServer || null,
+        peerJsTurnServer: peerJsTurnServer || null,
+        peerJsTurnUser: peerJsTurnUser || null,
+        peerJsTurnSecret: finalTurnSecret,
         googleMeetClientId: googleMeetClientId || null,
       },
       create: {
@@ -114,7 +174,13 @@ export async function PUT(req: NextRequest) {
         activeVideoProvider,
         jitsiDomain: jitsiDomain || "meet.jit.si",
         peerJsServerHost: peerJsServerHost || null,
-        peerJsServerPort: peerJsServerPort || null,
+        peerJsServerPort: peerJsServerPort || 9000,
+        peerJsPath: peerJsPath || "/peerjs",
+        peerJsSecure: peerJsSecure ?? false,
+        peerJsStunServer: peerJsStunServer || null,
+        peerJsTurnServer: peerJsTurnServer || null,
+        peerJsTurnUser: peerJsTurnUser || null,
+        peerJsTurnSecret: finalTurnSecret,
         googleMeetClientId: googleMeetClientId || null,
       },
     });

@@ -16,15 +16,20 @@ import {
   AlertTriangle,
   ArrowLeft,
   UserCheck,
+  LogIn,
 } from "lucide-react";
+import PeerJsRoom, { PeerJsConfig } from "@/components/video/peerjs-room";
 
 interface MeetingData {
+  provider: "JITSI" | "PEERJS" | "GOOGLE_MEET";
   roomName: string;
   domain: string;
+  peerJsConfig?: PeerJsConfig | null;
   canEnter: boolean;
   isEarly: boolean;
   minutesUntilOpen: number;
   message: string;
+  currentUserRole?: string;
   appointment: {
     startAt: string;
     endAt: string;
@@ -43,16 +48,22 @@ export default function VirtualConsultationPage({
   const [meeting, setMeeting] = useState<MeetingData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [requiresLogin, setRequiresLogin] = useState(false);
   const [inCall, setInCall] = useState(false);
 
   const fetchMeetingAccess = () => {
     fetch(`/api/virtual-meeting/${token}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.error) {
-          setError(data.error);
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error || "Acesso não autorizado ou indisponível.");
+          if (data.requiresLogin || res.status === 401) {
+            setRequiresLogin(true);
+          }
         } else {
           setMeeting(data);
+          setError(null);
+          setRequiresLogin(false);
         }
         setIsLoading(false);
       })
@@ -85,18 +96,29 @@ export default function VirtualConsultationPage({
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950">
         <Card className="max-w-md w-full text-center p-6 space-y-4">
-          <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">
+          <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto">
             <AlertTriangle className="h-6 w-6" />
           </div>
           <CardTitle className="text-lg">Acesso Não Autorizado ou Indisponível</CardTitle>
-          <CardDescription className="text-xs">
+          <CardDescription className="text-xs leading-relaxed">
             {error || "O link de acesso à teleconsulta é inválido ou expirou."}
           </CardDescription>
-          <Link href="/login">
-            <Button size="sm" className="mt-2 text-xs">
-              Acessar Minha Conta
-            </Button>
-          </Link>
+          <div className="pt-2">
+            {requiresLogin ? (
+              <Link href={`/login?redirect=/consulta-virtual/${token}`}>
+                <Button size="sm" className="gap-2 text-xs">
+                  <LogIn className="h-4 w-4" />
+                  <span>Fazer Login para Entrar</span>
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/login">
+                <Button size="sm" className="mt-2 text-xs">
+                  Acessar Minha Conta
+                </Button>
+              </Link>
+            )}
+          </div>
         </Card>
       </div>
     );
@@ -118,26 +140,36 @@ export default function VirtualConsultationPage({
       {/* Main Body */}
       <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 flex flex-col items-center justify-center">
         {inCall ? (
-          /* Chamada Ativa (Iframe Jitsi) */
-          <div className="w-full h-[80vh] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xl bg-black relative flex flex-col">
-            <iframe
-              src={`https://${meeting.domain}/${meeting.roomName}#config.prejoinPageEnabled=false&config.startWithAudioMuted=false`}
-              allow="camera; microphone; fullscreen; display-capture; autoplay"
-              className="w-full flex-1 border-0"
-              title="Sessão de Teleconsulta PSI"
+          meeting.provider === "PEERJS" && meeting.peerJsConfig ? (
+            /* Chamada Ativa via PeerJS / WebRTC Direto */
+            <PeerJsRoom
+              config={meeting.peerJsConfig}
+              professionalName={appointment.professionalName}
+              patientName={appointment.patientName}
+              onHangup={() => setInCall(false)}
             />
-            <div className="p-3 bg-slate-900 text-white text-xs flex items-center justify-between">
-              <span>Sessão em andamento com {appointment.professionalName}</span>
-              <Button
-                variant="destructive"
-                size="sm"
-                className="h-7 text-xs"
-                onClick={() => setInCall(false)}
-              >
-                Sair da Chamada
-              </Button>
+          ) : (
+            /* Chamada Ativa (Iframe Jitsi Meet) */
+            <div className="w-full h-[80vh] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xl bg-black relative flex flex-col">
+              <iframe
+                src={`https://${meeting.domain}/${meeting.roomName}#config.prejoinPageEnabled=false&config.startWithAudioMuted=false`}
+                allow="camera; microphone; fullscreen; display-capture; autoplay"
+                className="w-full flex-1 border-0"
+                title="Sessão de Teleconsulta PSI"
+              />
+              <div className="p-3 bg-slate-900 text-white text-xs flex items-center justify-between">
+                <span>Sessão em andamento com {appointment.professionalName}</span>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => setInCall(false)}
+                >
+                  Sair da Chamada
+                </Button>
+              </div>
             </div>
-          </div>
+          )
         ) : meeting.canEnter ? (
           /* Sala de Espera Liberada */
           <Card className="max-w-lg w-full text-center border-teal-500 shadow-lg animate-in zoom-in-95">
@@ -155,17 +187,19 @@ export default function VirtualConsultationPage({
               <div className="p-3 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-xl text-xs space-y-1">
                 <div>Paciente: <strong>{appointment.patientName}</strong></div>
                 <div>Horário: <strong>{formatTime(appointment.startAt)} às {formatTime(appointment.endAt)}</strong></div>
+                <div>Provedor: <strong>{meeting.provider === "PEERJS" ? "PeerJS / WebRTC Direto" : "Jitsi Meet"}</strong></div>
               </div>
 
               <Alert variant="info" title="Privacidade e Criptografia">
-                Sua chamada é processada de ponta a ponta sem gravação no servidor do PSI.
-                Verifique se sua câmera e microfone estão conectados.
+                {meeting.provider === "PEERJS"
+                  ? "Sua chamada é realizada ponto a ponto (P2P) com áudio e vídeo criptografados diretamente entre seu dispositivo e o profissional, sem intermediação de servidores de mídia."
+                  : "Sua chamada é processada de ponta a ponta sem gravação no servidor do PSI. Verifique se sua câmera e microfone estão conectados."}
               </Alert>
 
               <Button
                 size="lg"
                 onClick={() => setInCall(true)}
-                className="w-full gap-2 text-sm"
+                className="w-full gap-2 text-sm bg-teal-600 hover:bg-teal-700 text-white"
               >
                 <Video className="h-4 w-4" />
                 <span>Entrar na Sessão Agora</span>
@@ -176,7 +210,7 @@ export default function VirtualConsultationPage({
           /* Sala de Espera Antecipada (Mais de 15 minutos antes) */
           <Card className="max-w-md w-full text-center border-slate-200 dark:border-slate-800 shadow-md">
             <CardHeader className="space-y-2">
-              <div className="w-14 h-14 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto">
+              <div className="w-14 h-14 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto">
                 <Clock className="h-7 w-7" />
               </div>
               <CardTitle className="text-lg">Sala de Espera Virtual</CardTitle>
@@ -205,7 +239,7 @@ export default function VirtualConsultationPage({
       </main>
 
       <footer className="border-t border-slate-200 dark:border-slate-800 py-4 text-center text-[11px] text-slate-400">
-        Ambiente de Teleconsulta Integrado PSI • Provedor V1: Jitsi Meet
+        Ambiente de Teleconsulta Integrado PSI • Provedor: {meeting.provider === "PEERJS" ? "PeerJS / WebRTC Direto" : "Jitsi Meet"}
       </footer>
     </div>
   );

@@ -64,16 +64,20 @@ export async function POST(
           },
         });
 
-        // Se for online, gera sala de teleconsulta Jitsi
+        // Se for online, gera sala de teleconsulta (Jitsi ou PeerJS conforme provedor ativo)
         if (hold.service.modality === "ONLINE" || hold.service.modality === "BOTH") {
+          const settings = await tx.systemSettings.findFirst();
+          const activeProvider = settings?.activeVideoProvider === "PEERJS" ? "PEERJS" : "JITSI";
+
+          const roomPrefix = activeProvider === "PEERJS" ? "peer-psi-pkg" : "psi-pkg";
           const roomSuffix = Math.random().toString(36).substring(2, 10);
-          const roomName = `psi-pkg-${appt.id}-${roomSuffix}`;
-          const psiEntryToken = Math.random().toString(36).substring(2, 15);
+          const roomName = `${roomPrefix}-${appt.id}-${roomSuffix}`;
+          const psiEntryToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
           await tx.videoMeeting.create({
             data: {
               appointmentId: appt.id,
-              provider: "JITSI",
+              provider: activeProvider,
               roomName,
               psiEntryToken,
             },
