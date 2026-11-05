@@ -4,10 +4,17 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatDate, formatTime } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
 import { Modal } from "@/components/ui/modal";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Calendar,
   Clock,
@@ -20,6 +27,13 @@ import {
   User,
   ExternalLink,
   Info,
+  CalendarCheck,
+  FileText,
+  Boxes,
+  FolderLock,
+  ArrowRight,
+  ShieldCheck,
+  HeartHandshake,
 } from "lucide-react";
 
 interface Appointment {
@@ -78,6 +92,8 @@ export default function PatientAppointmentsPage() {
     (a) => new Date(a.startAt) < now || a.status === "CANCELLED" || a.status === "LATE_CANCELLED"
   );
 
+  const nextAppointment = upcomingAppointments[0] || null;
+
   const handleConfirmCancel = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cancellingAppt) return;
@@ -119,16 +135,19 @@ export default function PatientAppointmentsPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Minhas Consultas</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+      {/* ================= 1. WELCOME HEADER ================= */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E2E4E8] dark:border-[#303034]">
+        <div className="space-y-1">
+          <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#111827] dark:text-[#F5F5F5]">
+            Minhas Consultas
+          </h1>
+          <p className="text-xs sm:text-sm text-[#4B5563] dark:text-[#A3A3AD] leading-relaxed">
             Acompanhe suas sessões presenciais ou online, confira a localização e acesse a teleconsulta.
           </p>
         </div>
 
         <Link href="/agendar">
-          <Button className="gap-1.5 bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white">
+          <Button size="md" className="gap-2 shadow-xs">
             <Plus className="h-4 w-4" />
             <span>Agendar Nova Consulta</span>
           </Button>
@@ -137,24 +156,116 @@ export default function PatientAppointmentsPage() {
 
       {statusMessage && <Alert variant="info">{statusMessage}</Alert>}
 
-      {/* Próximas Consultas */}
+      {/* ================= 2. NEXT APPOINTMENT HIGHLIGHT (SE HOUVER) ================= */}
+      {nextAppointment && !isLoading && (
+        <Card className="border-[var(--primary)]/30 bg-gradient-to-br from-white via-white to-[var(--primary)]/5 dark:from-[#19191C] dark:via-[#19191C] dark:to-[var(--primary)]/10 shadow-sm">
+          <CardHeader className="p-5 sm:p-6 pb-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-heading font-semibold bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/20">
+                <CalendarCheck className="h-3.5 w-3.5" />
+                Seu Próximo Atendimento
+              </span>
+              <Badge variant={nextAppointment.status === "CONFIRMED" ? "success" : "warning"}>
+                {nextAppointment.status}
+              </Badge>
+            </div>
+            <CardTitle className="text-lg sm:text-xl font-bold mt-2">
+              {nextAppointment.service.name}
+            </CardTitle>
+            <CardDescription>
+              {nextAppointment.modality === "PRESENTIAL" ? "Atendimento Presencial no Consultório" : "Teleconsulta Online Criptografada"} • {nextAppointment.service.durationMinutes} minutos
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="p-5 sm:p-6 pt-2 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-xl bg-[#F8F9FA] dark:bg-[#141416] border border-[#E2E4E8] dark:border-[#303034] text-xs">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+                  <Calendar className="h-4 w-4" />
+                </div>
+                <div>
+                  <span className="text-[#6B7280] dark:text-[#A3A3AD] block text-[11px]">Data</span>
+                  <span className="font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F5]">
+                    {formatDate(nextAppointment.startAt)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+                  <Clock className="h-4 w-4" />
+                </div>
+                <div>
+                  <span className="text-[#6B7280] dark:text-[#A3A3AD] block text-[11px]">Horário</span>
+                  <span className="font-mono font-semibold text-sm text-[#111827] dark:text-[#F5F5F5]">
+                    {formatTime(nextAppointment.startAt)} às {formatTime(nextAppointment.endAt)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+              {nextAppointment.modality === "PRESENTIAL" ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setSelectedInPersonAppt(nextAppointment)}
+                  className="gap-2 text-xs border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                >
+                  <Info className="h-3.5 w-3.5" />
+                  <span>Informações da consulta</span>
+                </Button>
+              ) : nextAppointment.meetingUrlSnapshot ? (
+                <Link href={nextAppointment.meetingUrlSnapshot} target="_blank">
+                  <Button size="sm" className="gap-2 text-xs shadow-xs">
+                    <Video className="h-3.5 w-3.5" />
+                    <span>Entrar na sala virtual</span>
+                  </Button>
+                </Link>
+              ) : (
+                <span className="text-xs text-[#6B7280] dark:text-[#A3A3AD] italic">
+                  Link da sala sendo preparado pelo profissional
+                </span>
+              )}
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCancellingAppt(nextAppointment)}
+                className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+              >
+                Cancelar Consulta
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ================= 3. TODAS AS PRÓXIMAS CONSULTAS ================= */}
       <div className="space-y-4">
-        <h2 className="text-lg font-bold">Próximos Atendimentos</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-heading text-lg font-bold text-[#111827] dark:text-[#F5F5F5]">
+            Próximos Atendimentos
+          </h2>
+          <span className="text-xs text-[#6B7280] dark:text-[#A3A3AD]">
+            {upcomingAppointments.length} agendado(s)
+          </span>
+        </div>
 
         {isLoading ? (
-          <div className="h-32 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+          <div className="h-36 bg-slate-200 dark:bg-[#19191C] rounded-2xl animate-pulse" />
         ) : upcomingAppointments.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {upcomingAppointments.map((appt) => {
               const isPresential = appt.modality === "PRESENTIAL";
 
               return (
-                <Card key={appt.id} className="border-slate-200 dark:border-[#444444] shadow-xs flex flex-col justify-between">
+                <Card key={appt.id} className="shadow-xs flex flex-col justify-between hover:border-[var(--primary)]/40 transition-all">
                   <div>
-                    <CardHeader className="flex flex-row items-start justify-between pb-2">
+                    <CardHeader className="flex flex-row items-start justify-between pb-2 p-5">
                       <div>
-                        <CardTitle className="text-base">{appt.service.name}</CardTitle>
-                        <CardDescription className="text-xs">
+                        <CardTitle className="text-base font-semibold">{appt.service.name}</CardTitle>
+                        <CardDescription className="text-xs mt-0.5">
                           {isPresential ? "Atendimento Presencial" : "Teleconsulta Online"} • {appt.service.durationMinutes} minutos
                         </CardDescription>
                       </div>
@@ -163,20 +274,20 @@ export default function PatientAppointmentsPage() {
                       </Badge>
                     </CardHeader>
 
-                    <CardContent className="space-y-4 pt-0">
-                      <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-1.5 text-xs">
-                        <div className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-200">
+                    <CardContent className="space-y-3 p-5 pt-0">
+                      <div className="p-3 bg-[#F8F9FA] dark:bg-[#141416] border border-[#E2E4E8] dark:border-[#303034] rounded-xl space-y-1.5 text-xs">
+                        <div className="flex items-center gap-2 font-heading font-semibold text-[#111827] dark:text-[#F5F5F5]">
                           <Calendar className="h-4 w-4 text-[var(--primary)]" />
                           <span>{formatDate(appt.startAt)}</span>
                         </div>
-                        <div className="flex items-center gap-2 font-mono text-slate-600 dark:text-slate-400">
+                        <div className="flex items-center gap-2 font-mono text-[#4B5563] dark:text-[#A3A3AD]">
                           <Clock className="h-4 w-4 text-[var(--primary)]" />
                           <span>
                             {formatTime(appt.startAt)} às {formatTime(appt.endAt)}
                           </span>
                         </div>
                         {isPresential && appt.establishment?.address && (
-                          <div className="flex items-start gap-2 text-slate-500 pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+                          <div className="flex items-start gap-2 text-[#6B7280] dark:text-[#A3A3AD] pt-1.5 border-t border-[#E2E4E8] dark:border-[#303034]">
                             <MapPin className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
                             <span className="truncate">{appt.establishment.address}</span>
                           </div>
@@ -186,9 +297,8 @@ export default function PatientAppointmentsPage() {
                   </div>
 
                   {/* Actions Bar */}
-                  <div className="p-4 pt-0">
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-                      {/* TASK 3: Presencial -> Informações da consulta; Virtual -> Entrar na sala */}
+                  <div className="p-5 pt-0">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#E2E4E8] dark:border-[#303034]">
                       {isPresential ? (
                         <Button
                           size="sm"
@@ -201,13 +311,13 @@ export default function PatientAppointmentsPage() {
                         </Button>
                       ) : appt.meetingUrlSnapshot ? (
                         <Link href={appt.meetingUrlSnapshot} target="_blank">
-                          <Button size="sm" className="gap-1.5 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white">
+                          <Button size="sm" className="gap-1.5 text-xs shadow-xs">
                             <Video className="h-3.5 w-3.5" />
                             <span>Entrar na sala</span>
                           </Button>
                         </Link>
                       ) : (
-                        <span className="text-xs text-slate-400 italic">Link sendo preparado</span>
+                        <span className="text-xs text-[#6B7280] dark:text-[#A3A3AD] italic">Link sendo preparado</span>
                       )}
 
                       <Button
@@ -225,38 +335,99 @@ export default function PatientAppointmentsPage() {
             })}
           </div>
         ) : (
-          <Card className="p-8 text-center text-slate-500 space-y-2">
-            <FileCheck2 className="h-8 w-8 mx-auto text-slate-400" />
-            <p className="text-sm font-medium">Você não possui consultas agendadas no momento.</p>
-            <Link href="/agendar">
-              <Button variant="outline" size="sm" className="mt-2 text-xs">
-                Escolher Horário e Agendar
-              </Button>
-            </Link>
-          </Card>
+          <EmptyState
+            icon={<Calendar className="h-6 w-6 text-[var(--primary)]" />}
+            title="Você não possui consultas agendadas no momento"
+            description="Escolha uma modalidade e horário com facilidade para iniciar ou continuar seu acompanhamento."
+            action={{
+              label: "Escolher Horário e Agendar",
+              href: "/agendar",
+              icon: <Plus className="h-4 w-4" />,
+            }}
+            className="py-10"
+          />
         )}
       </div>
 
-      {/* Histórico de Consultas Passadas / Canceladas */}
+      {/* ================= 4. ATALHOS DO PACIENTE ================= */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+        <Link href="/paciente/anamnese" className="block">
+          <Card className="p-5 hover:border-[var(--primary)]/50 hover:shadow-xs transition-all">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+                <FileText className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F5] truncate">
+                  Ficha de Anamnese
+                </h4>
+                <p className="text-xs text-[#6B7280] dark:text-[#A3A3AD]">
+                  Histórico de saúde e hábitos
+                </p>
+              </div>
+            </div>
+          </Card>
+        </Link>
+
+        <Link href="/paciente/documentos" className="block">
+          <Card className="p-5 hover:border-[var(--primary)]/50 hover:shadow-xs transition-all">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                <FolderLock className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F5] truncate">
+                  Documentos Liberados
+                </h4>
+                <p className="text-xs text-[#6B7280] dark:text-[#A3A3AD]">
+                  Declarações e atestados
+                </p>
+              </div>
+            </div>
+          </Card>
+        </Link>
+
+        <Link href="/paciente/financeiro" className="block">
+          <Card className="p-5 hover:border-[var(--primary)]/50 hover:shadow-xs transition-all">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                <Boxes className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F5] truncate">
+                  Pacotes & Faturas
+                </h4>
+                <p className="text-xs text-[#6B7280] dark:text-[#A3A3AD]">
+                  Sessões contratadas e recibos
+                </p>
+              </div>
+            </div>
+          </Card>
+        </Link>
+      </div>
+
+      {/* ================= 5. HISTÓRICO DE CONSULTAS PASSADAS ================= */}
       {pastAppointments.length > 0 && (
-        <div className="space-y-4 pt-6">
-          <h2 className="text-lg font-bold">Histórico de Atendimentos</h2>
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4">
+        <div className="space-y-4 pt-4">
+          <h2 className="font-heading text-lg font-bold text-[#111827] dark:text-[#F5F5F5]">
+            Histórico de Atendimentos
+          </h2>
+          <div className="divide-y divide-[#E2E4E8] dark:divide-[#303034] bg-white dark:bg-[#19191C] rounded-2xl border border-[#E2E4E8] dark:border-[#303034] p-4 sm:p-5">
             {pastAppointments.map((appt) => (
               <div
                 key={appt.id}
-                className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+                className="py-3.5 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs hover:bg-[#F3F4F6]/50 dark:hover:bg-[#222226]/40 p-2 rounded-xl transition-colors"
               >
                 <div>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  <span className="font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F5] block">
                     {appt.service.name}
                   </span>
-                  <span className="text-slate-400 block">
+                  <span className="text-[#6B7280] dark:text-[#A3A3AD] block mt-0.5">
                     {formatDate(appt.startAt)} às {formatTime(appt.startAt)} •{" "}
                     {appt.modality === "PRESENTIAL" ? "Presencial" : "Online"}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 self-start sm:self-center">
                   <Badge
                     variant={
                       appt.status === "COMPLETED"
@@ -275,7 +446,7 @@ export default function PatientAppointmentsPage() {
         </div>
       )}
 
-      {/* TASK 3: Modal com Informações da Consulta Presencial */}
+      {/* ================= MODAL: INFORMAÇÕES DA CONSULTA PRESENCIAL ================= */}
       {selectedInPersonAppt && (
         <Modal
           isOpen={true}
@@ -286,30 +457,30 @@ export default function PatientAppointmentsPage() {
             {/* Header com serviço e profissional */}
             <div className="p-4 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-sm text-slate-800 dark:text-[#F5F5F5]">
+                <span className="font-heading font-bold text-sm text-[#111827] dark:text-[#F5F5F5]">
                   {selectedInPersonAppt.service.name}
                 </span>
                 <Badge variant="outline" className="text-[10px]">Presencial</Badge>
               </div>
 
-              <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+              <div className="flex items-center gap-2 text-[#4B5563] dark:text-[#C7C7CC]">
                 <User className="h-4 w-4 text-[var(--primary)] shrink-0" />
                 <span>Profissional: <strong>{selectedInPersonAppt.establishment?.professionalName || "Dr(a). Profissional PSI"}</strong></span>
               </div>
             </div>
 
             {/* Data e Horário */}
-            <div className="grid grid-cols-2 gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+            <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-[#F8F9FA] dark:bg-[#141416] border border-[#E2E4E8] dark:border-[#303034]">
               <div className="space-y-1">
-                <span className="text-slate-400 block text-[11px]">Data da Sessão</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <span className="text-[#6B7280] dark:text-[#A3A3AD] block text-[11px]">Data da Sessão</span>
+                <span className="font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F5] flex items-center gap-1.5">
                   <Calendar className="h-3.5 w-3.5 text-[var(--primary)]" />
                   {formatDate(selectedInPersonAppt.startAt)}
                 </span>
               </div>
               <div className="space-y-1">
-                <span className="text-slate-400 block text-[11px]">Horário e Duração</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <span className="text-[#6B7280] dark:text-[#A3A3AD] block text-[11px]">Horário e Duração</span>
+                <span className="font-mono font-semibold text-sm text-[#111827] dark:text-[#F5F5F5] flex items-center gap-1.5">
                   <Clock className="h-3.5 w-3.5 text-[var(--primary)]" />
                   {formatTime(selectedInPersonAppt.startAt)} ({selectedInPersonAppt.service.durationMinutes} min)
                 </span>
@@ -317,15 +488,15 @@ export default function PatientAppointmentsPage() {
             </div>
 
             {/* Estabelecimento e Endereço */}
-            <div className="space-y-2 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-              <div className="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-200">
+            <div className="space-y-2 p-4 rounded-xl border border-[#E2E4E8] dark:border-[#303034] bg-white dark:bg-[#19191C]">
+              <div className="flex items-center gap-2 font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F5]">
                 <Building2 className="h-4 w-4 text-[var(--primary)]" />
                 <span>{selectedInPersonAppt.establishment?.name || "Consultório"}</span>
               </div>
 
               {selectedInPersonAppt.establishment?.address ? (
                 <div className="space-y-3 pt-2">
-                  <div className="flex items-start gap-2 text-slate-600 dark:text-slate-300">
+                  <div className="flex items-start gap-2 text-[#4B5563] dark:text-[#C7C7CC]">
                     <MapPin className="h-4 w-4 text-[var(--primary)] shrink-0 mt-0.5" />
                     <p className="leading-relaxed">{selectedInPersonAppt.establishment.address}</p>
                   </div>
@@ -338,7 +509,7 @@ export default function PatientAppointmentsPage() {
                     rel="noopener noreferrer"
                     className="inline-block"
                   >
-                    <Button size="sm" className="gap-2 bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white text-xs">
+                    <Button size="sm" className="gap-2 text-xs">
                       <MapPin className="h-3.5 w-3.5" />
                       <span>Ver localização no Google Maps</span>
                       <ExternalLink className="h-3 w-3 ml-0.5" />
@@ -346,7 +517,7 @@ export default function PatientAppointmentsPage() {
                   </a>
                 </div>
               ) : (
-                <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 text-amber-800 dark:text-amber-300 text-xs">
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 text-xs leading-relaxed">
                   O profissional ainda não cadastrou o endereço físico completo nas configurações do consultório. Por gentileza, entre em contato via mensagem para confirmar o local de atendimento.
                 </div>
               )}
@@ -361,7 +532,7 @@ export default function PatientAppointmentsPage() {
         </Modal>
       )}
 
-      {/* Modal de Confirmação de Cancelamento */}
+      {/* ================= MODAL: CONFIRMAÇÃO DE CANCELAMENTO ================= */}
       {cancellingAppt && (
         <Modal
           isOpen={true}
@@ -369,12 +540,12 @@ export default function PatientAppointmentsPage() {
           title="Confirmar Cancelamento de Consulta"
         >
           <form onSubmit={handleConfirmCancel} className="space-y-4 text-xs">
-            <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 rounded-xl space-y-1 text-red-900 dark:text-red-200">
-              <div className="flex items-center gap-2 font-semibold">
+            <div className="p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl space-y-1 text-red-700 dark:text-red-300">
+              <div className="flex items-center gap-2 font-heading font-semibold text-sm">
                 <AlertTriangle className="h-4 w-4 text-red-600 shrink-0" />
                 <span>Atenção à Política de Cancelamento</span>
               </div>
-              <p className="text-[11px] leading-relaxed">
+              <p className="text-xs leading-relaxed">
                 Cancelamentos informados com menos de{" "}
                 <strong>{cancellingAppt.service.cancellationNoticeDays} dias</strong> de antecedência são
                 registrados como cancelamento tardio no histórico terapêutico.
@@ -383,18 +554,20 @@ export default function PatientAppointmentsPage() {
 
             {cancelError && <Alert variant="destructive">{cancelError}</Alert>}
 
-            <div className="space-y-1">
-              <label className="block font-medium">Motivo do cancelamento (opcional):</label>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-medium text-[#374151] dark:text-[#E5E7EB]">
+                Motivo do cancelamento (opcional):
+              </label>
               <textarea
                 rows={3}
-                className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-2.5 outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full rounded-xl border border-[#E2E4E8] dark:border-[#303034] bg-white dark:bg-[#141416] p-3 text-sm text-[#111827] dark:text-[#F5F5F5] placeholder:text-[#9CA3AF] dark:placeholder:text-[#71717A] outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 transition-all"
                 placeholder="Informe o motivo do imprevisto se desejar..."
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2.5 pt-2">
               <Button
                 type="button"
                 variant="ghost"

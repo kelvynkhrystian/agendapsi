@@ -3,9 +3,16 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatBRL, formatTime, formatDate } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Calendar,
   Users,
@@ -17,6 +24,15 @@ import {
   ArrowRight,
   HardDrive,
   FileCheck2,
+  CalendarCheck,
+  TrendingUp,
+  ShieldCheck,
+  Sparkles,
+  ExternalLink,
+  Activity,
+  UserCheck,
+  FolderLock,
+  Globe,
 } from "lucide-react";
 
 interface DashboardData {
@@ -72,7 +88,7 @@ export default function AdminDashboardPage() {
             window.location.href = "/login";
             return null;
           }
-          throw new Error("Erro de autenticacao");
+          throw new Error("Erro de autenticação");
         }
         return res.json();
       })
@@ -90,12 +106,33 @@ export default function AdminDashboardPage() {
 
   if (isLoading || !data) {
     return (
-      <div className="space-y-6">
-        <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse" />
+      <div className="space-y-8 animate-pulse">
+        {/* Header Skeleton */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-2">
+            <div className="h-8 w-64 bg-slate-200 dark:bg-[#222226] rounded-xl" />
+            <div className="h-4 w-96 bg-slate-200 dark:bg-[#222226] rounded-lg" />
+          </div>
+          <div className="flex gap-2">
+            <div className="h-10 w-36 bg-slate-200 dark:bg-[#222226] rounded-xl" />
+            <div className="h-10 w-28 bg-slate-200 dark:bg-[#222226] rounded-xl" />
+          </div>
+        </div>
+
+        {/* KPI Skeleton Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-28 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+            <div
+              key={i}
+              className="h-32 bg-white dark:bg-[#19191C] border border-[#E2E4E8] dark:border-[#303034] rounded-2xl p-5"
+            />
           ))}
+        </div>
+
+        {/* Content Skeleton Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 h-96 bg-white dark:bg-[#19191C] border border-[#E2E4E8] dark:border-[#303034] rounded-2xl" />
+          <div className="h-96 bg-white dark:bg-[#19191C] border border-[#E2E4E8] dark:border-[#303034] rounded-2xl" />
         </div>
       </div>
     );
@@ -105,216 +142,271 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-8">
-      {/* Top Banner / Welcome */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Painel do Consultório
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+      {/* ================= 1. PAGE HEADER & QUICK ACTIONS ================= */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E2E4E8] dark:border-[#303034]">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#111827] dark:text-[#F5F5F5]">
+              Painel do Consultório
+            </h1>
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Ao Vivo
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-[#4B5563] dark:text-[#A3A3AD] leading-relaxed">
             Visão geral em tempo real dos agendamentos, pacientes e finanças.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           <Link href="/admin/agenda">
-            <Button size="sm" className="gap-1.5">
+            <Button size="md" className="gap-2 shadow-xs">
               <Plus className="h-4 w-4" />
               <span>Novo Agendamento</span>
             </Button>
           </Link>
           <Link href="/admin/pacientes">
-            <Button variant="outline" size="sm" className="gap-1.5">
-              <Users className="h-4 w-4" />
+            <Button variant="outline" size="md" className="gap-2 shadow-xs">
+              <Users className="h-4 w-4 text-[var(--primary)]" />
               <span>Pacientes</span>
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* KPI Stats Cards */}
+      {/* ================= 2. KPI STATS CARDS ================= */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Atendimentos Hoje */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
+        <Card className="hover:border-[var(--primary)]/50 transition-all duration-200">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 p-5">
+            <CardTitle className="text-xs sm:text-sm font-medium text-[#4B5563] dark:text-[#A3A3AD]">
               Atendimentos Hoje
             </CardTitle>
-            <Calendar className="h-4 w-4 text-[var(--primary)]" />
+            <div className="h-9 w-9 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+              <CalendarCheck className="h-4 w-4" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{todayCount}</div>
-            <p className="text-xs text-slate-500 mt-1">
-              {todayCount === 1 ? "1 consulta agendada" : `${todayCount} consultas agendadas`}
+          <CardContent className="p-5 pt-0">
+            <div className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#111827] dark:text-[#F5F5F5]">
+              {todayCount}
+            </div>
+            <p className="text-xs text-[#6B7280] dark:text-[#A3A3AD] mt-1.5 flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
+              {todayCount === 1 ? "1 consulta marcada para hoje" : `${todayCount} consultas marcadas para hoje`}
             </p>
           </CardContent>
         </Card>
 
-        {/* Pacientes Ativos */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
+        {/* Pacientes Cadastrados */}
+        <Card className="hover:border-[var(--primary)]/50 transition-all duration-200">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 p-5">
+            <CardTitle className="text-xs sm:text-sm font-medium text-[#4B5563] dark:text-[#A3A3AD]">
               Pacientes Cadastrados
             </CardTitle>
-            <Users className="h-4 w-4 text-[var(--primary)]" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data?.activePatientsCount ?? 0}</div>
-            <p className="text-xs text-slate-500 mt-1">
-              {data?.pendingApprovalsCount ?? 0} alteração(ões) cadastrais pendentes
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Pagamentos Pendentes */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
-              Recebimentos Pendentes
-            </CardTitle>
-            <Clock className="h-4 w-4 text-amber-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatBRL(data?.pendingBalanceCents ?? 0)}
+            <div className="h-9 w-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+              <Users className="h-4 w-4" />
             </div>
-            <p className="text-xs text-slate-500 mt-1">
-              {data?.pendingPaymentsCount ?? 0} pagamento(s) a confirmar
+          </CardHeader>
+          <CardContent className="p-5 pt-0">
+            <div className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#111827] dark:text-[#F5F5F5]">
+              {data?.activePatientsCount ?? 0}
+            </div>
+            <p className="text-xs text-[#6B7280] dark:text-[#A3A3AD] mt-1.5 flex items-center gap-1.5">
+              {data?.pendingApprovalsCount && data.pendingApprovalsCount > 0 ? (
+                <span className="text-amber-600 dark:text-amber-400 font-medium">
+                  {data.pendingApprovalsCount} alteração(ões) pendente(s)
+                </span>
+              ) : (
+                <span>Base ativa e atualizada</span>
+              )}
             </p>
           </CardContent>
         </Card>
 
-        {/* Receita do Mês */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
+        {/* Receita deste Mês */}
+        <Card className="hover:border-[var(--primary)]/50 transition-all duration-200">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 p-5">
+            <CardTitle className="text-xs sm:text-sm font-medium text-[#4B5563] dark:text-[#A3A3AD]">
               Receita deste Mês
             </CardTitle>
-            <DollarSign className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            <div className="h-9 w-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <DollarSign className="h-4 w-4" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="p-5 pt-0">
+            <div className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#111827] dark:text-[#F5F5F5]">
               {formatBRL(data?.revenueMonth?.totalCombinedCents ?? 0)}
             </div>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2 mt-1.5">
               {data?.revenueMonth?.simulatedCents ? (
                 <Badge variant="simulated">
                   {formatBRL(data.revenueMonth.simulatedCents)} Simulado
                 </Badge>
               ) : (
-                <span className="text-xs text-emerald-600">
+                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
                   {formatBRL(data?.revenueMonth?.realCents ?? 0)} registrado
                 </span>
               )}
             </div>
           </CardContent>
         </Card>
+
+        {/* Recebimentos Pendentes */}
+        <Card className="hover:border-[var(--primary)]/50 transition-all duration-200">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 p-5">
+            <CardTitle className="text-xs sm:text-sm font-medium text-[#4B5563] dark:text-[#A3A3AD]">
+              Recebimentos Pendentes
+            </CardTitle>
+            <div className="h-9 w-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <Clock className="h-4 w-4" />
+            </div>
+          </CardHeader>
+          <CardContent className="p-5 pt-0">
+            <div className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#111827] dark:text-[#F5F5F5]">
+              {formatBRL(data?.pendingBalanceCents ?? 0)}
+            </div>
+            <p className="text-xs text-[#6B7280] dark:text-[#A3A3AD] mt-1.5">
+              {data?.pendingPaymentsCount ?? 0} pagamento(s) a confirmar
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Main Grid: Agenda de Hoje & Próximas */}
+      {/* ================= 3. MAIN GRID: AGENDA DE HOJE & PRÓXIMAS ================= */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Agenda de Hoje */}
-        <div className="lg:col-span-2 space-y-4">
+        {/* Agenda de Hoje (2 Colunas) */}
+        <div className="lg:col-span-2 space-y-6">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 sm:p-6 border-b border-[#E2E4E8] dark:border-[#303034]">
               <div>
-                <CardTitle className="text-lg">Agenda de Hoje</CardTitle>
-                <CardDescription>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-lg">Agenda de Hoje</CardTitle>
+                  <Badge variant="default" size="sm">
+                    {todayCount} {todayCount === 1 ? "sessão" : "sessões"}
+                  </Badge>
+                </div>
+                <CardDescription className="mt-1">
                   {formatDate(new Date())} — Consultas marcadas para o dia
                 </CardDescription>
               </div>
+
               <Link href="/admin/agenda">
-                <Button variant="ghost" size="sm" className="text-xs gap-1">
+                <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-[var(--primary)] hover:text-[var(--primary)]">
                   <span>Ver Calendário Completo</span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
               </Link>
             </CardHeader>
 
-            <CardContent>
+            <CardContent className="p-5 sm:p-6">
               {data?.todayAppointments && data.todayAppointments.length > 0 ? (
-                <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {data.todayAppointments.map((appt) => (
-                    <div
-                      key={appt.id}
-                      className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="px-2.5 py-1.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] font-mono text-sm font-semibold text-center shrink-0">
-                          {formatTime(appt.startAt)}
+                <div className="divide-y divide-[#E2E4E8] dark:divide-[#303034]">
+                  {data.todayAppointments.map((appt) => {
+                    const isConfirmed = appt.status === "CONFIRMED";
+                    const isCompleted = appt.status === "COMPLETED";
+
+                    return (
+                      <div
+                        key={appt.id}
+                        className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 hover:bg-[#F3F4F6]/50 dark:hover:bg-[#222226]/40 p-2.5 rounded-xl transition-colors"
+                      >
+                        <div className="flex items-start gap-3.5 min-w-0">
+                          <div className="px-3 py-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] font-mono text-sm font-bold text-center shrink-0 border border-[var(--primary)]/20 shadow-2xs">
+                            {formatTime(appt.startAt)}
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F5] truncate">
+                              {appt.patient.fullName}
+                            </h4>
+                            <p className="text-xs text-[#4B5563] dark:text-[#A3A3AD] mt-0.5">
+                              {appt.service.name} • {appt.service.durationMinutes} min •{" "}
+                              <span className="font-medium text-[#111827] dark:text-[#F5F5F5]">
+                                {appt.modality === "ONLINE" ? "Teleconsulta" : "Presencial"}
+                              </span>
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="font-semibold text-sm">
-                            {appt.patient.fullName}
-                          </h4>
-                          <p className="text-xs text-slate-500">
-                            {appt.service.name} • {appt.service.durationMinutes} min
-                          </p>
+
+                        <div className="flex items-center gap-2.5 self-end sm:self-center shrink-0">
+                          <Badge
+                            variant={
+                              isConfirmed
+                                ? "success"
+                                : isCompleted
+                                ? "default"
+                                : "warning"
+                            }
+                          >
+                            {appt.status}
+                          </Badge>
+
+                          {appt.modality !== "PRESENTIAL" && appt.meetingUrlSnapshot && (
+                            <Link href={appt.meetingUrlSnapshot} target="_blank">
+                              <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs rounded-xl shadow-2xs border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/10">
+                                <Video className="h-3.5 w-3.5" />
+                                <span>Entrar na Sessão</span>
+                              </Button>
+                            </Link>
+                          )}
                         </div>
                       </div>
-
-                      <div className="flex items-center gap-2 self-end sm:self-center">
-                        <Badge
-                          variant={
-                            appt.status === "CONFIRMED"
-                              ? "success"
-                              : appt.status === "COMPLETED"
-                              ? "default"
-                              : "warning"
-                          }
-                        >
-                          {appt.status}
-                        </Badge>
-
-                        {appt.modality !== "PRESENTIAL" && appt.meetingUrlSnapshot && (
-                          <Link href={appt.meetingUrlSnapshot} target="_blank">
-                            <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs">
-                              <Video className="h-3.5 w-3.5 text-[var(--primary)]" />
-                              <span>Entrar na Sessão</span>
-                            </Button>
-                          </Link>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
-                <div className="py-12 text-center text-slate-500 space-y-2">
-                  <FileCheck2 className="h-8 w-8 mx-auto text-slate-400" />
-                  <p className="text-sm font-medium">Nenhum atendimento agendado para hoje.</p>
-                  <p className="text-xs text-slate-400">
-                    Aproveite para revisar prontuários ou planejar seus horários.
-                  </p>
-                </div>
+                <EmptyState
+                  icon={<CalendarCheck className="h-6 w-6 text-[var(--primary)]" />}
+                  title="Nenhum atendimento agendado para hoje"
+                  description="Aproveite para revisar prontuários, cadastros ou planejar seus horários na agenda."
+                  action={{
+                    label: "Abrir Calendário",
+                    href: "/admin/agenda",
+                    icon: <Calendar className="h-4 w-4" />,
+                  }}
+                  className="py-10"
+                />
               )}
             </CardContent>
           </Card>
 
           {/* Próximas Consultas */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Próximos Atendimentos</CardTitle>
-              <CardDescription>Próximas sessões confirmadas na semana</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between p-5 sm:p-6 border-b border-[#E2E4E8] dark:border-[#303034]">
+              <div>
+                <CardTitle className="text-base sm:text-lg">Próximos Atendimentos</CardTitle>
+                <CardDescription className="mt-0.5">
+                  Próximas sessões confirmadas na semana
+                </CardDescription>
+              </div>
+              <Link href="/admin/agenda">
+                <Button variant="ghost" size="sm" className="text-xs text-[var(--primary)]">
+                  <span>Ver Todos</span>
+                  <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                </Button>
+              </Link>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-5 sm:p-6">
               {data?.nextAppointments && data.nextAppointments.length > 0 ? (
-                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                <div className="divide-y divide-[#E2E4E8] dark:divide-[#303034]">
                   {data.nextAppointments.map((appt) => (
                     <div
                       key={appt.id}
-                      className="py-3 flex items-center justify-between text-sm"
+                      className="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between text-sm hover:bg-[#F3F4F6]/50 dark:hover:bg-[#222226]/40 p-2 rounded-xl transition-colors"
                     >
-                      <div>
-                        <span className="font-semibold">{appt.patient.fullName}</span>
-                        <span className="text-xs text-slate-500 block">
-                          {appt.service.name}
+                      <div className="min-w-0">
+                        <span className="font-heading font-semibold text-[#111827] dark:text-[#F5F5F5] block truncate">
+                          {appt.patient.fullName}
+                        </span>
+                        <span className="text-xs text-[#6B7280] dark:text-[#A3A3AD] block mt-0.5">
+                          {appt.service.name} • {appt.service.durationMinutes} min
                         </span>
                       </div>
-                      <div className="text-right">
-                        <span className="text-xs font-medium block">
+                      <div className="text-right shrink-0">
+                        <span className="text-xs font-heading font-semibold text-[#111827] dark:text-[#F5F5F5] block">
                           {formatDate(appt.startAt)} às {formatTime(appt.startAt)}
                         </span>
-                        <span className="text-xs text-slate-400">
+                        <span className="text-[11px] text-[#6B7280] dark:text-[#A3A3AD]">
                           {appt.modality === "ONLINE" ? "Teleconsulta" : "Presencial"}
                         </span>
                       </div>
@@ -322,59 +414,102 @@ export default function AdminDashboardPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-slate-500 py-4 text-center">
-                  Nenhum atendimento futuro cadastrado.
+                <p className="text-xs text-[#6B7280] dark:text-[#A3A3AD] py-6 text-center">
+                  Nenhum atendimento futuro cadastrado para os próximos dias.
                 </p>
               )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Sidebar Widgets: Armazenamento e Auditoria */}
+        {/* ================= 4. SIDEBAR WIDGETS ================= */}
         <div className="space-y-6">
+          {/* Quick Actions Card */}
+          <Card>
+            <CardHeader className="pb-3 p-5 border-b border-[#E2E4E8] dark:border-[#303034]">
+              <CardTitle className="text-base">Ações Rápidas</CardTitle>
+              <CardDescription>Atalhos operacionais diários</CardDescription>
+            </CardHeader>
+            <CardContent className="p-5 space-y-2.5">
+              <Link href="/admin/agenda" className="block">
+                <Button variant="outline" className="w-full justify-start gap-2.5 text-xs rounded-xl h-10 shadow-2xs">
+                  <Calendar className="h-4 w-4 text-[var(--primary)]" />
+                  <span>Gerenciar Grade & Agenda</span>
+                </Button>
+              </Link>
+              <Link href="/admin/pacientes" className="block">
+                <Button variant="outline" className="w-full justify-start gap-2.5 text-xs rounded-xl h-10 shadow-2xs">
+                  <Users className="h-4 w-4 text-blue-500" />
+                  <span>Cadastrar Novo Paciente</span>
+                </Button>
+              </Link>
+              <Link href="/admin/financeiro" className="block">
+                <Button variant="outline" className="w-full justify-start gap-2.5 text-xs rounded-xl h-10 shadow-2xs">
+                  <DollarSign className="h-4 w-4 text-emerald-500" />
+                  <span>Confirmar Recebimentos</span>
+                </Button>
+              </Link>
+              <Link href="/" target="_blank" className="block">
+                <Button variant="outline" className="w-full justify-start gap-2.5 text-xs rounded-xl h-10 shadow-2xs">
+                  <Globe className="h-4 w-4 text-purple-500" />
+                  <span>Visualizar MiniSite Público</span>
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
           {/* Storage Widget */}
           <Card>
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-3 p-5 border-b border-[#E2E4E8] dark:border-[#303034]">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base">Armazenamento Local</CardTitle>
-                <HardDrive className="h-4 w-4 text-slate-500" />
+                <div className="h-7 w-7 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center">
+                  <HardDrive className="h-4 w-4" />
+                </div>
               </div>
               <CardDescription>Documentos e prontuários protegidos</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Total de Arquivos:</span>
-                <span className="font-semibold">{data?.storage?.fileCount ?? 0}</span>
+            <CardContent className="p-5 space-y-3">
+              <div className="flex justify-between text-xs sm:text-sm">
+                <span className="text-[#6B7280] dark:text-[#A3A3AD]">Total de Arquivos:</span>
+                <span className="font-heading font-semibold text-[#111827] dark:text-[#F5F5F5]">
+                  {data?.storage?.fileCount ?? 0}
+                </span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Espaço Ocupado:</span>
-                <span className="font-semibold">
+              <div className="flex justify-between text-xs sm:text-sm">
+                <span className="text-[#6B7280] dark:text-[#A3A3AD]">Espaço Ocupado:</span>
+                <span className="font-heading font-semibold text-[#111827] dark:text-[#F5F5F5]">
                   {((data?.storage?.totalBytes ?? 0) / (1024 * 1024)).toFixed(2)} MB
                 </span>
               </div>
-              <p className="text-xs text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
-                Sem cotas artificiais limitantes. Armazenamento persistente seguro.
+              <p className="text-[11px] text-[#6B7280] dark:text-[#A3A3AD] pt-2.5 border-t border-[#E2E4E8] dark:border-[#303034] leading-relaxed">
+                Sem cotas artificiais limitantes. Armazenamento persistente no servidor local.
               </p>
             </CardContent>
           </Card>
 
           {/* Atividades Recentes */}
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Últimas Atividades</CardTitle>
+            <CardHeader className="pb-3 p-5 border-b border-[#E2E4E8] dark:border-[#303034]">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">Últimas Atividades</CardTitle>
+                <div className="h-7 w-7 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center">
+                  <Activity className="h-4 w-4" />
+                </div>
+              </div>
               <CardDescription>Registro auditado de eventos</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-5">
               {data?.recentActivity && data.recentActivity.length > 0 ? (
                 <div className="space-y-3 text-xs">
                   {data.recentActivity.map((act) => (
-                    <div key={act.id} className="flex items-start gap-2">
-                      <div className="h-2 w-2 rounded-full bg-[var(--primary)] mt-1 shrink-0" />
+                    <div key={act.id} className="flex items-start gap-2.5">
+                      <div className="h-2 w-2 rounded-full bg-[var(--primary)] mt-1.5 shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-slate-800 dark:text-slate-200 truncate">
+                        <p className="font-medium text-[#111827] dark:text-[#F5F5F5] truncate">
                           {act.action}
                         </p>
-                        <p className="text-slate-400 text-[10px]">
+                        <p className="text-[#6B7280] dark:text-[#A3A3AD] text-[10px]">
                           {formatDate(act.createdAt)} às {formatTime(act.createdAt)}
                         </p>
                       </div>
@@ -382,8 +517,8 @@ export default function AdminDashboardPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-slate-500 py-4 text-center">
-                  Nenhuma atividade registrada ainda.
+                <p className="text-xs text-[#6B7280] dark:text-[#A3A3AD] py-4 text-center">
+                  Nenhuma atividade registrada recentemente.
                 </p>
               )}
             </CardContent>
