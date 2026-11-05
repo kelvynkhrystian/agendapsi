@@ -8,6 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
 import {
+  THEME_PRESETS,
+  calculateContrastRatio,
+  isContrastAccessible,
+} from "@/lib/theme-presets";
+import {
   Settings,
   Bell,
   Palette,
@@ -18,6 +23,9 @@ import {
   Upload,
   Eye,
   Check,
+  CheckCircle2,
+  AlertTriangle,
+  Trash2,
   Copy,
   Info,
   ExternalLink,
@@ -46,14 +54,17 @@ export default function AdminSettingsPage() {
     "appearance" | "video" | "general" | "security"
   >("appearance");
 
-  // Appearance State (Task 8)
+  // Appearance State (Task 8 & Phase 1/5)
+  const [themeName, setThemeName] = useState<string>("VERDE");
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoHorizontalUrl, setLogoHorizontalUrl] = useState<string | null>(null);
   const [faviconUrl, setFaviconUrl] = useState<string | null>(null);
-  const [primaryColor, setPrimaryColor] = useState("#0d9488");
-  const [secondaryColor, setSecondaryColor] = useState("#0f766e");
-  const [accentColor, setAccentColor] = useState("#f59e0b");
-  const [buttonColor, setButtonColor] = useState("#0d9488");
+  const [primaryColor, setPrimaryColor] = useState("#16A34A");
+  const [secondaryColor, setSecondaryColor] = useState("#DCFCE7");
+  const [accentColor, setAccentColor] = useState("#86EFAC");
+  const [buttonColor, setButtonColor] = useState("#16A34A");
+  const [backgroundColor, setBackgroundColor] = useState("#F0FDF4");
+  const [textColor, setTextColor] = useState("#14532D");
   const [isSavingAppearance, setIsSavingAppearance] = useState(false);
   const [appearanceFeedback, setAppearanceFeedback] = useState<string | null>(null);
   const [uploadingAsset, setUploadingAsset] = useState<string | null>(null);
@@ -119,13 +130,16 @@ export default function AdminSettingsPage() {
 
       if (appRes.ok) {
         const appData = await appRes.json();
+        setThemeName(appData.themeName || "VERDE");
         setLogoUrl(appData.logoUrl || null);
         setLogoHorizontalUrl(appData.logoHorizontalUrl || null);
         setFaviconUrl(appData.faviconUrl || null);
-        setPrimaryColor(appData.primaryColor || "#0d9488");
-        setSecondaryColor(appData.secondaryColor || "#0f766e");
-        setAccentColor(appData.accentColor || "#f59e0b");
-        setButtonColor(appData.buttonColor || "#0d9488");
+        setPrimaryColor(appData.primaryColor || "#16A34A");
+        setSecondaryColor(appData.secondaryColor || "#DCFCE7");
+        setAccentColor(appData.accentColor || "#86EFAC");
+        setButtonColor(appData.buttonColor || "#16A34A");
+        setBackgroundColor(appData.backgroundColor || "#F0FDF4");
+        setTextColor(appData.textColor || "#14532D");
       }
 
       if (vidRes.ok) {
@@ -206,7 +220,35 @@ export default function AdminSettingsPage() {
     }
   };
 
-  // Salva Aparência
+  // Seleção de Tema Pré-definido
+  const handleSelectThemePreset = (presetKey: string) => {
+    setThemeName(presetKey);
+    if (presetKey !== "PERSONALIZADO" && THEME_PRESETS[presetKey]) {
+      const p = THEME_PRESETS[presetKey];
+      setPrimaryColor(p.primaryColor);
+      setSecondaryColor(p.secondaryColor);
+      setAccentColor(p.accentColor);
+      setButtonColor(p.buttonColor);
+      setBackgroundColor(p.backgroundColor);
+      setTextColor(p.textColor);
+    }
+  };
+
+  // Alteração de Cor Personalizada
+  const handleCustomColorChange = (
+    field: "primary" | "secondary" | "accent" | "button" | "background" | "text",
+    value: string
+  ) => {
+    setThemeName("PERSONALIZADO");
+    if (field === "primary") setPrimaryColor(value);
+    if (field === "secondary") setSecondaryColor(value);
+    if (field === "accent") setAccentColor(value);
+    if (field === "button") setButtonColor(value);
+    if (field === "background") setBackgroundColor(value);
+    if (field === "text") setTextColor(value);
+  };
+
+  // Salva Aparência (Phase 1/5)
   const handleSaveAppearance = async () => {
     setIsSavingAppearance(true);
     setAppearanceFeedback(null);
@@ -216,18 +258,35 @@ export default function AdminSettingsPage() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          logoUrl,
-          logoHorizontalUrl,
-          faviconUrl,
+          themeName,
           primaryColor,
           secondaryColor,
           accentColor,
           buttonColor,
+          backgroundColor,
+          textColor,
+          logoUrl,
+          logoHorizontalUrl,
+          faviconUrl,
         }),
       });
 
+      const data = await res.json();
       if (res.ok) {
-        setAppearanceFeedback("Identidade visual e paleta de cores salvas com sucesso!");
+        // Atualiza dinamicamente as variáveis de tema no DOM sem necessidade de recarregar
+        if (typeof document !== "undefined") {
+          document.documentElement.style.setProperty("--primary", primaryColor);
+          document.documentElement.style.setProperty("--secondary", secondaryColor);
+          document.documentElement.style.setProperty("--accent", accentColor);
+          document.documentElement.style.setProperty("--button-bg", buttonColor);
+          document.documentElement.style.setProperty("--ring", primaryColor);
+          document.documentElement.style.setProperty("--theme-bg", backgroundColor);
+          document.documentElement.style.setProperty("--theme-text", textColor);
+        }
+
+        setAppearanceFeedback("Configurações de aparência e tema salvas com sucesso em todo o sistema!");
+      } else {
+        setAppearanceFeedback(data.error || "Erro ao salvar aparência.");
       }
     } catch {
       setAppearanceFeedback("Erro de comunicação ao salvar aparência.");
@@ -236,13 +295,17 @@ export default function AdminSettingsPage() {
     }
   };
 
-  // Restaura Aparência Padrão
+  // Restaura Aparência Padrão (Verde Institucional PSI)
   const handleRestoreAppearanceDefaults = () => {
-    setPrimaryColor("#0d9488");
-    setSecondaryColor("#0f766e");
-    setAccentColor("#f59e0b");
-    setButtonColor("#0d9488");
-    setAppearanceFeedback("Cores restauradas para a paleta padrão do PSI. Clique em Salvar para persistir.");
+    const p = THEME_PRESETS.VERDE;
+    setThemeName("VERDE");
+    setPrimaryColor(p.primaryColor);
+    setSecondaryColor(p.secondaryColor);
+    setAccentColor(p.accentColor);
+    setButtonColor(p.buttonColor);
+    setBackgroundColor(p.backgroundColor);
+    setTextColor(p.textColor);
+    setAppearanceFeedback("Cores restauradas para a paleta padrão do PSI (Verde). Clique em Salvar para persistir.");
   };
 
   // Conectar Conta Google OAuth
@@ -446,19 +509,19 @@ export default function AdminSettingsPage() {
           onClick={() => setActiveTab("appearance")}
           className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-colors shrink-0 ${
             activeTab === "appearance"
-              ? "bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 font-semibold"
+              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
           <Palette className="h-4 w-4" />
-          <span>Identidade Visual & Cores</span>
+          <span>Aparência</span>
         </button>
 
         <button
           onClick={() => setActiveTab("video")}
           className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-colors shrink-0 ${
             activeTab === "video"
-              ? "bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 font-semibold"
+              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
@@ -470,7 +533,7 @@ export default function AdminSettingsPage() {
           onClick={() => setActiveTab("general")}
           className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-colors shrink-0 ${
             activeTab === "general"
-              ? "bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 font-semibold"
+              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
@@ -482,7 +545,7 @@ export default function AdminSettingsPage() {
           onClick={() => setActiveTab("security")}
           className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-colors shrink-0 ${
             activeTab === "security"
-              ? "bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 font-semibold"
+              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
@@ -491,332 +554,499 @@ export default function AdminSettingsPage() {
         </button>
       </div>
 
-      {/* ================= ABA 1: APARÊNCIA & CORES (TASK 8) ================= */}
+      {/* ================= ABA 1: APARÊNCIA & CORES (PHASE 1/5) ================= */}
       {activeTab === "appearance" && (
         <div className="space-y-6">
-          <div className="p-4 rounded-xl bg-teal-50/50 dark:bg-teal-950/20 border border-teal-200/60 dark:border-teal-900/40 text-xs text-teal-800 dark:text-teal-300 space-y-1">
-            <p className="font-semibold flex items-center gap-1.5">
-              <Palette className="h-4 w-4 text-teal-600" />
-              <span>Gerenciamento de Identidade Visual e Branding (Task 8)</span>
+          <div className="p-4 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 space-y-1">
+            <p className="font-semibold flex items-center gap-1.5 text-[var(--primary)]">
+              <Palette className="h-4 w-4" />
+              <span>Sistema Global de Aparência e Temas (Fase 1 de 5)</span>
             </p>
             <p>
-              Faça upload dos 3 formatos essenciais da clínica (Logo Padrão, Logo Horizontal e Favicon) e ajuste a paleta de cores institucional com visualização em tempo real.
+              Escolha uma das paletas predefinidas ou personalize as cores institucionais do consultório. O tema selecionado unifica os painéis administrativos, a área do paciente e o MiniSite público em tempo real.
             </p>
           </div>
 
           {appearanceFeedback && <Alert variant="info">{appearanceFeedback}</Alert>}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Coluna 1: Upload dos 3 Assets */}
-            <div className="space-y-6">
-              <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100">
-                1. Arquivos de Identidade Visual
-              </h3>
-
-              {/* Asset 1: Logo Padrão */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Logo Padrão (Quadrado / Proporcional)</CardTitle>
-                  <CardDescription className="text-xs">
-                    Utilizado na tela de login, rodapés e fichas de pacientes.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3 text-xs">
-                  <div className="flex items-center gap-4">
-                    <div className="h-16 w-16 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0">
-                      {logoUrl ? (
-                        <img src={logoUrl} alt="Logo Padrão" className="h-full w-full object-contain" />
-                      ) : (
-                        <span className="text-[10px] text-slate-400">Sem logo</span>
-                      )}
-                    </div>
-
-                    <div className="flex-1 space-y-1.5">
-                      <label className="inline-block cursor-pointer">
-                        <input
-                          type="file"
-                          accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                          className="hidden"
-                          onChange={(e) => {
-                            if (e.target.files?.[0]) handleUploadAsset("logo", e.target.files[0]);
-                          }}
-                        />
-                        <span className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium inline-flex items-center gap-1.5 text-xs">
-                          <Upload className="h-3.5 w-3.5 text-teal-600" />
-                          <span>{uploadingAsset === "logo" ? "Enviando..." : "Substituir Logo"}</span>
-                        </span>
-                      </label>
-                      {logoUrl && (
-                        <button
-                          type="button"
-                          onClick={() => setLogoUrl(null)}
-                          className="text-[11px] text-red-500 hover:underline block"
+          {/* 1. TEMA DO SISTEMA E PRÉVIA DO TEMA (Referência: Imagem 1) */}
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Palette className="h-5 w-5 text-[var(--primary)]" />
+                <span>Aparência</span>
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Selecione um tema pré-definido para aplicar instantaneamente a paleta harmônica correspondente.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+                  Tema do Sistema
+                </h4>
+                <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-9 gap-3">
+                  {/* Presets 1 a 8 */}
+                  {Object.values(THEME_PRESETS).map((preset) => {
+                    const isSelected = themeName === preset.key;
+                    return (
+                      <button
+                        key={preset.key}
+                        type="button"
+                        onClick={() => handleSelectThemePreset(preset.key)}
+                        className="flex flex-col items-center gap-1.5 group cursor-pointer focus:outline-none"
+                      >
+                        <div
+                          className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center transition-all shadow-xs ${
+                            isSelected
+                              ? "ring-4 ring-offset-2 ring-[var(--primary)] dark:ring-offset-slate-900 scale-105"
+                              : "hover:scale-105 border border-slate-200 dark:border-slate-700"
+                          }`}
+                          style={{ backgroundColor: preset.swatch }}
                         >
-                          Remover logo
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Asset 2: Logo Horizontal */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Logo Horizontal (Amplo)</CardTitle>
-                  <CardDescription className="text-xs">
-                    Exibido nos cabeçalhos da área do paciente, topo do MiniSite e navbar.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3 text-xs">
-                  <div className="flex items-center gap-4">
-                    <div className="h-14 w-32 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0 p-1">
-                      {logoHorizontalUrl ? (
-                        <img src={logoHorizontalUrl} alt="Logo Horizontal" className="h-full w-full object-contain" />
-                      ) : (
-                        <span className="text-[10px] text-slate-400">Sem horizontal</span>
-                      )}
-                    </div>
-
-                    <div className="flex-1 space-y-1.5">
-                      <label className="inline-block cursor-pointer">
-                        <input
-                          type="file"
-                          accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                          className="hidden"
-                          onChange={(e) => {
-                            if (e.target.files?.[0]) handleUploadAsset("logoHorizontal", e.target.files[0]);
-                          }}
-                        />
-                        <span className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium inline-flex items-center gap-1.5 text-xs">
-                          <Upload className="h-3.5 w-3.5 text-teal-600" />
-                          <span>{uploadingAsset === "logoHorizontal" ? "Enviando..." : "Substituir Horizontal"}</span>
-                        </span>
-                      </label>
-                      {logoHorizontalUrl && (
-                        <button
-                          type="button"
-                          onClick={() => setLogoHorizontalUrl(null)}
-                          className="text-[11px] text-red-500 hover:underline block"
-                        >
-                          Remover
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Asset 3: Favicon / Ícone */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Ícone / Favicon da Aba</CardTitle>
-                  <CardDescription className="text-xs">
-                    Exibido na aba do navegador e atalhos compactos (ICO, PNG ou SVG).
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3 text-xs">
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0">
-                      {faviconUrl ? (
-                        <img src={faviconUrl} alt="Favicon" className="h-6 w-6 object-contain" />
-                      ) : (
-                        <span className="text-[9px] text-slate-400">ICO</span>
-                      )}
-                    </div>
-
-                    <div className="flex-1 space-y-1.5">
-                      <label className="inline-block cursor-pointer">
-                        <input
-                          type="file"
-                          accept="image/x-icon,image/png,image/svg+xml"
-                          className="hidden"
-                          onChange={(e) => {
-                            if (e.target.files?.[0]) handleUploadAsset("favicon", e.target.files[0]);
-                          }}
-                        />
-                        <span className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium inline-flex items-center gap-1.5 text-xs">
-                          <Upload className="h-3.5 w-3.5 text-teal-600" />
-                          <span>{uploadingAsset === "favicon" ? "Enviando..." : "Substituir Favicon"}</span>
-                        </span>
-                      </label>
-                      {faviconUrl && (
-                        <button
-                          type="button"
-                          onClick={() => setFaviconUrl(null)}
-                          className="text-[11px] text-red-500 hover:underline block"
-                        >
-                          Remover
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Coluna 2: Paleta de Cores e Prévia Ao Vivo */}
-            <div className="space-y-6">
-              <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100">
-                2. Paleta de Cores Institucional
-              </h3>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Design Tokens de Cor</CardTitle>
-                  <CardDescription className="text-xs">
-                    Defina os códigos HEX ou selecione no seletor de cores
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent className="space-y-4 text-xs">
-                  {/* Cor Primária */}
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor Primária</span>
-                      <span className="text-[11px] text-slate-400">Destaques principais, badges e links</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={primaryColor}
-                        onChange={(e) => setPrimaryColor(e.target.value)}
-                        className="h-8 w-8 rounded-lg cursor-pointer border-0 p-0"
-                      />
-                      <Input
-                        value={primaryColor}
-                        onChange={(e) => setPrimaryColor(e.target.value)}
-                        className="w-24 font-mono text-xs uppercase"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Cor Secundária */}
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor Secundária</span>
-                      <span className="text-[11px] text-slate-400">Fundos sutis, gradientes e cabeçalhos</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={secondaryColor}
-                        onChange={(e) => setSecondaryColor(e.target.value)}
-                        className="h-8 w-8 rounded-lg cursor-pointer border-0 p-0"
-                      />
-                      <Input
-                        value={secondaryColor}
-                        onChange={(e) => setSecondaryColor(e.target.value)}
-                        className="w-24 font-mono text-xs uppercase"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Cor de Destaque / Accent */}
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor de Destaque</span>
-                      <span className="text-[11px] text-slate-400">Avisos, alertas e elementos chamativos</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={accentColor}
-                        onChange={(e) => setAccentColor(e.target.value)}
-                        className="h-8 w-8 rounded-lg cursor-pointer border-0 p-0"
-                      />
-                      <Input
-                        value={accentColor}
-                        onChange={(e) => setAccentColor(e.target.value)}
-                        className="w-24 font-mono text-xs uppercase"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Cor dos Botões */}
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor dos Botões Principais</span>
-                      <span className="text-[11px] text-slate-400">Botões de ação e confirmação</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={buttonColor}
-                        onChange={(e) => setButtonColor(e.target.value)}
-                        className="h-8 w-8 rounded-lg cursor-pointer border-0 p-0"
-                      />
-                      <Input
-                        value={buttonColor}
-                        onChange={(e) => setButtonColor(e.target.value)}
-                        className="w-24 font-mono text-xs uppercase"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Live Preview Widget */}
-                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                    <span className="font-semibold block text-slate-700 dark:text-slate-300">
-                      Prévia dos Componentes com as Cores Escolhidas:
-                    </span>
-                    <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs" style={{ color: primaryColor }}>
-                          {logoHorizontalUrl ? (
-                            <img src={logoHorizontalUrl} alt="Logo" className="h-6 object-contain" />
-                          ) : (
-                            "Consultório PSI"
+                          {isSelected && (
+                            <Check className="h-5 w-5 text-white drop-shadow-md stroke-[3]" />
                           )}
-                        </span>
+                        </div>
                         <span
-                          className="px-2 py-0.5 rounded-full text-[10px] font-bold text-white"
-                          style={{ backgroundColor: accentColor }}
+                          className={`text-xs text-center truncate max-w-full ${
+                            isSelected
+                              ? "font-bold text-slate-900 dark:text-slate-100"
+                              : "text-slate-600 dark:text-slate-400 group-hover:text-slate-900"
+                          }`}
                         >
-                          Destaque
+                          {preset.label}
                         </span>
-                      </div>
+                      </button>
+                    );
+                  })}
 
-                      <div className="p-2.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                        <p className="text-[11px] text-slate-600 dark:text-slate-300">
-                          Exemplo de card com botão customizado:
-                        </p>
-                        <button
-                          type="button"
-                          className="mt-2 px-3 py-1.5 rounded-lg text-white font-semibold text-xs shadow-xs"
-                          style={{ backgroundColor: buttonColor }}
-                        >
-                          Botão de Exemplo
-                        </button>
-                      </div>
+                  {/* Preset 9: Personalizado */}
+                  <button
+                    type="button"
+                    onClick={() => setThemeName("PERSONALIZADO")}
+                    className="flex flex-col items-center gap-1.5 group cursor-pointer focus:outline-none"
+                  >
+                    <div
+                      className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center transition-all shadow-xs bg-gradient-to-tr from-purple-500 via-pink-500 to-indigo-500 ${
+                        themeName === "PERSONALIZADO"
+                          ? "ring-4 ring-offset-2 ring-[var(--primary)] dark:ring-offset-slate-900 scale-105"
+                          : "hover:scale-105 border border-slate-200 dark:border-slate-700"
+                      }`}
+                    >
+                      <Palette className="h-6 w-6 text-white drop-shadow-md" />
+                    </div>
+                    <span
+                      className={`text-xs text-center truncate max-w-full ${
+                        themeName === "PERSONALIZADO"
+                          ? "font-bold text-slate-900 dark:text-slate-100"
+                          : "text-slate-600 dark:text-slate-400 group-hover:text-slate-900"
+                      }`}
+                    >
+                      Personalizado
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Preview do Tema (Referência fiel da Imagem 1) */}
+              <div className="pt-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+                  Preview do Tema
+                </h4>
+                <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 max-w-md space-y-4 shadow-2xs">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="w-14 h-14 rounded-xl shadow-xs shrink-0 transition-colors"
+                      style={{ backgroundColor: primaryColor }}
+                    />
+                    <div className="space-y-2 flex-1">
+                      <div className="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-4/5 animate-pulse" />
+                      <div className="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full w-1/2 animate-pulse" />
                     </div>
                   </div>
 
-                  {/* Ações */}
-                  <div className="flex items-center justify-between pt-2">
-                    <Button
+                  <div className="flex items-center gap-3 pt-1">
+                    <button
                       type="button"
-                      variant="ghost"
-                      onClick={handleRestoreAppearanceDefaults}
-                      className="text-xs text-slate-500 hover:text-slate-800 gap-1.5"
+                      className="flex-1 px-4 py-2.5 rounded-xl font-semibold text-xs text-white shadow-xs transition-colors text-center"
+                      style={{ backgroundColor: buttonColor || primaryColor }}
                     >
-                      <RotateCcw className="h-3.5 w-3.5" />
-                      <span>Restaurar Padrão</span>
-                    </Button>
-
-                    <Button
+                      Botão Principal
+                    </button>
+                    <button
                       type="button"
-                      onClick={handleSaveAppearance}
-                      disabled={isSavingAppearance}
-                      className="gap-2 text-xs bg-teal-600 hover:bg-teal-700 text-white"
+                      className="flex-1 px-4 py-2.5 rounded-xl font-semibold text-xs bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 shadow-xs text-center"
                     >
-                      <Save className="h-4 w-4" />
-                      <span>{isSavingAppearance ? "Salvando..." : "Salvar Alterações"}</span>
-                    </Button>
+                      Botão Secundário
+                    </button>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 2. CORES PERSONALIZADAS */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Cores Personalizadas</CardTitle>
+              <CardDescription className="text-xs">
+                Ajuste os valores hexadecimais de cada token de design. Modificar qualquer cor comuta o tema para &quot;Personalizado&quot;.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Cor Primária */}
+                <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+                  <div>
+                    <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor Primária</span>
+                    <span className="text-[11px] text-slate-400">Destaques, botões, ícones e links</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={primaryColor}
+                      onChange={(e) => handleCustomColorChange("primary", e.target.value)}
+                      className="h-8 w-8 rounded-lg cursor-pointer border-0 p-0 shrink-0"
+                    />
+                    <Input
+                      value={primaryColor}
+                      onChange={(e) => handleCustomColorChange("primary", e.target.value)}
+                      className="font-mono text-xs uppercase"
+                    />
+                  </div>
+                </div>
+
+                {/* Cor Secundária */}
+                <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+                  <div>
+                    <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor Secundária</span>
+                    <span className="text-[11px] text-slate-400">Superfícies suaves e fundos de badges</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={secondaryColor}
+                      onChange={(e) => handleCustomColorChange("secondary", e.target.value)}
+                      className="h-8 w-8 rounded-lg cursor-pointer border-0 p-0 shrink-0"
+                    />
+                    <Input
+                      value={secondaryColor}
+                      onChange={(e) => handleCustomColorChange("secondary", e.target.value)}
+                      className="font-mono text-xs uppercase"
+                    />
+                  </div>
+                </div>
+
+                {/* Cor de Destaque */}
+                <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+                  <div>
+                    <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor de Destaque</span>
+                    <span className="text-[11px] text-slate-400">Realces e marcações ativas</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={accentColor}
+                      onChange={(e) => handleCustomColorChange("accent", e.target.value)}
+                      className="h-8 w-8 rounded-lg cursor-pointer border-0 p-0 shrink-0"
+                    />
+                    <Input
+                      value={accentColor}
+                      onChange={(e) => handleCustomColorChange("accent", e.target.value)}
+                      className="font-mono text-xs uppercase"
+                    />
+                  </div>
+                </div>
+
+                {/* Cor de Fundo */}
+                <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+                  <div>
+                    <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor de Fundo</span>
+                    <span className="text-[11px] text-slate-400">Superfície base do MiniSite e tema</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={backgroundColor}
+                      onChange={(e) => handleCustomColorChange("background", e.target.value)}
+                      className="h-8 w-8 rounded-lg cursor-pointer border-0 p-0 shrink-0"
+                    />
+                    <Input
+                      value={backgroundColor}
+                      onChange={(e) => handleCustomColorChange("background", e.target.value)}
+                      className="font-mono text-xs uppercase"
+                    />
+                  </div>
+                </div>
+
+                {/* Cor do Texto */}
+                <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+                  <div>
+                    <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor do Texto</span>
+                    <span className="text-[11px] text-slate-400">Tipografia e títulos principais</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={textColor}
+                      onChange={(e) => handleCustomColorChange("text", e.target.value)}
+                      className="h-8 w-8 rounded-lg cursor-pointer border-0 p-0 shrink-0"
+                    />
+                    <Input
+                      value={textColor}
+                      onChange={(e) => handleCustomColorChange("text", e.target.value)}
+                      className="font-mono text-xs uppercase"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Indicador de Contraste e Acessibilidade (WCAG AA) */}
+              {(() => {
+                const ratio = calculateContrastRatio(textColor, backgroundColor);
+                const isAccessible = isContrastAccessible(textColor, backgroundColor);
+
+                return isAccessible ? (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300">
+                    <CheckCircle2 className="h-4 w-4 shrink-0" />
+                    <span>
+                      Contraste Texto/Fundo: <strong>{ratio}:1</strong> — Em conformidade com a norma WCAG AA (mínimo 4.5:1). Legibilidade comprovada.
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300">
+                    <AlertTriangle className="h-4 w-4 shrink-0" />
+                    <span>
+                      Contraste Texto/Fundo: <strong>{ratio}:1</strong> — Abaixo do mínimo recomendado pela WCAG AA (4.5:1). Aumente o contraste entre a cor do texto e a cor de fundo para garantir acessibilidade.
+                    </span>
+                  </div>
+                );
+              })()}
+            </CardContent>
+          </Card>
+
+          {/* 3. IMAGENS DO SISTEMA (Referência: Imagens 2 e 3) */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Imagens do Sistema</CardTitle>
+              <CardDescription className="text-xs">
+                Faça o envio do favicon, do logotipo padrão e do banner/logo horizontal oficial do consultório.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 text-xs">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* 1. Favicon (32x32px) */}
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col justify-between space-y-3">
+                  <div>
+                    <h5 className="font-bold text-xs text-slate-800 dark:text-slate-200">
+                      Favicon (32x32px)
+                    </h5>
+                    <div className="h-16 flex items-center justify-center my-2">
+                      {faviconUrl ? (
+                        <img src={faviconUrl} alt="Favicon" className="h-8 w-8 object-contain" />
+                      ) : (
+                        <span className="text-[10px] text-slate-400">Sem favicon cadastrado</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) handleUploadAsset("favicon", file);
+                    }}
+                    className="p-3 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl text-center hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors"
+                  >
+                    <label className="cursor-pointer block">
+                      <input
+                        type="file"
+                        accept="image/x-icon,image/png,image/svg+xml,image/jpeg"
+                        className="hidden"
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) handleUploadAsset("favicon", e.target.files[0]);
+                        }}
+                      />
+                      <Upload className="h-5 w-5 text-slate-400 mx-auto mb-1" />
+                      <p className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
+                        {uploadingAsset === "favicon" ? "Enviando..." : "Clique para upload ou arraste aqui"}
+                      </p>
+                      <p className="text-[10px] text-slate-400">ICO, PNG, JPG (32x32px)</p>
+                    </label>
+                  </div>
+
+                  {faviconUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setFaviconUrl(null)}
+                      className="text-[11px] text-red-500 hover:underline block text-center"
+                    >
+                      Remover favicon
+                    </button>
+                  )}
+                </div>
+
+                {/* 2. Logo (200x80px) */}
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col justify-between space-y-3">
+                  <div>
+                    <h5 className="font-bold text-xs text-slate-800 dark:text-slate-200">
+                      Logo (200x80px)
+                    </h5>
+                    <div className="h-16 flex items-center justify-center my-2 p-1 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                      {logoUrl ? (
+                        <img src={logoUrl} alt="Logo" className="h-full max-w-[200px] object-contain" />
+                      ) : (
+                        <span className="text-[10px] text-slate-400">Sem logo cadastrado</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) handleUploadAsset("logo", file);
+                    }}
+                    className="p-3 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl text-center hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors"
+                  >
+                    <label className="cursor-pointer block">
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                        className="hidden"
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) handleUploadAsset("logo", e.target.files[0]);
+                        }}
+                      />
+                      <Upload className="h-5 w-5 text-slate-400 mx-auto mb-1" />
+                      <p className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
+                        {uploadingAsset === "logo" ? "Enviando..." : "Clique para upload ou arraste aqui"}
+                      </p>
+                      <p className="text-[10px] text-slate-400">PNG com fundo transparente (200x80px)</p>
+                    </label>
+                  </div>
+
+                  {logoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setLogoUrl(null)}
+                      className="text-[11px] text-red-500 hover:underline block text-center"
+                    >
+                      Remover logo
+                    </button>
+                  )}
+                </div>
+
+                {/* 3. Banner PC / Logo Horizontal (1400x140px) */}
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col justify-between space-y-3">
+                  <div>
+                    <h5 className="font-bold text-xs text-slate-800 dark:text-slate-200">
+                      Banner PC (1400x140px)
+                    </h5>
+                    <div className="h-16 flex items-center justify-center my-2 p-1 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                      {logoHorizontalUrl ? (
+                        <img src={logoHorizontalUrl} alt="Banner/Horizontal" className="h-full w-full object-contain" />
+                      ) : (
+                        <span className="text-[10px] text-slate-400">Sem banner cadastrado</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) handleUploadAsset("logoHorizontal", file);
+                    }}
+                    className="p-3 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl text-center hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors"
+                  >
+                    <label className="cursor-pointer block">
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                        className="hidden"
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) handleUploadAsset("logoHorizontal", e.target.files[0]);
+                        }}
+                      />
+                      <Upload className="h-5 w-5 text-slate-400 mx-auto mb-1" />
+                      <p className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
+                        {uploadingAsset === "logoHorizontal" ? "Enviando..." : "Clique para upload ou arraste aqui"}
+                      </p>
+                      <p className="text-[10px] text-slate-400">JPG, PNG (1400x140px)</p>
+                    </label>
+                  </div>
+
+                  {logoHorizontalUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setLogoHorizontalUrl(null)}
+                      className="text-[11px] text-red-500 hover:underline block text-center"
+                    >
+                      Remover banner
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Dicas para as imagens (Referência fiel da Imagem 3) */}
+              <div className="p-4 rounded-xl bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900/60 text-xs text-purple-900 dark:text-purple-200 space-y-2">
+                <p className="font-bold flex items-center gap-1.5 text-purple-950 dark:text-purple-100">
+                  <Info className="h-4 w-4" />
+                  <span>Dicas para as imagens:</span>
+                </p>
+                <ul className="space-y-1.5 text-[11px] text-purple-900/80 dark:text-purple-200/90 pl-1">
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-purple-600 dark:text-purple-400 font-bold">•</span>
+                    <span><strong>Favicon:</strong> Use imagens quadradas no tamanho exato de 32x32 pixels</span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-purple-600 dark:text-purple-400 font-bold">•</span>
+                    <span><strong>Logo:</strong> Use PNG com fundo transparente no tamanho 200x80 pixels</span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-purple-600 dark:text-purple-400 font-bold">•</span>
+                    <span><strong>Banner Mobile:</strong> Use imagens no tamanho de 420x140 pixels</span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-purple-600 dark:text-purple-400 font-bold">•</span>
+                    <span><strong>Banner PC:</strong> Use imagens no tamanho de 1400x140 pixels</span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-purple-600 dark:text-purple-400 font-bold">•</span>
+                    <span><strong>Tamanho máximo por arquivo:</strong> 5MB</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Ações da Aba Aparência */}
+              <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleRestoreAppearanceDefaults}
+                  className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 gap-1.5"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  <span>Restaurar Padrão</span>
+                </Button>
+
+                <Button
+                  type="button"
+                  onClick={handleSaveAppearance}
+                  disabled={isSavingAppearance}
+                  className="gap-2 text-xs"
+                >
+                  <Save className="h-4 w-4" />
+                  <span>{isSavingAppearance ? "Salvando..." : "Salvar Alterações"}</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 

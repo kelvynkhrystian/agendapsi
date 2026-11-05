@@ -7,10 +7,13 @@ const updateAppearanceSchema = z.object({
   logoUrl: z.string().nullable().optional(),
   logoHorizontalUrl: z.string().nullable().optional(),
   faviconUrl: z.string().nullable().optional(),
+  themeName: z.string().optional().default("VERDE"),
   primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor primária inválida"),
   secondaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor secundária inválida").optional().default("#0f766e"),
   accentColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor de destaque inválida").optional().default("#f59e0b"),
   buttonColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor de botões inválida").optional().default("#0d9488"),
+  backgroundColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor de fundo inválida").optional().default("#f8fafc"),
+  textColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor do texto inválida").optional().default("#0f172a"),
 });
 
 export async function GET() {
@@ -25,10 +28,13 @@ export async function GET() {
       logoUrl: site?.logoUrl || null,
       logoHorizontalUrl: site?.logoHorizontalUrl || null,
       faviconUrl: site?.faviconUrl || null,
+      themeName: site?.themeName || "VERDE",
       primaryColor: site?.primaryColor || "#0d9488",
       secondaryColor: site?.secondaryColor || "#0f766e",
       accentColor: site?.accentColor || "#f59e0b",
       buttonColor: site?.buttonColor || "#0d9488",
+      backgroundColor: site?.backgroundColor || "#f8fafc",
+      textColor: site?.textColor || "#0f172a",
     });
   } catch (error: unknown) {
     if (error instanceof Error && error.message === "FORBIDDEN") {
@@ -52,8 +58,18 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const { logoUrl, logoHorizontalUrl, faviconUrl, primaryColor, secondaryColor, accentColor, buttonColor } =
-      result.data;
+    const {
+      logoUrl,
+      logoHorizontalUrl,
+      faviconUrl,
+      themeName,
+      primaryColor,
+      secondaryColor,
+      accentColor,
+      buttonColor,
+      backgroundColor,
+      textColor,
+    } = result.data;
 
     const updated = await prisma.siteSettings.upsert({
       where: { id: "default" },
@@ -61,10 +77,13 @@ export async function PUT(req: NextRequest) {
         logoUrl: logoUrl || null,
         logoHorizontalUrl: logoHorizontalUrl || null,
         faviconUrl: faviconUrl || null,
+        themeName,
         primaryColor,
         secondaryColor,
         accentColor,
         buttonColor,
+        backgroundColor,
+        textColor,
       },
       create: {
         id: "default",
@@ -72,10 +91,13 @@ export async function PUT(req: NextRequest) {
         logoUrl: logoUrl || null,
         logoHorizontalUrl: logoHorizontalUrl || null,
         faviconUrl: faviconUrl || null,
+        themeName,
         primaryColor,
         secondaryColor,
         accentColor,
         buttonColor,
+        backgroundColor,
+        textColor,
       },
     });
 

@@ -499,10 +499,13 @@ model SiteSettings {
   logoUrl           String?
   logoHorizontalUrl String?
   faviconUrl        String?
+  themeName         String   @default("VERDE")
   primaryColor      String   @default("#0d9488")
   secondaryColor    String   @default("#0f766e")
   accentColor       String?  @default("#f59e0b")
   buttonColor       String?  @default("#0d9488")
+  backgroundColor   String?  @default("#f8fafc")
+  textColor         String?  @default("#0f172a")
   address        String?
   phone          String?
   whatsappNumber String?

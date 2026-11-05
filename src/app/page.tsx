@@ -4,7 +4,6 @@ import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import {
   Stethoscope,
   Calendar,
@@ -39,24 +38,29 @@ export default async function HomePage() {
     "Nosso consultório foi idealizado para proporcionar um espaço terapêutico seguro, empático e transformador.";
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
       {/* Top Header */}
-      <header className="border-b border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md sticky top-0 z-40">
+      <header className="border-b border-slate-200/80 bg-white/80 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-bold text-teal-700 dark:text-teal-400">
-            <Stethoscope className="h-6 w-6" />
+          <Link href="/" className="flex items-center gap-2 font-bold text-[var(--primary)]">
+            {site?.logoHorizontalUrl ? (
+              <img src={site.logoHorizontalUrl} alt={clinicName} className="h-8 max-w-[200px] object-contain" />
+            ) : site?.logoUrl ? (
+              <img src={site.logoUrl} alt={clinicName} className="h-8 w-8 object-contain rounded-md" />
+            ) : (
+              <Stethoscope className="h-6 w-6" />
+            )}
             <span className="text-lg tracking-tight">{clinicName}</span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600 dark:text-slate-300">
-            <a href="#sobre" className="hover:text-teal-600 dark:hover:text-teal-400">Sobre</a>
-            <a href="#servicos" className="hover:text-teal-600 dark:hover:text-teal-400">Atendimentos</a>
-            <a href="#localizacao" className="hover:text-teal-600 dark:hover:text-teal-400">Consultório</a>
-            <a href="#contato" className="hover:text-teal-600 dark:hover:text-teal-400">Contato</a>
+          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+            <a href="#sobre" className="hover:text-[var(--primary)] transition-colors">Sobre</a>
+            <a href="#servicos" className="hover:text-[var(--primary)] transition-colors">Atendimentos</a>
+            <a href="#localizacao" className="hover:text-[var(--primary)] transition-colors">Consultório</a>
+            <a href="#contato" className="hover:text-[var(--primary)] transition-colors">Contato</a>
           </nav>
 
           <div className="flex items-center gap-3">
-            <ThemeToggle />
             <Link href="/login">
               <Button variant="ghost" size="sm" className="text-xs">
                 Área do Paciente
@@ -73,24 +77,24 @@ export default async function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative py-20 px-4 overflow-hidden border-b border-slate-200/60 dark:border-slate-800/60">
+      <section className="relative py-20 px-4 overflow-hidden border-b border-slate-200/60 bg-white">
         <div className="max-w-4xl mx-auto text-center space-y-6">
-          <Badge variant="outline" className="px-3 py-1 text-xs gap-1.5 bg-white/60 dark:bg-slate-900/60">
-            <Sparkles className="h-3.5 w-3.5 text-teal-600" />
+          <Badge variant="outline" className="px-3 py-1 text-xs gap-1.5 bg-slate-50 border-slate-200">
+            <Sparkles className="h-3.5 w-3.5 text-[var(--primary)]" />
             <span>Atendimento Humanizado • Presencial & Teleconsulta</span>
           </Badge>
 
-          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 leading-tight">
+          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight">
             {heroTitle}
           </h1>
 
-          <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-600 dark:text-slate-300">
+          <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-600">
             {heroSubtitle}
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <Link href="/agendar">
-              <Button size="lg" className="gap-2 text-sm">
+              <Button size="lg" className="gap-2 text-sm shadow-sm">
                 <span>Agendar Horário Online</span>
                 <ArrowRight className="h-4 w-4" />
               </Button>
@@ -105,22 +109,22 @@ export default async function HomePage() {
       </section>
 
       {/* About Professional Section */}
-      <section id="sobre" className="py-16 px-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+      <section id="sobre" className="py-16 px-4 bg-slate-50 border-b border-slate-200">
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="w-32 h-32 md:w-40 md:h-40 rounded-3xl bg-teal-100 dark:bg-teal-950/60 flex items-center justify-center text-teal-600 dark:text-teal-400 font-extrabold text-4xl shrink-0 shadow-md">
+            <div className="w-32 h-32 md:w-40 md:h-40 rounded-3xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] font-extrabold text-4xl shrink-0 shadow-sm border border-[var(--primary)]/20">
               <Heart className="h-16 w-16" />
             </div>
 
             <div className="space-y-3 text-center md:text-left">
-              <div className="inline-block px-2.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 font-mono text-xs font-semibold">
+              <div className="inline-block px-2.5 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] font-mono text-xs font-semibold">
                 {profile?.crpCrm || "Registro Profissional"}
               </div>
               <h2 className="text-2xl font-bold">{profile?.fullName || "Profissional de Saúde"}</h2>
-              <p className="text-sm font-medium text-teal-600 dark:text-teal-400">
+              <p className="text-sm font-medium text-[var(--primary)]">
                 {profile?.title || "Psicólogo(a) Clínico(a)"}
               </p>
-              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              <p className="text-sm text-slate-600 leading-relaxed">
                 {profile?.bio || aboutText}
               </p>
             </div>
@@ -129,7 +133,7 @@ export default async function HomePage() {
       </section>
 
       {/* Services Section */}
-      <section id="servicos" className="py-16 px-4">
+      <section id="servicos" className="py-16 px-4 bg-white">
         <div className="max-w-5xl mx-auto space-y-8">
           <div className="text-center space-y-2">
             <h2 className="text-2xl sm:text-3xl font-bold">Serviços e Atendimentos</h2>
@@ -140,19 +144,19 @@ export default async function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {services.map((service) => (
-              <Card key={service.id} className="border-slate-200 dark:border-slate-800 shadow-xs">
+              <Card key={service.id} className="border-slate-200 shadow-xs bg-white">
                 <CardHeader className="flex flex-row items-start justify-between pb-2">
                   <div>
-                    <CardTitle className="text-base">{service.name}</CardTitle>
+                    <CardTitle className="text-base text-slate-900">{service.name}</CardTitle>
                     <CardDescription className="text-xs line-clamp-2 mt-1">
                       {service.description || "Atendimento psicológico clínico personalizado."}
                     </CardDescription>
                   </div>
-                  <span className="text-lg font-bold text-teal-600 dark:text-teal-400 shrink-0">
+                  <span className="text-lg font-bold text-[var(--primary)] shrink-0">
                     {service.isFree ? "Gratuito" : formatBRL(service.priceCents)}
                   </span>
                 </CardHeader>
-                <CardContent className="pt-2 text-xs flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
+                <CardContent className="pt-2 text-xs flex items-center justify-between border-t border-slate-100">
                   <div className="flex items-center gap-3 text-slate-500">
                     <span className="flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5" />
@@ -184,14 +188,14 @@ export default async function HomePage() {
       </section>
 
       {/* Location and Contact */}
-      <section id="localizacao" className="py-16 px-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+      <section id="localizacao" className="py-16 px-4 bg-slate-50 border-t border-slate-200">
         <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-4">
             <h3 className="text-xl font-bold flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-teal-600" />
+              <MapPin className="h-5 w-5 text-[var(--primary)]" />
               <span>Localização do Consultório</span>
             </h3>
-            <p className="text-sm text-slate-600 dark:text-slate-300">
+            <p className="text-sm text-slate-600">
               {site?.address || "Av. Paulista, 1000, Bela Vista — São Paulo/SP"}
             </p>
             <p className="text-xs text-slate-500">
@@ -201,10 +205,10 @@ export default async function HomePage() {
 
           <div id="contato" className="space-y-4">
             <h3 className="text-xl font-bold flex items-center gap-2">
-              <Phone className="h-5 w-5 text-teal-600" />
+              <Phone className="h-5 w-5 text-[var(--primary)]" />
               <span>Contatos e Informações</span>
             </h3>
-            <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+            <div className="space-y-2 text-sm text-slate-600">
               {site?.phone && <div>Telefone: <strong>{site.phone}</strong></div>}
               {site?.email && <div>E-mail: <strong>{site.email}</strong></div>}
               {site?.instagram && <div>Instagram: <strong>{site.instagram}</strong></div>}
@@ -221,7 +225,7 @@ export default async function HomePage() {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 dark:border-slate-800 py-8 px-4 text-xs text-slate-500">
+      <footer className="border-t border-slate-200 py-8 px-4 text-xs text-slate-500 bg-white">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
             <p>&copy; {new Date().getFullYear()} {clinicName}. Todos os direitos reservados.</p>

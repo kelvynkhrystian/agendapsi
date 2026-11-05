@@ -28,6 +28,8 @@ storage/uploads/*
 !storage/uploads/.gitkeep
 storage/backups/*
 !storage/backups/.gitkeep
+storage/minisite/*
+!storage/minisite/.gitkeep
 
 # Debug
 npm-debug.log*

@@ -1065,10 +1065,13 @@ erDiagram
 | `logoUrl` | `String?` | Não | `null` | URL ou caminho relativo do logotipo padrão | `"/uploads/logo-padrao.png"` |
 | `logoHorizontalUrl`| `String?` | Não | `null` | URL do logotipo na orientação horizontal | `"/uploads/logo-horizontal.png"` |
 | `faviconUrl` | `String?` | Não | `null` | URL do ícone de favoritos exibido na aba do navegador | `"/uploads/favicon.png"` |
+| `themeName` | `String` | Sim | `"VERDE"` | Nome do tema predefinido ativo ou `"PERSONALIZADO"` | `"VERDE"`, `"AZUL"`, `"PERSONALIZADO"` |
 | `primaryColor` | `String` | Sim | `"#0d9488"` | Cor primária da marca em código HEX | `"#0d9488"` |
 | `secondaryColor` | `String` | Sim | `"#0f766e"` | Cor secundária da marca em código HEX | `"#0f766e"` |
 | `accentColor` | `String?` | Não | `"#f59e0b"` | Cor de destaque em código HEX | `"#f59e0b"` |
 | `buttonColor` | `String?` | Não | `"#0d9488"` | Cor dos botões principais de ação em código HEX | `"#0d9488"` |
+| `backgroundColor`| `String?`| Não | `"#f8fafc"` | Cor de fundo customizada em código HEX | `"#f8fafc"` |
+| `textColor` | `String?` | Não | `"#0f172a"` | Cor do texto customizada em código HEX | `"#0f172a"` |
 | `address` | `String?` | Não | `null` | Endereço físico completo do consultório | `"Av. Paulista, 1000, Cj. 42, São Paulo - SP"` |
 | `phone` | `String?` | Não | `null` | Telefone de contato exibido publicamente | `"(11) 3214-5678"` |
 | `whatsappNumber`| `String?` | Não | `null` | WhatsApp para dúvidas com DDD (sem formatação) | `"5511991234567"` |

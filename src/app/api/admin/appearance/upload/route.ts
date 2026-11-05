@@ -15,10 +15,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Arquivo ou tipo de asset não fornecido." }, { status: 400 });
     }
 
-    // Validação de tamanho (máximo 3MB)
-    const MAX_SIZE = 3 * 1024 * 1024;
+    // Validação de tamanho (máximo 5MB)
+    const MAX_SIZE = 5 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
-      return NextResponse.json({ error: "O arquivo excede o limite máximo permitido de 3 MB." }, { status: 400 });
+      return NextResponse.json({ error: "O arquivo excede o limite máximo permitido de 5 MB." }, { status: 400 });
     }
 
     // Validação de tipo MIME

@@ -79,7 +79,7 @@ export default function AdminLayout({
         )}
       >
         <div className="h-16 px-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-          <Link href="/admin" className="flex items-center gap-2 font-bold text-teal-700 dark:text-teal-400">
+          <Link href="/admin" className="flex items-center gap-2 font-bold text-[var(--primary)]">
             <Stethoscope className="h-6 w-6" />
             <span className="text-lg tracking-tight">PSI Admin</span>
           </Link>
@@ -106,11 +106,11 @@ export default function AdminLayout({
                 className={cn(
                   "flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 font-semibold"
+                    ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs"
                     : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-200"
                 )}
               >
-                <Icon className={cn("h-4 w-4", isActive ? "text-teal-600 dark:text-teal-400" : "text-slate-400")} />
+                <Icon className={cn("h-4 w-4", isActive ? "text-[var(--primary)]" : "text-slate-400")} />
                 <span>{item.label}</span>
               </Link>
             );
