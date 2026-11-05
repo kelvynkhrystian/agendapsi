@@ -512,6 +512,32 @@ model SiteSettings {
   email          String?
   instagram      String?
   customHtml     String?  @db.Text
+
+  // Minisite Media Slots (Phase 3/5)
+  heroMediaType          String   @default("IMAGE") // IMAGE, FRAME_ANIMATION, VIDEO
+  heroMediaUrl           String?  @db.Text
+  heroPosterUrl          String?  @db.Text
+  heroFps                Int      @default(24)
+  heroLoop               Boolean  @default(true)
+  heroAutoplay           Boolean  @default(true)
+  heroPlaybackMode       String   @default("AUTOMATIC") // AUTOMATIC, SCROLL
+  heroPlaybackDirection  String   @default("FORWARD") // FORWARD, ALTERNATE
+  heroPositioning        String   @default("center") // center, cover, contain, top, bottom
+  heroFrameCount         Int      @default(0)
+  heroFramesJson         String?  @db.MediumText
+
+  aboutMediaType         String   @default("IMAGE") // IMAGE, FRAME_ANIMATION, VIDEO
+  aboutMediaUrl          String?  @db.Text
+  aboutPosterUrl         String?  @db.Text
+  aboutFps               Int      @default(24)
+  aboutLoop              Boolean  @default(true)
+  aboutAutoplay          Boolean  @default(true)
+  aboutPlaybackMode      String   @default("AUTOMATIC") // AUTOMATIC, SCROLL
+  aboutPlaybackDirection String   @default("FORWARD") // FORWARD, ALTERNATE
+  aboutPositioning       String   @default("center") // center, cover, contain, top, bottom
+  aboutFrameCount        Int      @default(0)
+  aboutFramesJson        String?  @db.MediumText
+
   updatedAt      DateTime @updatedAt
 }
 

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { MiniSiteMediaPlayer } from "@/components/minisite/media-player";
 import {
   Calendar,
   Clock,
@@ -50,6 +51,21 @@ export default async function HomePage() {
     profile?.bio ||
     site?.aboutText ||
     "Sou psicóloga clínica, com mais de 10 anos de experiência, dedicada ao cuidado da saúde mental, ao autoconhecimento e à promoção de uma vida com mais equilíbrio.";
+
+  // Frames da Animação do MiniSite (Fase 3/5)
+  let heroFrames: string[] = [];
+  if (site?.heroFramesJson) {
+    try {
+      heroFrames = JSON.parse(site.heroFramesJson);
+    } catch {}
+  }
+
+  let aboutFrames: string[] = [];
+  if (site?.aboutFramesJson) {
+    try {
+      aboutFrames = JSON.parse(site.aboutFramesJson);
+    } catch {}
+  }
 
   // Sanitização do número do WhatsApp para link direto
   const whatsappDigits = (site?.whatsappNumber || site?.phone || "").replace(/\D/g, "");
@@ -187,25 +203,23 @@ export default async function HomePage() {
               </svg>
             </div>
 
-            {/* Container Responsivo de Mídia (Slot 1: Compatível com futuros uploads, animações e vídeos) */}
+            {/* Container Responsivo de Mídia (Slot 1: Herói - Compatível com Imagens, ZIP Frames e Vídeos) */}
             <div className="w-56 h-64 sm:w-64 sm:h-72 rounded-full p-2 bg-gradient-to-b from-white to-[var(--primary)]/15 border-2 border-[var(--primary)]/25 shadow-md flex items-center justify-center overflow-hidden">
-              {profile?.avatarUrl ? (
-                <img
-                  src={profile.avatarUrl}
-                  alt={professionalName}
-                  className="w-full h-full object-cover rounded-full"
-                />
-              ) : (
-                /* Placeholder Neutro e Acolhedor de Alta Qualidade */
-                <div className="w-full h-full rounded-full bg-gradient-to-b from-white to-[#F5EFEB] flex flex-col items-center justify-center p-6 text-center space-y-2">
-                  <div className="w-20 h-20 rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] text-3xl font-serif">
-                    Ψ
-                  </div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                    Espaço Terapêutico
-                  </span>
-                </div>
-              )}
+              <MiniSiteMediaPlayer
+                slot="hero"
+                mediaType={site?.heroMediaType || (profile?.avatarUrl ? "IMAGE" : "IMAGE")}
+                mediaUrl={site?.heroMediaUrl || profile?.avatarUrl}
+                posterUrl={site?.heroPosterUrl}
+                frames={heroFrames}
+                fps={site?.heroFps ?? 24}
+                loop={site?.heroLoop ?? true}
+                autoplay={site?.heroAutoplay ?? true}
+                playbackMode={site?.heroPlaybackMode || "AUTOMATIC"}
+                playbackDirection={site?.heroPlaybackDirection || "FORWARD"}
+                positioning={site?.heroPositioning || "center"}
+                altText={professionalName}
+                className="rounded-full"
+              />
             </div>
           </div>
 
@@ -381,20 +395,22 @@ export default async function HomePage() {
           <div className="p-6 sm:p-10 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-center gap-8">
             {/* MEDIA SLOT 2: Ambiente do Consultório / Segundo Retrato Independente */}
             <div className="w-full md:w-5/12 shrink-0">
-              <div className="w-full aspect-4/3 rounded-2xl bg-gradient-to-tr from-[#EBE3D5] to-[#F5EFEB] border border-slate-200 overflow-hidden flex flex-col items-center justify-center p-6 text-center relative group shadow-inner">
-                {/* Visual neutro e acolhedor do consultório com poltrona terapêutica e iluminação suave */}
-                <div className="w-16 h-16 rounded-2xl bg-white/80 shadow-xs flex items-center justify-center text-[var(--primary)] mb-3">
-                  <Heart className="h-8 w-8" />
-                </div>
-                <h4 className="font-serif italic font-bold text-sm text-slate-800">
-                  Espaço Terapêutico
-                </h4>
-                <p className="text-[11px] text-slate-500 mt-1 max-w-[200px]">
-                  Ambiente acolhedor, privativo e planejado para seu conforto emocional.
-                </p>
-                <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-white/70 text-[9px] text-slate-400 font-mono">
-                  {crpCrm}
-                </div>
+              <div className="w-full aspect-4/3 rounded-2xl border border-slate-200 overflow-hidden relative shadow-inner bg-gradient-to-tr from-[#EBE3D5] to-[#F5EFEB]">
+                <MiniSiteMediaPlayer
+                  slot="about"
+                  mediaType={site?.aboutMediaType || "IMAGE"}
+                  mediaUrl={site?.aboutMediaUrl}
+                  posterUrl={site?.aboutPosterUrl}
+                  frames={aboutFrames}
+                  fps={site?.aboutFps ?? 24}
+                  loop={site?.aboutLoop ?? true}
+                  autoplay={site?.aboutAutoplay ?? true}
+                  playbackMode={site?.aboutPlaybackMode || "AUTOMATIC"}
+                  playbackDirection={site?.aboutPlaybackDirection || "FORWARD"}
+                  positioning={site?.aboutPositioning || "center"}
+                  altText="Consultório e Espaço Terapêutico"
+                  className="rounded-2xl"
+                />
               </div>
             </div>
 

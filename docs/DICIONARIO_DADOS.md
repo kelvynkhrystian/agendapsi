@@ -1078,6 +1078,28 @@ erDiagram
 | `email` | `String?` | Não | `null` | E-mail público de contato | `"contato@espacoequilibrio.com.br"` |
 | `instagram` | `String?` | Não | `null` | Usuário ou link do perfil no Instagram | `"@dra.helenamartins"` |
 | `customHtml` | `String?` (Text) | Não | `null` | Bloco HTML customizado (sanitizado contra XSS) | `null` |
+| `heroMediaType` | `String` | Sim | `"IMAGE"` | Tipo de mídia do Slot 1 (Hero): IMAGE, FRAME_ANIMATION, VIDEO | `"FRAME_ANIMATION"` |
+| `heroMediaUrl` | `String?` (Text) | Não | `null` | URL da imagem, vídeo ou pasta de frames do Hero | `"/uploads/minisite-frames/hero-123"` |
+| `heroPosterUrl` | `String?` (Text) | Não | `null` | URL do pôster ou frame inicial do Hero | `"/uploads/minisite-frames/hero-123/frame-001.png"` |
+| `heroFps` | `Int` | Sim | `24` | Taxa de quadros por segundo da animação do Hero | `24` |
+| `heroLoop` | `Boolean` | Sim | `true` | Repetição contínua da animação do Hero | `true` |
+| `heroAutoplay` | `Boolean` | Sim | `true` | Reprodução automática do Hero | `true` |
+| `heroPlaybackMode` | `String` | Sim | `"AUTOMATIC"` | Modo de reprodução do Hero: AUTOMATIC ou SCROLL | `"SCROLL"` |
+| `heroPlaybackDirection`| `String` | Sim | `"FORWARD"` | Direção da reprodução: FORWARD ou ALTERNATE | `"FORWARD"` |
+| `heroPositioning` | `String` | Sim | `"center"` | Enquadramento da mídia do Hero: center, cover, contain, top | `"center"` |
+| `heroFrameCount` | `Int` | Sim | `0` | Quantidade total de frames processados no Hero | `40` |
+| `heroFramesJson` | `String?` (MediumText) | Não | `null` | Sequência de caminhos relativos dos frames em JSON | `'["/uploads/.../frame-001.png", ...]'` |
+| `aboutMediaType` | `String` | Sim | `"IMAGE"` | Tipo de mídia do Slot 2 (Sobre Mim): IMAGE, FRAME_ANIMATION, VIDEO | `"FRAME_ANIMATION"` |
+| `aboutMediaUrl` | `String?` (Text) | Não | `null` | URL da imagem, vídeo ou pasta de frames do Sobre Mim | `"/uploads/minisite-frames/about-123"` |
+| `aboutPosterUrl` | `String?` (Text) | Não | `null` | URL do pôster ou frame inicial do Sobre Mim | `"/uploads/minisite-frames/about-123/frame-001.png"` |
+| `aboutFps` | `Int` | Sim | `24` | Taxa de quadros por segundo da animação do Sobre Mim | `24` |
+| `aboutLoop` | `Boolean` | Sim | `true` | Repetição contínua da animação do Sobre Mim | `true` |
+| `aboutAutoplay` | `Boolean` | Sim | `true` | Reprodução automática do Sobre Mim | `true` |
+| `aboutPlaybackMode` | `String` | Sim | `"AUTOMATIC"` | Modo de reprodução do Sobre Mim: AUTOMATIC ou SCROLL | `"AUTOMATIC"` |
+| `aboutPlaybackDirection`| `String`| Sim | `"FORWARD"` | Direção da reprodução: FORWARD ou ALTERNATE | `"FORWARD"` |
+| `aboutPositioning` | `String` | Sim | `"center"` | Enquadramento da mídia do Sobre Mim: center, cover, contain | `"center"` |
+| `aboutFrameCount` | `Int` | Sim | `0` | Quantidade total de frames processados no Sobre Mim | `40` |
+| `aboutFramesJson` | `String?` (MediumText) | Não | `null` | Sequência de caminhos relativos dos frames em JSON | `'["/uploads/.../frame-001.png", ...]'` |
 | `updatedAt` | `DateTime` | Sim | Auto | Timestamp UTC da última alteração | `2026-11-04T12:00:00.000Z` |
 
 ---

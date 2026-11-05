@@ -12,6 +12,7 @@ import {
   calculateContrastRatio,
   isContrastAccessible,
 } from "@/lib/theme-presets";
+import { MiniSiteMediaPlayer } from "@/components/minisite/media-player";
 import {
   Settings,
   Bell,
@@ -37,6 +38,9 @@ import {
   Link2,
   Unlink,
   Calendar,
+  Film,
+  FileArchive,
+  Play,
 } from "lucide-react";
 
 interface VideoProviderItem {
@@ -68,6 +72,35 @@ export default function AdminSettingsPage() {
   const [isSavingAppearance, setIsSavingAppearance] = useState(false);
   const [appearanceFeedback, setAppearanceFeedback] = useState<string | null>(null);
   const [uploadingAsset, setUploadingAsset] = useState<string | null>(null);
+
+  // MiniSite Media Slots State (Phase 3/5)
+  const [heroMediaType, setHeroMediaType] = useState<string>("IMAGE");
+  const [heroMediaUrl, setHeroMediaUrl] = useState<string | null>(null);
+  const [heroPosterUrl, setHeroPosterUrl] = useState<string | null>(null);
+  const [heroFps, setHeroFps] = useState<number>(24);
+  const [heroLoop, setHeroLoop] = useState<boolean>(true);
+  const [heroAutoplay, setHeroAutoplay] = useState<boolean>(true);
+  const [heroPlaybackMode, setHeroPlaybackMode] = useState<string>("AUTOMATIC");
+  const [heroPlaybackDirection, setHeroPlaybackDirection] = useState<string>("FORWARD");
+  const [heroPositioning, setHeroPositioning] = useState<string>("center");
+  const [heroFrameCount, setHeroFrameCount] = useState<number>(0);
+  const [heroFrames, setHeroFrames] = useState<string[]>([]);
+
+  const [aboutMediaType, setAboutMediaType] = useState<string>("IMAGE");
+  const [aboutMediaUrl, setAboutMediaUrl] = useState<string | null>(null);
+  const [aboutPosterUrl, setAboutPosterUrl] = useState<string | null>(null);
+  const [aboutFps, setAboutFps] = useState<number>(24);
+  const [aboutLoop, setAboutLoop] = useState<boolean>(true);
+  const [aboutAutoplay, setAboutAutoplay] = useState<boolean>(true);
+  const [aboutPlaybackMode, setAboutPlaybackMode] = useState<string>("AUTOMATIC");
+  const [aboutPlaybackDirection, setAboutPlaybackDirection] = useState<string>("FORWARD");
+  const [aboutPositioning, setAboutPositioning] = useState<string>("center");
+  const [aboutFrameCount, setAboutFrameCount] = useState<number>(0);
+  const [aboutFrames, setAboutFrames] = useState<string[]>([]);
+
+  const [uploadingSlot, setUploadingSlot] = useState<string | null>(null);
+  const [mediaFeedback, setMediaFeedback] = useState<string | null>(null);
+  const [isSavingMedia, setIsSavingMedia] = useState<boolean>(false);
 
   // Video Providers State (Task 9)
   const [videoProviders, setVideoProviders] = useState<VideoProviderItem[]>([]);
@@ -123,9 +156,10 @@ export default function AdminSettingsPage() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [appRes, vidRes] = await Promise.all([
+      const [appRes, vidRes, mediaRes] = await Promise.all([
         fetch("/api/admin/appearance"),
         fetch("/api/admin/video-providers"),
+        fetch("/api/admin/minisite/media/settings"),
       ]);
 
       if (appRes.ok) {
@@ -140,6 +174,36 @@ export default function AdminSettingsPage() {
         setButtonColor(appData.buttonColor || "#16A34A");
         setBackgroundColor(appData.backgroundColor || "#F0FDF4");
         setTextColor(appData.textColor || "#14532D");
+      }
+
+      if (mediaRes && mediaRes.ok) {
+        const mediaData = await mediaRes.json();
+        if (mediaData.hero) {
+          setHeroMediaType(mediaData.hero.mediaType || "IMAGE");
+          setHeroMediaUrl(mediaData.hero.mediaUrl || null);
+          setHeroPosterUrl(mediaData.hero.posterUrl || null);
+          setHeroFps(mediaData.hero.fps ?? 24);
+          setHeroLoop(mediaData.hero.loop ?? true);
+          setHeroAutoplay(mediaData.hero.autoplay ?? true);
+          setHeroPlaybackMode(mediaData.hero.playbackMode || "AUTOMATIC");
+          setHeroPlaybackDirection(mediaData.hero.playbackDirection || "FORWARD");
+          setHeroPositioning(mediaData.hero.positioning || "center");
+          setHeroFrameCount(mediaData.hero.frameCount ?? 0);
+          setHeroFrames(mediaData.hero.frames || []);
+        }
+        if (mediaData.about) {
+          setAboutMediaType(mediaData.about.mediaType || "IMAGE");
+          setAboutMediaUrl(mediaData.about.mediaUrl || null);
+          setAboutPosterUrl(mediaData.about.posterUrl || null);
+          setAboutFps(mediaData.about.fps ?? 24);
+          setAboutLoop(mediaData.about.loop ?? true);
+          setAboutAutoplay(mediaData.about.autoplay ?? true);
+          setAboutPlaybackMode(mediaData.about.playbackMode || "AUTOMATIC");
+          setAboutPlaybackDirection(mediaData.about.playbackDirection || "FORWARD");
+          setAboutPositioning(mediaData.about.positioning || "center");
+          setAboutFrameCount(mediaData.about.frameCount ?? 0);
+          setAboutFrames(mediaData.about.frames || []);
+        }
       }
 
       if (vidRes.ok) {
@@ -306,6 +370,151 @@ export default function AdminSettingsPage() {
     setBackgroundColor(p.backgroundColor);
     setTextColor(p.textColor);
     setAppearanceFeedback("Cores restauradas para a paleta padrão do PSI (Verde). Clique em Salvar para persistir.");
+  };
+
+  // Upload de Mídia para Slots do MiniSite (Fase 3/5)
+  const handleUploadSlotMedia = async (slot: "hero" | "about", mediaType: string, file: File) => {
+    setUploadingSlot(`${slot}-${mediaType}`);
+    setMediaFeedback(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("slot", slot);
+      formData.append("mediaType", mediaType);
+
+      const res = await fetch("/api/admin/minisite/media/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setMediaFeedback(`Erro no upload: ${data.error}`);
+        return;
+      }
+
+      if (slot === "hero") {
+        setHeroMediaType(mediaType);
+        if (mediaType === "FRAME_ANIMATION") {
+          setHeroFrameCount(data.frameCount || 0);
+          setHeroFrames(data.frames || []);
+          setHeroPosterUrl(data.posterUrl || null);
+          setHeroMediaUrl(data.frames?.[0] || null);
+          setMediaFeedback(`Animação do Hero processada com sucesso! ${data.frameCount} frames ordenados e validados.`);
+        } else {
+          setHeroMediaUrl(data.url);
+          setHeroPosterUrl(data.url);
+          setMediaFeedback("Mídia da Foto Principal (Hero) atualizada com sucesso!");
+        }
+      } else {
+        setAboutMediaType(mediaType);
+        if (mediaType === "FRAME_ANIMATION") {
+          setAboutFrameCount(data.frameCount || 0);
+          setAboutFrames(data.frames || []);
+          setAboutPosterUrl(data.posterUrl || null);
+          setAboutMediaUrl(data.frames?.[0] || null);
+          setMediaFeedback(`Animação do Sobre Mim processada com sucesso! ${data.frameCount} frames ordenados e validados.`);
+        } else {
+          setAboutMediaUrl(data.url);
+          setAboutPosterUrl(data.url);
+          setMediaFeedback("Mídia da Foto Sobre Mim atualizada com sucesso!");
+        }
+      }
+    } catch {
+      setMediaFeedback("Erro de conexão ao enviar arquivo de mídia.");
+    } finally {
+      setUploadingSlot(null);
+    }
+  };
+
+  // Importar frames locais já existentes em storage/minisite/top ou mid
+  const handleImportLocalFrames = async (slot: "hero" | "about") => {
+    setUploadingSlot(`${slot}-import`);
+    setMediaFeedback(null);
+    try {
+      const res = await fetch("/api/admin/minisite/media/import-local", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slot }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setMediaFeedback(`Erro na importação local: ${data.error}`);
+        return;
+      }
+
+      if (slot === "hero") {
+        setHeroMediaType("FRAME_ANIMATION");
+        setHeroFrameCount(data.frameCount || 0);
+        setHeroFrames(data.frames || []);
+        setHeroPosterUrl(data.posterUrl || null);
+        setHeroMediaUrl(data.frames?.[0] || null);
+      } else {
+        setAboutMediaType("FRAME_ANIMATION");
+        setAboutFrameCount(data.frameCount || 0);
+        setAboutFrames(data.frames || []);
+        setAboutPosterUrl(data.posterUrl || null);
+        setAboutMediaUrl(data.frames?.[0] || null);
+      }
+
+      setMediaFeedback(data.message || `${data.frameCount} frames importados com sucesso!`);
+    } catch {
+      setMediaFeedback("Erro ao importar frames locais.");
+    } finally {
+      setUploadingSlot(null);
+    }
+  };
+
+  // Salvar configurações de mídia do MiniSite
+  const handleSaveMediaSettings = async () => {
+    setIsSavingMedia(true);
+    setMediaFeedback(null);
+    try {
+      const res = await fetch("/api/admin/minisite/media/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          hero: {
+            mediaType: heroMediaType,
+            mediaUrl: heroMediaUrl,
+            posterUrl: heroPosterUrl,
+            fps: heroFps,
+            loop: heroLoop,
+            autoplay: heroAutoplay,
+            playbackMode: heroPlaybackMode,
+            playbackDirection: heroPlaybackDirection,
+            positioning: heroPositioning,
+            frameCount: heroFrameCount,
+            frames: heroFrames,
+          },
+          about: {
+            mediaType: aboutMediaType,
+            mediaUrl: aboutMediaUrl,
+            posterUrl: aboutPosterUrl,
+            fps: aboutFps,
+            loop: aboutLoop,
+            autoplay: aboutAutoplay,
+            playbackMode: aboutPlaybackMode,
+            playbackDirection: aboutPlaybackDirection,
+            positioning: aboutPositioning,
+            frameCount: aboutFrameCount,
+            frames: aboutFrames,
+          },
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setMediaFeedback("Configurações de mídia do MiniSite salvas e publicadas com sucesso!");
+      } else {
+        setMediaFeedback(data.error || "Erro ao salvar mídias.");
+      }
+    } catch {
+      setMediaFeedback("Erro de rede ao salvar configurações de mídia.");
+    } finally {
+      setIsSavingMedia(false);
+    }
   };
 
   // Conectar Conta Google OAuth
@@ -1043,6 +1252,668 @@ export default function AdminSettingsPage() {
                 >
                   <Save className="h-4 w-4" />
                   <span>{isSavingAppearance ? "Salvando..." : "Salvar Alterações"}</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* CARD NOVO: IMAGENS E ANIMAÇÕES DO MINISITE (HERO & SOBRE MIM) */}
+          <Card className="border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+            <CardHeader className="pb-4 border-b border-slate-200 dark:border-slate-800">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400">
+                    <Film className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base font-semibold flex items-center gap-2">
+                      Imagens & Animações do MiniSite
+                      <Badge variant="outline" className="text-[10px] bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20">
+                        Fase 3: Mídias Dinâmicas
+                      </Badge>
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                      Gerencie as mídias da Foto Principal (Hero) e Foto Sobre Mim do MiniSite público com suporte a imagens estáticas, vídeos ou animações interativas por frames (ZIP).
+                    </CardDescription>
+                  </div>
+                </div>
+
+                <Button
+                  type="button"
+                  onClick={handleSaveMediaSettings}
+                  disabled={isSavingMedia}
+                  className="gap-2 text-xs self-start sm:self-auto bg-teal-600 hover:bg-teal-700 text-white"
+                >
+                  <Save className="h-4 w-4" />
+                  <span>{isSavingMedia ? "Salvando Mídias..." : "Salvar Mídias do MiniSite"}</span>
+                </Button>
+              </div>
+
+              {mediaFeedback && (
+                <div className="mt-3 p-3 rounded-lg text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                  <span className="text-slate-800 dark:text-slate-200 font-medium">{mediaFeedback}</span>
+                  <button
+                    type="button"
+                    onClick={() => setMediaFeedback(null)}
+                    className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs ml-2"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+            </CardHeader>
+
+            <CardContent className="pt-6 space-y-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* ================= SLOT 1: HERO (FOTO PRINCIPAL) ================= */}
+                <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 space-y-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <span>1. Foto Principal (Hero)</span>
+                      </h4>
+                      <p className="text-[11px] text-slate-400">
+                        Exibida no topo do MiniSite com o crachá CRP e botões de agendamento.
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] font-mono">
+                      {heroMediaType === "FRAME_ANIMATION"
+                        ? `${heroFrameCount} Frames`
+                        : heroMediaType === "VIDEO"
+                        ? "Vídeo"
+                        : "Imagem"}
+                    </Badge>
+                  </div>
+
+                  {/* Prévia em tempo real */}
+                  <div className="relative aspect-[4/5] max-h-80 w-full mx-auto rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 shadow-inner flex items-center justify-center">
+                    <div className="absolute top-2 left-2 z-20">
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-semibold tracking-wider uppercase bg-black/60 text-white backdrop-blur-md">
+                        Prévia em Tempo Real
+                      </span>
+                    </div>
+
+                    <MiniSiteMediaPlayer
+                      slot="hero"
+                      mediaType={heroMediaType}
+                      mediaUrl={heroMediaUrl}
+                      posterUrl={heroPosterUrl}
+                      frames={heroFrames}
+                      frameCount={heroFrameCount}
+                      fps={heroFps}
+                      loop={heroLoop}
+                      autoplay={heroAutoplay}
+                      playbackMode={heroPlaybackMode}
+                      playbackDirection={heroPlaybackDirection}
+                      positioning={heroPositioning}
+                      alt="Prévia Hero"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  {/* Seletor de Tipo de Mídia */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Tipo de Mídia
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setHeroMediaType("IMAGE")}
+                        className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
+                          heroMediaType === "IMAGE"
+                            ? "border-teal-500 bg-teal-500/10 text-teal-600 dark:text-teal-400 font-semibold"
+                            : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
+                        }`}
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span>Imagem</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setHeroMediaType("FRAME_ANIMATION")}
+                        className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
+                          heroMediaType === "FRAME_ANIMATION"
+                            ? "border-teal-500 bg-teal-500/10 text-teal-600 dark:text-teal-400 font-semibold"
+                            : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
+                        }`}
+                      >
+                        <FileArchive className="h-4 w-4" />
+                        <span>Frames (ZIP)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setHeroMediaType("VIDEO")}
+                        className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
+                          heroMediaType === "VIDEO"
+                            ? "border-teal-500 bg-teal-500/10 text-teal-600 dark:text-teal-400 font-semibold"
+                            : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
+                        }`}
+                      >
+                        <Play className="h-4 w-4" />
+                        <span>Vídeo</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Dropzone de Upload */}
+                  <div className="space-y-2">
+                    <div
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const file = e.dataTransfer.files?.[0];
+                        if (file) handleUploadSlotMedia("hero", heroMediaType, file);
+                      }}
+                      className="p-4 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl text-center hover:bg-slate-100/50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors"
+                    >
+                      <label className="cursor-pointer block">
+                        <input
+                          type="file"
+                          accept={
+                            heroMediaType === "FRAME_ANIMATION"
+                              ? ".zip,application/zip,application/x-zip-compressed"
+                              : heroMediaType === "VIDEO"
+                              ? "video/mp4,video/webm"
+                              : "image/jpeg,image/png,image/webp"
+                          }
+                          className="hidden"
+                          onChange={(e) => {
+                            if (e.target.files?.[0]) {
+                              handleUploadSlotMedia("hero", heroMediaType, e.target.files[0]);
+                            }
+                          }}
+                        />
+                        <Upload className="h-5 w-5 text-teal-600 dark:text-teal-400 mx-auto mb-1" />
+                        <p className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
+                          {uploadingSlot === "hero"
+                            ? "Processando e enviando arquivo..."
+                            : heroMediaType === "FRAME_ANIMATION"
+                            ? "Clique para enviar arquivo ZIP com os frames"
+                            : heroMediaType === "VIDEO"
+                            ? "Clique para enviar vídeo (WebM / MP4)"
+                            : "Clique para enviar imagem (JPG, PNG, WebP)"}
+                        </p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">
+                          {heroMediaType === "FRAME_ANIMATION"
+                            ? "Frames numerados ordenadamente (ex: 001.webp ... 040.webp). Máx 150 frames / 100MB."
+                            : heroMediaType === "VIDEO"
+                            ? "Vídeos rodam sem áudio (muted) para compatibilidade mobile. Máx 50MB."
+                            : "Imagens com alta resolução. Máx 10MB."}
+                        </p>
+                      </label>
+                    </div>
+
+                    {/* Botão de Atalho para Importar storage/minisite/top */}
+                    {heroMediaType === "FRAME_ANIMATION" && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleImportLocalFrames("hero")}
+                        disabled={uploadingSlot === "hero-import"}
+                        className="w-full text-xs gap-1.5 border-teal-500/30 hover:bg-teal-500/10 text-teal-700 dark:text-teal-300"
+                      >
+                        <Sparkles className="h-3.5 w-3.5 text-teal-500" />
+                        <span>
+                          {uploadingSlot === "hero-import"
+                            ? "Importando frames locais..."
+                            : "⚡ Importar frames existentes (storage/minisite/top)"}
+                        </span>
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Parâmetros Específicos do Slot Hero */}
+                  <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800 text-xs">
+                    {/* Controles para Frame Animation */}
+                    {heroMediaType === "FRAME_ANIMATION" && (
+                      <>
+                        <div className="space-y-1">
+                          <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                            <span className="font-semibold">Velocidade (FPS)</span>
+                            <span className="font-mono text-teal-600 dark:text-teal-400 font-bold">{heroFps} quadros/s</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="10"
+                            max="60"
+                            step="1"
+                            value={heroFps}
+                            onChange={(e) => setHeroFps(Number(e.target.value))}
+                            className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-teal-600"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label className="font-semibold text-slate-700 dark:text-slate-300">
+                              Modo de Reprodução
+                            </label>
+                            <select
+                              value={heroPlaybackMode}
+                              onChange={(e) => setHeroPlaybackMode(e.target.value as "AUTOMATIC" | "SCROLL")}
+                              className="w-full p-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                            >
+                              <option value="AUTOMATIC">Automático (Tempo)</option>
+                              <option value="SCROLL">Scroll da Página (Scrub)</option>
+                            </select>
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="font-semibold text-slate-700 dark:text-slate-300">
+                              Direção do Loop
+                            </label>
+                            <select
+                              value={heroPlaybackDirection}
+                              onChange={(e) => setHeroPlaybackDirection(e.target.value as "FORWARD" | "ALTERNATE")}
+                              className="w-full p-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                            >
+                              <option value="FORWARD">Normal (Frente)</option>
+                              <option value="ALTERNATE">Ida e Volta (Ping-pong)</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4 pt-1">
+                          <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300">
+                            <input
+                              type="checkbox"
+                              checked={heroLoop}
+                              onChange={(e) => setHeroLoop(e.target.checked)}
+                              className="rounded text-teal-600 focus:ring-teal-500"
+                            />
+                            <span>Repetir (Loop)</span>
+                          </label>
+
+                          <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300">
+                            <input
+                              type="checkbox"
+                              checked={heroAutoplay}
+                              onChange={(e) => setHeroAutoplay(e.target.checked)}
+                              className="rounded text-teal-600 focus:ring-teal-500"
+                            />
+                            <span>Reprodução Automática</span>
+                          </label>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Controles para Vídeo */}
+                    {heroMediaType === "VIDEO" && (
+                      <div className="flex items-center gap-4 pt-1">
+                        <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300">
+                          <input
+                            type="checkbox"
+                            checked={heroLoop}
+                            onChange={(e) => setHeroLoop(e.target.checked)}
+                            className="rounded text-teal-600 focus:ring-teal-500"
+                          />
+                          <span>Repetir (Loop)</span>
+                        </label>
+
+                        <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300">
+                          <input
+                            type="checkbox"
+                            checked={heroAutoplay}
+                            onChange={(e) => setHeroAutoplay(e.target.checked)}
+                            className="rounded text-teal-600 focus:ring-teal-500"
+                          />
+                          <span>Autoplay</span>
+                        </label>
+                      </div>
+                    )}
+
+                    {/* Enquadramento / Posição (Todos os tipos) */}
+                    <div className="space-y-1">
+                      <label className="font-semibold text-slate-700 dark:text-slate-300">
+                        Enquadramento / Posicionamento
+                      </label>
+                      <select
+                        value={heroPositioning}
+                        onChange={(e) => setHeroPositioning(e.target.value)}
+                        className="w-full p-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                      >
+                        <option value="center">Centralizado (Padrão)</option>
+                        <option value="top">Focar no Topo</option>
+                        <option value="bottom">Focar na Base</option>
+                        <option value="cover">Preencher todo o quadro (Cover)</option>
+                        <option value="contain">Conter imagem inteira (Contain)</option>
+                      </select>
+                    </div>
+
+                    {/* Ação de Remoção / Limpeza do Hero */}
+                    {(heroMediaUrl || heroFrames.length > 0) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setHeroMediaUrl(null);
+                          setHeroPosterUrl(null);
+                          setHeroFrames([]);
+                          setHeroFrameCount(0);
+                          setHeroMediaType("IMAGE");
+                        }}
+                        className="text-[11px] text-red-500 hover:underline pt-1 flex items-center gap-1"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        <span>Remover mídia e restaurar ilustração padrão do Hero</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* ================= SLOT 2: SOBRE MIM ================= */}
+                <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 space-y-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <span>2. Foto Sobre Mim</span>
+                      </h4>
+                      <p className="text-[11px] text-slate-400">
+                        Exibida na seção de apresentação pessoal e trajetória clínica.
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] font-mono">
+                      {aboutMediaType === "FRAME_ANIMATION"
+                        ? `${aboutFrameCount} Frames`
+                        : aboutMediaType === "VIDEO"
+                        ? "Vídeo"
+                        : "Imagem"}
+                    </Badge>
+                  </div>
+
+                  {/* Prévia em tempo real */}
+                  <div className="relative aspect-[4/5] max-h-80 w-full mx-auto rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 shadow-inner flex items-center justify-center">
+                    <div className="absolute top-2 left-2 z-20">
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-semibold tracking-wider uppercase bg-black/60 text-white backdrop-blur-md">
+                        Prévia em Tempo Real
+                      </span>
+                    </div>
+
+                    <MiniSiteMediaPlayer
+                      slot="about"
+                      mediaType={aboutMediaType}
+                      mediaUrl={aboutMediaUrl}
+                      posterUrl={aboutPosterUrl}
+                      frames={aboutFrames}
+                      frameCount={aboutFrameCount}
+                      fps={aboutFps}
+                      loop={aboutLoop}
+                      autoplay={aboutAutoplay}
+                      playbackMode={aboutPlaybackMode}
+                      playbackDirection={aboutPlaybackDirection}
+                      positioning={aboutPositioning}
+                      alt="Prévia Sobre Mim"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  {/* Seletor de Tipo de Mídia */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Tipo de Mídia
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setAboutMediaType("IMAGE")}
+                        className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
+                          aboutMediaType === "IMAGE"
+                            ? "border-teal-500 bg-teal-500/10 text-teal-600 dark:text-teal-400 font-semibold"
+                            : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
+                        }`}
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span>Imagem</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setAboutMediaType("FRAME_ANIMATION")}
+                        className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
+                          aboutMediaType === "FRAME_ANIMATION"
+                            ? "border-teal-500 bg-teal-500/10 text-teal-600 dark:text-teal-400 font-semibold"
+                            : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
+                        }`}
+                      >
+                        <FileArchive className="h-4 w-4" />
+                        <span>Frames (ZIP)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setAboutMediaType("VIDEO")}
+                        className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
+                          aboutMediaType === "VIDEO"
+                            ? "border-teal-500 bg-teal-500/10 text-teal-600 dark:text-teal-400 font-semibold"
+                            : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
+                        }`}
+                      >
+                        <Play className="h-4 w-4" />
+                        <span>Vídeo</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Dropzone de Upload */}
+                  <div className="space-y-2">
+                    <div
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const file = e.dataTransfer.files?.[0];
+                        if (file) handleUploadSlotMedia("about", aboutMediaType, file);
+                      }}
+                      className="p-4 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl text-center hover:bg-slate-100/50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors"
+                    >
+                      <label className="cursor-pointer block">
+                        <input
+                          type="file"
+                          accept={
+                            aboutMediaType === "FRAME_ANIMATION"
+                              ? ".zip,application/zip,application/x-zip-compressed"
+                              : aboutMediaType === "VIDEO"
+                              ? "video/mp4,video/webm"
+                              : "image/jpeg,image/png,image/webp"
+                          }
+                          className="hidden"
+                          onChange={(e) => {
+                            if (e.target.files?.[0]) {
+                              handleUploadSlotMedia("about", aboutMediaType, e.target.files[0]);
+                            }
+                          }}
+                        />
+                        <Upload className="h-5 w-5 text-teal-600 dark:text-teal-400 mx-auto mb-1" />
+                        <p className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
+                          {uploadingSlot === "about"
+                            ? "Processando e enviando arquivo..."
+                            : aboutMediaType === "FRAME_ANIMATION"
+                            ? "Clique para enviar arquivo ZIP com os frames"
+                            : aboutMediaType === "VIDEO"
+                            ? "Clique para enviar vídeo (WebM / MP4)"
+                            : "Clique para enviar imagem (JPG, PNG, WebP)"}
+                        </p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">
+                          {aboutMediaType === "FRAME_ANIMATION"
+                            ? "Frames numerados ordenadamente (ex: 001.webp ... 040.webp). Máx 150 frames / 100MB."
+                            : aboutMediaType === "VIDEO"
+                            ? "Vídeos rodam sem áudio (muted) para compatibilidade mobile. Máx 50MB."
+                            : "Imagens com alta resolução. Máx 10MB."}
+                        </p>
+                      </label>
+                    </div>
+
+                    {/* Botão de Atalho para Importar storage/minisite/mid */}
+                    {aboutMediaType === "FRAME_ANIMATION" && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleImportLocalFrames("about")}
+                        disabled={uploadingSlot === "about-import"}
+                        className="w-full text-xs gap-1.5 border-teal-500/30 hover:bg-teal-500/10 text-teal-700 dark:text-teal-300"
+                      >
+                        <Sparkles className="h-3.5 w-3.5 text-teal-500" />
+                        <span>
+                          {uploadingSlot === "about-import"
+                            ? "Importando frames locais..."
+                            : "⚡ Importar frames existentes (storage/minisite/mid)"}
+                        </span>
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Parâmetros Específicos do Slot Sobre Mim */}
+                  <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800 text-xs">
+                    {/* Controles para Frame Animation */}
+                    {aboutMediaType === "FRAME_ANIMATION" && (
+                      <>
+                        <div className="space-y-1">
+                          <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
+                            <span className="font-semibold">Velocidade (FPS)</span>
+                            <span className="font-mono text-teal-600 dark:text-teal-400 font-bold">{aboutFps} quadros/s</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="10"
+                            max="60"
+                            step="1"
+                            value={aboutFps}
+                            onChange={(e) => setAboutFps(Number(e.target.value))}
+                            className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-teal-600"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label className="font-semibold text-slate-700 dark:text-slate-300">
+                              Modo de Reprodução
+                            </label>
+                            <select
+                              value={aboutPlaybackMode}
+                              onChange={(e) => setAboutPlaybackMode(e.target.value as "AUTOMATIC" | "SCROLL")}
+                              className="w-full p-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                            >
+                              <option value="AUTOMATIC">Automático (Tempo)</option>
+                              <option value="SCROLL">Scroll da Página (Scrub)</option>
+                            </select>
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="font-semibold text-slate-700 dark:text-slate-300">
+                              Direção do Loop
+                            </label>
+                            <select
+                              value={aboutPlaybackDirection}
+                              onChange={(e) => setAboutPlaybackDirection(e.target.value as "FORWARD" | "ALTERNATE")}
+                              className="w-full p-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                            >
+                              <option value="FORWARD">Normal (Frente)</option>
+                              <option value="ALTERNATE">Ida e Volta (Ping-pong)</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4 pt-1">
+                          <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300">
+                            <input
+                              type="checkbox"
+                              checked={aboutLoop}
+                              onChange={(e) => setAboutLoop(e.target.checked)}
+                              className="rounded text-teal-600 focus:ring-teal-500"
+                            />
+                            <span>Repetir (Loop)</span>
+                          </label>
+
+                          <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300">
+                            <input
+                              type="checkbox"
+                              checked={aboutAutoplay}
+                              onChange={(e) => setAboutAutoplay(e.target.checked)}
+                              className="rounded text-teal-600 focus:ring-teal-500"
+                            />
+                            <span>Reprodução Automática</span>
+                          </label>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Controles para Vídeo */}
+                    {aboutMediaType === "VIDEO" && (
+                      <div className="flex items-center gap-4 pt-1">
+                        <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300">
+                          <input
+                            type="checkbox"
+                            checked={aboutLoop}
+                            onChange={(e) => setAboutLoop(e.target.checked)}
+                            className="rounded text-teal-600 focus:ring-teal-500"
+                          />
+                          <span>Repetir (Loop)</span>
+                        </label>
+
+                        <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300">
+                          <input
+                            type="checkbox"
+                            checked={aboutAutoplay}
+                            onChange={(e) => setAboutAutoplay(e.target.checked)}
+                            className="rounded text-teal-600 focus:ring-teal-500"
+                          />
+                          <span>Autoplay</span>
+                        </label>
+                      </div>
+                    )}
+
+                    {/* Enquadramento / Posição (Todos os tipos) */}
+                    <div className="space-y-1">
+                      <label className="font-semibold text-slate-700 dark:text-slate-300">
+                        Enquadramento / Posicionamento
+                      </label>
+                      <select
+                        value={aboutPositioning}
+                        onChange={(e) => setAboutPositioning(e.target.value)}
+                        className="w-full p-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                      >
+                        <option value="center">Centralizado (Padrão)</option>
+                        <option value="top">Focar no Topo</option>
+                        <option value="bottom">Focar na Base</option>
+                        <option value="cover">Preencher todo o quadro (Cover)</option>
+                        <option value="contain">Conter imagem inteira (Contain)</option>
+                      </select>
+                    </div>
+
+                    {/* Ação de Remoção / Limpeza do Sobre Mim */}
+                    {(aboutMediaUrl || aboutFrames.length > 0) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAboutMediaUrl(null);
+                          setAboutPosterUrl(null);
+                          setAboutFrames([]);
+                          setAboutFrameCount(0);
+                          setAboutMediaType("IMAGE");
+                        }}
+                        className="text-[11px] text-red-500 hover:underline pt-1 flex items-center gap-1"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        <span>Remover mídia e restaurar ilustração padrão do Sobre Mim</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Botão de Salvar no rodapé do Card de Mídias */}
+              <div className="flex items-center justify-end pt-4 border-t border-slate-200 dark:border-slate-800">
+                <Button
+                  type="button"
+                  onClick={handleSaveMediaSettings}
+                  disabled={isSavingMedia}
+                  className="gap-2 text-xs bg-teal-600 hover:bg-teal-700 text-white"
+                >
+                  <Save className="h-4 w-4" />
+                  <span>{isSavingMedia ? "Salvando Mídias..." : "Salvar Mídias do MiniSite"}</span>
                 </Button>
               </div>
             </CardContent>
