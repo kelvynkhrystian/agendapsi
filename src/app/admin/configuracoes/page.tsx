@@ -79,6 +79,11 @@ export default function AdminSettingsPage() {
   const [videoProviders, setVideoProviders] = useState<VideoProviderItem[]>([]);
   const [activeVideoKey, setActiveVideoKey] = useState<string>("JITSI");
   const [jitsiDomain, setJitsiDomain] = useState("meet.jit.si");
+  const [isTestingJitsi, setIsTestingJitsi] = useState(false);
+  const [jitsiTestFeedback, setJitsiTestFeedback] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
   const [peerJsHost, setPeerJsHost] = useState("");
   const [peerJsPort, setPeerJsPort] = useState(9000);
   const [peerJsPath, setPeerJsPath] = useState("/peerjs");
@@ -408,6 +413,38 @@ export default function AdminSettingsPage() {
       });
     } finally {
       setIsTestingGoogleMeet(false);
+    }
+  };
+
+  // Testar Conexão Jitsi Meet
+  const handleTestJitsi = async () => {
+    setIsTestingJitsi(true);
+    setJitsiTestFeedback(null);
+    try {
+      const res = await fetch("/api/admin/video-providers/jitsi/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ domain: jitsiDomain }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setJitsiTestFeedback({
+          success: true,
+          message: data.message || "Servidor Jitsi acessível e operacional!",
+        });
+      } else {
+        setJitsiTestFeedback({
+          success: false,
+          message: data.error || "Falha ao alcançar o servidor Jitsi.",
+        });
+      }
+    } catch {
+      setJitsiTestFeedback({
+        success: false,
+        message: "Erro de rede ao testar servidor Jitsi.",
+      });
+    } finally {
+      setIsTestingJitsi(false);
     }
   };
 
@@ -1229,18 +1266,43 @@ export default function AdminSettingsPage() {
 
                     <CardContent className="space-y-3 text-xs pt-0">
                       {provider.key === "JITSI" && (
-                        <div className="space-y-1">
-                          <label className="font-medium text-slate-700 dark:text-slate-300">
-                            Domínio Jitsi Meet
-                          </label>
-                          <Input
-                            placeholder="meet.jit.si"
-                            value={jitsiDomain}
-                            onChange={(e) => setJitsiDomain(e.target.value)}
-                          />
-                          <p className="text-[10px] text-slate-400">
-                            Padrão público <code>meet.jit.si</code> ou seu servidor Jitsi dedicado.
-                          </p>
+                        <div className="space-y-3">
+                          <div className="space-y-1">
+                            <label className="font-medium text-slate-700 dark:text-slate-300">
+                              Domínio Jitsi Meet
+                            </label>
+                            <Input
+                              placeholder="meet.jit.si"
+                              value={jitsiDomain}
+                              onChange={(e) => setJitsiDomain(e.target.value)}
+                            />
+                            <p className="text-[10px] text-slate-400">
+                              Padrão público <code>meet.jit.si</code> ou seu servidor Jitsi dedicado.
+                            </p>
+                          </div>
+
+                          <div className="pt-1">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={handleTestJitsi}
+                              disabled={isTestingJitsi || !jitsiDomain}
+                              className="w-full gap-2 text-xs border-teal-600/30 text-teal-700 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/40"
+                            >
+                              <Activity className="h-3.5 w-3.5" />
+                              <span>{isTestingJitsi ? "Testando Jitsi..." : "Testar Servidor Jitsi"}</span>
+                            </Button>
+                          </div>
+
+                          {jitsiTestFeedback && (
+                            <Alert
+                              variant={jitsiTestFeedback.success ? "success" : "destructive"}
+                              title={jitsiTestFeedback.success ? "Jitsi Operacional" : "Falha na Conexão Jitsi"}
+                            >
+                              <p className="text-[11px]">{jitsiTestFeedback.message}</p>
+                            </Alert>
+                          )}
                         </div>
                       )}
 
@@ -1497,10 +1559,13 @@ export default function AdminSettingsPage() {
                     <Button
                       type="button"
                       variant={isSelected ? "primary" : "outline"}
-                      onClick={() => setActiveVideoKey(provider.key)}
+                      onClick={() => {
+                        setActiveVideoKey(provider.key);
+                        setVideoFeedback(`Provedor padrão alterado para "${provider.name}". Clique em "Salvar Configurações de Teleconsulta" para persistir o padrão no servidor.`);
+                      }}
                       disabled={!provider.isFunctional}
                       className={`w-full text-xs gap-1.5 ${
-                        isSelected ? "bg-teal-600 text-white" : ""
+                        isSelected ? "bg-teal-600 text-white font-semibold" : ""
                       }`}
                     >
                       {isSelected ? (
@@ -1512,6 +1577,16 @@ export default function AdminSettingsPage() {
                         <span>Definir como Padrão</span>
                       )}
                     </Button>
+
+                    {!provider.isFunctional && (
+                      <p className="text-[10px] text-amber-600 dark:text-amber-400 text-center pt-1.5 leading-tight">
+                        {provider.key === "PEERJS"
+                          ? "* Requer host configurado e teste de sinalização aprovado."
+                          : provider.key === "GOOGLE_MEET"
+                          ? "* Requer Client ID, Client Secret e conta Google conectada."
+                          : "* Configuração incompleta."}
+                      </p>
+                    )}
                   </div>
                 </Card>
               );

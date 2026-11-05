@@ -293,3 +293,97 @@ export function checkMeetingAccess({
     message: "Acesso liberado à sala de teleconsulta.",
   };
 }
+
+/**
+ * Provedor Unificado de Teleconsulta (Phase 3)
+ * Cria a sala com base exclusiva no provedor ativo configurado em SystemSettings.
+ * Atualiza o agendamento de forma atômica dentro da transação Prisma.
+ */
+export async function provisionVideoMeeting({
+  tx,
+  appointmentId,
+  patientName = "Paciente",
+  serviceName = "Consulta",
+  startAt,
+  endAt,
+  appUrl = process.env.APP_URL || "http://localhost:3000",
+}: {
+  tx: any;
+  appointmentId: string;
+  patientName?: string;
+  serviceName?: string;
+  startAt: Date;
+  endAt: Date;
+  appUrl?: string;
+}): Promise<{
+  provider: SupportedVideoProvider;
+  roomName: string;
+  psiEntryToken: string;
+  entryUrl: string;
+  conferenceUrl?: string | null;
+  calendarEventId?: string | null;
+}> {
+  const settings = await tx.systemSettings.findFirst();
+  const activeProvider: SupportedVideoProvider =
+    (settings?.activeVideoProvider as SupportedVideoProvider) || "JITSI";
+
+  const psiEntryToken =
+    Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  const entryUrl = `${appUrl}/consulta-virtual/${psiEntryToken}`;
+
+  let roomName = "";
+  let conferenceUrl: string | null = null;
+  let calendarEventId: string | null = null;
+
+  if (activeProvider === "GOOGLE_MEET") {
+    // 1. Google Meet: Cria conferência oficial no Google Calendar
+    const { createGoogleMeetConference } = await import("@/lib/google-calendar");
+    const summary = `Consulta PSI: ${serviceName} - ${patientName}`;
+    const description = `Teleconsulta de saúde mental via PSI Consultório.\nPaciente: ${patientName}\nServiço: ${serviceName}`;
+
+    const conference = await createGoogleMeetConference({
+      appointmentId,
+      summary,
+      description,
+      startAt,
+      endAt,
+    });
+
+    roomName = conference.meetUrl;
+    conferenceUrl = conference.meetUrl;
+    calendarEventId = conference.calendarEventId;
+  } else if (activeProvider === "PEERJS") {
+    // 2. PeerJS: WebRTC Direto ponto a ponto
+    const roomSuffix = Math.random().toString(36).substring(2, 10);
+    roomName = `peer-psi-${appointmentId}-${roomSuffix}`;
+  } else {
+    // 3. Jitsi Meet: Salas seguras padrão V1
+    const roomSuffix = Math.random().toString(36).substring(2, 10);
+    roomName = `psi-session-${appointmentId}-${roomSuffix}`;
+  }
+
+  await tx.videoMeeting.create({
+    data: {
+      appointmentId,
+      provider: activeProvider,
+      roomName,
+      psiEntryToken,
+      conferenceUrl,
+      calendarEventId,
+    },
+  });
+
+  await tx.appointment.update({
+    where: { id: appointmentId },
+    data: { meetingUrlSnapshot: entryUrl },
+  });
+
+  return {
+    provider: activeProvider,
+    roomName,
+    psiEntryToken,
+    entryUrl,
+    conferenceUrl,
+    calendarEventId,
+  };
+}

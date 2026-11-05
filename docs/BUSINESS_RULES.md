@@ -85,12 +85,27 @@ Este documento detalha as políticas de funcionamento, transições de estado e 
 
 ---
 
-## 6. Teleconsulta e Controle de Sala Virtual
+## 6. Teleconsulta e Controle de Provedores de Vídeo
 
-- **Integração Jitsi Meet:** Salas geradas com identificadores pseudoaleatórios protegidos por token interno.
-- **Janela de Acesso do Paciente (*Gating*):**
-  - O paciente só é autorizado a entrar na sala virtual a partir de **15 minutos antes** do horário de início da sessão até o término previsto.
-  - Tentativas fora dessa janela são bloqueadas na interface e na API com mensagem explicativa e cronômetro de espera.
+### 6.1 Seleção Exclusiva de Provedor Padrão de Vídeo (Task 9 / Phase 1, 2 e 3)
+- **Um Único Provedor Ativo:** O sistema suporta 3 provedores de teleconsulta arquitetados e totalmente integrados, porém **apenas um provedor é configurado como o padrão ativo** em cada momento:
+  1. `JITSI`: **Jitsi Meet** (salas integradas nativas criptografadas, padrão V1);
+  2. `PEERJS`: **PeerJS / WebRTC Direto** (chamadas P2P ponta a ponta sem servidores intermediários de mídia, com sinalização STUN/TURN);
+  3. `GOOGLE_MEET`: **Google Meet** (salas oficiais geradas automaticamente na Google Agenda do consultório via Google OAuth 2.0 e Google Calendar API).
+- **Validação Estrita de Ativação (Gating):**
+  - Nenhum provedor incompleto ou não testado pode se tornar o padrão ativo.
+  - O PeerJS exige host de sinalização configurado e teste de conectividade aprovado (`testStatus === "SUCCESS"`).
+  - O Google Meet exige Client ID, Client Secret e autorização OAuth concluída com refresh token válido (`googleMeetStatus === "CONNECTED"`).
+  - Em caso de falha ou credenciais ausentes, a seleção é rejeitada e o provedor anterior (ou Jitsi) é preservado.
+- **Imutabilidade e Preservação de Consultas Históricas:**
+  - Alterar o provedor padrão afeta **exclusivamente consultas futuras**.
+  - Consultas já agendadas preservam permanentemente o provedor, a sala e o token original com os quais foram criadas (`VideoMeeting.provider`).
+  - Históricos clínicos, prontuários e links existentes nunca são regravados ou alterados na troca de provedor.
+- **Não Fallback Silencioso:** Se o Google Meet estiver ativo e a API falhar no momento do agendamento, o sistema emite erro transparente para intervenção do administrador, sem alternar silenciosamente para outro provedor.
+
+### 6.2 Janela de Acesso e Autorização de Entrada (*Gating*)
+- **Autorização Server-Side Estrita:** A rota `/api/virtual-meeting/[token]` exige autenticação. Apenas o profissional (`ADMIN`) ou o paciente titular daquela consulta específica têm permissão de acesso (401/403).
+- **Janela de Acesso do Paciente:** O paciente só é liberado para entrar na sala a partir de **15 minutos antes** do horário de início da sessão. Tentativas prévias recebem mensagem com contador regressivo.
 - **Acesso do Profissional:** O profissional possui acesso irrestrito para preparação da sala a qualquer momento.
 
 ---

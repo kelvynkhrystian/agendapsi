@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { provisionVideoMeeting } from "./video-provider";
 
 export interface TimeSlot {
   startAt: string; // ISO string
@@ -373,66 +374,16 @@ export async function createAtomicAppointment({
       },
     });
 
-    // Se o agendamento for virtual, provisiona sala com o provedor de vídeo ativo (Jitsi, PeerJS ou Google Meet)
+    // Se o agendamento for virtual, provisiona sala com o provedor de vídeo ativo exclusivo
     if (modality === "ONLINE") {
-      const settings = await tx.systemSettings.findFirst();
-      const activeProvider = settings?.activeVideoProvider || "JITSI";
-
-      if (activeProvider === "GOOGLE_MEET") {
-        const { createGoogleMeetConference } = await import("@/lib/google-calendar");
-        const patientName = appointment.patient?.fullName || "Paciente";
-        const serviceName = appointment.service?.name || "Consulta";
-        const summary = `Consulta PSI: ${serviceName} - ${patientName}`;
-        const description = `Teleconsulta de saúde mental via PSI Consultório.\nPaciente: ${patientName}\nServiço: ${serviceName}`;
-
-        const conference = await createGoogleMeetConference({
-          appointmentId: appointment.id,
-          summary,
-          description,
-          startAt: appointment.startAt,
-          endAt: appointment.endAt,
-        });
-
-        const psiEntryToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-
-        await tx.videoMeeting.create({
-          data: {
-            appointmentId: appointment.id,
-            provider: "GOOGLE_MEET",
-            roomName: conference.meetUrl,
-            psiEntryToken,
-            conferenceUrl: conference.meetUrl,
-            calendarEventId: conference.calendarEventId,
-          },
-        });
-
-        const entryUrl = `${process.env.APP_URL || "http://localhost:3000"}/consulta-virtual/${psiEntryToken}`;
-        await tx.appointment.update({
-          where: { id: appointment.id },
-          data: { meetingUrlSnapshot: entryUrl },
-        });
-      } else {
-        const isPeerJs = activeProvider === "PEERJS";
-        const roomPrefix = isPeerJs ? "peer-psi" : "psi-session";
-        const roomSuffix = Math.random().toString(36).substring(2, 10);
-        const roomName = `${roomPrefix}-${appointment.id}-${roomSuffix}`;
-        const psiEntryToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-
-        await tx.videoMeeting.create({
-          data: {
-            appointmentId: appointment.id,
-            provider: isPeerJs ? "PEERJS" : "JITSI",
-            roomName,
-            psiEntryToken,
-          },
-        });
-
-        const entryUrl = `${process.env.APP_URL || "http://localhost:3000"}/consulta-virtual/${psiEntryToken}`;
-        await tx.appointment.update({
-          where: { id: appointment.id },
-          data: { meetingUrlSnapshot: entryUrl },
-        });
-      }
+      await provisionVideoMeeting({
+        tx,
+        appointmentId: appointment.id,
+        patientName: appointment.patient?.fullName || "Paciente",
+        serviceName: appointment.service?.name || "Consulta",
+        startAt: appointment.startAt,
+        endAt: appointment.endAt,
+      });
     }
 
     // Se havia hold associado, remove-o

@@ -114,7 +114,7 @@ Este documento relaciona todas as páginas e rotas de API disponíveis no sistem
 ### 4.5 Teleconsulta e Notificações
 | Método | Endpoint | Permissão | Descrição |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/api/virtual-meeting/[token]` | Autenticado | Validação de gating temporal e geração de sala Jitsi segura |
+| `GET` | `/api/virtual-meeting/[token]` | Autenticado | Validação de gating temporal, autorização estrita (Admin ou paciente titular) e metadados de acesso (Jitsi, PeerJS ou Google Meet) |
 | `POST` | `/api/notifications/run-reminders` | Admin / Cron | Disparo idempotente de lembretes automáticos de consulta |
 | `GET` | `/api/notifications` | Autenticado | Listagem de notificações do usuário com contagem de não lidas |
 | `PATCH`| `/api/notifications/[id]/read` | Autenticado | Marcação de notificação específica como lida |
@@ -134,8 +134,14 @@ Este documento relaciona todas as páginas e rotas de API disponíveis no sistem
 | `GET` | `/api/admin/appearance` | Admin | Consulta configurações de logotipo, favicon e paleta de cores |
 | `PUT` | `/api/admin/appearance` | Admin | Atualização de paleta HEX (primária, secundária, destaque, botões) |
 | `POST` | `/api/admin/appearance/upload` | Admin | Upload seguro de logotipo padrão, logotipo horizontal e favicon |
-| `GET` | `/api/admin/video-providers` | Admin | Consulta do provedor de videoconferência ativo e opções disponíveis |
-| `PUT` | `/api/admin/video-providers` | Admin | Seleção de provedor ativo (Jitsi Meet, PeerJS ou Google Meet) |
+| `GET` | `/api/admin/video-providers` | Admin | Consulta do provedor de videoconferência padrão ativo exclusivo (`JITSI`, `PEERJS`, `GOOGLE_MEET`) e status |
+| `PUT` | `/api/admin/video-providers` | Admin | Seleção exclusiva do provedor padrão de teleconsulta com validação de pré-requisitos |
+| `POST` | `/api/admin/video-providers/jitsi/test` | Admin | Teste de conectividade e verificação SSL do domínio Jitsi Meet configurado |
+| `POST` | `/api/admin/video-providers/test` | Admin | Teste de conectividade do servidor de sinalização PeerJS WebRTC |
+| `POST` | `/api/admin/video-providers/google/test` | Admin | Teste de emissão e limpeza de sala Google Meet via Google Calendar API |
+| `GET` | `/api/admin/integrations/google/auth` | Admin | Início do fluxo OAuth 2.0 com Google Calendar e escopos de teleconsulta |
+| `GET` | `/api/admin/integrations/google/callback` | Público/Admin | Callback OAuth do Google para troca de código por tokens e dados da conta |
+| `POST` | `/api/admin/integrations/google/disconnect` | Admin | Revogação de acesso e desconexão da conta Google com reversão segura |
 
 ### 4.6 Operações e Monitoramento Técnico
 | Método | Endpoint | Permissão | Descrição |
