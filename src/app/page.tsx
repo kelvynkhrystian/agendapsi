@@ -4,6 +4,8 @@ import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MiniSiteMediaPlayer } from "@/components/minisite/media-player";
+import { MiniSiteHeader } from "@/components/minisite/header";
+import { MiniSiteFloatingControls } from "@/components/minisite/floating-controls";
 import { ThemeIcon } from "@/components/minisite/theme-icon";
 import { DEFAULT_HERO_BENEFITS, HeroBenefitItem } from "@/lib/minisite-icons";
 import { detectExistingFrames } from "@/lib/minisite-media";
@@ -118,10 +120,12 @@ export default async function HomePage() {
     .filter((b) => b.isVisible !== false)
     .sort((a, b) => (a.order || 0) - (b.order || 0));
 
-  // WhatsApp Inteligente com Mensagem Customizável (Fase 4/5)
+  // WhatsApp Inteligente com Mensagem Customizável (Fase 4/5 & Floating Controls)
+  const defaultWhatsAppMsg =
+    "Olá! Conheci seu trabalho pelo site e gostaria de saber mais sobre os atendimentos e como agendar uma consulta.";
   const whatsappUrl = buildWhatsAppChatUrl(
     site?.whatsappNumber || site?.phone,
-    site?.whatsappDefaultMessage,
+    site?.whatsappDefaultMessage || defaultWhatsAppMsg,
     professionalName
   );
 
@@ -136,71 +140,19 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FDFCFB] text-slate-900 selection:bg-[var(--primary)] selection:text-white font-sans overflow-x-hidden">
-      {/* ================= TOP NAVIGATION ================= */}
-      <header className="border-b border-slate-200/70 bg-white/85 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 font-bold text-[var(--primary)] group">
-            {site?.logoHorizontalUrl ? (
-              <img
-                src={site.logoHorizontalUrl}
-                alt={clinicName}
-                className="h-8 max-w-[180px] object-contain transition-transform group-hover:scale-102"
-              />
-            ) : site?.logoUrl ? (
-              <img
-                src={site.logoUrl}
-                alt={clinicName}
-                className="h-8 w-8 object-contain rounded-md"
-              />
-            ) : (
-              <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] font-serif font-black text-lg">
-                Ψ
-              </div>
-            )}
-            <span className="text-base sm:text-lg tracking-tight font-semibold text-slate-900">
-              {clinicName}
-            </span>
-          </Link>
-
-          <nav className="hidden md:flex items-center gap-6 text-xs uppercase tracking-wider font-semibold text-slate-600">
-            <a href="#atendimentos" className="hover:text-[var(--primary)] transition-colors">
-              Atendimentos
-            </a>
-            <a href="#sobre" className="hover:text-[var(--primary)] transition-colors">
-              Sobre Mim
-            </a>
-            <a href="#diferenciais" className="hover:text-[var(--primary)] transition-colors">
-              Diferenciais
-            </a>
-            <a href="#como-funciona" className="hover:text-[var(--primary)] transition-colors">
-              Como Funciona
-            </a>
-            {shouldShowLocation && (
-              <a href="#localizacao" className="hover:text-[var(--primary)] transition-colors">
-                Localização
-              </a>
-            )}
-          </nav>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link href="/login">
-              <Button variant="ghost" size="sm" className="text-xs text-slate-600 hover:text-slate-900">
-                Área do Paciente
-              </Button>
-            </Link>
-            <Link href="/agendar">
-              <Button size="sm" className="gap-1.5 text-xs shadow-xs">
-                <Calendar className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Agendar Consulta</span>
-                <span className="sm:hidden">Agendar</span>
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      {/* ================= TOP NAVIGATION (DESKTOP & MOBILE STICKY HEADER) ================= */}
+      <MiniSiteHeader
+        logoHorizontalUrl={site?.logoHorizontalUrl}
+        logoUrl={site?.logoUrl}
+        clinicName={clinicName}
+        shouldShowLocation={shouldShowLocation}
+      />
 
       {/* ================= 1. HERO SECTION (Referência Visual) ================= */}
-      <section className="relative pt-8 pb-16 px-4 overflow-hidden bg-gradient-to-b from-[#F9F6F0] via-[#FAF7F2] to-[#FDFCFB]">
+      <section
+        id="inicio"
+        className="relative pt-8 pb-16 px-4 overflow-hidden bg-gradient-to-b from-[#F9F6F0] via-[#FAF7F2] to-[#FDFCFB] scroll-mt-20"
+      >
         {/* Padrão orgânico ondulado de fundo (Curvas suaves) */}
         <div className="absolute inset-0 pointer-events-none opacity-30 overflow-hidden">
           <svg
@@ -366,7 +318,7 @@ export default async function HomePage() {
       </div>
 
       {/* ================= 2. PRINCIPAIS DEMANDAS & ATENDIMENTOS ================= */}
-      <section id="atendimentos" className="py-16 px-4 bg-white">
+      <section id="atendimentos" className="py-16 px-4 bg-white scroll-mt-20">
         <div className="max-w-3xl mx-auto space-y-8">
           <div className="text-center space-y-2">
             <span className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
@@ -449,7 +401,7 @@ export default async function HomePage() {
       </section>
 
       {/* ================= 3. SOBRE MIM (Referência Visual) ================= */}
-      <section id="sobre" className="py-16 px-4 bg-[#F8F5EE] border-y border-slate-200/60">
+      <section id="sobre" className="py-16 px-4 bg-[#F8F5EE] border-y border-slate-200/60 scroll-mt-20">
         <div className="max-w-4xl mx-auto">
           <div className="p-6 sm:p-10 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-center gap-8">
             {/* MEDIA SLOT 2: Ambiente do Consultório / Segundo Retrato Independente */}
@@ -502,7 +454,7 @@ export default async function HomePage() {
       </section>
 
       {/* ================= 4. DIFERENCIAIS (Referência Visual) ================= */}
-      <section id="diferenciais" className="py-16 px-4 bg-white">
+      <section id="diferenciais" className="py-16 px-4 bg-white scroll-mt-20">
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="text-center space-y-2">
             <span className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
@@ -578,7 +530,7 @@ export default async function HomePage() {
       </section>
 
       {/* ================= 5. COMO FUNCIONA (Referência Visual) ================= */}
-      <section id="como-funciona" className="py-16 px-4 bg-[#F8F5EE]">
+      <section id="como-funciona" className="py-16 px-4 bg-[#F8F5EE] scroll-mt-20">
         <div className="max-w-3xl mx-auto">
           <div className="p-6 sm:p-10 rounded-3xl bg-white border border-slate-200/80 space-y-8 shadow-xs">
             <div className="text-center space-y-1">
@@ -691,7 +643,7 @@ export default async function HomePage() {
 
       {/* ================= 7. LOCALIZAÇÃO DO CONSULTÓRIO (Fase 4/5: Opcional e Configurável) ================= */}
       {shouldShowLocation && (
-        <section id="localizacao" className="py-16 px-4 bg-[#F8F5EE] border-t border-slate-200/60">
+        <section id="localizacao" className="py-16 px-4 bg-[#F8F5EE] border-t border-slate-200/60 scroll-mt-20">
           <div className="max-w-4xl mx-auto space-y-8">
             <div className="text-center space-y-2">
               <span className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
@@ -949,20 +901,11 @@ export default async function HomePage() {
         </div>
       </footer>
 
-      {/* ================= BOTÃO FLUTUANTE DE WHATSAPP (Fase 4/5) ================= */}
-      {site?.showFloatingWhatsApp !== false && whatsappUrl && (
-        <aside aria-label="Atendimento via WhatsApp" className="fixed bottom-6 right-6 z-50">
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Abrir conversa no WhatsApp"
-            className="w-13 h-13 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-lg hover:scale-108 hover:shadow-xl transition-all cursor-pointer group"
-          >
-            <MessageCircle className="h-7 w-7" />
-          </a>
-        </aside>
-      )}
+      {/* ================= CONTROLES FLUTUANTES (WHATSAPP + VOLTAR AO TOPO) ================= */}
+      <MiniSiteFloatingControls
+        whatsappUrl={whatsappUrl}
+        showFloatingWhatsApp={Boolean(site?.showFloatingWhatsApp !== false && whatsappUrl)}
+      />
     </div>
   );
 }
