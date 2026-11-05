@@ -66,10 +66,21 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     fetch("/api/admin/dashboard-stats")
-      .then((res) => { if (!res.ok && (res.status === 401 || res.status === 403)) { window.location.href = '/login'; return null; } return res.json(); })
+      .then((res) => {
+        if (!res.ok) {
+          if (res.status === 401 || res.status === 403) {
+            window.location.href = "/login";
+            return null;
+          }
+          throw new Error("Erro de autenticacao");
+        }
+        return res.json();
+      })
       .then((d) => {
-        if (d && !d.error) { setData(d); }
-        setIsLoading(false);
+        if (d && !d.error) {
+          setData(d);
+          setIsLoading(false);
+        }
       })
       .catch((e) => {
         console.error(e);
@@ -77,7 +88,7 @@ export default function AdminDashboardPage() {
       });
   }, []);
 
-  if (isLoading) {
+  if (isLoading || !data) {
     return (
       <div className="space-y-6">
         <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse" />
@@ -192,7 +203,7 @@ export default function AdminDashboardPage() {
                 </Badge>
               ) : (
                 <span className="text-xs text-emerald-600">
-                  {formatBRL(data?.revenueMonth.realCents ?? 0)} registrado
+                  {formatBRL(data?.revenueMonth?.realCents ?? 0)} registrado
                 </span>
               )}
             </div>

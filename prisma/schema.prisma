@@ -407,7 +407,9 @@ model ClinicalRecordRevision {
 
 model StoredFile {
   id               String            @id @default(cuid())
+  title            String?
   originalName     String
+  description      String?           @db.Text
   storedFileName   String            @unique
   mimeType         String
   sizeBytes        Int
@@ -428,6 +430,7 @@ model StoredFileShare {
   patient     Patient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
   canDownload Boolean    @default(true)
   expiresAt   DateTime?
+  revokedAt   DateTime?
   sharedAt    DateTime   @default(now())
 
   @@index([patientId])

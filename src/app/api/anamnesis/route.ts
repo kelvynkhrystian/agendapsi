@@ -26,6 +26,7 @@ export async function GET() {
     let submission = null;
 
     if (session && session.role === "PATIENT") {
+      // Busca a submissão mais recente do paciente
       submission = await prisma.anamnesisSubmission.findFirst({
         where: {
           patientId: session.userId,
@@ -33,16 +34,25 @@ export async function GET() {
         },
         orderBy: { createdAt: "desc" },
       });
-      if (submission) {
+
+      // Se existir submissão e ela NÃO estiver com status REVISION_REQUESTED, está concluída
+      if (submission && submission.status !== "REVISION_REQUESTED") {
         completed = true;
       }
     }
 
-    return NextResponse.json({
-      ...template,
-      completed,
-      submission,
-    });
+    return NextResponse.json(
+      {
+        ...template,
+        completed,
+        submission: completed ? submission : null,
+      },
+      {
+        headers: {
+          "Cache-Control": "private, no-cache, no-store, must-revalidate",
+        },
+      }
+    );
   } catch (error) {
     console.error("Erro ao buscar template de anamnese:", error);
     return NextResponse.json({ error: "Erro interno." }, { status: 500 });
@@ -72,21 +82,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Modelo de anamnese não encontrado." }, { status: 404 });
     }
 
-    // Regra da Task 1: O paciente só pode responder uma única vez a cada anamnese atribuída
-    const existing = await prisma.anamnesisSubmission.findFirst({
+    // Regra: Bloqueia novo envio se o paciente já possui uma ficha ativa (PENDING_REVIEW ou APPROVED)
+    const activeExisting = await prisma.anamnesisSubmission.findFirst({
       where: {
         patientId: session.userId,
         templateId,
+        status: { in: ["PENDING_REVIEW", "APPROVED"] },
       },
+      orderBy: { createdAt: "desc" },
     });
 
-    if (existing) {
+    if (activeExisting) {
       return NextResponse.json(
         { error: "Você já respondeu a esta ficha de anamnese. Ela não pode ser editada novamente." },
         { status: 409 }
       );
     }
 
+    // Cria a nova submissão em transação preservando o histórico anterior
     const submission = await prisma.anamnesisSubmission.create({
       data: {
         templateId,

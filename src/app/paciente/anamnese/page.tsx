@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
-import { CheckCircle2, Clock, FileCheck2, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Clock, FileCheck2, ShieldCheck, Send } from "lucide-react";
 
 interface QuestionField {
   id: string;
@@ -40,8 +40,9 @@ export default function PatientAnamnesisPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetch("/api/anamnesis")
+  const fetchAnamnesis = () => {
+    setIsLoading(true);
+    fetch("/api/anamnesis", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
         if (data.id) {
@@ -50,11 +51,13 @@ export default function PatientAnamnesisPage() {
             setIsCompleted(true);
             setSubmissionDate(data.submission.createdAt);
           } else {
+            setIsCompleted(false);
+            setSubmissionDate(null);
             try {
               const parsed = JSON.parse(data.fieldsJson);
               setFields(Array.isArray(parsed) ? parsed : []);
             } catch (e) {
-              console.error(e);
+              console.error("Erro ao analisar campos de anamnese:", e);
             }
           }
         }
@@ -64,6 +67,10 @@ export default function PatientAnamnesisPage() {
         console.error(e);
         setIsLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchAnamnesis();
   }, []);
 
   const handleAnswerChange = (fieldId: string, value: string) => {
@@ -103,10 +110,15 @@ export default function PatientAnamnesisPage() {
   };
 
   if (isLoading) {
-    return <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />;
+    return (
+      <div className="space-y-4 max-w-2xl mx-auto py-8">
+        <div className="h-8 w-48 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+        <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+      </div>
+    );
   }
 
-  // TASK 1: Se a anamnese foi concluída, o formulário desaparece e exibe o card moderno de confirmação
+  // TASK 7: Se a anamnese foi concluída, o formulário desaparece e exibe exclusivamente o card de confirmação
   if (isCompleted) {
     return (
       <div className="space-y-6 max-w-2xl mx-auto py-6">
@@ -119,7 +131,7 @@ export default function PatientAnamnesisPage() {
               Anamnese concluída
             </CardTitle>
             <CardDescription className="text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto mt-2">
-              Você já respondeu à sua ficha de anamnese. Suas informações foram enviadas ao profissional responsável.
+              Sua ficha foi enviada com sucesso ao profissional responsável.
             </CardDescription>
           </CardHeader>
 
@@ -129,30 +141,30 @@ export default function PatientAnamnesisPage() {
                 <FileCheck2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <div>
                   <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                    Status do questionário
+                    Ficha de Anamnese
                   </p>
                   <p className="text-xs text-slate-500">
-                    {submissionDate ? `Enviado em ${formatDate(submissionDate)} às ${formatTime(submissionDate)}` : "Enviado com sucesso"}
+                    {submissionDate ? `Enviada em ${formatDate(submissionDate)} às ${formatTime(submissionDate)}` : "Enviada com sucesso"}
                   </p>
                 </div>
               </div>
 
               <Badge variant="success" className="px-3 py-1 gap-1.5 text-xs">
                 <ShieldCheck className="h-3.5 w-3.5" />
-                <span>Concluída • Em análise</span>
+                <span>Enviada</span>
               </Badge>
             </div>
 
             <div className="rounded-lg bg-slate-50 dark:bg-slate-800/40 p-4 border border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 space-y-2">
               <div className="flex items-center gap-2 font-medium text-slate-700 dark:text-slate-300">
                 <Clock className="h-4 w-4 text-teal-600" />
-                <span>Sigilo e Próximos Passos</span>
+                <span>Sigilo Ético e Confidencialidade</span>
               </div>
               <p>
-                Suas respostas são confidenciais e protegidas por sigilo ético profissional. O profissional utilizará as informações para conduzir suas próximas consultas com acolhimento personalizado.
+                Suas informações foram salvas com segurança e são confidenciais. O profissional utilizará as respostas durante seus atendimentos clínicos.
               </p>
               <p className="text-[11px] text-slate-400">
-                Caso o profissional atribua uma nova anamnese no futuro, ela será disponibilizada automaticamente nesta mesma área.
+                Caso o profissional solicite uma nova atualização ou preenchimento de ficha, o formulário será reaberto automaticamente nesta mesma tela.
               </p>
             </div>
           </CardContent>
@@ -164,43 +176,47 @@ export default function PatientAnamnesisPage() {
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Anamnese Inicial do Paciente</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Ficha de Anamnese</h1>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Este questionário permite ao profissional conhecer melhor seu histórico e planejar o acompanhamento terapêutico.
+          Por favor, preencha as questões abaixo com sinceridade para auxiliar o profissional a compreender seu histórico e necessidades clínicas.
         </p>
       </div>
 
       {error && <Alert variant="destructive">{error}</Alert>}
 
       {template ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{template.title}</CardTitle>
+        <Card className="border-slate-200 dark:border-slate-800 shadow-xs">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800">
+            <CardTitle className="text-lg font-bold">{template.title}</CardTitle>
             <CardDescription className="text-xs">
-              {template.description || "Responda com sinceridade. Todas as informações são confidenciais."}
+              {template.description || "Responda com sinceridade. Todas as informações estão protegidas por sigilo profissional."}
             </CardDescription>
           </CardHeader>
 
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-5 text-xs">
+          <CardContent className="pt-6">
+            <form onSubmit={handleSubmit} className="space-y-6 text-xs">
               {fields.map((field) => (
-                <div key={field.id} className="space-y-1.5">
-                  <label className="block font-semibold text-slate-800 dark:text-slate-200">
+                <div key={field.id} className="space-y-1.5 p-4 rounded-xl border border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/30">
+                  <label className="block font-semibold text-sm text-slate-800 dark:text-slate-200">
                     {field.label} {field.required && <span className="text-red-500">*</span>}
                   </label>
 
                   {field.type === "textarea" ? (
                     <textarea
-                      rows={3}
-                      className="flex w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs focus:ring-2 focus:ring-teal-500 outline-none"
+                      rows={4}
+                      className="flex w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs focus:ring-2 focus:ring-teal-500 outline-none leading-relaxed"
+                      placeholder="Sua resposta..."
                       value={answers[field.id] || ""}
                       onChange={(e) => handleAnswerChange(field.id, e.target.value)}
                       required={field.required}
                     />
                   ) : field.type === "radio" && field.options ? (
-                    <div className="flex flex-wrap gap-4 pt-1">
+                    <div className="space-y-2 pt-1">
                       {field.options.map((opt) => (
-                        <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                        <label
+                          key={opt}
+                          className="flex items-center gap-2.5 cursor-pointer text-slate-700 dark:text-slate-300 hover:text-slate-900"
+                        >
                           <input
                             type="radio"
                             name={field.id}
@@ -217,7 +233,8 @@ export default function PatientAnamnesisPage() {
                   ) : (
                     <input
                       type="text"
-                      className="flex h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs focus:ring-2 focus:ring-teal-500 outline-none"
+                      className="flex h-10 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs focus:ring-2 focus:ring-teal-500 outline-none"
+                      placeholder="Sua resposta..."
                       value={answers[field.id] || ""}
                       onChange={(e) => handleAnswerChange(field.id, e.target.value)}
                       required={field.required}
@@ -226,17 +243,27 @@ export default function PatientAnamnesisPage() {
                 </div>
               ))}
 
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-                <Button type="submit" disabled={isSubmitting} className="gap-2">
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span>{isSubmitting ? "Enviando anamnese..." : "Concluir e Enviar Anamnese"}</span>
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <span className="text-[11px] text-slate-400">
+                  Após o envio, as respostas não poderão ser editadas diretamente.
+                </span>
+
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-teal-600 hover:bg-teal-700 text-white gap-2 text-xs"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                  <span>{isSubmitting ? "Enviando..." : "Enviar Ficha de Anamnese"}</span>
                 </Button>
               </div>
             </form>
           </CardContent>
         </Card>
       ) : (
-        <Alert variant="info">Nenhum questionário de anamnese ativo no momento.</Alert>
+        <Card className="p-8 text-center text-slate-500">
+          <p className="text-xs">Nenhum formulário de anamnese ativo configurado no momento.</p>
+        </Card>
       )}
     </div>
   );

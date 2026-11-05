@@ -91,8 +91,8 @@ erDiagram
 - `AnamnesisSubmission`: Respostas preenchidas pelo paciente (`id`, `templateId`, `patientId`, `answersJson`, `status` [PENDING_REVIEW/APPROVED/REVISION_REQUESTED], `reviewedAt`, `notes`).
 - `ClinicalRecord`: Prontuário eletrônico da sessão (`id`, `appointmentId`, `patientId`, `sessionDate`, `noteRichText`, `moodRating` [1-10], `createdAt`, `updatedAt`).
 - `ClinicalRecordRevision`: Histórico de revisões e auditoria do prontuário (`id`, `recordId`, `contentSnapshot`, `revisedAt`, `revisedBy`).
-- `StoredFile`: Arquivos privados armazenados em disco (`id`, `originalName`, `storedFileName`, `mimeType`, `sizeBytes`, `category`, `uploadedBy`, `createdAt`).
-- `StoredFileShare`: Permissões de visualização/download pelo paciente com expiração (`id`, `fileId`, `patientId`, `expiresAt`, `sharedAt`).
+- `StoredFile`: Arquivos privados armazenados em disco (`id`, `title`, `description`, `originalName`, `storedFileName`, `mimeType`, `sizeBytes`, `category`, `uploadedBy`, `createdAt`).
+- `StoredFileShare`: Permissões de visualização/download pelo paciente com expiração e revogação (`id`, `fileId`, `patientId`, `canDownload`, `expiresAt`, `revokedAt`, `sharedAt`).
 
 ### 3.8 Comunicação, Configuração e Auditoria
 - `VideoMeeting`: Dados da sala de vídeo (`id`, `appointmentId`, `provider`, `roomName`, `psiEntryToken`, `createdAt`).

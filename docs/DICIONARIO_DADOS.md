@@ -833,6 +833,8 @@ erDiagram
 | Campo | Tipo | Obrigatório? | Padrão | Significado | Exemplo |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `id` | `String` (cuid) | Sim | `cuid()` | ID primário do documento | `"cly78a21s002008l0h9t8u01"` |
+| `title` | `String?` | Não | `null` | Título legível ou nome de exibição do documento | `"Atestado de Aptidão Física"` |
+| `description` | `String?` (Text) | Não | `null` | Observações ou orientações sobre o arquivo | `"Documento emitido para apresentação no trabalho."` |
 | `originalName` | `String` | Sim | Nenhum | Nome original do arquivo enviado pelo usuário | `"Laudo_Neuropsicologico.pdf"` |
 | `storedFileName` | `String` | Sim | Nenhum | Nome criptografado/hasheado gravado no disco físico (`@unique`) | `"file_a1b2c3d4e5f6g7h8.pdf"` |
 | `mimeType` | `String` | Sim | Nenhum | Tipo MIME validado do arquivo | `"application/pdf"`, `"image/jpeg"` |
@@ -867,6 +869,7 @@ erDiagram
 | `patientId` | `String` | Sim | Nenhum | Chave referenciando `Patient.id` | `"cly78a02x000108l0h8a9bc12"` |
 | `canDownload` | `Boolean` | Sim | `true` | Autoriza download do arquivo | `true` |
 | `expiresAt` | `DateTime?` | Não | `null` | Data e hora limite para download (se nulo, acesso permanente) | `2026-12-31T23:59:59.000Z` |
+| `revokedAt` | `DateTime?` | Não | `null` | Data e hora em que o acesso foi explicitamente revogado pelo profissional | `2026-11-05T10:00:00.000Z` |
 | `sharedAt` | `DateTime` | Sim | `now()` | Data e hora em que o compartilhamento foi realizado | `2026-11-04T12:00:00.000Z` |
 
 #### C. Relacionamentos

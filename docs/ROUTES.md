@@ -89,9 +89,11 @@ Este documento relaciona todas as páginas e rotas de API disponíveis no sistem
 | `PUT` | `/api/clinical-records/[id]` | **Admin Only** | Atualização com versionamento em `ClinicalRecordRevision` |
 | `GET` | `/api/anamnesis` | Autenticado | Consulta modelo de anamnese ou respostas enviadas |
 | `POST` | `/api/anamnesis` | Paciente | Submissão das respostas do questionário de anamnese |
+| `POST` | `/api/admin/patients/[id]/anamnesis-reset` | Admin | Solicitação de novo preenchimento de anamnese mantendo histórico auditado |
 | `POST` | `/api/files/upload` | Admin | Upload de documentos para diretório privado fora da raiz pública |
 | `POST` | `/api/files/[id]/share` | Admin | Configuração de compartilhamento privado com prazo de validade |
-| `GET` | `/api/files/[id]/download` | Autenticado | Download seguro validando permissão de acesso e expiração |
+| `PATCH` | `/api/files/shares/[shareId]` | Admin | Revogação imediata ou reativação com renovação de prazo de documento compartilhado |
+| `GET` | `/api/files/[id]/download` | Autenticado | Download/visualização segura validando titularidade, revogação e expiração |
 
 ### 4.4 Finanças e Pacotes
 | Método | Endpoint | Permissão | Descrição |

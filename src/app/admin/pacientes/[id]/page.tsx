@@ -28,6 +28,14 @@ import {
   Share2,
   Sparkles,
   Lock,
+  Download,
+  Eye,
+  Trash2,
+  RotateCcw,
+  Clock,
+  Upload,
+  FileCheck2,
+  HelpCircle,
 } from "lucide-react";
 
 interface ClinicalRecordItem {
@@ -50,6 +58,48 @@ interface ClinicalRecordItem {
     revisedAt: string;
     revisedBy: string;
   }>;
+}
+
+interface AnamnesisQuestion {
+  id: string;
+  label: string;
+  type?: string;
+  options?: string[];
+  required?: boolean;
+}
+
+interface AnamnesisSubmitItem {
+  id: string;
+  template: {
+    id: string;
+    title: string;
+    description?: string;
+    fieldsJson?: string;
+  };
+  status: string;
+  createdAt: string;
+  answersJson: string;
+  reviewedAt?: string | null;
+  reviewerNotes?: string | null;
+}
+
+interface FileShareItem {
+  id: string;
+  fileId: string;
+  patientId: string;
+  canDownload: boolean;
+  expiresAt?: string | null;
+  revokedAt?: string | null;
+  sharedAt: string;
+  file: {
+    id: string;
+    title?: string | null;
+    originalName: string;
+    description?: string | null;
+    mimeType: string;
+    sizeBytes: number;
+    category: string;
+  };
 }
 
 interface PatientDetail {
@@ -89,23 +139,9 @@ interface PatientDetail {
     status: string;
     createdAt: string;
   }>;
-  anamnesisSubmits: Array<{
-    id: string;
-    template: { title: string };
-    status: string;
-    createdAt: string;
-    answersJson: string;
-  }>;
+  anamnesisSubmits: AnamnesisSubmitItem[];
   clinicalRecords: ClinicalRecordItem[];
-  fileShares: Array<{
-    id: string;
-    sharedAt: string;
-    expiresAt?: string;
-    file: {
-      originalName: string;
-      sizeBytes: number;
-    };
-  }>;
+  fileShares: FileShareItem[];
   payments: Array<{
     id: string;
     amountCents: number;
@@ -178,19 +214,29 @@ export default function AdminPatientDetailPage({
   const [editNoteContent, setEditNoteContent] = useState("");
   const [isUpdatingRecord, setIsUpdatingRecord] = useState(false);
 
-  // Modal Histórico de Revisões
+  // Modal Histórico de Revisões de Prontuário
   const [isRevisionsModalOpen, setIsRevisionsModalOpen] = useState(false);
   const [viewingRecord, setViewingRecord] = useState<ClinicalRecordItem | null>(null);
 
-  // Modal Compartilhar Documento com Paciente
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [shareFile, setShareFile] = useState<File | null>(null);
-  const [shareDays, setShareDays] = useState("30");
-  const [isSharing, setIsSharing] = useState(false);
+  // Modal Enviar Documento (Task 2)
+  const [isUploadDocModalOpen, setIsUploadDocModalOpen] = useState(false);
+  const [docTitle, setDocTitle] = useState("");
+  const [docDescription, setDocDescription] = useState("");
+  const [docFile, setDocFile] = useState<File | null>(null);
+  const [docShareDays, setDocShareDays] = useState("30");
+  const [isUploadingDoc, setIsUploadingDoc] = useState(false);
+
+  // Modal Visualizar Respostas de Anamnese (Task 5)
+  const [isViewAnamnesisModalOpen, setIsViewAnamnesisModalOpen] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState<AnamnesisSubmitItem | null>(null);
+
+  // Modal Confirmação de Reset de Anamnese (Task 6)
+  const [isResetAnamnesisModalOpen, setIsResetAnamnesisModalOpen] = useState(false);
+  const [isResettingAnamnesis, setIsResettingAnamnesis] = useState(false);
 
   const fetchPatient = () => {
     setIsLoading(true);
-    fetch(`/api/patients/${id}`)
+    fetch(`/api/patients/${id}`, { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         setPatient(data);
@@ -311,7 +357,7 @@ export default function AdminPatientDetailPage({
     setIsEditModalOpen(true);
   };
 
-  // Atualização de Prontuário (com salvamento de revisão)
+  // Atualização de Prontuário
   const handleUpdateRecord = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingRecord) return;
@@ -352,39 +398,145 @@ export default function AdminPatientDetailPage({
     }
   };
 
-  // Compartilhamento de Documento
-  const handleUploadAndShare = async (e: React.FormEvent) => {
+  // Enviar Documento (Task 2)
+  const handleUploadDocument = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!shareFile) return;
-    setIsSharing(true);
+    if (!docFile) {
+      setErrorMessage("Selecione um arquivo para envio.");
+      return;
+    }
+
+    setIsUploadingDoc(true);
+    setErrorMessage(null);
 
     try {
       const formData = new FormData();
-      formData.append("file", shareFile);
+      formData.append("file", docFile);
       formData.append("patientId", id);
-      formData.append("shareDays", shareDays);
-      formData.append("category", "CLINICAL_NOTE_EXPORT");
+      if (docTitle.trim()) formData.append("title", docTitle.trim());
+      if (docDescription.trim()) formData.append("description", docDescription.trim());
+      formData.append("shareDays", docShareDays);
+      formData.append("category", "PATIENT_DOCUMENT");
 
       const res = await fetch("/api/files/upload", {
         method: "POST",
         body: formData,
       });
 
-      if (res.ok) {
-        setIsShareModalOpen(false);
-        setShareFile(null);
-        setIsSharing(false);
-        setStatusMessage("Documento compartilhado com o paciente com sucesso.");
-        fetchPatient();
-      } else {
-        const d = await res.json();
-        setErrorMessage(d.error || "Erro ao enviar arquivo.");
-        setIsSharing(false);
+      const data = await res.json();
+      if (!res.ok) {
+        setErrorMessage(data.error || "Erro ao enviar documento.");
+        setIsUploadingDoc(false);
+        return;
       }
-    } catch (e) {
-      console.error(e);
+
+      setIsUploadDocModalOpen(false);
+      setDocFile(null);
+      setDocTitle("");
+      setDocDescription("");
+      setDocShareDays("30");
+      setIsUploadingDoc(false);
+      setStatusMessage("Documento enviado e liberado para o paciente com sucesso.");
+      fetchPatient();
+    } catch {
       setErrorMessage("Erro de rede ao enviar documento.");
-      setIsSharing(false);
+      setIsUploadingDoc(false);
+    }
+  };
+
+  // Revogar Acesso a Documento (Task 3)
+  const handleRevokeShare = async (shareId: string) => {
+    if (!confirm("Deseja realmente revogar o acesso do paciente a este documento? Ele não poderá mais visualizar ou baixar o arquivo.")) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/files/shares/${shareId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "REVOKE" }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setErrorMessage(data.error || "Erro ao revogar acesso ao documento.");
+        return;
+      }
+
+      setStatusMessage("Acesso do paciente ao documento revogado com sucesso.");
+      fetchPatient();
+    } catch {
+      setErrorMessage("Erro ao comunicar com o servidor.");
+    }
+  };
+
+  // Reativar Acesso a Documento (Task 3)
+  const handleReactivateShare = async (shareId: string) => {
+    try {
+      const res = await fetch(`/api/files/shares/${shareId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "REACTIVATE", days: 30 }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setErrorMessage(data.error || "Erro ao reativar acesso.");
+        return;
+      }
+
+      setStatusMessage("Acesso do paciente reativado por mais 30 dias com sucesso.");
+      fetchPatient();
+    } catch {
+      setErrorMessage("Erro ao reativar documento.");
+    }
+  };
+
+  // Solicitar Novo Preenchimento de Anamnese (Task 6)
+  const handleConfirmResetAnamnesis = async () => {
+    setIsResettingAnamnesis(true);
+    setErrorMessage(null);
+
+    try {
+      const res = await fetch(`/api/admin/patients/${id}/anamnesis-reset`, {
+        method: "POST",
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setErrorMessage(data.error || "Erro ao solicitar novo preenchimento.");
+        setIsResettingAnamnesis(false);
+        return;
+      }
+
+      setIsResetAnamnesisModalOpen(false);
+      setIsResettingAnamnesis(false);
+      setStatusMessage("Novo preenchimento solicitado com sucesso. A ficha anterior foi arquivada e o formulário reaberto para o paciente.");
+      fetchPatient();
+    } catch {
+      setErrorMessage("Erro de rede ao solicitar nova anamnese.");
+      setIsResettingAnamnesis(false);
+    }
+  };
+
+  // Cálculo Dinâmico de Expiração para Preview
+  const getCalculatedExpirationText = (daysStr: string) => {
+    const days = parseInt(daysStr, 10);
+    if (days <= 0) return "Acesso permanente (sem data de expiração)";
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    return `Válido até ${d.toLocaleDateString("pt-BR")} às ${d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} (${days} dias)`;
+  };
+
+  const getAnamnesisStatusBadge = (status: string) => {
+    switch (status) {
+      case "APPROVED":
+        return <Badge variant="success">Aprovada</Badge>;
+      case "REVISION_REQUESTED":
+        return <Badge variant="outline" className="border-amber-300 text-amber-700 dark:text-amber-300">Substituída / Novo Envio Solicitado</Badge>;
+      case "PENDING_REVIEW":
+      default:
+        return <Badge variant="warning">Enviada / Em Análise</Badge>;
     }
   };
 
@@ -398,6 +550,7 @@ export default function AdminPatientDetailPage({
   }
 
   const pendingChanges = patient.profileChanges.filter((c) => c.status === "PENDING");
+  const hasActiveAnamnesis = patient.anamnesisSubmits.some((s) => s.status === "PENDING_REVIEW" || s.status === "APPROVED");
 
   return (
     <div className="space-y-6">
@@ -545,7 +698,7 @@ export default function AdminPatientDetailPage({
         })}
       </div>
 
-      {/* Conteúdo das Abas */}
+      {/* 1. VISÃO GERAL */}
       {activeTab === "overview" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
@@ -604,7 +757,7 @@ export default function AdminPatientDetailPage({
         </div>
       )}
 
-      {/* ABA PRONTUÁRIO CLÍNICO (PRIVADO DO CLIENTE) */}
+      {/* 2. PRONTUÁRIO CLÍNICO (PRIVADO DO CLIENTE) */}
       {activeTab === "records" && (
         <Card className="border-teal-100 dark:border-teal-950/50 shadow-xs">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
@@ -621,18 +774,9 @@ export default function AdminPatientDetailPage({
             </div>
             <div className="flex items-center gap-2">
               <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsShareModalOpen(true)}
-                className="gap-1.5 text-xs"
-              >
-                <Share2 className="h-3.5 w-3.5" />
-                <span>Emitir Atestado/Doc</span>
-              </Button>
-              <Button
                 size="sm"
                 onClick={() => setIsNewRecordModalOpen(true)}
-                className="gap-1.5 text-xs bg-teal-600 hover:bg-teal-700 text-white"
+                className="gap-1.5 text-xs bg-teal-600 hover:bg-teal-700 text-white cursor-pointer"
               >
                 <Plus className="h-4 w-4" />
                 <span>Nova Evolução de Sessão</span>
@@ -682,7 +826,7 @@ export default function AdminPatientDetailPage({
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-7 text-xs gap-1"
+                            className="h-7 text-xs gap-1 cursor-pointer"
                             onClick={() => openEditRecordModal(record)}
                           >
                             <Pencil className="h-3 w-3" />
@@ -735,7 +879,7 @@ export default function AdminPatientDetailPage({
                 <Button
                   size="sm"
                   onClick={() => setIsNewRecordModalOpen(true)}
-                  className="gap-1.5 text-xs bg-teal-600 hover:bg-teal-700 text-white mt-2"
+                  className="gap-1.5 text-xs bg-teal-600 hover:bg-teal-700 text-white mt-2 cursor-pointer"
                 >
                   <Plus className="h-4 w-4" />
                   <span>Registrar Primeira Evolução</span>
@@ -746,41 +890,90 @@ export default function AdminPatientDetailPage({
         </Card>
       )}
 
+      {/* 3. ANAMNESE (TASK 5 & 6) */}
       {activeTab === "anamnesis" && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Anamneses Preenchidas</CardTitle>
-            <CardDescription>Respostas enviadas pelo paciente</CardDescription>
+        <Card className="border-slate-200 dark:border-slate-800 shadow-xs">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div>
+              <CardTitle className="text-base font-bold">Fichas de Anamnese do Paciente</CardTitle>
+              <CardDescription className="text-xs">
+                Histórico de questionários enviados e respostas submetidas pelo paciente
+              </CardDescription>
+            </div>
+            {hasActiveAnamnesis && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs text-amber-700 dark:text-amber-300 border-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/50 cursor-pointer"
+                onClick={() => setIsResetAnamnesisModalOpen(true)}
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                <span>Solicitar novo preenchimento</span>
+              </Button>
+            )}
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             {patient.anamnesisSubmits.length > 0 ? (
               <div className="space-y-3">
                 {patient.anamnesisSubmits.map((sub) => (
                   <div
                     key={sub.id}
-                    className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs"
+                    className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:border-teal-300 dark:hover:border-teal-700 transition-colors"
                   >
                     <div>
-                      <div className="font-semibold text-sm">{sub.template.title}</div>
-                      <div className="text-slate-500 mt-0.5">
-                        Enviada em {formatDate(sub.createdAt)}
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm text-slate-900 dark:text-slate-100">
+                          {sub.template.title}
+                        </span>
+                        {getAnamnesisStatusBadge(sub.status)}
                       </div>
+                      <div className="text-slate-500 mt-1 flex items-center gap-2">
+                        <span>Enviada em {formatDate(sub.createdAt)} às {formatTime(sub.createdAt)}</span>
+                        {sub.reviewedAt && (
+                          <>
+                            <span>•</span>
+                            <span>Revisada em {formatDate(sub.reviewedAt)}</span>
+                          </>
+                        )}
+                      </div>
+                      {sub.reviewerNotes && (
+                        <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1 italic">
+                          Nota: {sub.reviewerNotes}
+                        </p>
+                      )}
                     </div>
-                    <Badge variant={sub.status === "APPROVED" ? "success" : "warning"}>
-                      {sub.status}
-                    </Badge>
+
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 text-xs gap-1.5 cursor-pointer self-end sm:self-center"
+                      onClick={() => {
+                        setSelectedSubmission(sub);
+                        setIsViewAnamnesisModalOpen(true);
+                      }}
+                    >
+                      <Eye className="h-3.5 w-3.5 text-teal-600" />
+                      <span>Visualizar respostas</span>
+                    </Button>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-slate-500 py-8 text-center">
-                Nenhuma anamnese preenchida até o momento.
-              </p>
+              <div className="p-12 text-center text-slate-500 space-y-2">
+                <ClipboardList className="h-8 w-8 mx-auto text-slate-400" />
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                  Nenhuma anamnese preenchida até o momento.
+                </p>
+                <p className="text-xs text-slate-400">
+                  Quando o paciente responder à ficha de anamnese na Área do Paciente, ela aparecerá aqui para sua revisão.
+                </p>
+              </div>
             )}
           </CardContent>
         </Card>
       )}
 
+      {/* 4. AGENDAMENTOS */}
       {activeTab === "appointments" && (
         <Card>
           <CardHeader>
@@ -822,53 +1015,151 @@ export default function AdminPatientDetailPage({
         </Card>
       )}
 
+      {/* 5. DOCUMENTOS COMPARTILHADOS (TASK 2 & 3) */}
       {activeTab === "documents" && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+        <Card className="border-slate-200 dark:border-slate-800 shadow-xs">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
             <div>
-              <CardTitle className="text-base">Documentos Compartilhados</CardTitle>
-              <CardDescription>
-                Atestados, relatórios e declarações liberados para o paciente
+              <CardTitle className="text-base font-bold flex items-center gap-2">
+                <FolderLock className="h-4 w-4 text-teal-600" />
+                <span>Documentos e Atestados do Paciente</span>
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Arquivos emitidos e compartilhados com <strong>{patient.fullName}</strong> com validade controlada
               </CardDescription>
             </div>
             <Button
               size="sm"
-              variant="outline"
-              className="text-xs gap-1.5"
-              onClick={() => setIsShareModalOpen(true)}
+              className="gap-2 text-xs bg-teal-600 hover:bg-teal-700 text-white cursor-pointer"
+              onClick={() => setIsUploadDocModalOpen(true)}
             >
-              <Share2 className="h-3.5 w-3.5" />
-              <span>Liberar Novo Documento</span>
+              <Upload className="h-4 w-4" />
+              <span>Enviar documento</span>
             </Button>
           </CardHeader>
-          <CardContent>
+
+          <CardContent className="pt-6">
             {patient.fileShares.length > 0 ? (
               <div className="space-y-3">
-                {patient.fileShares.map((share) => (
-                  <div
-                    key={share.id}
-                    className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs"
-                  >
-                    <div>
-                      <span className="font-semibold block">{share.file.originalName}</span>
-                      <span className="text-slate-500 text-[11px]">
-                        Compartilhado em {formatDate(share.sharedAt)} • Válido até:{" "}
-                        {share.expiresAt ? formatDate(share.expiresAt) : "Indeterminado"}
-                      </span>
+                {patient.fileShares.map((share) => {
+                  const now = new Date();
+                  const isExpired = share.expiresAt ? new Date(share.expiresAt) < now : false;
+                  const isRevoked = !share.canDownload || !!share.revokedAt;
+                  const isLiberado = !isRevoked && !isExpired;
+
+                  return (
+                    <div
+                      key={share.id}
+                      className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-sm text-slate-900 dark:text-slate-100">
+                            {share.file.title || share.file.originalName}
+                          </span>
+                          <span className="text-[11px] text-slate-400 font-mono">
+                            ({share.file.originalName})
+                          </span>
+
+                          {isLiberado ? (
+                            <Badge variant="success">Liberado</Badge>
+                          ) : isRevoked ? (
+                            <Badge variant="outline" className="border-amber-400 text-amber-700 dark:text-amber-300">
+                              Acesso revogado
+                            </Badge>
+                          ) : (
+                            <Badge variant="destructive">Expirado</Badge>
+                          )}
+                        </div>
+
+                        {share.file.description && (
+                          <p className="text-xs text-slate-600 dark:text-slate-400">
+                            {share.file.description}
+                          </p>
+                        )}
+
+                        <div className="text-slate-500 text-[11px] flex flex-wrap items-center gap-2 pt-0.5">
+                          <span>Liberado em {formatDate(share.sharedAt)}</span>
+                          <span>•</span>
+                          <span>Tamanho: {(share.file.sizeBytes / 1024).toFixed(1)} KB</span>
+                          <span>•</span>
+                          <span>
+                            {share.expiresAt
+                              ? `Expira em: ${formatDate(share.expiresAt)}`
+                              : "Sem expiração (Acesso permanente)"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                        <a
+                          href={`/api/files/${share.file.id}/download?view=inline`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Button variant="outline" size="sm" className="h-7 text-xs gap-1 cursor-pointer">
+                            <Eye className="h-3 w-3" />
+                            <span>Visualizar</span>
+                          </Button>
+                        </a>
+
+                        <a href={`/api/files/${share.file.id}/download`} download>
+                          <Button variant="outline" size="sm" className="h-7 text-xs gap-1 cursor-pointer">
+                            <Download className="h-3 w-3" />
+                            <span>Baixar</span>
+                          </Button>
+                        </a>
+
+                        {isLiberado ? (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="h-7 text-xs cursor-pointer"
+                            onClick={() => handleRevokeShare(share.id)}
+                          >
+                            Revogar acesso
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs text-teal-600 border-teal-300 hover:bg-teal-50 cursor-pointer"
+                            onClick={() => handleReactivateShare(share.id)}
+                          >
+                            Reativar (+30d)
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    <Badge variant="outline">Liberado</Badge>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
-              <p className="text-xs text-slate-500 py-8 text-center">
-                Nenhum documento compartilhado com este paciente.
-              </p>
+              <div className="p-12 text-center text-slate-500 space-y-3">
+                <FolderLock className="h-8 w-8 mx-auto text-slate-400" />
+                <div>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                    Nenhum documento compartilhado com este paciente.
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Utilize o botão acima para enviar relatórios, atestados ou declarações diretamente para a Área do Paciente.
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  className="gap-2 text-xs bg-teal-600 hover:bg-teal-700 text-white cursor-pointer mt-2"
+                  onClick={() => setIsUploadDocModalOpen(true)}
+                >
+                  <Upload className="h-4 w-4" />
+                  <span>Enviar primeiro documento</span>
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
       )}
 
+      {/* 6. FINANCEIRO */}
       {activeTab === "payments" && (
         <Card>
           <CardHeader>
@@ -971,7 +1262,7 @@ export default function AdminPatientDetailPage({
             </div>
           </div>
 
-          {/* Modelos Rápidos de Anotação */}
+          {/* Modelos Rápidos */}
           <div>
             <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mb-1.5">
               <Sparkles className="h-3.5 w-3.5 text-teal-600" />
@@ -993,19 +1284,17 @@ export default function AdminPatientDetailPage({
             </div>
           </div>
 
-          {/* Resumo */}
           <div>
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
               Resumo Executivo da Sessão (Opcional):
             </label>
             <Input
-              placeholder="Ex: Trabalho de manejo de ansiedade; paciente relatou melhora no sono."
+              placeholder="Ex: Manejo de ansiedade e intervenções comportamentais."
               value={newSummary}
               onChange={(e) => setNewSummary(e.target.value)}
             />
           </div>
 
-          {/* Anotação Rica */}
           <div>
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
               Evolução e Anotações Clínicas da Sessão: *
@@ -1017,9 +1306,6 @@ export default function AdminPatientDetailPage({
               onChange={(e) => setNewNoteContent(e.target.value)}
               required
             />
-            <span className="text-[11px] text-slate-400 mt-0.5 block">
-              Suporta formatação com tags HTML simples (&lt;h3&gt;, &lt;p&gt;, &lt;strong&gt;).
-            </span>
           </div>
 
           <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
@@ -1034,7 +1320,7 @@ export default function AdminPatientDetailPage({
             <Button
               type="submit"
               size="sm"
-              className="bg-teal-600 hover:bg-teal-700 text-white"
+              className="bg-teal-600 hover:bg-teal-700 text-white cursor-pointer"
               disabled={isSubmittingRecord}
             >
               {isSubmittingRecord ? "Salvando..." : "Gravar no Prontuário"}
@@ -1043,7 +1329,7 @@ export default function AdminPatientDetailPage({
         </form>
       </Modal>
 
-      {/* MODAL 2: EDITAR PRONTUÁRIO EXISTENTE */}
+      {/* MODAL 2: EDITAR PRONTUÁRIO */}
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => {
@@ -1071,7 +1357,6 @@ export default function AdminPatientDetailPage({
             </div>
           )}
 
-          {/* Escala de Humor */}
           <div>
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1.5">
               Escala de Humor / Estado Geral:
@@ -1096,7 +1381,6 @@ export default function AdminPatientDetailPage({
             </div>
           </div>
 
-          {/* Resumo */}
           <div>
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
               Resumo da Sessão:
@@ -1108,7 +1392,6 @@ export default function AdminPatientDetailPage({
             />
           </div>
 
-          {/* Anotação Rica */}
           <div>
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
               Conteúdo do Prontuário Clínico: *
@@ -1136,7 +1419,7 @@ export default function AdminPatientDetailPage({
             <Button
               type="submit"
               size="sm"
-              className="bg-teal-600 hover:bg-teal-700 text-white"
+              className="bg-teal-600 hover:bg-teal-700 text-white cursor-pointer"
               disabled={isUpdatingRecord}
             >
               {isUpdatingRecord ? "Salvando Revisão..." : "Salvar Revisão do Prontuário"}
@@ -1198,44 +1481,81 @@ export default function AdminPatientDetailPage({
         </div>
       </Modal>
 
-      {/* MODAL 4: LIBERAR DOCUMENTO / ATESTADO */}
+      {/* MODAL 4: ENVIAR DOCUMENTO (TASK 2) */}
       <Modal
-        isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
-        title="Liberar Documento / Atestado"
-        description={`Compartilhar documento com ${patient.fullName} na Área do Paciente.`}
+        isOpen={isUploadDocModalOpen}
+        onClose={() => setIsUploadDocModalOpen(false)}
+        title="Enviar Documento ao Paciente"
+        description={`Faça o upload de relatórios, atestados ou laudos para ${patient.fullName}.`}
         maxWidth="md"
       >
-        <form onSubmit={handleUploadAndShare} className="space-y-4 text-xs">
+        <form onSubmit={handleUploadDocument} className="space-y-4 text-xs">
           <div>
             <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-              Selecionar Arquivo (.PDF, .PNG, .JPG): *
+              Título do Documento (Opcional):
+            </label>
+            <Input
+              placeholder="Ex: Atestado de Comparecimento, Relatório Clínico..."
+              value={docTitle}
+              onChange={(e) => setDocTitle(e.target.value)}
+            />
+            <span className="text-[11px] text-slate-400 mt-0.5 block">
+              Se omitido, o nome original do arquivo será utilizado como título.
+            </span>
+          </div>
+
+          <div>
+            <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+              Arquivo (.PDF, .JPG, .PNG, .WEBP): *
             </label>
             <input
               type="file"
               required
-              accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
-              onChange={(e) => setShareFile(e.target.files?.[0] || null)}
+              accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx"
+              onChange={(e) => setDocFile(e.target.files?.[0] || null)}
               className="flex h-10 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs file:mr-3 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100"
+            />
+            <span className="text-[11px] text-slate-400 mt-0.5 block">
+              Tamanho máximo permitido: 25 MB.
+            </span>
+          </div>
+
+          <div>
+            <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+              Descrição / Observações (Opcional):
+            </label>
+            <textarea
+              rows={2}
+              className="flex w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs focus:ring-2 focus:ring-teal-500 outline-none"
+              placeholder="Ex: Declaração para comprovação de presença em sessão psicológica."
+              value={docDescription}
+              onChange={(e) => setDocDescription(e.target.value)}
             />
           </div>
 
           <div>
             <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-              Prazo de Validade para Download do Paciente:
+              Prazo de Expiração do Acesso:
             </label>
             <select
               className="flex h-10 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs"
-              value={shareDays}
-              onChange={(e) => setShareDays(e.target.value)}
+              value={docShareDays}
+              onChange={(e) => setDocShareDays(e.target.value)}
             >
-              <option value="7">7 dias</option>
               <option value="15">15 dias</option>
               <option value="30">30 dias (Padrão)</option>
+              <option value="60">60 dias</option>
               <option value="90">90 dias</option>
-              <option value="365">1 ano</option>
-              <option value="0">Indeterminado (Sem expiração)</option>
+              <option value="0">Sem expiração (Acesso permanente)</option>
             </select>
+          </div>
+
+          {/* Preview da data calculada de expiração (Task 2) */}
+          <div className="p-3 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-xl text-teal-900 dark:text-teal-200 text-xs flex items-center gap-2">
+            <Clock className="h-4 w-4 shrink-0 text-teal-600 dark:text-teal-400" />
+            <span>
+              <strong>Previsão de vigência:</strong> {getCalculatedExpirationText(docShareDays)}
+            </span>
           </div>
 
           <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
@@ -1243,20 +1563,173 @@ export default function AdminPatientDetailPage({
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setIsShareModalOpen(false)}
+              onClick={() => setIsUploadDocModalOpen(false)}
             >
               Cancelar
             </Button>
             <Button
               type="submit"
               size="sm"
-              className="bg-teal-600 hover:bg-teal-700 text-white"
-              disabled={isSharing || !shareFile}
+              className="bg-teal-600 hover:bg-teal-700 text-white cursor-pointer"
+              disabled={isUploadingDoc || !docFile}
             >
-              {isSharing ? "Enviando..." : "Liberar Documento"}
+              {isUploadingDoc ? "Enviando arquivo..." : "Enviar e Liberar ao Paciente"}
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* MODAL 5: VISUALIZAR RESPOSTAS DA ANAMNESE (TASK 5) */}
+      <Modal
+        isOpen={isViewAnamnesisModalOpen}
+        onClose={() => {
+          setIsViewAnamnesisModalOpen(false);
+          setSelectedSubmission(null);
+        }}
+        title="Respostas da Ficha de Anamnese"
+        description={
+          selectedSubmission
+            ? `${selectedSubmission.template.title} — Paciente: ${patient.fullName}`
+            : ""
+        }
+        maxWidth="lg"
+      >
+        <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-1 text-xs">
+          {selectedSubmission && (
+            <>
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <span className="text-slate-500">Data de Envio: </span>
+                  <strong className="text-slate-900 dark:text-slate-100">
+                    {formatDate(selectedSubmission.createdAt)} às {formatTime(selectedSubmission.createdAt)}
+                  </strong>
+                </div>
+                <div>
+                  {getAnamnesisStatusBadge(selectedSubmission.status)}
+                </div>
+              </div>
+
+              {/* Perguntas e Respostas */}
+              <div className="space-y-3 pt-2">
+                {(() => {
+                  let questions: AnamnesisQuestion[] = [];
+                  let answers: Record<string, any> = {};
+
+                  try {
+                    answers = JSON.parse(selectedSubmission.answersJson || "{}");
+                  } catch (e) {
+                    console.error("Erro ao analisar answersJson", e);
+                  }
+
+                  try {
+                    questions = JSON.parse(selectedSubmission.template.fieldsJson || "[]");
+                  } catch (e) {
+                    console.error("Erro ao analisar fieldsJson", e);
+                  }
+
+                  // Se houver campos estruturados no template
+                  if (questions.length > 0) {
+                    return questions.map((q, idx) => {
+                      const ans = answers[q.id];
+                      const hasAnswer = ans !== undefined && ans !== null && String(ans).trim() !== "";
+
+                      return (
+                        <div
+                          key={q.id || idx}
+                          className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 space-y-1.5"
+                        >
+                          <div className="font-semibold text-slate-800 dark:text-slate-200 flex items-start gap-1.5">
+                            <span className="text-teal-600 font-bold">{idx + 1}.</span>
+                            <span>{q.label}</span>
+                          </div>
+                          <div className="pl-4 text-slate-700 dark:text-slate-300 leading-relaxed">
+                            {hasAnswer ? (
+                              <p className="whitespace-pre-wrap font-medium">{String(ans)}</p>
+                            ) : (
+                              <p className="italic text-slate-400">(Não respondido)</p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    });
+                  }
+
+                  // Fallback para exibir chaves brutas de answersJson
+                  return Object.entries(answers).map(([key, val], idx) => (
+                    <div
+                      key={key}
+                      className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 space-y-1"
+                    >
+                      <span className="font-semibold text-slate-700 dark:text-slate-300 capitalize">
+                        {idx + 1}. {key}
+                      </span>
+                      <p className="pl-4 text-slate-900 dark:text-slate-100 whitespace-pre-wrap">
+                        {String(val) || "(Não respondido)"}
+                      </p>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </>
+          )}
+
+          <div className="flex justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setIsViewAnamnesisModalOpen(false);
+                setSelectedSubmission(null);
+              }}
+            >
+              Fechar
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* MODAL 6: CONFIRMAÇÃO DE RESET DE ANAMNESE (TASK 6) */}
+      <Modal
+        isOpen={isResetAnamnesisModalOpen}
+        onClose={() => setIsResetAnamnesisModalOpen(false)}
+        title="Solicitar Novo Preenchimento de Anamnese"
+        description="Reabrir formulário de anamnese para o paciente."
+        maxWidth="md"
+      >
+        <div className="space-y-4 text-xs">
+          <div className="p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl text-amber-900 dark:text-amber-200 space-y-2">
+            <div className="flex items-center gap-2 font-bold">
+              <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+              <span>Atenção: Ação Administrativa Controlada</span>
+            </div>
+            <p>
+              Você deseja solicitar que este paciente preencha uma nova ficha de anamnese? A ficha anterior será invalidada para uso ativo e preservada no histórico administrativo.
+            </p>
+            <p className="text-[11px] text-amber-800 dark:text-amber-300">
+              O paciente receberá uma notificação em seu painel e o formulário em branco será liberado na aba de anamnese dele.
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsResetAnamnesisModalOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              className="bg-amber-600 hover:bg-amber-700 text-white cursor-pointer"
+              disabled={isResettingAnamnesis}
+              onClick={handleConfirmResetAnamnesis}
+            >
+              {isResettingAnamnesis ? "Solicitando..." : "Confirmar Solicitação"}
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
