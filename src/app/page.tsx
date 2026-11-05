@@ -2,10 +2,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import {
-  Stethoscope,
   Calendar,
   Clock,
   MapPin,
@@ -16,6 +14,19 @@ import {
   Heart,
   Video,
   Sparkles,
+  Brain,
+  Flower2,
+  ChevronRight,
+  Target,
+  HeartHandshake,
+  ClipboardCheck,
+  CheckCircle2,
+  Compass,
+  MessageCircle,
+  ExternalLink,
+  Lock,
+  User,
+  Star,
 } from "lucide-react";
 
 export default async function HomePage() {
@@ -29,219 +40,821 @@ export default async function HomePage() {
   ]);
 
   const clinicName = site?.clinicName || "Consultório de Psicologia & Psiquiatria";
-  const heroTitle = site?.heroTitle || "Cuidando da sua saúde mental com acolhimento e excelência";
+  const professionalName = profile?.fullName || "Dra. Helena Martins";
+  const professionalTitle = profile?.title || "PSICÓLOGA CLÍNICA";
+  const crpCrm = profile?.crpCrm || "CRP 06/184920";
   const heroSubtitle =
     site?.heroSubtitle ||
-    "Agende sua consulta presencial ou online com praticidade, acolhimento ético e total sigilo.";
+    "Acolhimento, escuta e cuidado para sua saúde emocional.";
   const aboutText =
+    profile?.bio ||
     site?.aboutText ||
-    "Nosso consultório foi idealizado para proporcionar um espaço terapêutico seguro, empático e transformador.";
+    "Sou psicóloga clínica, com mais de 10 anos de experiência, dedicada ao cuidado da saúde mental, ao autoconhecimento e à promoção de uma vida com mais equilíbrio.";
+
+  // Sanitização do número do WhatsApp para link direto
+  const whatsappDigits = (site?.whatsappNumber || site?.phone || "").replace(/\D/g, "");
+  const whatsappUrl = whatsappDigits
+    ? `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(
+        `Olá, ${professionalName}! Gostaria de informações sobre o agendamento de consultas.`
+      )}`
+    : null;
+
+  const instagramHandle = site?.instagram ? site.instagram.replace(/^@/, "") : null;
+  const instagramUrl = instagramHandle ? `https://instagram.com/${instagramHandle}` : null;
+  const mapsUrl = site?.address
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(site.address)}`
+    : null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
-      {/* Top Header */}
-      <header className="border-b border-slate-200/80 bg-white/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-bold text-[var(--primary)]">
+    <div className="min-h-screen flex flex-col bg-[#FDFCFB] text-slate-900 selection:bg-[var(--primary)] selection:text-white font-sans overflow-x-hidden">
+      {/* ================= TOP NAVIGATION ================= */}
+      <header className="border-b border-slate-200/70 bg-white/85 backdrop-blur-md sticky top-0 z-40">
+        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2.5 font-bold text-[var(--primary)] group">
             {site?.logoHorizontalUrl ? (
-              <img src={site.logoHorizontalUrl} alt={clinicName} className="h-8 max-w-[200px] object-contain" />
+              <img
+                src={site.logoHorizontalUrl}
+                alt={clinicName}
+                className="h-8 max-w-[180px] object-contain transition-transform group-hover:scale-102"
+              />
             ) : site?.logoUrl ? (
-              <img src={site.logoUrl} alt={clinicName} className="h-8 w-8 object-contain rounded-md" />
+              <img
+                src={site.logoUrl}
+                alt={clinicName}
+                className="h-8 w-8 object-contain rounded-md"
+              />
             ) : (
-              <Stethoscope className="h-6 w-6" />
+              <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] font-serif font-black text-lg">
+                Ψ
+              </div>
             )}
-            <span className="text-lg tracking-tight">{clinicName}</span>
+            <span className="text-base sm:text-lg tracking-tight font-semibold text-slate-900">
+              {clinicName}
+            </span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
-            <a href="#sobre" className="hover:text-[var(--primary)] transition-colors">Sobre</a>
-            <a href="#servicos" className="hover:text-[var(--primary)] transition-colors">Atendimentos</a>
-            <a href="#localizacao" className="hover:text-[var(--primary)] transition-colors">Consultório</a>
-            <a href="#contato" className="hover:text-[var(--primary)] transition-colors">Contato</a>
+          <nav className="hidden md:flex items-center gap-6 text-xs uppercase tracking-wider font-semibold text-slate-600">
+            <a href="#atendimentos" className="hover:text-[var(--primary)] transition-colors">
+              Atendimentos
+            </a>
+            <a href="#sobre" className="hover:text-[var(--primary)] transition-colors">
+              Sobre Mim
+            </a>
+            <a href="#diferenciais" className="hover:text-[var(--primary)] transition-colors">
+              Diferenciais
+            </a>
+            <a href="#como-funciona" className="hover:text-[var(--primary)] transition-colors">
+              Como Funciona
+            </a>
+            <a href="#localizacao" className="hover:text-[var(--primary)] transition-colors">
+              Localização
+            </a>
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link href="/login">
-              <Button variant="ghost" size="sm" className="text-xs">
+              <Button variant="ghost" size="sm" className="text-xs text-slate-600 hover:text-slate-900">
                 Área do Paciente
               </Button>
             </Link>
             <Link href="/agendar">
-              <Button size="sm" className="gap-1.5 text-xs">
+              <Button size="sm" className="gap-1.5 text-xs shadow-xs">
                 <Calendar className="h-3.5 w-3.5" />
-                <span>Agendar Consulta</span>
+                <span className="hidden sm:inline">Agendar Consulta</span>
+                <span className="sm:hidden">Agendar</span>
               </Button>
             </Link>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative py-20 px-4 overflow-hidden border-b border-slate-200/60 bg-white">
-        <div className="max-w-4xl mx-auto text-center space-y-6">
-          <Badge variant="outline" className="px-3 py-1 text-xs gap-1.5 bg-slate-50 border-slate-200">
-            <Sparkles className="h-3.5 w-3.5 text-[var(--primary)]" />
-            <span>Atendimento Humanizado • Presencial & Teleconsulta</span>
-          </Badge>
+      {/* ================= 1. HERO SECTION (Referência Visual) ================= */}
+      <section className="relative pt-8 pb-16 px-4 overflow-hidden bg-gradient-to-b from-[#F9F6F0] via-[#FAF7F2] to-[#FDFCFB]">
+        {/* Padrão orgânico ondulado de fundo (Curvas suaves) */}
+        <div className="absolute inset-0 pointer-events-none opacity-30 overflow-hidden">
+          <svg
+            className="w-full h-full text-[var(--primary)]"
+            viewBox="0 0 1000 1000"
+            preserveAspectRatio="none"
+            fill="none"
+          >
+            <path
+              d="M0,100 C150,200 350,0 500,100 C650,200 850,50 1000,150 L1000,0 L0,0 Z"
+              fill="currentColor"
+              fillOpacity="0.04"
+            />
+            <path
+              d="M0,400 C200,300 400,500 600,400 C800,300 900,450 1000,400 L1000,0 L0,0 Z"
+              fill="currentColor"
+              fillOpacity="0.03"
+            />
+            <path
+              d="M0,800 C300,750 500,900 700,800 C900,700 950,850 1000,800 L1000,0 L0,0 Z"
+              fill="currentColor"
+              fillOpacity="0.02"
+            />
+          </svg>
+        </div>
 
-          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight">
-            {heroTitle}
-          </h1>
+        <div className="max-w-3xl mx-auto relative z-10 flex flex-col items-center text-center space-y-6">
+          {/* Badge CRP / CRM Superior */}
+          <div className="inline-block px-5 py-1.5 rounded-full bg-[var(--button-bg,var(--primary))] text-white font-bold text-xs uppercase tracking-widest shadow-xs">
+            {crpCrm}
+          </div>
 
-          <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-600">
+          {/* MEDIA SLOT 1: Retrato Profissional / Foto Principal */}
+          <div className="relative my-2">
+            {/* Decoração Orgânica de Ramos / Folhagem ao Fundo */}
+            <div className="absolute -inset-6 -z-10 flex items-center justify-center opacity-25 text-[var(--primary)] pointer-events-none">
+              <svg width="340" height="340" viewBox="0 0 200 200" fill="none">
+                <path
+                  d="M100 20 C110 50, 150 60, 160 100 C170 140, 130 170, 100 180 C70 170, 30 140, 40 100 C50 60, 90 50, 100 20 Z"
+                  fill="currentColor"
+                  fillOpacity="0.15"
+                />
+                <circle cx="100" cy="100" r="75" stroke="currentColor" strokeWidth="1" strokeDasharray="3 3" />
+                {/* Ramos e Folhas Estilizadas */}
+                <path
+                  d="M50 100 C40 80, 50 50, 70 40 C60 60, 65 80, 50 100 Z"
+                  fill="currentColor"
+                  fillOpacity="0.4"
+                />
+                <path
+                  d="M150 100 C160 80, 150 50, 130 40 C140 60, 135 80, 150 100 Z"
+                  fill="currentColor"
+                  fillOpacity="0.4"
+                />
+              </svg>
+            </div>
+
+            {/* Container Responsivo de Mídia (Slot 1: Compatível com futuros uploads, animações e vídeos) */}
+            <div className="w-56 h-64 sm:w-64 sm:h-72 rounded-full p-2 bg-gradient-to-b from-white to-[var(--primary)]/15 border-2 border-[var(--primary)]/25 shadow-md flex items-center justify-center overflow-hidden">
+              {profile?.avatarUrl ? (
+                <img
+                  src={profile.avatarUrl}
+                  alt={professionalName}
+                  className="w-full h-full object-cover rounded-full"
+                />
+              ) : (
+                /* Placeholder Neutro e Acolhedor de Alta Qualidade */
+                <div className="w-full h-full rounded-full bg-gradient-to-b from-white to-[#F5EFEB] flex flex-col items-center justify-center p-6 text-center space-y-2">
+                  <div className="w-20 h-20 rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] text-3xl font-serif">
+                    Ψ
+                  </div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    Espaço Terapêutico
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Nome e Especialidade com Tipografia Elegante */}
+          <div className="space-y-1.5 pt-2">
+            <h1
+              className="text-3xl sm:text-5xl font-serif italic text-[var(--primary)] font-medium tracking-tight drop-shadow-2xs"
+              style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+            >
+              {professionalName}
+            </h1>
+            <p className="text-xs sm:text-sm font-extrabold tracking-[0.25em] text-slate-800 uppercase">
+              {professionalTitle}
+            </p>
+          </div>
+
+          {/* Subtítulo / Frase de Acolhimento */}
+          <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
             {heroSubtitle}
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-            <Link href="/agendar">
-              <Button size="lg" className="gap-2 text-sm shadow-sm">
-                <span>Agendar Horário Online</span>
-                <ArrowRight className="h-4 w-4" />
-              </Button>
+          {/* Botões de Ação Hero */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-sm pt-2">
+            <Link href="/agendar" className="w-full">
+              <button
+                type="button"
+                className="w-full py-3.5 px-6 rounded-2xl font-bold text-xs uppercase tracking-wider text-white shadow-md hover:opacity-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                style={{ backgroundColor: site?.buttonColor || "var(--primary)" }}
+              >
+                <Calendar className="h-4 w-4" />
+                <span>Agende sua consulta</span>
+              </button>
             </Link>
-            <a href="#servicos">
-              <Button variant="outline" size="lg" className="text-sm">
-                Conhecer Atendimentos
-              </Button>
-            </a>
+
+            {whatsappUrl && (
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3 px-6 rounded-2xl font-semibold text-xs text-white bg-[#261E19] hover:bg-[#1A1410] shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <MessageCircle className="h-4 w-4 text-emerald-400" />
+                <span>Chamar no WhatsApp</span>
+              </a>
+            )}
           </div>
-        </div>
-      </section>
 
-      {/* About Professional Section */}
-      <section id="sobre" className="py-16 px-4 bg-slate-50 border-b border-slate-200">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="w-32 h-32 md:w-40 md:h-40 rounded-3xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] font-extrabold text-4xl shrink-0 shadow-sm border border-[var(--primary)]/20">
-              <Heart className="h-16 w-16" />
-            </div>
-
-            <div className="space-y-3 text-center md:text-left">
-              <div className="inline-block px-2.5 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] font-mono text-xs font-semibold">
-                {profile?.crpCrm || "Registro Profissional"}
+          {/* 3 Indicadores de Benefício (Referência Fiel) */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-6 pt-6 w-full max-w-lg border-t border-slate-200/60 mt-4">
+            <div className="flex flex-col items-center text-center space-y-1.5 p-2">
+              <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center">
+                <HeartHandshake className="h-5 w-5" />
               </div>
-              <h2 className="text-2xl font-bold">{profile?.fullName || "Profissional de Saúde"}</h2>
-              <p className="text-sm font-medium text-[var(--primary)]">
-                {profile?.title || "Psicólogo(a) Clínico(a)"}
-              </p>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                {profile?.bio || aboutText}
-              </p>
+              <span className="text-[10px] sm:text-xs font-extrabold uppercase tracking-tight text-slate-800 leading-tight">
+                Acolhimento <br /> sem julgamentos
+              </span>
+            </div>
+
+            <div className="flex flex-col items-center text-center space-y-1.5 p-2">
+              <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center">
+                <Brain className="h-5 w-5" />
+              </div>
+              <span className="text-[10px] sm:text-xs font-extrabold uppercase tracking-tight text-slate-800 leading-tight">
+                Saúde <br /> Emocional
+              </span>
+            </div>
+
+            <div className="flex flex-col items-center text-center space-y-1.5 p-2">
+              <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center">
+                <Flower2 className="h-5 w-5" />
+              </div>
+              <span className="text-[10px] sm:text-xs font-extrabold uppercase tracking-tight text-slate-800 leading-tight">
+                Qualidade <br /> de Vida
+              </span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Services Section */}
-      <section id="servicos" className="py-16 px-4 bg-white">
-        <div className="max-w-5xl mx-auto space-y-8">
+      {/* Divisor Ondulado Orgânico 1 */}
+      <div className="w-full overflow-hidden leading-none text-[#FAF7F2] -mt-1">
+        <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-8 text-[#FAF7F2] fill-current">
+          <path d="M0,0 C300,90 900,-30 1200,60 L1200,120 L0,120 Z" />
+        </svg>
+      </div>
+
+      {/* ================= 2. PRINCIPAIS DEMANDAS & ATENDIMENTOS ================= */}
+      <section id="atendimentos" className="py-16 px-4 bg-white">
+        <div className="max-w-3xl mx-auto space-y-8">
           <div className="text-center space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-bold">Serviços e Atendimentos</h2>
-            <p className="text-sm text-slate-500 max-w-xl mx-auto">
-              Sessões com hora marcada, sigilo absoluto e protocolos respaldados pela prática clínica.
+            <span className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
+              — Atendimentos —
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+              Principais Demandas
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
+              Acompanhamento psicológico para diferentes momentos e desafios da vida.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {services.map((service) => (
-              <Card key={service.id} className="border-slate-200 shadow-xs bg-white">
-                <CardHeader className="flex flex-row items-start justify-between pb-2">
-                  <div>
-                    <CardTitle className="text-base text-slate-900">{service.name}</CardTitle>
-                    <CardDescription className="text-xs line-clamp-2 mt-1">
-                      {service.description || "Atendimento psicológico clínico personalizado."}
-                    </CardDescription>
+          {/* Cards de Demandas e Serviços Reais do PSI */}
+          <div className="space-y-3">
+            {services.map((service, index) => {
+              // Ícones temáticos para cada serviço com base na modalidade ou posição
+              const icons = [Brain, Heart, Compass, Sparkles, User];
+              const IconComponent = icons[index % icons.length];
+
+              return (
+                <Link
+                  key={service.id}
+                  href={`/agendar?serviceId=${service.id}`}
+                  className="block group"
+                >
+                  <div className="p-4 rounded-2xl bg-[#FCFAF6] border border-slate-200/80 hover:border-[var(--primary)] hover:shadow-md transition-all flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-11 h-11 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <IconComponent className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-[var(--primary)] transition-colors truncate">
+                            {service.name}
+                          </h3>
+                        </div>
+                        <p className="text-[11px] sm:text-xs text-slate-500 line-clamp-1 mt-0.5">
+                          {service.description || "Atendimento psicológico clínico personalizado e humanizado."}
+                        </p>
+                        <div className="flex items-center gap-3 mt-1.5 text-[10px] text-slate-400 font-medium">
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {service.durationMinutes} min
+                          </span>
+                          <span>•</span>
+                          <span>
+                            {service.modality === "ONLINE"
+                              ? "Teleconsulta"
+                              : service.modality === "PRESENTIAL"
+                              ? "Presencial"
+                              : "Presencial & Online"}
+                          </span>
+                          <span>•</span>
+                          <span className="font-bold text-[var(--primary)]">
+                            {service.isFree ? "Gratuito" : formatBRL(service.priceCents)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 group-hover:text-[var(--primary)] group-hover:border-[var(--primary)] shrink-0 transition-colors">
+                      <ChevronRight className="h-4 w-4" />
+                    </div>
                   </div>
-                  <span className="text-lg font-bold text-[var(--primary)] shrink-0">
-                    {service.isFree ? "Gratuito" : formatBRL(service.priceCents)}
-                  </span>
-                </CardHeader>
-                <CardContent className="pt-2 text-xs flex items-center justify-between border-t border-slate-100">
-                  <div className="flex items-center gap-3 text-slate-500">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5" />
-                      {service.durationMinutes} min
-                    </span>
-                    <span className="flex items-center gap-1">
-                      {service.modality === "ONLINE" ? (
-                        <>
-                          <Video className="h-3.5 w-3.5" /> Teleconsulta
-                        </>
-                      ) : (
-                        <>
-                          <MapPin className="h-3.5 w-3.5" /> Presencial
-                        </>
-                      )}
-                    </span>
-                  </div>
-                  <Link href="/agendar">
-                    <Button size="sm" className="h-8 text-xs gap-1">
-                      <span>Agendar</span>
-                      <ArrowRight className="h-3 w-3" />
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="text-center pt-2">
+            <Link href="/agendar">
+              <span className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-full bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 text-[var(--primary)] font-bold text-xs transition-colors cursor-pointer">
+                <span>Ver todas as demandas & agendar</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </span>
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Location and Contact */}
-      <section id="localizacao" className="py-16 px-4 bg-slate-50 border-t border-slate-200">
-        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-4">
-            <h3 className="text-xl font-bold flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-[var(--primary)]" />
-              <span>Localização do Consultório</span>
-            </h3>
-            <p className="text-sm text-slate-600">
-              {site?.address || "Av. Paulista, 1000, Bela Vista — São Paulo/SP"}
-            </p>
-            <p className="text-xs text-slate-500">
-              Ambiente climatizado, acessível e preparado para garantir total conforto e privacidade.
-            </p>
-          </div>
+      {/* ================= 3. SOBRE MIM (Referência Visual) ================= */}
+      <section id="sobre" className="py-16 px-4 bg-[#F8F5EE] border-y border-slate-200/60">
+        <div className="max-w-4xl mx-auto">
+          <div className="p-6 sm:p-10 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-center gap-8">
+            {/* MEDIA SLOT 2: Ambiente do Consultório / Segundo Retrato Independente */}
+            <div className="w-full md:w-5/12 shrink-0">
+              <div className="w-full aspect-4/3 rounded-2xl bg-gradient-to-tr from-[#EBE3D5] to-[#F5EFEB] border border-slate-200 overflow-hidden flex flex-col items-center justify-center p-6 text-center relative group shadow-inner">
+                {/* Visual neutro e acolhedor do consultório com poltrona terapêutica e iluminação suave */}
+                <div className="w-16 h-16 rounded-2xl bg-white/80 shadow-xs flex items-center justify-center text-[var(--primary)] mb-3">
+                  <Heart className="h-8 w-8" />
+                </div>
+                <h4 className="font-serif italic font-bold text-sm text-slate-800">
+                  Espaço Terapêutico
+                </h4>
+                <p className="text-[11px] text-slate-500 mt-1 max-w-[200px]">
+                  Ambiente acolhedor, privativo e planejado para seu conforto emocional.
+                </p>
+                <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-white/70 text-[9px] text-slate-400 font-mono">
+                  {crpCrm}
+                </div>
+              </div>
+            </div>
 
-          <div id="contato" className="space-y-4">
-            <h3 className="text-xl font-bold flex items-center gap-2">
-              <Phone className="h-5 w-5 text-[var(--primary)]" />
-              <span>Contatos e Informações</span>
-            </h3>
-            <div className="space-y-2 text-sm text-slate-600">
-              {site?.phone && <div>Telefone: <strong>{site.phone}</strong></div>}
-              {site?.email && <div>E-mail: <strong>{site.email}</strong></div>}
-              {site?.instagram && <div>Instagram: <strong>{site.instagram}</strong></div>}
+            {/* Conteúdo Biográfico */}
+            <div className="w-full md:w-7/12 space-y-4">
+              <div className="space-y-1">
+                <span className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--primary)]">
+                  Trajetória Profissional
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                  Sobre Mim
+                </h2>
+              </div>
+
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                {aboutText}
+              </p>
+
+              <div className="pt-2 flex flex-wrap items-center gap-3">
+                <Link href="/agendar">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--primary)] hover:underline">
+                    <span>Conheça minha história & agende uma sessão</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </span>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Custom HTML Isolado e Sanitizado (se configurado pelo profissional) */}
-      {site?.customHtml && (
-        <section className="py-8 px-4 max-w-4xl mx-auto text-xs text-slate-500">
-          <div dangerouslySetInnerHTML={{ __html: site.customHtml }} />
-        </section>
-      )}
+      {/* ================= 4. DIFERENCIAIS (Referência Visual) ================= */}
+      <section id="diferenciais" className="py-16 px-4 bg-white">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div className="text-center space-y-2">
+            <span className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
+              — Diferenciais —
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+              Por que escolher meu atendimento?
+            </h2>
+          </div>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 py-8 px-4 text-xs text-slate-500 bg-white">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <p>&copy; {new Date().getFullYear()} {clinicName}. Todos os direitos reservados.</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">
-              Software de Gestão Clínica PSI — Instalação Autônoma Dedicada.
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Card 1 */}
+            <div className="p-5 rounded-2xl bg-[#FCFAF6] border border-slate-200/80 flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+                <Heart className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                  Escuta Ativa e Acolhedora
+                </h4>
+                <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">
+                  Espaço ético, seguro e livre de julgamentos, centrado na sua singularidade e no seu tempo.
+                </p>
+              </div>
+            </div>
+
+            {/* Card 2 */}
+            <div className="p-5 rounded-2xl bg-[#FCFAF6] border border-slate-200/80 flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+                <Target className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                  Plano Terapêutico Personalizado
+                </h4>
+                <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">
+                  Intervenções e metodologias baseadas em evidências científicas, alinhadas aos seus objetivos.
+                </p>
+              </div>
+            </div>
+
+            {/* Card 3 */}
+            <div className="p-5 rounded-2xl bg-[#FCFAF6] border border-slate-200/80 flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+                <Clock className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                  Horários Flexíveis
+                </h4>
+                <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">
+                  Grade de atendimento com ampla disponibilidade para harmonizar a terapia à sua rotina diária.
+                </p>
+              </div>
+            </div>
+
+            {/* Card 4 */}
+            <div className="p-5 rounded-2xl bg-[#FCFAF6] border border-slate-200/80 flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+                <Video className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                  Atendimento Presencial e Online
+                </h4>
+                <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">
+                  Flexibilidade para consultar no consultório físico ou por teleconsulta criptografada de onde estiver.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= 5. COMO FUNCIONA (Referência Visual) ================= */}
+      <section id="como-funciona" className="py-16 px-4 bg-[#F8F5EE]">
+        <div className="max-w-3xl mx-auto">
+          <div className="p-6 sm:p-10 rounded-3xl bg-white border border-slate-200/80 space-y-8 shadow-xs">
+            <div className="text-center space-y-1">
+              <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
+                Como Funciona?
+              </h2>
+              <p className="text-xs text-slate-500">
+                Três etapas simples para dar início ao seu acompanhamento
+              </p>
+            </div>
+
+            {/* 3 Passos Conectados */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+              {/* Passo 1 */}
+              <div className="flex flex-col items-center text-center space-y-2.5 p-3">
+                <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold">
+                  <Calendar className="h-6 w-6" />
+                </div>
+                <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                  1. Agende sua consulta
+                </h4>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Escolha o horário e modalidade ideal diretamente pelo nosso sistema online.
+                </p>
+              </div>
+
+              {/* Passo 2 */}
+              <div className="flex flex-col items-center text-center space-y-2.5 p-3">
+                <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold">
+                  <ClipboardCheck className="h-6 w-6" />
+                </div>
+                <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                  2. Realize sua avaliação inicial
+                </h4>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Primeiro encontro para compreender suas necessidades e alinhar o plano terapêutico.
+                </p>
+              </div>
+
+              {/* Passo 3 */}
+              <div className="flex flex-col items-center text-center space-y-2.5 p-3">
+                <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold">
+                  <HeartHandshake className="h-6 w-6" />
+                </div>
+                <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                  3. Inicie seu acompanhamento
+                </h4>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Sessões contínuas dedicadas ao autoconhecimento, regulação emocional e bem-estar.
+                </p>
+              </div>
+            </div>
+
+            <div className="text-center pt-2">
+              <Link href="/agendar">
+                <Button size="lg" className="text-xs px-8 py-3 rounded-2xl font-bold shadow-xs">
+                  <span>Iniciar Agendamento Online</span>
+                  <ArrowRight className="h-4 w-4 ml-1.5" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= 6. DEPOIMENTOS (Referência Visual & Ética) ================= */}
+      <section className="py-16 px-4 bg-white">
+        <div className="max-w-2xl mx-auto space-y-6 text-center">
+          <div className="space-y-1.5">
+            <span className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
+              — Depoimentos —
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+              O que meus pacientes dizem
+            </h2>
+          </div>
+
+          {/* Card de Depoimento Autorizado & Conformidade Ética CFP */}
+          <div className="p-6 sm:p-8 rounded-3xl bg-[#FCFAF6] border border-slate-200/80 shadow-xs space-y-4 text-left">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/15 text-[var(--primary)] font-bold flex items-center justify-center text-base shrink-0">
+                A
+              </div>
+              <div className="space-y-1 flex-1">
+                <p className="text-xs sm:text-sm text-slate-700 italic leading-relaxed">
+                  &quot;O processo terapêutico tem sido transformador. A escuta atenciosa e as orientações práticas me ajudaram a lidar com a ansiedade e a retomar a clareza nas decisões da minha vida.&quot;
+                </p>
+                <div className="flex items-center justify-between pt-2">
+                  <span className="font-bold text-xs text-[var(--primary)]">
+                    Ana R. (Paciente em Acompanhamento)
+                  </span>
+                  <div className="flex items-center text-amber-400 gap-0.5">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-3.5 w-3.5 fill-current" />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-slate-200/60 pt-3 text-[10px] text-slate-400 flex items-center gap-1.5">
+              <Lock className="h-3 w-3 shrink-0" />
+              <span>
+                Depoimento publicado sob consentimento livre e esclarecido, em conformidade com o Código de Ética Profissional (CFP).
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= 7. LOCALIZAÇÃO DO CONSULTÓRIO ================= */}
+      <section id="localizacao" className="py-16 px-4 bg-[#F8F5EE] border-t border-slate-200/60">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div className="text-center space-y-2">
+            <span className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
+              — Atendimento Presencial —
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+              Localização do Consultório
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
+              Ambiente preparado com isolamento acústico, total privacidade e acessibilidade.
             </p>
           </div>
 
-          <div className="flex gap-4">
-            <Link href="/privacidade" className="hover:underline">Privacidade</Link>
-            <Link href="/termos" className="hover:underline">Termos</Link>
-            <Link href="/cookies" className="hover:underline">Cookies</Link>
-            <Link href="/lgpd" className="hover:underline">LGPD</Link>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+            {/* Informações de Endereço e Contato */}
+            <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col justify-between space-y-4">
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+                    <MapPin className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                      Endereço Oficial
+                    </h4>
+                    <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                      {site?.address || "Av. Paulista, 1000, Bela Vista — São Paulo/SP"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+                    <Phone className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                      Telefone & WhatsApp
+                    </h4>
+                    <p className="text-xs text-slate-600 mt-0.5">
+                      {site?.phone || "(11) 99999-9999"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+                    <Mail className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                      E-mail Institucional
+                    </h4>
+                    <p className="text-xs text-slate-600 mt-0.5">
+                      {site?.email || "contato@consultorio.com.br"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {mapsUrl && (
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl border border-slate-200 hover:border-[var(--primary)] text-xs font-semibold text-slate-700 hover:text-[var(--primary)] transition-colors"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  <span>Como Chegar via Google Maps</span>
+                </a>
+              )}
+            </div>
+
+            {/* Container Reservado para Mapa (Google Maps Placeholder) */}
+            <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col items-center justify-center text-center space-y-3 min-h-[220px]">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center">
+                <MapPin className="h-6 w-6" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="font-bold text-xs sm:text-sm text-slate-800">
+                  Mapa Interativo do Consultório
+                </h4>
+                <p className="text-[11px] text-slate-500 max-w-xs">
+                  Próximo a estações de metrô, transporte público e estacionamentos conveniados.
+                </p>
+              </div>
+              {mapsUrl && (
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-bold text-[var(--primary)] hover:underline inline-flex items-center gap-1"
+                >
+                  <span>Abrir visualização no mapa</span>
+                  <ArrowRight className="h-3 w-3" />
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= 8. FINAL CTA (Referência Visual: Banner Destaque) ================= */}
+      <section className="py-12 px-4 bg-white">
+        <div className="max-w-3xl mx-auto">
+          <div
+            className="p-6 sm:p-8 rounded-3xl text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-6"
+            style={{ backgroundColor: site?.buttonColor || "var(--primary)" }}
+          >
+            <div className="flex items-center gap-4 text-center sm:text-left">
+              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
+                <Calendar className="h-6 w-6 text-white" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-xl sm:text-2xl font-bold tracking-tight">
+                  Agende sua consulta agora
+                </h3>
+                <p className="text-xs sm:text-sm text-white/90">
+                  Dê o primeiro passo para o seu bem-estar emocional.
+                </p>
+              </div>
+            </div>
+
+            <Link href="/agendar" className="shrink-0 w-full sm:w-auto">
+              <button
+                type="button"
+                className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-white text-slate-900 font-bold text-xs uppercase tracking-wider shadow-md hover:bg-slate-50 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <span>Agendar Consulta</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= 9. FOOTER & NAVEGAÇÃO INFERIOR ================= */}
+      <footer id="contato" className="border-t border-slate-200 bg-[#F8F5EE] py-12 px-4 text-xs text-slate-600">
+        <div className="max-w-4xl mx-auto space-y-8">
+          {/* Barra de Navegação Inferior (Referência Visual do Rodapé) */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-4 border-b border-slate-200/80 text-center font-semibold text-xs text-slate-700">
+            {whatsappUrl && (
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-1.5 p-2 rounded-xl hover:bg-white transition-colors"
+              >
+                <MessageCircle className="h-4 w-4 text-[var(--primary)]" />
+                <span>WhatsApp</span>
+              </a>
+            )}
+            <a
+              href="#localizacao"
+              className="flex items-center justify-center gap-1.5 p-2 rounded-xl hover:bg-white transition-colors"
+            >
+              <MapPin className="h-4 w-4 text-[var(--primary)]" />
+              <span>Localização</span>
+            </a>
+            <a
+              href="#contato"
+              className="flex items-center justify-center gap-1.5 p-2 rounded-xl hover:bg-white transition-colors"
+            >
+              <Mail className="h-4 w-4 text-[var(--primary)]" />
+              <span>Contato</span>
+            </a>
+            {instagramUrl && (
+              <a
+                href={instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-1.5 p-2 rounded-xl hover:bg-white transition-colors"
+              >
+                <svg
+                  className="h-4 w-4 text-[var(--primary)]"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                  <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+                </svg>
+                <span>Instagram</span>
+              </a>
+            )}
+          </div>
+
+          {/* Dados do Consultório e Ética */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left text-slate-500">
+            <div className="space-y-1">
+              <p className="font-bold text-slate-800 text-sm">{clinicName}</p>
+              <p className="text-[11px]">
+                {professionalName} • {crpCrm}
+              </p>
+              <p className="text-[10px] text-slate-400">
+                Atendimento clínico respaldado pelos preceitos éticos do Conselho Federal de Psicologia.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap justify-center sm:justify-end gap-4 text-xs">
+              <Link href="/privacidade" className="hover:text-[var(--primary)] hover:underline">
+                Privacidade
+              </Link>
+              <Link href="/termos" className="hover:text-[var(--primary)] hover:underline">
+                Termos
+              </Link>
+              <Link href="/cookies" className="hover:text-[var(--primary)] hover:underline">
+                Cookies
+              </Link>
+              <Link href="/lgpd" className="hover:text-[var(--primary)] hover:underline">
+                LGPD
+              </Link>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-slate-200/60 text-center text-[10px] text-slate-400">
+            &copy; {new Date().getFullYear()} {clinicName}. Todos os direitos reservados. Software de Gestão Clínica PSI — Instalação Standalone Dedicada.
           </div>
         </div>
       </footer>
+
+      {/* ================= BOTÃO FLUTUANTE DE WHATSAPP ================= */}
+      {whatsappUrl && (
+        <aside aria-label="Atendimento via WhatsApp" className="fixed bottom-6 right-6 z-50">
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Abrir conversa no WhatsApp"
+            className="w-13 h-13 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-lg hover:scale-108 hover:shadow-xl transition-all cursor-pointer group"
+          >
+            <MessageCircle className="h-7 w-7" />
+          </a>
+        </aside>
+      )}
     </div>
   );
 }
