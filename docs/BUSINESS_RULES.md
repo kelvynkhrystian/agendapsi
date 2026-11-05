@@ -109,6 +109,10 @@ Este documento detalha as políticas de funcionamento, transições de estado e 
   - Tentativas sem autorização são registradas em `TechnicalAccessLog`.
   - Dados sensíveis como senhas, hashes bcrypt, chaves de API, credenciais SMTP/WhatsApp, anotações de evolução clínica ou listas nominais de pacientes **nunca** são expostos.
   - Dados cadastrais do administrador são isolados no grupo `administrator`, permitindo restrição granular caso o endpoint seja exposto a sistemas externos.
+- **Acesso Desautenticado em Desenvolvimento Local (Fase 4):**
+  - **Princípio Fail-Closed:** Apenas e tão somente se `NODE_ENV === "development"`, com a flag explícita `PSI_LOCAL_TECHNICAL_STATUS_PUBLIC=true` e requisição recebida estritamente via interface de loopback (`127.0.0.1`, `localhost`, `::1`), sem túneis nem proxies.
+  - Se qualquer condição for ambígua ou se executado em produção, o acesso desautenticado é terminantemente rejeitado com `401 Unauthorized`.
+  - No modo local não autenticado, a resposta sofre higienização prévia, omitindo todos os dados do administrador e identificadores de instalação, exibindo apenas métricas agregadas operacionais.
 - **Veracidade e Integridade dos Dados:**
   - Todos os números correspondem a agregações reais do banco de dados MySQL e do sistema de arquivos.
   - Métricas não mensuráveis pelo ambiente retornam explicitamente `null` (ex.: espaço livre em disco quando não suportado pelo sistema operacional).

@@ -150,6 +150,15 @@ Endpoint de leitura (PULL) para monitoramento da saúde e métricas agregadas da
 **Autenticação e Segurança:**
 - Exige `Authorization: Bearer <TECHNICAL_STATUS_BEARER_TOKEN>` ou sessão ativa com papel `ADMIN`.
 - Todas as tentativas sem autorização são registradas em `TechnicalAccessLog` com IP e User-Agent, retornando `401 Unauthorized`.
+- **Modo de Desenvolvimento Local Não Autenticado (Fase 4):**
+  - Permite acesso via navegador diretamente em `http://localhost:3000/api/technical/status` ou `http://127.0.0.1:3000/api/technical/status` **exclusivamente** quando todas as seguintes condições forem satisfeitas de forma cumulativa:
+    1. `NODE_ENV === "development"` (bloqueio total e irrevogável em produção);
+    2. Variável de ambiente explícita `PSI_LOCAL_TECHNICAL_STATUS_PUBLIC=true` configurada no ambiente local (`.env.local`);
+    3. Host da requisição restrito à interface de loopback (`127.0.0.1`, `localhost`, `::1`);
+    4. Ausência de proxies reversos externos, túneis públicos (ngrok, Cloudflare Tunnel) ou IPs não locais.
+  - **Diferenciação de Resposta Higienizada:** No modo desautenticado de desenvolvimento local, o grupo `administrator` (nome, e-mail, telefone) e identificadores sensíveis de instalação são **completamente omitidos** da resposta JSON. Apenas métricas seguras agregadas de armazenamento, aplicação, integrações e pagamentos são retornadas.
+  - **Como Habilitar:** Adicionar `PSI_LOCAL_TECHNICAL_STATUS_PUBLIC=true` em `.env.local` e iniciar o servidor com `npm run dev -- -H 127.0.0.1`.
+  - **Como Desabilitar:** Remover a linha ou definir `PSI_LOCAL_TECHNICAL_STATUS_PUBLIC=false`.
 - **Sigilo Absoluto:** Nunca expõe senhas, hashes, tokens, chaves de API, credenciais de integração, prontuários clínicos ou identidades individuais de pacientes.
 
 **Grupos de Resposta:**

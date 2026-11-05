@@ -4,17 +4,90 @@ import path from "path";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 
+/**
+ * Validação rigorosa de condições para acesso não autenticado de desenvolvimento local.
+ * Requer cumulativamente:
+ * 1. NODE_ENV === "development" (nunca em produção, mesmo se a variável for configurada)
+ * 2. PSI_LOCAL_TECHNICAL_STATUS_PUBLIC === "true" (opt-in explícito)
+ * 3. Requisição restrita a loopback (127.0.0.1, localhost, ::1)
+ * 4. Ausência de proxy reverso público, túneis (ngrok/Cloudflare) ou origens externas
+ */
+export function isLocalTechnicalStatusPublicAllowed(req: NextRequest): boolean {
+  // 1. Apenas em ambiente de desenvolvimento
+  if (process.env.NODE_ENV !== "development") {
+    return false;
+  }
+
+  // 2. Opt-in explícito via variável de ambiente
+  if (process.env.PSI_LOCAL_TECHNICAL_STATUS_PUBLIC !== "true") {
+    return false;
+  }
+
+  // 3. Validação estrita de loopback no Host e URL
+  const host = (req.headers.get("host") || "").split(":")[0].toLowerCase().trim();
+  const urlHostname = req.nextUrl.hostname.toLowerCase().trim();
+
+  const isLoopbackHost =
+    host === "127.0.0.1" ||
+    host === "localhost" ||
+    host === "::1" ||
+    host === "[::1]";
+
+  const isLoopbackUrl =
+    urlHostname === "127.0.0.1" ||
+    urlHostname === "localhost" ||
+    urlHostname === "::1";
+
+  if (!isLoopbackHost || !isLoopbackUrl) {
+    return false;
+  }
+
+  // 4. Detecção de proxy reverso ou túneis públicos
+  const cfConnectingIp = req.headers.get("cf-connecting-ip");
+  if (cfConnectingIp) {
+    return false; // Bloqueia túneis Cloudflare
+  }
+
+  const forwardedHost = req.headers.get("x-forwarded-host");
+  if (forwardedHost) {
+    const fHostClean = forwardedHost.split(":")[0].toLowerCase().trim();
+    if (fHostClean !== "127.0.0.1" && fHostClean !== "localhost" && fHostClean !== "::1") {
+      return false; // Bloqueia proxies com host externo
+    }
+  }
+
+  const forwardedFor = req.headers.get("x-forwarded-for");
+  if (forwardedFor) {
+    const ips = forwardedFor.split(",").map((ip) => ip.trim());
+    for (const ip of ips) {
+      if (ip !== "127.0.0.1" && ip !== "::1" && ip !== "::ffff:127.0.0.1") {
+        return false; // Bloqueia qualquer IP de cliente que não seja loopback
+      }
+    }
+  }
+
+  const realIp = req.headers.get("x-real-ip");
+  if (realIp) {
+    const cleanRealIp = realIp.trim();
+    if (cleanRealIp !== "127.0.0.1" && cleanRealIp !== "::1" && cleanRealIp !== "::ffff:127.0.0.1") {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 export async function GET(req: NextRequest) {
   const ipAddress = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "127.0.0.1";
   const userAgent = req.headers.get("user-agent") || undefined;
 
   try {
-    // 1. Validação de Autenticação Segura (Bearer Token técnico de alta entropia ou Sessão ADMIN)
+    // 1. Verificação de Autenticação Segura (Bearer Token de alta entropia ou Sessão ADMIN)
     const authHeader = req.headers.get("authorization");
     const configuredToken = process.env.TECHNICAL_STATUS_BEARER_TOKEN;
 
     const isBearerValid =
-      configuredToken && authHeader && authHeader.trim() === `Bearer ${configuredToken}`;
+      !!(configuredToken && authHeader && authHeader.trim() === `Bearer ${configuredToken}`);
 
     let isAdminSession = false;
     if (!isBearerValid) {
@@ -28,7 +101,12 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    if (!isBearerValid && !isAdminSession) {
+    const isAuthenticated = isBearerValid || isAdminSession;
+
+    // 2. Verificação de exceção para desenvolvimento local desautenticado (Phase 4)
+    const isPublicLocalAllowed = !isAuthenticated && isLocalTechnicalStatusPublicAllowed(req);
+
+    if (!isAuthenticated && !isPublicLocalAllowed) {
       // Registra tentativa não autorizada no log técnico
       await prisma.technicalAccessLog.create({
         data: {
@@ -45,7 +123,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // 2. Coleta paralela e eficiente de métricas agregadas reais (sem varredura pesada nem dados clínicos)
+    // 3. Coleta paralela e eficiente de métricas agregadas reais
     const [
       admin,
       patientCount,
@@ -58,14 +136,17 @@ export async function GET(req: NextRequest) {
       lastEmailDelivery,
       lastWaDelivery,
     ] = await Promise.all([
-      prisma.adminAccount.findFirst({
-        select: {
-          name: true,
-          email: true,
-          phone: true,
-          crpCrm: true,
-        },
-      }),
+      // Dados do administrador apenas são consultados se for acesso autenticado
+      isAuthenticated
+        ? prisma.adminAccount.findFirst({
+            select: {
+              name: true,
+              email: true,
+              phone: true,
+              crpCrm: true,
+            },
+          })
+        : Promise.resolve(null),
       prisma.patient.count(),
       prisma.appointment.count(),
       prisma.service.count(),
@@ -90,7 +171,7 @@ export async function GET(req: NextRequest) {
       }),
     ]);
 
-    // 3. Registra acesso bem-sucedido na auditoria técnica
+    // 4. Registra acesso no log técnico de auditoria
     await prisma.technicalAccessLog.create({
       data: {
         endpoint: "/api/technical/status",
@@ -100,7 +181,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // 4. Cálculo real de armazenamento físico e espaço em disco
+    // 5. Métricas de Armazenamento Real
     const totalFileSizeBytes = fileBytesAgg._sum.sizeBytes || 0;
     const usageMB = Number((totalFileSizeBytes / (1024 * 1024)).toFixed(2));
 
@@ -113,10 +194,10 @@ export async function GET(req: NextRequest) {
       const stats = fs.statfsSync(storageDir);
       availableDiskSpaceBytes = Number(BigInt(stats.bavail) * BigInt(stats.bsize));
     } catch {
-      availableDiskSpaceBytes = null; // Explicitamente null quando o host não permite mensuração
+      availableDiskSpaceBytes = null;
     }
 
-    // 5. Mapeamento de métricas agregadas de pagamentos reais
+    // 6. Métricas de Pagamento
     let totalPayments = 0;
     let approvedPayments = 0;
     let pendingPayments = 0;
@@ -127,8 +208,7 @@ export async function GET(req: NextRequest) {
       if (group.status === "PENDING") pendingPayments += group._count.id;
     }
 
-    // 6. Diagnóstico real de integrações (sem assumir operacionalidade apenas pela presença de variáveis)
-    // Email Status
+    // 7. Diagnóstico Real de Integrações
     let emailStatus = "DISABLED";
     if (settings?.smtpEnabled) {
       if (!settings?.smtpHost || !settings?.smtpUser) {
@@ -148,7 +228,6 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // WhatsApp Status
     let whatsappStatus = "DISABLED";
     if (settings?.whatsappEnabled) {
       if (!settings?.whatsappApiUrl || !settings?.whatsappApiToken) {
@@ -166,19 +245,56 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Payment Gateway Status
     const paymentGatewayStatus = settings?.enableOnlinePayment ? "SIMULATED_ACTIVE" : "DISABLED";
     const paymentIntegrationStatus = settings?.enableOnlinePayment ? "ONLINE_SIMULATED" : "MANUAL_IN_PERSON";
-
-    // Provedor de vídeo ativo
     const videoProvider = settings?.activeVideoProvider || "JITSI";
 
-    // Versão da aplicação e identificador da instalação
     const applicationVersion = process.env.npm_package_version || "1.0.0";
-    const installationId = process.env.INSTALLATION_ID || "psi-standalone-instance-default";
     const timestamp = new Date().toISOString();
 
-    // 7. Resposta Estruturada por Grupos de Domínio
+    // 8. SERIALIZAÇÃO SEPARADA CONFORME O TIPO DE ACESSO
+    // SE FOR ACESSO NÃO AUTENTICADO DE DESENVOLVIMENTO LOCAL:
+    // Retorna exclusivamente o subset higienizado (sem dados de administrador nem identificadores sensíveis)
+    if (isPublicLocalAllowed) {
+      return NextResponse.json({
+        installation: {
+          applicationVersion,
+          timestamp,
+          applicationStatus: "OPERATIONAL",
+        },
+        storage: {
+          totalFileSizeBytes,
+          totalFileCount: fileCount,
+          usageMB,
+          availableDiskSpaceBytes,
+        },
+        application: {
+          totalPatients: patientCount,
+          totalAppointments: appointmentCount,
+          totalServices: serviceCount,
+        },
+        integrations: {
+          emailStatus,
+          whatsappStatus,
+          paymentGatewayStatus,
+          videoProvider,
+        },
+        payments: {
+          totalPayments,
+          pendingPayments,
+          approvedPayments,
+          integrationStatus: paymentIntegrationStatus,
+        },
+        accessMode: "UNAUTHENTICATED_LOCAL_DEV",
+        notice:
+          "Modo de desenvolvimento local desautenticado ativo (loopback). Informações de contato do administrador e identificadores de instalação foram omitidos.",
+      });
+    }
+
+    // SE FOR ACESSO AUTENTICADO (Bearer Token ou ADMIN):
+    // Retorna o payload completo incluindo os dados operacionais do administrador
+    const installationId = process.env.INSTALLATION_ID || "psi-standalone-instance-default";
+
     return NextResponse.json({
       installation: {
         applicationVersion,
@@ -215,7 +331,7 @@ export async function GET(req: NextRequest) {
         integrationStatus: paymentIntegrationStatus,
       },
 
-      // Retrocompatibilidade para clientes e testes legados
+      // Campos de retrocompatibilidade para clientes legados
       installationId,
       version: applicationVersion,
       timestamp,
