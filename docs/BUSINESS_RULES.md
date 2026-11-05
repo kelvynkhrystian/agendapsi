@@ -133,3 +133,43 @@ Este documento detalha as políticas de funcionamento, transições de estado e 
   - Métricas não mensuráveis pelo ambiente retornam explicitamente `null` (ex.: espaço livre em disco quando não suportado pelo sistema operacional).
   - A configuração de variáveis de integração (como host de e-mail ou API de WhatsApp) não é considerada sinônimo de disponibilidade operacional; o status reflete o histórico real de disparos registrado em `NotificationDelivery`.
 - Caso os serviços reais de SMTP ou WhatsApp não estejam configurados no ambiente, o sistema utiliza o modo **Simulador**, registrando o conteúdo na tabela com status `SIMULATED` para validação em desenvolvimento sem falhas de execução.
+
+---
+
+## 10. Sistema de Aparência Global e MiniSite Público (Fases 1 a 5)
+
+### 10.1 Presets de Cores e Tokens Globais
+- O sistema oferece 8 paletas pré-definidas (`AMARELO`, `LARANJA`, `VERMELHO`, `ROSA`, `VERDE`, `AZUL`, `ROXO`, `CINZA`) e suporte a tema `PERSONALIZADO`.
+- A paleta selecionada injeta variáveis CSS semânticas (`--primary`, `--secondary`, `--accent`, `--button-bg`, `--ring`, `--theme-bg`, `--theme-text`) no elemento `:root`.
+- As variáveis controlam os botões, ícones, destaques, links e elementos decorativos no Admin, Paciente e MiniSite.
+
+### 10.2 Isolamento Estrito de Modo Escuro (*Dark Mode Isolation*)
+- O modo escuro é permitido e preservado exclusivamente nas rotas autenticadas do sistema (`/admin/*` e `/paciente/*`).
+- O MiniSite público e páginas abertas institucionais operam invariavelmente em modo claro, assegurando identidade visual acolhedora conforme os padrões da psicologia clínica.
+
+### 10.3 Slots de Mídia Independentes (Hero & Sobre Mim)
+- O MiniSite possui dois slots de mídia completamente isolados:
+  1. **Slot 1 (Hero):** Foto principal do profissional ao lado dos botões de agendamento.
+  2. **Slot 2 (Sobre Mim):** Apresentação pessoal e ambiente do consultório.
+- Cada slot suporta independentemente três formatos: `IMAGE` (JPG, PNG, WebP), `FRAME_ANIMATION` (sequência de frames em ZIP) e `VIDEO` (MP4, WebM).
+- Cada slot possui parâmetros próprios de taxa de quadros (10 a 60 FPS), repetição (Loop), reprodução automática (Autoplay), modo (`AUTOMATIC` ou `SCROLL`), direção (`FORWARD` ou `ALTERNATE`) e enquadramento (`cover`, `contain`, `center`, `top`, `bottom`).
+
+### 10.4 Segurança e Processamento de ZIP de Frames
+- O arquivo ZIP é validado contra *Path Traversal* (rejeição de caminhos com `..` ou barras iniciais) e contra *ZIP Bomb* (limite de 150MB descompactado e 100MB compactado).
+- Requer entre 2 e 150 frames em formatos válidos (WebP, PNG, JPG). Arquivos ocultos e metadados (`__MACOSX`, `.DS_Store`) são descartados.
+- Os frames são ordenados por ordenação numérica natural (ex: `001`, `002` ... `040`).
+
+### 10.5 Indicadores de Benefício e Biblioteca de Ícones
+- O topo do MiniSite suporta 3 indicadores de benefícios customizáveis com ordenação e visibilidade configurável.
+- Ícones nativos da biblioteca Lucide herdam automaticamente a cor do tema selecionado (`text-[var(--primary)]`).
+- Ícones personalizados enviados em formato SVG são rigorosamente sanitizados no servidor para neutralização de scripts, handlers `onload`/`onerror` e elementos `<foreignObject>`.
+
+### 10.6 Localização Flexível (Suporte a Atendimento 100% Online)
+- Profissionais que realizam atendimentos exclusivamente online podem desativar a seção de localização (`showLocation: false`).
+- Quando desativada, a seção física e os links correspondentes nos menus de cabeçalho e rodapé são completamente ocultados do MiniSite público.
+- Para atendimento presencial, o sistema disponibiliza o botão "Como chegar" e incorporação segura de mapa sem exposição de credenciais privadas de API.
+
+### 10.7 Ações de WhatsApp e Privacidade Clínica
+- O número de WhatsApp é sanitizado com inclusão automática do código de país (+55).
+- A mensagem inicial é personalizável e codificada com segurança na URL.
+- Nenhuma informação clínica, prontuário, anotação ou diagnóstico de paciente trafega nos parâmetros de contato do WhatsApp.

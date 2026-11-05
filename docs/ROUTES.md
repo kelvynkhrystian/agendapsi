@@ -198,4 +198,9 @@ Endpoint de leitura (PULL) para monitoramento da saúde e métricas agregadas da
    - `approvedPayments`: Cobranças liquidadas com sucesso (`status === "APPROVED"`).
    - `integrationStatus`: `"ONLINE_SIMULATED"` ou `"MANUAL_IN_PERSON"`.
 | `GET` | `/api/site/settings` | Público | Consulta parâmetros e customizações do MiniSite |
-| `PUT` | `/api/admin/site/settings` | Admin | Atualização de conteúdo e textos do MiniSite e páginas legais |
+| `PUT` | `/api/admin/site/settings` | Admin | Atualização de conteúdo e textos do MiniSite, diferenciais, localização e WhatsApp |
+| `POST` | `/api/admin/minisite/media/upload` | Admin | Upload seguro de mídias do MiniSite (imagens, vídeos e frames ZIP) |
+| `POST` | `/api/admin/minisite/media/import-local` | Admin | Importação em 1 clique de frames locais existentes em storage/minisite |
+| `GET` | `/api/admin/minisite/media/settings` | Admin | Consulta detalhada das configurações dos slots de mídia (Hero e Sobre Mim) |
+| `PUT` | `/api/admin/minisite/media/settings` | Admin | Persistência dos parâmetros de reprodução, velocidade, loop e enquadramento de mídia |
+| `POST` | `/api/admin/minisite/icons/upload` | Admin | Upload e sanitização de ícones customizados (PNG e SVG sanitizado) |

@@ -101,7 +101,7 @@ erDiagram
 - `NotificationDelivery`: Registro de disparos e status de entrega externa (`id`, `recipient`, `channel`, `templateType`, `status`, `simulated`, `sentAt`, `errorDetails`).
 - `Notification`: Notificações internas persistentes no aplicativo para Admin e Paciente (`id`, `recipientId`, `recipientRole`, `eventType`, `title`, `message`, `targetUrl`, `isRead`, `readAt`, `relatedEntityType`, `relatedEntityId`, `createdAt`).
 - `SharedNotificationTemplate`: Mensagens padrão unificadas por tipo de evento (`id`, `eventType`, `title`, `body`, `deliveryMode`, `updatedAt`).
-- `SiteSettings`: Configurações visuais, textos do MiniSite, logos (padrão e horizontal), favicon, paleta de cores (primária, secundária, destaque, botões), endereço e redes sociais.
+- `SiteSettings`: Configurações visuais, textos do MiniSite, logos (padrão e horizontal), favicon, tema global (`themeName`), paleta de cores customizável (primária, secundária, destaque, botões, fundo, texto), slots de mídia independentes (Hero e Sobre Mim com suporte a imagens, vídeos e animações por frames ZIP), benefícios e ícones do Hero, dados de localização física com Google Maps (com opção de desativação para profissionais 100% online), integração com WhatsApp e redes sociais.
 - `ProfessionalProfile`: Dados do profissional (nome, biografia, foto, CRP/CRM).
 - `LegalPage`: Conteúdo dos termos legais (Privacidade, Termos, Cookies, LGPD).
 - `SystemSettings`: Preferências globais (fuso horário, prazos, provedor de vídeo ativo [Jitsi/PeerJS/Meet], sinalização PeerJS WebRTC com suporte STUN/TURN, integração Google Meet OAuth com Google Calendar API, credenciais SMTP independentes, credenciais WhatsApp independentes, flags de pagamento).
