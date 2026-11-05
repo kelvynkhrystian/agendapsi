@@ -573,6 +573,13 @@ export default function AdminPatientDetailPage({
         </Link>
 
         <div className="flex items-center gap-2">
+          <Link href={`/admin/pacientes/${patient.id}/editar`}>
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <Pencil className="h-3.5 w-3.5" />
+              <span>Editar Cadastro</span>
+            </Button>
+          </Link>
+
           <Button
             variant={patient.isActive ? "destructive" : "outline"}
             size="sm"
@@ -710,8 +717,14 @@ export default function AdminPatientDetailPage({
       {activeTab === "overview" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
               <CardTitle className="text-base">Dados Cadastrais do Paciente</CardTitle>
+              <Link href={`/admin/pacientes/${patient.id}/editar`}>
+                <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-[var(--primary)] hover:text-[var(--primary)]">
+                  <Pencil className="h-3.5 w-3.5" />
+                  <span>Editar</span>
+                </Button>
+              </Link>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="grid grid-cols-2 gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
