@@ -4,6 +4,14 @@ import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MiniSiteMediaPlayer } from "@/components/minisite/media-player";
+import { ThemeIcon } from "@/components/minisite/theme-icon";
+import { DEFAULT_HERO_BENEFITS, HeroBenefitItem } from "@/lib/minisite-icons";
+import {
+  formatFullAddress,
+  getGoogleMapsDestinationUrl,
+  getGoogleMapsEmbedSrc,
+  buildWhatsAppChatUrl,
+} from "@/lib/minisite-helpers";
 import {
   Calendar,
   Clock,
@@ -67,19 +75,35 @@ export default async function HomePage() {
     } catch {}
   }
 
-  // Sanitização do número do WhatsApp para link direto
-  const whatsappDigits = (site?.whatsappNumber || site?.phone || "").replace(/\D/g, "");
-  const whatsappUrl = whatsappDigits
-    ? `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(
-        `Olá, ${professionalName}! Gostaria de informações sobre o agendamento de consultas.`
-      )}`
-    : null;
+  // Indicadores de Benefício do Hero (Fase 4/5)
+  let benefits: HeroBenefitItem[] = DEFAULT_HERO_BENEFITS;
+  if (site?.benefitsJson) {
+    try {
+      const parsed = JSON.parse(site.benefitsJson);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        benefits = parsed;
+      }
+    } catch {}
+  }
+  const activeBenefits = benefits
+    .filter((b) => b.isVisible !== false)
+    .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+  // WhatsApp Inteligente com Mensagem Customizável (Fase 4/5)
+  const whatsappUrl = buildWhatsAppChatUrl(
+    site?.whatsappNumber || site?.phone,
+    site?.whatsappDefaultMessage,
+    professionalName
+  );
 
   const instagramHandle = site?.instagram ? site.instagram.replace(/^@/, "") : null;
   const instagramUrl = instagramHandle ? `https://instagram.com/${instagramHandle}` : null;
-  const mapsUrl = site?.address
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(site.address)}`
-    : null;
+
+  // Localização do Consultório & Google Maps Seguro (Fase 4/5)
+  const formattedAddress = formatFullAddress(site);
+  const mapsDestinationUrl = getGoogleMapsDestinationUrl(site);
+  const mapsEmbedSrc = getGoogleMapsEmbedSrc(site);
+  const shouldShowLocation = site?.showLocation !== false && !!(formattedAddress || mapsDestinationUrl);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FDFCFB] text-slate-900 selection:bg-[var(--primary)] selection:text-white font-sans overflow-x-hidden">
@@ -122,9 +146,11 @@ export default async function HomePage() {
             <a href="#como-funciona" className="hover:text-[var(--primary)] transition-colors">
               Como Funciona
             </a>
-            <a href="#localizacao" className="hover:text-[var(--primary)] transition-colors">
-              Localização
-            </a>
+            {shouldShowLocation && (
+              <a href="#localizacao" className="hover:text-[var(--primary)] transition-colors">
+                Localização
+              </a>
+            )}
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -267,35 +293,39 @@ export default async function HomePage() {
             )}
           </div>
 
-          {/* 3 Indicadores de Benefício (Referência Fiel) */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-6 pt-6 w-full max-w-lg border-t border-slate-200/60 mt-4">
-            <div className="flex flex-col items-center text-center space-y-1.5 p-2">
-              <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center">
-                <HeartHandshake className="h-5 w-5" />
-              </div>
-              <span className="text-[10px] sm:text-xs font-extrabold uppercase tracking-tight text-slate-800 leading-tight">
-                Acolhimento <br /> sem julgamentos
-              </span>
+          {/* Indicadores de Benefício Configuráveis (Fase 4/5) */}
+          {activeBenefits.length > 0 && (
+            <div
+              className={`grid gap-2 sm:gap-6 pt-6 w-full max-w-lg border-t border-slate-200/60 mt-4 ${
+                activeBenefits.length === 1
+                  ? "grid-cols-1 max-w-xs"
+                  : activeBenefits.length === 2
+                  ? "grid-cols-2 max-w-sm"
+                  : "grid-cols-3"
+              }`}
+            >
+              {activeBenefits.map((item) => (
+                <div key={item.id} className="flex flex-col items-center text-center space-y-1.5 p-2">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center transition-colors shadow-2xs">
+                    <ThemeIcon
+                      iconName={item.icon}
+                      customIconUrl={item.customIconUrl}
+                      className="h-5 w-5 text-[var(--primary)]"
+                      alt={item.title}
+                    />
+                  </div>
+                  <span className="text-[10px] sm:text-xs font-extrabold uppercase tracking-tight text-slate-800 leading-tight">
+                    {item.title}
+                  </span>
+                  {item.subtitle && (
+                    <span className="text-[9px] sm:text-[10px] text-slate-500 font-normal leading-tight line-clamp-2">
+                      {item.subtitle}
+                    </span>
+                  )}
+                </div>
+              ))}
             </div>
-
-            <div className="flex flex-col items-center text-center space-y-1.5 p-2">
-              <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center">
-                <Brain className="h-5 w-5" />
-              </div>
-              <span className="text-[10px] sm:text-xs font-extrabold uppercase tracking-tight text-slate-800 leading-tight">
-                Saúde <br /> Emocional
-              </span>
-            </div>
-
-            <div className="flex flex-col items-center text-center space-y-1.5 p-2">
-              <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center">
-                <Flower2 className="h-5 w-5" />
-              </div>
-              <span className="text-[10px] sm:text-xs font-extrabold uppercase tracking-tight text-slate-800 leading-tight">
-                Qualidade <br /> de Vida
-              </span>
-            </div>
-          </div>
+          )}
         </div>
       </section>
 
@@ -630,109 +660,126 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ================= 7. LOCALIZAÇÃO DO CONSULTÓRIO ================= */}
-      <section id="localizacao" className="py-16 px-4 bg-[#F8F5EE] border-t border-slate-200/60">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <div className="text-center space-y-2">
-            <span className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
-              — Atendimento Presencial —
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-              Localização do Consultório
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
-              Ambiente preparado com isolamento acústico, total privacidade e acessibilidade.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-            {/* Informações de Endereço e Contato */}
-            <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col justify-between space-y-4">
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
-                    <MapPin className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-xs sm:text-sm text-slate-900">
-                      Endereço Oficial
-                    </h4>
-                    <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
-                      {site?.address || "Av. Paulista, 1000, Bela Vista — São Paulo/SP"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
-                    <Phone className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-xs sm:text-sm text-slate-900">
-                      Telefone & WhatsApp
-                    </h4>
-                    <p className="text-xs text-slate-600 mt-0.5">
-                      {site?.phone || "(11) 99999-9999"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
-                    <Mail className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-xs sm:text-sm text-slate-900">
-                      E-mail Institucional
-                    </h4>
-                    <p className="text-xs text-slate-600 mt-0.5">
-                      {site?.email || "contato@consultorio.com.br"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {mapsUrl && (
-                <a
-                  href={mapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl border border-slate-200 hover:border-[var(--primary)] text-xs font-semibold text-slate-700 hover:text-[var(--primary)] transition-colors"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  <span>Como Chegar via Google Maps</span>
-                </a>
-              )}
+      {/* ================= 7. LOCALIZAÇÃO DO CONSULTÓRIO (Fase 4/5: Opcional e Configurável) ================= */}
+      {shouldShowLocation && (
+        <section id="localizacao" className="py-16 px-4 bg-[#F8F5EE] border-t border-slate-200/60">
+          <div className="max-w-4xl mx-auto space-y-8">
+            <div className="text-center space-y-2">
+              <span className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
+                — Atendimento Presencial —
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+                Localização do Consultório
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
+                Ambiente preparado com isolamento acústico, total privacidade e acessibilidade.
+              </p>
             </div>
 
-            {/* Container Reservado para Mapa (Google Maps Placeholder) */}
-            <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col items-center justify-center text-center space-y-3 min-h-[220px]">
-              <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center">
-                <MapPin className="h-6 w-6" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+              {/* Informações de Endereço e Contato */}
+              <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col justify-between space-y-4">
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+                      <MapPin className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                        Endereço Oficial
+                      </h4>
+                      <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                        {formattedAddress || site?.address || "Endereço sob consulta prévia para agendamentos presenciais."}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+                      <Phone className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                        Telefone & WhatsApp
+                      </h4>
+                      <p className="text-xs text-slate-600 mt-0.5">
+                        {site?.phone || site?.whatsappNumber || "(11) 99999-9999"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+                      <Mail className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                        E-mail Institucional
+                      </h4>
+                      <p className="text-xs text-slate-600 mt-0.5">
+                        {site?.email || "contato@consultorio.com.br"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {mapsDestinationUrl && (
+                  <a
+                    href={mapsDestinationUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    <span>Como Chegar via Google Maps</span>
+                  </a>
+                )}
               </div>
-              <div className="space-y-1">
-                <h4 className="font-bold text-xs sm:text-sm text-slate-800">
-                  Mapa Interativo do Consultório
-                </h4>
-                <p className="text-[11px] text-slate-500 max-w-xs">
-                  Próximo a estações de metrô, transporte público e estacionamentos conveniados.
-                </p>
+
+              {/* Container de Mapa Interativo (Embed Seguro ou Card Informativo) */}
+              <div className="p-2 sm:p-3 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col items-center justify-center text-center overflow-hidden min-h-[280px]">
+                {mapsEmbedSrc ? (
+                  <iframe
+                    src={mapsEmbedSrc}
+                    width="100%"
+                    height="100%"
+                    className="w-full h-full min-h-[260px] rounded-2xl border-0"
+                    loading="lazy"
+                    allowFullScreen
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title={`Mapa de localização - ${clinicName}`}
+                  />
+                ) : (
+                  <div className="p-6 flex flex-col items-center justify-center text-center space-y-3">
+                    <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center">
+                      <MapPin className="h-6 w-6" />
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="font-bold text-xs sm:text-sm text-slate-800">
+                        Mapa Interativo do Consultório
+                      </h4>
+                      <p className="text-[11px] text-slate-500 max-w-xs">
+                        Próximo a transporte público, pontos de referência e fácil acesso.
+                      </p>
+                    </div>
+                    {mapsDestinationUrl && (
+                      <a
+                        href={mapsDestinationUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-bold text-[var(--primary)] hover:underline inline-flex items-center gap-1"
+                      >
+                        <span>Abrir visualização no Google Maps</span>
+                        <ArrowRight className="h-3 w-3" />
+                      </a>
+                    )}
+                  </div>
+                )}
               </div>
-              {mapsUrl && (
-                <a
-                  href={mapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs font-bold text-[var(--primary)] hover:underline inline-flex items-center gap-1"
-                >
-                  <span>Abrir visualização no mapa</span>
-                  <ArrowRight className="h-3 w-3" />
-                </a>
-              )}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ================= 8. FINAL CTA (Referência Visual: Banner Destaque) ================= */}
       <section className="py-12 px-4 bg-white">
@@ -755,15 +802,29 @@ export default async function HomePage() {
               </div>
             </div>
 
-            <Link href="/agendar" className="shrink-0 w-full sm:w-auto">
-              <button
-                type="button"
-                className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-white text-slate-900 font-bold text-xs uppercase tracking-wider shadow-md hover:bg-slate-50 transition-all cursor-pointer flex items-center justify-center gap-1.5"
-              >
-                <span>Agendar Consulta</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </button>
-            </Link>
+            <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
+              <Link href="/agendar" className="shrink-0 w-full sm:w-auto">
+                <button
+                  type="button"
+                  className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-white text-slate-900 font-bold text-xs uppercase tracking-wider shadow-md hover:bg-slate-50 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <span>Agendar Consulta</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              </Link>
+
+              {whatsappUrl && (
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-[#261E19]/80 hover:bg-[#261E19] text-white font-semibold text-xs tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <MessageCircle className="h-4 w-4 text-emerald-400" />
+                  <span>WhatsApp</span>
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -772,7 +833,7 @@ export default async function HomePage() {
       <footer id="contato" className="border-t border-slate-200 bg-[#F8F5EE] py-12 px-4 text-xs text-slate-600">
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Barra de Navegação Inferior (Referência Visual do Rodapé) */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-4 border-b border-slate-200/80 text-center font-semibold text-xs text-slate-700">
+          <div className="flex flex-wrap justify-center items-center gap-3 py-4 border-b border-slate-200/80 text-center font-semibold text-xs text-slate-700">
             {whatsappUrl && (
               <a
                 href={whatsappUrl}
@@ -784,13 +845,15 @@ export default async function HomePage() {
                 <span>WhatsApp</span>
               </a>
             )}
-            <a
-              href="#localizacao"
-              className="flex items-center justify-center gap-1.5 p-2 rounded-xl hover:bg-white transition-colors"
-            >
-              <MapPin className="h-4 w-4 text-[var(--primary)]" />
-              <span>Localização</span>
-            </a>
+            {shouldShowLocation && (
+              <a
+                href="#localizacao"
+                className="flex items-center justify-center gap-1.5 p-2 rounded-xl hover:bg-white transition-colors"
+              >
+                <MapPin className="h-4 w-4 text-[var(--primary)]" />
+                <span>Localização</span>
+              </a>
+            )}
             <a
               href="#contato"
               className="flex items-center justify-center gap-1.5 p-2 rounded-xl hover:bg-white transition-colors"
@@ -857,8 +920,8 @@ export default async function HomePage() {
         </div>
       </footer>
 
-      {/* ================= BOTÃO FLUTUANTE DE WHATSAPP ================= */}
-      {whatsappUrl && (
+      {/* ================= BOTÃO FLUTUANTE DE WHATSAPP (Fase 4/5) ================= */}
+      {site?.showFloatingWhatsApp !== false && whatsappUrl && (
         <aside aria-label="Atendimento via WhatsApp" className="fixed bottom-6 right-6 z-50">
           <a
             href={whatsappUrl}

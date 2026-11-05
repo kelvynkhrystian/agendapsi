@@ -1100,6 +1100,18 @@ erDiagram
 | `aboutPositioning` | `String` | Sim | `"center"` | Enquadramento da mídia do Sobre Mim: center, cover, contain | `"center"` |
 | `aboutFrameCount` | `Int` | Sim | `0` | Quantidade total de frames processados no Sobre Mim | `40` |
 | `aboutFramesJson` | `String?` (MediumText) | Não | `null` | Sequência de caminhos relativos dos frames em JSON | `'["/uploads/.../frame-001.png", ...]'` |
+| `benefitsJson` | `String?` (MediumText) | Não | `null` | Array JSON com os 3 benefícios configurados do Hero: ícones, upload, título, subtítulo, ordem e visibilidade | `'[{"id":"1","icon":"HandHeart","title":"Acolhimento","isVisible":true,"order":1}]'` |
+| `addressNumber` | `String?` | Não | `null` | Número do imóvel do consultório | `"1000"` |
+| `addressComplement` | `String?` | Não | `null` | Complemento do endereço (sala, andar, bloco) | `"Cj. 42"` |
+| `addressNeighborhood` | `String?` | Não | `null` | Bairro do consultório | `"Bela Vista"` |
+| `addressCity` | `String?` | Não | `null` | Cidade do consultório | `"São Paulo"` |
+| `addressState` | `String?` | Não | `null` | UF do estado do consultório | `"SP"` |
+| `addressPostalCode` | `String?` | Não | `null` | CEP do consultório | `"01310-100"` |
+| `googleMapsUrl` | `String?` (Text) | Não | `null` | Link de destino do Google Maps para ação Como chegar | `"https://maps.google.com/?q=..."` |
+| `googleMapsEmbedUrl` | `String?` (Text) | Não | `null` | URL segura de incorporação de mapa (iframe embed) | `"https://maps.google.com/maps?q=...&output=embed"` |
+| `showLocation` | `Boolean` | Sim | `true` | Habilita ou oculta a seção de localização no MiniSite (suporta profissionais 100% online) | `true` |
+| `whatsappDefaultMessage` | `String?` (Text) | Não | `null` | Mensagem inicial personalizada ao iniciar conversa no WhatsApp | `"Olá! Conheci seu trabalho pelo site..."` |
+| `showFloatingWhatsApp` | `Boolean` | Sim | `true` | Exibe ou oculta o botão flutuante de WhatsApp no canto inferior da página | `true` |
 | `updatedAt` | `DateTime` | Sim | Auto | Timestamp UTC da última alteração | `2026-11-04T12:00:00.000Z` |
 
 ---

@@ -17,6 +17,32 @@ const siteSettingsSchema = z.object({
   email: z.string().optional(),
   instagram: z.string().optional(),
   customHtml: z.string().optional(),
+  // Minisite Phase 4/5: Icons, Location & WhatsApp
+  benefits: z
+    .array(
+      z.object({
+        id: z.string(),
+        icon: z.string(),
+        customIconUrl: z.string().nullable().optional(),
+        title: z.string(),
+        subtitle: z.string().nullable().optional(),
+        isVisible: z.boolean().default(true),
+        order: z.number().default(1),
+      })
+    )
+    .optional(),
+  benefitsJson: z.string().optional(),
+  addressNumber: z.string().optional(),
+  addressComplement: z.string().optional(),
+  addressNeighborhood: z.string().optional(),
+  addressCity: z.string().optional(),
+  addressState: z.string().optional(),
+  addressPostalCode: z.string().optional(),
+  googleMapsUrl: z.string().optional(),
+  googleMapsEmbedUrl: z.string().optional(),
+  showLocation: z.boolean().optional(),
+  whatsappDefaultMessage: z.string().optional(),
+  showFloatingWhatsApp: z.boolean().optional(),
   // Professional Profile
   professionalName: z.string().min(2).optional(),
   professionalTitle: z.string().optional(),
@@ -42,6 +68,12 @@ export async function PUT(req: NextRequest) {
     // Sanitização de HTML customizado
     const sanitizedHtml = sanitizeCustomHtml(data.customHtml);
 
+    const computedBenefitsJson = data.benefits
+      ? JSON.stringify(data.benefits)
+      : data.benefitsJson !== undefined
+      ? data.benefitsJson
+      : undefined;
+
     const [updatedSite, updatedProfile] = await prisma.$transaction([
       prisma.siteSettings.upsert({
         where: { id: "default" },
@@ -53,11 +85,23 @@ export async function PUT(req: NextRequest) {
           aboutText: data.aboutText,
           primaryColor: data.primaryColor || "#0d9488",
           address: data.address,
+          addressNumber: data.addressNumber,
+          addressComplement: data.addressComplement,
+          addressNeighborhood: data.addressNeighborhood,
+          addressCity: data.addressCity,
+          addressState: data.addressState,
+          addressPostalCode: data.addressPostalCode,
+          googleMapsUrl: data.googleMapsUrl,
+          googleMapsEmbedUrl: data.googleMapsEmbedUrl,
+          showLocation: data.showLocation ?? true,
           phone: data.phone,
           whatsappNumber: data.whatsappNumber,
+          whatsappDefaultMessage: data.whatsappDefaultMessage,
+          showFloatingWhatsApp: data.showFloatingWhatsApp ?? true,
           email: data.email,
           instagram: data.instagram,
           customHtml: sanitizedHtml,
+          ...(computedBenefitsJson !== undefined ? { benefitsJson: computedBenefitsJson } : {}),
         },
         create: {
           id: "default",
@@ -68,11 +112,23 @@ export async function PUT(req: NextRequest) {
           aboutText: data.aboutText || "",
           primaryColor: data.primaryColor || "#0d9488",
           address: data.address,
+          addressNumber: data.addressNumber,
+          addressComplement: data.addressComplement,
+          addressNeighborhood: data.addressNeighborhood,
+          addressCity: data.addressCity,
+          addressState: data.addressState,
+          addressPostalCode: data.addressPostalCode,
+          googleMapsUrl: data.googleMapsUrl,
+          googleMapsEmbedUrl: data.googleMapsEmbedUrl,
+          showLocation: data.showLocation ?? true,
           phone: data.phone,
           whatsappNumber: data.whatsappNumber,
+          whatsappDefaultMessage: data.whatsappDefaultMessage,
+          showFloatingWhatsApp: data.showFloatingWhatsApp ?? true,
           email: data.email,
           instagram: data.instagram,
           customHtml: sanitizedHtml,
+          benefitsJson: computedBenefitsJson || null,
         },
       }),
 

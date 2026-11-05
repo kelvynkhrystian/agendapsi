@@ -538,6 +538,20 @@ model SiteSettings {
   aboutFrameCount        Int      @default(0)
   aboutFramesJson        String?  @db.MediumText
 
+  // Minisite Phase 4/5: Icons, Location & WhatsApp
+  benefitsJson           String?  @db.MediumText // Array JSON dos benefícios do Hero: [{ id, icon, customIconUrl, title, subtitle, isVisible, order }]
+  addressNumber          String?
+  addressComplement      String?
+  addressNeighborhood    String?
+  addressCity            String?
+  addressState           String?
+  addressPostalCode      String?
+  googleMapsUrl          String?  @db.Text
+  googleMapsEmbedUrl     String?  @db.Text
+  showLocation           Boolean  @default(true) // Permite profissionais 100% online ocultarem o bloco físico
+  whatsappDefaultMessage String?  @db.Text
+  showFloatingWhatsApp   Boolean  @default(true) // Botão flutuante inferior de WhatsApp
+
   updatedAt      DateTime @updatedAt
 }
 
