@@ -40,6 +40,7 @@ import {
   Lock,
   User,
   Star,
+  Quote,
 } from "lucide-react";
 
 export default async function HomePage() {
@@ -165,10 +166,10 @@ export default async function HomePage() {
       {/* ================= 1. HERO SECTION (Referência Visual) ================= */}
       <section
         id="inicio"
-        className="relative pt-8 pb-16 px-4 overflow-hidden bg-gradient-to-b from-[#F9F6F0] via-[#FAF7F2] to-[#FDFCFB] scroll-mt-20"
+        className="relative pt-10 sm:pt-14 pb-16 px-4 overflow-hidden bg-gradient-to-b from-[#F9F6F0] via-[#FAF7F2] to-[#FDFCFB] scroll-mt-20"
       >
         {/* Padrão orgânico ondulado de fundo (Curvas suaves) */}
-        <div className="absolute inset-0 pointer-events-none opacity-30 overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none opacity-30 overflow-hidden" aria-hidden="true">
           <svg
             className="w-full h-full text-[var(--primary)]"
             viewBox="0 0 1000 1000"
@@ -195,37 +196,37 @@ export default async function HomePage() {
 
         <div className="max-w-3xl mx-auto relative z-10 flex flex-col items-center text-center space-y-6">
           {/* Badge CRP / CRM Superior */}
-          <div className="inline-block px-5 py-1.5 rounded-full bg-[var(--button-bg,var(--primary))] text-white font-bold text-xs uppercase tracking-widest shadow-xs">
+          <div className="inline-block px-5 py-1.5 rounded-full bg-[var(--button-bg,var(--primary))] text-white font-heading font-semibold text-xs uppercase tracking-wider shadow-xs">
             {crpCrm}
           </div>
 
           {/* MEDIA SLOT 1: Retrato Profissional / Foto Principal */}
           <div className="relative my-2">
             {/* Decoração Orgânica de Ramos / Folhagem ao Fundo */}
-            <div className="absolute -inset-6 -z-10 flex items-center justify-center opacity-25 text-[var(--primary)] pointer-events-none">
-              <svg width="340" height="340" viewBox="0 0 200 200" fill="none">
+            <div className="absolute -inset-8 -z-10 flex items-center justify-center opacity-30 text-[var(--primary)] pointer-events-none" aria-hidden="true">
+              <svg width="360" height="360" viewBox="0 0 200 200" fill="none">
                 <path
                   d="M100 20 C110 50, 150 60, 160 100 C170 140, 130 170, 100 180 C70 170, 30 140, 40 100 C50 60, 90 50, 100 20 Z"
                   fill="currentColor"
-                  fillOpacity="0.15"
+                  fillOpacity="0.12"
                 />
-                <circle cx="100" cy="100" r="75" stroke="currentColor" strokeWidth="1" strokeDasharray="3 3" />
+                <circle cx="100" cy="100" r="78" stroke="currentColor" strokeWidth="1" strokeDasharray="3 3" />
                 {/* Ramos e Folhas Estilizadas */}
                 <path
                   d="M50 100 C40 80, 50 50, 70 40 C60 60, 65 80, 50 100 Z"
                   fill="currentColor"
-                  fillOpacity="0.4"
+                  fillOpacity="0.35"
                 />
                 <path
                   d="M150 100 C160 80, 150 50, 130 40 C140 60, 135 80, 150 100 Z"
                   fill="currentColor"
-                  fillOpacity="0.4"
+                  fillOpacity="0.35"
                 />
               </svg>
             </div>
 
             {/* Container Responsivo de Mídia (Slot 1: Herói - Compatível com Imagens, ZIP Frames e Vídeos) */}
-            <div className="w-56 h-64 sm:w-64 sm:h-72 rounded-full p-2 bg-gradient-to-b from-white to-[var(--primary)]/15 border-2 border-[var(--primary)]/25 shadow-md flex items-center justify-center overflow-hidden">
+            <div className="w-60 h-68 sm:w-72 sm:h-80 md:w-80 md:h-92 rounded-full p-2.5 bg-gradient-to-b from-white via-white to-[var(--primary)]/10 border-2 border-[var(--primary)]/20 shadow-lg flex items-center justify-center overflow-hidden transition-all duration-300">
               <MiniSiteMediaPlayer
                 slot="hero"
                 mediaType={heroMediaType}
@@ -245,29 +246,29 @@ export default async function HomePage() {
           </div>
 
           {/* Nome e Especialidade com Tipografia Elegante */}
-          <div className="space-y-1.5 pt-2">
+          <div className="space-y-1.5 pt-1">
             <h1
-              className="text-3xl sm:text-5xl font-serif italic text-[var(--primary)] font-medium tracking-tight drop-shadow-2xs"
-              style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+              className="text-4xl sm:text-5xl lg:text-6xl font-display italic text-[var(--primary)] font-medium tracking-tight drop-shadow-2xs leading-tight"
+              style={{ fontFamily: "var(--font-display, Georgia, 'Times New Roman', serif)" }}
             >
               {professionalName}
             </h1>
-            <p className="text-xs sm:text-sm font-extrabold tracking-[0.25em] text-slate-800 uppercase">
+            <p className="text-xs sm:text-sm font-heading font-bold tracking-[0.2em] text-slate-800 uppercase">
               {professionalTitle}
             </p>
           </div>
 
           {/* Subtítulo / Frase de Acolhimento */}
-          <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
+          <p className="text-sm sm:text-base text-slate-600 max-w-lg mx-auto leading-relaxed">
             {heroSubtitle}
           </p>
 
           {/* Botões de Ação Hero */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-sm pt-2">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 w-full max-w-md pt-2">
             <Link href="/agendar" className="w-full">
               <button
                 type="button"
-                className="w-full py-3.5 px-6 rounded-2xl font-bold text-xs uppercase tracking-wider text-white shadow-md hover:opacity-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3.5 px-6 rounded-2xl font-heading font-semibold text-xs sm:text-sm uppercase tracking-wider text-white shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
                 style={{ backgroundColor: site?.buttonColor || "var(--primary)" }}
               >
                 <Calendar className="h-4 w-4" />
@@ -280,7 +281,7 @@ export default async function HomePage() {
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-3 px-6 rounded-2xl font-semibold text-xs text-white bg-[#261E19] hover:bg-[#1A1410] shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3.5 px-6 rounded-2xl font-heading font-semibold text-xs sm:text-sm text-white bg-[#221B16] hover:bg-[#181310] shadow-sm hover:shadow-md hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <MessageCircle className="h-4 w-4 text-emerald-400" />
                 <span>Chamar no WhatsApp</span>
@@ -291,7 +292,7 @@ export default async function HomePage() {
           {/* Indicadores de Benefício Configuráveis (Fase 4/5) */}
           {activeBenefits.length > 0 && (
             <div
-              className={`grid gap-2 sm:gap-6 pt-6 w-full max-w-lg border-t border-slate-200/60 mt-4 ${
+              className={`grid gap-3 sm:gap-6 pt-8 w-full max-w-xl border-t border-slate-200/60 mt-6 ${
                 activeBenefits.length === 1
                   ? "grid-cols-1 max-w-xs"
                   : activeBenefits.length === 2
@@ -300,8 +301,8 @@ export default async function HomePage() {
               }`}
             >
               {activeBenefits.map((item) => (
-                <div key={item.id} className="flex flex-col items-center text-center space-y-1.5 p-2">
-                  <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center transition-colors shadow-2xs">
+                <div key={item.id} className="group flex flex-col items-center text-center space-y-2 p-2 rounded-xl transition-all">
+                  <div className="w-11 h-11 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center transition-transform group-hover:scale-105 shadow-2xs">
                     <ThemeIcon
                       iconName={item.icon}
                       customIconUrl={item.customIconUrl}
@@ -309,11 +310,11 @@ export default async function HomePage() {
                       alt={item.title}
                     />
                   </div>
-                  <span className="text-[10px] sm:text-xs font-extrabold uppercase tracking-tight text-slate-800 leading-tight">
+                  <span className="text-[11px] sm:text-xs font-heading font-bold uppercase tracking-tight text-slate-800 leading-tight">
                     {item.title}
                   </span>
                   {item.subtitle && (
-                    <span className="text-[9px] sm:text-[10px] text-slate-500 font-normal leading-tight line-clamp-2">
+                    <span className="text-[10px] sm:text-[11px] text-slate-500 font-normal leading-relaxed line-clamp-2">
                       {item.subtitle}
                     </span>
                   )}
@@ -325,7 +326,7 @@ export default async function HomePage() {
       </section>
 
       {/* Divisor Ondulado Orgânico 1 */}
-      <div className="w-full overflow-hidden leading-none text-[#FAF7F2] -mt-1">
+      <div className="w-full overflow-hidden leading-none text-[#FAF7F2] -mt-1" aria-hidden="true">
         <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-8 text-[#FAF7F2] fill-current">
           <path d="M0,0 C300,90 900,-30 1200,60 L1200,120 L0,120 Z" />
         </svg>
@@ -333,21 +334,21 @@ export default async function HomePage() {
 
       {/* ================= 2. PRINCIPAIS DEMANDAS & ATENDIMENTOS ================= */}
       <section id="atendimentos" className="py-16 px-4 bg-white scroll-mt-20">
-        <div className="max-w-3xl mx-auto space-y-8">
-          <div className="text-center space-y-2">
-            <span className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
+        <div className="max-w-4xl mx-auto space-y-10">
+          <div className="text-center space-y-2.5">
+            <span className="text-xs font-heading font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
               — Atendimentos —
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+            <h2 className="font-heading text-2xl sm:text-4xl font-bold tracking-tight text-slate-900">
               Principais Demandas
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
+            <p className="text-xs sm:text-base text-slate-600 max-w-lg mx-auto leading-relaxed">
               Acompanhamento psicológico para diferentes momentos e desafios da vida.
             </p>
           </div>
 
           {/* Cards de Demandas e Serviços Reais do PSI */}
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             {services.map((service, index) => {
               // Ícones temáticos para cada serviço com base na modalidade ou posição
               const icons = [Brain, Heart, Compass, Sparkles, User];
@@ -359,21 +360,19 @@ export default async function HomePage() {
                   href={`/agendar?serviceId=${service.id}`}
                   className="block group"
                 >
-                  <div className="p-4 rounded-2xl bg-[#FCFAF6] border border-slate-200/80 hover:border-[var(--primary)] hover:shadow-md transition-all flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-11 h-11 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                  <div className="p-4 sm:p-5 rounded-2xl bg-[#FCFAF6] border border-[#EFE9DF] hover:border-[var(--primary)] hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
                         <IconComponent className="h-5 w-5" />
                       </div>
                       <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-[var(--primary)] transition-colors truncate">
-                            {service.name}
-                          </h3>
-                        </div>
-                        <p className="text-[11px] sm:text-xs text-slate-500 line-clamp-1 mt-0.5">
+                        <h3 className="font-heading font-bold text-sm sm:text-base text-slate-900 group-hover:text-[var(--primary)] transition-colors truncate">
+                          {service.name}
+                        </h3>
+                        <p className="text-xs text-slate-500 line-clamp-1 mt-0.5 leading-relaxed">
                           {service.description || "Atendimento psicológico clínico personalizado e humanizado."}
                         </p>
-                        <div className="flex items-center gap-3 mt-1.5 text-[10px] text-slate-400 font-medium">
+                        <div className="flex flex-wrap items-center gap-2.5 mt-2 text-[11px] text-slate-400 font-medium">
                           <span className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
                             {service.durationMinutes} min
@@ -394,7 +393,7 @@ export default async function HomePage() {
                       </div>
                     </div>
 
-                    <div className="w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 group-hover:text-[var(--primary)] group-hover:border-[var(--primary)] shrink-0 transition-colors">
+                    <div className="w-8 h-8 rounded-full bg-white border border-[#EFE9DF] flex items-center justify-center text-slate-400 group-hover:text-white group-hover:bg-[var(--primary)] group-hover:border-[var(--primary)] shrink-0 transition-colors shadow-2xs">
                       <ChevronRight className="h-4 w-4" />
                     </div>
                   </div>
@@ -405,7 +404,7 @@ export default async function HomePage() {
 
           <div className="text-center pt-2">
             <Link href="/agendar">
-              <span className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-full bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 text-[var(--primary)] font-bold text-xs transition-colors cursor-pointer">
+              <span className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 text-[var(--primary)] font-heading font-semibold text-xs transition-all hover:gap-2.5 cursor-pointer shadow-2xs">
                 <span>Ver todas as demandas & agendar</span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </span>
@@ -417,10 +416,10 @@ export default async function HomePage() {
       {/* ================= 3. SOBRE MIM (Referência Visual) ================= */}
       <section id="sobre" className="py-16 px-4 bg-[#F8F5EE] border-y border-slate-200/60 scroll-mt-20">
         <div className="max-w-4xl mx-auto">
-          <div className="p-6 sm:p-10 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-center gap-8">
+          <div className="p-6 sm:p-10 rounded-3xl bg-white border border-[#EFE9DF] shadow-xs flex flex-col md:flex-row items-center gap-8 lg:gap-10">
             {/* MEDIA SLOT 2: Ambiente do Consultório / Segundo Retrato Independente */}
             <div className="w-full md:w-5/12 shrink-0">
-              <div className="w-full aspect-4/3 rounded-2xl border border-slate-200 overflow-hidden relative shadow-inner bg-gradient-to-tr from-[#EBE3D5] to-[#F5EFEB]">
+              <div className="w-full aspect-4/3 rounded-2xl border border-[#EFE9DF] overflow-hidden relative shadow-inner bg-gradient-to-tr from-[#EBE3D5] to-[#F5EFEB]">
                 <MiniSiteMediaPlayer
                   slot="about"
                   mediaType={aboutMediaType}
@@ -442,10 +441,10 @@ export default async function HomePage() {
             {/* Conteúdo Biográfico */}
             <div className="w-full md:w-7/12 space-y-4">
               <div className="space-y-1">
-                <span className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--primary)]">
+                <span className="text-xs font-heading font-bold uppercase tracking-[0.2em] text-[var(--primary)]">
                   Trajetória Profissional
                 </span>
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                <h2 className="font-heading text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
                   Sobre Mim
                 </h2>
               </div>
@@ -456,7 +455,7 @@ export default async function HomePage() {
 
               <div className="pt-2 flex flex-wrap items-center gap-3">
                 <Link href="/agendar">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--primary)] hover:underline">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-heading font-bold text-[var(--primary)] hover:underline">
                     <span>Conheça minha história & agende uma sessão</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </span>
@@ -469,72 +468,72 @@ export default async function HomePage() {
 
       {/* ================= 4. DIFERENCIAIS (Referência Visual) ================= */}
       <section id="diferenciais" className="py-16 px-4 bg-white scroll-mt-20">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <div className="text-center space-y-2">
-            <span className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
+        <div className="max-w-4xl mx-auto space-y-10">
+          <div className="text-center space-y-2.5">
+            <span className="text-xs font-heading font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
               — Diferenciais —
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+            <h2 className="font-heading text-2xl sm:text-4xl font-bold tracking-tight text-slate-900">
               Por que escolher meu atendimento?
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {/* Card 1 */}
-            <div className="p-5 rounded-2xl bg-[#FCFAF6] border border-slate-200/80 flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+            <div className="p-5 sm:p-6 rounded-2xl bg-[#FCFAF6] border border-[#EFE9DF] hover:border-[var(--primary)]/50 hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-start gap-4">
+              <div className="w-11 h-11 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 shadow-2xs">
                 <Heart className="h-5 w-5" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                <h4 className="font-heading font-bold text-sm text-slate-900">
                   Escuta Ativa e Acolhedora
                 </h4>
-                <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">
+                <p className="text-xs text-slate-600 leading-relaxed">
                   Espaço ético, seguro e livre de julgamentos, centrado na sua singularidade e no seu tempo.
                 </p>
               </div>
             </div>
 
             {/* Card 2 */}
-            <div className="p-5 rounded-2xl bg-[#FCFAF6] border border-slate-200/80 flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+            <div className="p-5 sm:p-6 rounded-2xl bg-[#FCFAF6] border border-[#EFE9DF] hover:border-[var(--primary)]/50 hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-start gap-4">
+              <div className="w-11 h-11 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 shadow-2xs">
                 <Target className="h-5 w-5" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                <h4 className="font-heading font-bold text-sm text-slate-900">
                   Plano Terapêutico Personalizado
                 </h4>
-                <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">
+                <p className="text-xs text-slate-600 leading-relaxed">
                   Intervenções e metodologias baseadas em evidências científicas, alinhadas aos seus objetivos.
                 </p>
               </div>
             </div>
 
             {/* Card 3 */}
-            <div className="p-5 rounded-2xl bg-[#FCFAF6] border border-slate-200/80 flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+            <div className="p-5 sm:p-6 rounded-2xl bg-[#FCFAF6] border border-[#EFE9DF] hover:border-[var(--primary)]/50 hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-start gap-4">
+              <div className="w-11 h-11 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 shadow-2xs">
                 <Clock className="h-5 w-5" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                <h4 className="font-heading font-bold text-sm text-slate-900">
                   Horários Flexíveis
                 </h4>
-                <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">
+                <p className="text-xs text-slate-600 leading-relaxed">
                   Grade de atendimento com ampla disponibilidade para harmonizar a terapia à sua rotina diária.
                 </p>
               </div>
             </div>
 
             {/* Card 4 */}
-            <div className="p-5 rounded-2xl bg-[#FCFAF6] border border-slate-200/80 flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+            <div className="p-5 sm:p-6 rounded-2xl bg-[#FCFAF6] border border-[#EFE9DF] hover:border-[var(--primary)]/50 hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-start gap-4">
+              <div className="w-11 h-11 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 shadow-2xs">
                 <Video className="h-5 w-5" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                <h4 className="font-heading font-bold text-sm text-slate-900">
                   Atendimento Presencial e Online
                 </h4>
-                <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">
+                <p className="text-xs text-slate-600 leading-relaxed">
                   Flexibilidade para consultar no consultório físico ou por teleconsulta criptografada de onde estiver.
                 </p>
               </div>
@@ -545,54 +544,57 @@ export default async function HomePage() {
 
       {/* ================= 5. COMO FUNCIONA (Referência Visual) ================= */}
       <section id="como-funciona" className="py-16 px-4 bg-[#F8F5EE] scroll-mt-20">
-        <div className="max-w-3xl mx-auto">
-          <div className="p-6 sm:p-10 rounded-3xl bg-white border border-slate-200/80 space-y-8 shadow-xs">
-            <div className="text-center space-y-1">
-              <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
+        <div className="max-w-4xl mx-auto">
+          <div className="p-6 sm:p-10 rounded-3xl bg-white border border-[#EFE9DF] shadow-xs space-y-8">
+            <div className="text-center space-y-2">
+              <span className="text-xs font-heading font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
+                — Passo a Passo —
+              </span>
+              <h2 className="font-heading text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
                 Como Funciona?
               </h2>
-              <p className="text-xs text-slate-500">
-                Três etapas simples para dar início ao seu acompanhamento
+              <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
+                Processo simplificado, acolhedor e transparente do agendamento à sua evolução clínica.
               </p>
             </div>
 
             {/* 3 Passos Conectados */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
               {/* Passo 1 */}
-              <div className="flex flex-col items-center text-center space-y-2.5 p-3">
-                <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold">
+              <div className="flex flex-col items-center text-center space-y-2.5 p-3 rounded-2xl hover:bg-[#FAF8F5] transition-colors">
+                <div className="w-13 h-13 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold shadow-2xs">
                   <Calendar className="h-6 w-6" />
                 </div>
-                <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                <h4 className="font-heading font-bold text-sm text-slate-900">
                   1. Agende sua consulta
                 </h4>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
+                <p className="text-xs text-slate-500 leading-relaxed">
                   Escolha o horário e modalidade ideal diretamente pelo nosso sistema online.
                 </p>
               </div>
 
               {/* Passo 2 */}
-              <div className="flex flex-col items-center text-center space-y-2.5 p-3">
-                <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold">
+              <div className="flex flex-col items-center text-center space-y-2.5 p-3 rounded-2xl hover:bg-[#FAF8F5] transition-colors">
+                <div className="w-13 h-13 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold shadow-2xs">
                   <ClipboardCheck className="h-6 w-6" />
                 </div>
-                <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                <h4 className="font-heading font-bold text-sm text-slate-900">
                   2. Realize sua avaliação inicial
                 </h4>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
+                <p className="text-xs text-slate-500 leading-relaxed">
                   Primeiro encontro para compreender suas necessidades e alinhar o plano terapêutico.
                 </p>
               </div>
 
               {/* Passo 3 */}
-              <div className="flex flex-col items-center text-center space-y-2.5 p-3">
-                <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold">
+              <div className="flex flex-col items-center text-center space-y-2.5 p-3 rounded-2xl hover:bg-[#FAF8F5] transition-colors">
+                <div className="w-13 h-13 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold shadow-2xs">
                   <HeartHandshake className="h-6 w-6" />
                 </div>
-                <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                <h4 className="font-heading font-bold text-sm text-slate-900">
                   3. Inicie seu acompanhamento
                 </h4>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
+                <p className="text-xs text-slate-500 leading-relaxed">
                   Sessões contínuas dedicadas ao autoconhecimento, regulação emocional e bem-estar.
                 </p>
               </div>
@@ -600,7 +602,7 @@ export default async function HomePage() {
 
             <div className="text-center pt-2">
               <Link href="/agendar">
-                <Button size="lg" className="text-xs px-8 py-3 rounded-2xl font-bold shadow-xs">
+                <Button size="lg" className="text-xs sm:text-sm px-8 py-3 rounded-2xl font-heading font-semibold shadow-xs">
                   <span>Iniciar Agendamento Online</span>
                   <ArrowRight className="h-4 w-4 ml-1.5" />
                 </Button>
@@ -611,29 +613,29 @@ export default async function HomePage() {
       </section>
 
       {/* ================= 6. DEPOIMENTOS (Referência Visual & Ética) ================= */}
-      <section className="py-16 px-4 bg-white">
-        <div className="max-w-2xl mx-auto space-y-6 text-center">
-          <div className="space-y-1.5">
-            <span className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
+      <section className="py-16 sm:py-20 px-4 bg-white">
+        <div className="max-w-2xl mx-auto space-y-8 text-center">
+          <div className="space-y-2">
+            <span className="text-xs font-heading font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
               — Depoimentos —
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+            <h2 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
               O que meus pacientes dizem
             </h2>
           </div>
 
           {/* Card de Depoimento Autorizado & Conformidade Ética CFP */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-[#FCFAF6] border border-slate-200/80 shadow-xs space-y-4 text-left">
+          <div className="p-6 sm:p-8 rounded-3xl bg-[#FCFAF6] border border-[#EFE9DF] shadow-xs space-y-4 text-left relative overflow-hidden">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/15 text-[var(--primary)] font-bold flex items-center justify-center text-base shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/15 text-[var(--primary)] font-heading font-bold flex items-center justify-center text-base shrink-0 shadow-2xs">
                 A
               </div>
-              <div className="space-y-1 flex-1">
+              <div className="space-y-1.5 flex-1">
                 <p className="text-xs sm:text-sm text-slate-700 italic leading-relaxed">
                   &quot;O processo terapêutico tem sido transformador. A escuta atenciosa e as orientações práticas me ajudaram a lidar com a ansiedade e a retomar a clareza nas decisões da minha vida.&quot;
                 </p>
                 <div className="flex items-center justify-between pt-2">
-                  <span className="font-bold text-xs text-[var(--primary)]">
+                  <span className="font-heading font-bold text-xs text-[var(--primary)]">
                     Ana R. (Paciente em Acompanhamento)
                   </span>
                   <div className="flex items-center text-amber-400 gap-0.5">
@@ -645,7 +647,7 @@ export default async function HomePage() {
               </div>
             </div>
 
-            <div className="border-t border-slate-200/60 pt-3 text-[10px] text-slate-400 flex items-center gap-1.5">
+            <div className="border-t border-[#EFE9DF] pt-3 text-[10px] text-slate-400 flex items-center gap-1.5">
               <Lock className="h-3 w-3 shrink-0" />
               <span>
                 Depoimento publicado sob consentimento livre e esclarecido, em conformidade com o Código de Ética Profissional (CFP).
@@ -657,13 +659,13 @@ export default async function HomePage() {
 
       {/* ================= 7. LOCALIZAÇÃO DO CONSULTÓRIO (Fase 4/5: Opcional e Configurável) ================= */}
       {shouldShowLocation && (
-        <section id="localizacao" className="py-16 px-4 bg-[#F8F5EE] border-t border-slate-200/60 scroll-mt-20">
+        <section id="localizacao" className="py-16 sm:py-20 px-4 bg-[#F8F5EE] border-t border-slate-200/60 scroll-mt-20">
           <div className="max-w-4xl mx-auto space-y-8">
             <div className="text-center space-y-2">
-              <span className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
+              <span className="text-xs font-heading font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
                 — Atendimento Presencial —
               </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+              <h2 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
                 Localização do Consultório
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
@@ -673,14 +675,14 @@ export default async function HomePage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
               {/* Informações de Endereço e Contato */}
-              <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col justify-between space-y-4">
+              <div className="p-6 rounded-3xl bg-white border border-[#EFE9DF] shadow-xs flex flex-col justify-between space-y-4">
                 <div className="space-y-4">
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-3.5">
                     <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
                       <MapPin className="h-5 w-5" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                      <h4 className="font-heading font-bold text-xs sm:text-sm text-slate-900">
                         Endereço Oficial
                       </h4>
                       <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
@@ -689,12 +691,12 @@ export default async function HomePage() {
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-3.5">
                     <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
                       <Phone className="h-5 w-5" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                      <h4 className="font-heading font-bold text-xs sm:text-sm text-slate-900">
                         Telefone & WhatsApp
                       </h4>
                       <p className="text-xs text-slate-600 mt-0.5">
@@ -703,12 +705,12 @@ export default async function HomePage() {
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-3.5">
                     <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
                       <Mail className="h-5 w-5" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-xs sm:text-sm text-slate-900">
+                      <h4 className="font-heading font-bold text-xs sm:text-sm text-slate-900">
                         E-mail Institucional
                       </h4>
                       <p className="text-xs text-slate-600 mt-0.5">
@@ -723,7 +725,7 @@ export default async function HomePage() {
                     href={mapsDestinationUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                    className="inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-heading font-semibold shadow-xs transition-colors"
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
                     <span>Como Chegar via Google Maps</span>
@@ -732,7 +734,7 @@ export default async function HomePage() {
               </div>
 
               {/* Container de Mapa Interativo (Embed Seguro ou Card Informativo) */}
-              <div className="p-2 sm:p-3 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col items-center justify-center text-center overflow-hidden min-h-[280px]">
+              <div className="p-2 sm:p-3 rounded-3xl bg-white border border-[#EFE9DF] shadow-xs flex flex-col items-center justify-center text-center overflow-hidden min-h-[280px]">
                 {mapsEmbedSrc ? (
                   <iframe
                     src={mapsEmbedSrc}
@@ -750,10 +752,10 @@ export default async function HomePage() {
                       <MapPin className="h-6 w-6" />
                     </div>
                     <div className="space-y-1">
-                      <h4 className="font-bold text-xs sm:text-sm text-slate-800">
+                      <h4 className="font-heading font-bold text-xs sm:text-sm text-slate-800">
                         Mapa Interativo do Consultório
                       </h4>
-                      <p className="text-[11px] text-slate-500 max-w-xs">
+                      <p className="text-[11px] text-slate-500 max-w-xs leading-relaxed">
                         Próximo a transporte público, pontos de referência e fácil acesso.
                       </p>
                     </div>
@@ -762,7 +764,7 @@ export default async function HomePage() {
                         href={mapsDestinationUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs font-bold text-[var(--primary)] hover:underline inline-flex items-center gap-1"
+                        className="text-xs font-heading font-bold text-[var(--primary)] hover:underline inline-flex items-center gap-1"
                       >
                         <span>Abrir visualização no Google Maps</span>
                         <ArrowRight className="h-3 w-3" />
@@ -777,31 +779,34 @@ export default async function HomePage() {
       )}
 
       {/* ================= 8. FINAL CTA (Referência Visual: Banner Destaque) ================= */}
-      <section className="py-12 px-4 bg-white">
-        <div className="max-w-3xl mx-auto">
+      <section className="py-14 sm:py-16 px-4 bg-white">
+        <div className="max-w-4xl mx-auto">
           <div
-            className="p-6 sm:p-8 rounded-3xl text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-6"
+            className="p-8 sm:p-10 rounded-3xl text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden"
             style={{ backgroundColor: site?.buttonColor || "var(--primary)" }}
           >
-            <div className="flex items-center gap-4 text-center sm:text-left">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
-                <Calendar className="h-6 w-6 text-white" />
+            {/* Brilho decorativo sutil */}
+            <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-white/10 blur-xl pointer-events-none" aria-hidden="true" />
+
+            <div className="flex items-center gap-4 text-center sm:text-left relative z-10">
+              <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0 shadow-xs">
+                <Calendar className="h-7 w-7 text-white" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-xl sm:text-2xl font-bold tracking-tight">
+                <h3 className="font-heading text-xl sm:text-2xl font-bold tracking-tight">
                   Agende sua consulta agora
                 </h3>
-                <p className="text-xs sm:text-sm text-white/90">
+                <p className="text-xs sm:text-sm text-white/90 leading-relaxed">
                   Dê o primeiro passo para o seu bem-estar emocional.
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto relative z-10">
               <Link href="/agendar" className="shrink-0 w-full sm:w-auto">
                 <button
                   type="button"
-                  className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-white text-slate-900 font-bold text-xs uppercase tracking-wider shadow-md hover:bg-slate-50 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-white text-slate-900 font-heading font-bold text-xs uppercase tracking-wider shadow-md hover:bg-slate-50 hover:shadow-lg active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
                   <span>Agendar Consulta</span>
                   <ArrowRight className="h-3.5 w-3.5" />
@@ -813,7 +818,7 @@ export default async function HomePage() {
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-[#261E19]/80 hover:bg-[#261E19] text-white font-semibold text-xs tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-[#221B16]/90 hover:bg-[#221B16] text-white font-heading font-semibold text-xs tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-[0.98]"
                 >
                   <MessageCircle className="h-4 w-4 text-emerald-400" />
                   <span>WhatsApp</span>
@@ -825,16 +830,16 @@ export default async function HomePage() {
       </section>
 
       {/* ================= 9. FOOTER & NAVEGAÇÃO INFERIOR ================= */}
-      <footer id="contato" className="border-t border-slate-200 bg-[#F8F5EE] py-12 px-4 text-xs text-slate-600">
+      <footer id="contato" className="border-t border-[#EFE9DF] bg-[#F8F5EE] py-14 px-4 text-xs text-slate-600">
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Barra de Navegação Inferior (Referência Visual do Rodapé) */}
-          <div className="flex flex-wrap justify-center items-center gap-3 py-4 border-b border-slate-200/80 text-center font-semibold text-xs text-slate-700">
+          <div className="flex flex-wrap justify-center items-center gap-3 py-4 border-b border-[#EFE9DF] text-center font-heading font-semibold text-xs text-slate-700">
             {whatsappUrl && (
               <a
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 p-2 rounded-xl hover:bg-white transition-colors"
+                className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl hover:bg-white hover:shadow-2xs transition-all"
               >
                 <MessageCircle className="h-4 w-4 text-[var(--primary)]" />
                 <span>WhatsApp</span>
@@ -843,7 +848,7 @@ export default async function HomePage() {
             {shouldShowLocation && (
               <a
                 href="#localizacao"
-                className="flex items-center justify-center gap-1.5 p-2 rounded-xl hover:bg-white transition-colors"
+                className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl hover:bg-white hover:shadow-2xs transition-all"
               >
                 <MapPin className="h-4 w-4 text-[var(--primary)]" />
                 <span>Localização</span>
@@ -851,7 +856,7 @@ export default async function HomePage() {
             )}
             <a
               href="#contato"
-              className="flex items-center justify-center gap-1.5 p-2 rounded-xl hover:bg-white transition-colors"
+              className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl hover:bg-white hover:shadow-2xs transition-all"
             >
               <Mail className="h-4 w-4 text-[var(--primary)]" />
               <span>Contato</span>
@@ -861,7 +866,7 @@ export default async function HomePage() {
                 href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 p-2 rounded-xl hover:bg-white transition-colors"
+                className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl hover:bg-white hover:shadow-2xs transition-all"
               >
                 <svg
                   className="h-4 w-4 text-[var(--primary)]"
@@ -882,18 +887,18 @@ export default async function HomePage() {
           </div>
 
           {/* Dados do Consultório e Ética */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left text-slate-500">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left text-slate-500">
             <div className="space-y-1">
-              <p className="font-bold text-slate-800 text-sm">{clinicName}</p>
+              <p className="font-heading font-bold text-slate-800 text-sm">{clinicName}</p>
               <p className="text-[11px]">
                 {professionalName} • {crpCrm}
               </p>
-              <p className="text-[10px] text-slate-400">
+              <p className="text-[10px] text-slate-400 max-w-md leading-relaxed">
                 Atendimento clínico respaldado pelos preceitos éticos do Conselho Federal de Psicologia.
               </p>
             </div>
 
-            <div className="flex flex-wrap justify-center sm:justify-end gap-4 text-xs">
+            <div className="flex flex-wrap justify-center sm:justify-end gap-4 text-xs font-medium">
               <Link href="/privacidade" className="hover:text-[var(--primary)] hover:underline">
                 Privacidade
               </Link>
@@ -909,7 +914,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-200/60 text-center text-[10px] text-slate-400">
+          <div className="pt-4 border-t border-[#EFE9DF] text-center text-[10px] text-slate-400">
             &copy; {new Date().getFullYear()} {clinicName}. Todos os direitos reservados. Software de Gestão Clínica PSI — Instalação Standalone Dedicada.
           </div>
         </div>
