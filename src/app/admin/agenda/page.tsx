@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { formatTime, formatDate, getDayOfWeekName } from "@/lib/utils";
+import { formatTime, formatDate, getDayOfWeekName, formatAppointmentStatus } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -602,7 +602,7 @@ export default function AdminAgendaPage() {
                                         : "bg-red-500/10 text-red-700 dark:text-red-300 border border-red-500/20"
                                     }`}
                                   >
-                                    {appt.status}
+                                    {formatAppointmentStatus(appt.status)}
                                   </span>
                                 </div>
                               </div>
@@ -722,7 +722,7 @@ export default function AdminAgendaPage() {
                                   : "warning"
                               }
                             >
-                              {appt.status}
+                              {formatAppointmentStatus(appt.status)}
                             </Badge>
 
                             {appt.modality !== "PRESENTIAL" && appt.meetingUrlSnapshot && (
@@ -796,7 +796,7 @@ export default function AdminAgendaPage() {
                                 : "warning"
                             }
                           >
-                            {appt.status}
+                            {formatAppointmentStatus(appt.status)}
                           </Badge>
                         </div>
                       </div>
@@ -963,7 +963,7 @@ export default function AdminAgendaPage() {
               <div>
                 <span className="text-xs text-[#6B7280] dark:text-[#A3A3AD] block">Status Atual:</span>
                 <Badge variant={selectedAppt.status === "CONFIRMED" ? "success" : "default"}>
-                  {selectedAppt.status}
+                  {formatAppointmentStatus(selectedAppt.status)}
                 </Badge>
               </div>
             </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatBackupStatus } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -171,7 +171,7 @@ export default function AdminStoragePage() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Badge variant="success">{b.status}</Badge>
+                    <Badge variant="success">{formatBackupStatus(b.status)}</Badge>
                   </div>
                 </div>
               ))}

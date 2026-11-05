@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { formatBRL, formatDate, formatTime } from "@/lib/utils";
+import { formatBRL, formatDate, formatTime, formatPackageStatus } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -204,7 +204,7 @@ export default function AdminPackagesPage() {
                           : "destructive"
                       }
                     >
-                      {pkg.status}
+                      {formatPackageStatus(pkg.status)}
                     </Badge>
                   </div>
                   <CardDescription className="text-xs mt-1">

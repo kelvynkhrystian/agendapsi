@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { formatDate, formatTime } from "@/lib/utils";
+import { formatDate, formatTime, formatAppointmentStatus } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -166,7 +166,7 @@ export default function PatientAppointmentsPage() {
                 Seu Próximo Atendimento
               </span>
               <Badge variant={nextAppointment.status === "CONFIRMED" ? "success" : "warning"}>
-                {nextAppointment.status}
+                {formatAppointmentStatus(nextAppointment.status)}
               </Badge>
             </div>
             <CardTitle className="text-lg sm:text-xl font-bold mt-2">
@@ -270,7 +270,7 @@ export default function PatientAppointmentsPage() {
                         </CardDescription>
                       </div>
                       <Badge variant={appt.status === "CONFIRMED" ? "success" : "warning"}>
-                        {appt.status}
+                        {formatAppointmentStatus(appt.status)}
                       </Badge>
                     </CardHeader>
 
@@ -437,7 +437,7 @@ export default function PatientAppointmentsPage() {
                         : "destructive"
                     }
                   >
-                    {appt.status}
+                    {formatAppointmentStatus(appt.status)}
                   </Badge>
                 </div>
               </div>

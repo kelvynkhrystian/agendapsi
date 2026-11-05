@@ -83,3 +83,7 @@ export function maskCPF(cpf?: string | null): string {
   if (cleaned.length !== 11) return cpf;
   return `${cleaned.slice(0, 3)}.***.***-${cleaned.slice(9)}`;
 }
+
+// Re-exporta helpers centralizados de tradução e localização pt-BR
+export * from "./translations";
+

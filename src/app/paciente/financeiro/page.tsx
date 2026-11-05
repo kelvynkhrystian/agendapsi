@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { formatBRL, formatDate, formatTime } from "@/lib/utils";
+import { formatBRL, formatDate, formatTime, formatPaymentStatus, formatPaymentMethod } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -190,7 +190,7 @@ export default function PatientFinancePage() {
                       {p.appointment ? p.appointment.service.name : p.package ? p.package.title : "Consulta"}
                     </span>
                     <span className="text-slate-500">
-                      {formatDate(p.createdAt)} • {p.method.replace("_", " ")}
+                      {formatDate(p.createdAt)} • {formatPaymentMethod(p.method)}
                     </span>
                   </div>
 
@@ -199,7 +199,7 @@ export default function PatientFinancePage() {
                       {formatBRL(p.amountCents)}
                     </span>
                     <Badge variant={p.status === "APPROVED" ? "success" : "warning"}>
-                      {p.status}
+                      {formatPaymentStatus(p.status)}
                     </Badge>
                   </div>
                 </div>

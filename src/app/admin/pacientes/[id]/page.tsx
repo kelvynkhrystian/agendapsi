@@ -2,7 +2,15 @@
 
 import React, { useEffect, useState, use } from "react";
 import Link from "next/link";
-import { formatDate, formatTime, formatBRL } from "@/lib/utils";
+import {
+  formatDate,
+  formatTime,
+  formatBRL,
+  formatAppointmentStatus,
+  formatModality,
+  formatPaymentStatus,
+  formatPaymentMethod,
+} from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -989,7 +997,7 @@ export default function AdminPatientDetailPage({
                         {formatDate(appt.startAt)} às {formatTime(appt.startAt)}
                       </span>
                       <span className="text-slate-500">
-                        {appt.service.name} • {appt.modality}
+                        {appt.service.name} • {formatModality(appt.modality)}
                       </span>
                     </div>
                     <Badge
@@ -1001,7 +1009,7 @@ export default function AdminPatientDetailPage({
                           : "destructive"
                       }
                     >
-                      {appt.status}
+                      {formatAppointmentStatus(appt.status)}
                     </Badge>
                   </div>
                 ))}
@@ -1175,13 +1183,13 @@ export default function AdminPatientDetailPage({
                         {formatBRL(p.amountCents)}
                       </span>
                       <span className="text-slate-500">
-                        {p.method} • {formatDate(p.createdAt)}
+                        {formatPaymentMethod(p.method)} • {formatDate(p.createdAt)}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       {p.isSimulated && <Badge variant="simulated">Simulado</Badge>}
                       <Badge variant={p.status === "APPROVED" ? "success" : "warning"}>
-                        {p.status}
+                        {formatPaymentStatus(p.status)}
                       </Badge>
                     </div>
                   </div>

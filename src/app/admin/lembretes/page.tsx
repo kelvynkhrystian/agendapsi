@@ -213,7 +213,7 @@ export default function AdminRemindersPage() {
             <CardHeader>
               <CardTitle className="text-base">Editar Mensagem do Evento</CardTitle>
               <CardDescription className="text-xs">
-                Evento: <code>{selectedEventType}</code>
+                Disparo: <strong>{templates.find((t) => t.eventType === selectedEventType)?.title || selectedEventType}</strong>
               </CardDescription>
             </CardHeader>
 

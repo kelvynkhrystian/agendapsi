@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { formatBRL, formatDate, formatTime } from "@/lib/utils";
+import { formatBRL, formatDate, formatTime, formatPaymentStatus, formatPaymentMethod } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -277,7 +277,7 @@ export default function AdminFinancePage() {
                       </td>
 
                       <td className="p-3.5">
-                        <span className="capitalize">{p.method.replace("_", " ")}</span>
+                        <span>{formatPaymentMethod(p.method)}</span>
                         {p.isSimulated && (
                           <Badge variant="simulated" className="ml-1.5 text-[9px]">
                             Simulado
@@ -297,7 +297,7 @@ export default function AdminFinancePage() {
                               : "destructive"
                           }
                         >
-                          {p.status}
+                          {formatPaymentStatus(p.status)}
                         </Badge>
                       </td>
 
@@ -352,7 +352,7 @@ export default function AdminFinancePage() {
         >
           <form onSubmit={handleProcessRefund} className="space-y-4 text-xs">
             <Alert variant="warning" title="Atenção ao Estorno">
-              Esta ação registrará o cancelamento financeiro e atualizará o status do pagamento para REFUNDED.
+              Esta ação registrará o cancelamento financeiro e atualizará o status do pagamento para Estornado.
             </Alert>
 
             <Input

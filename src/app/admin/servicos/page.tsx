@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { formatBRL } from "@/lib/utils";
+import { formatBRL, formatModality, formatConfirmationPolicy } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -212,7 +212,7 @@ export default function AdminServicesPage() {
                     <span>Intervalo (Buffer): <strong>{service.bufferMinutes} min</strong></span>
                   </div>
                   <div>
-                    <span>Modalidade: <strong>{service.modality}</strong></span>
+                    <span>Modalidade: <strong>{formatModality(service.modality)}</strong></span>
                   </div>
                   <div>
                     <span>Cancelamento: <strong>{service.cancellationNoticeDays} dias</strong></span>
@@ -221,7 +221,7 @@ export default function AdminServicesPage() {
 
                 <div className="flex items-center justify-between pt-1">
                   <span className="text-[11px] text-slate-500">
-                    Confirmação: <strong>{service.confirmationPolicy}</strong>
+                    Confirmação: <strong>{formatConfirmationPolicy(service.confirmationPolicy)}</strong>
                   </span>
 
                   <div className="flex items-center gap-2">

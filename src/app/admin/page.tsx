@@ -2,7 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { formatBRL, formatTime, formatDate } from "@/lib/utils";
+import {
+  formatBRL,
+  formatTime,
+  formatDate,
+  formatActivityAction,
+  formatAppointmentStatus,
+} from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -338,7 +344,7 @@ export default function AdminDashboardPage() {
                                 : "warning"
                             }
                           >
-                            {appt.status}
+                            {formatAppointmentStatus(appt.status)}
                           </Badge>
 
                           {appt.modality !== "PRESENTIAL" && appt.meetingUrlSnapshot && (
@@ -507,7 +513,7 @@ export default function AdminDashboardPage() {
                       <div className="h-2 w-2 rounded-full bg-[var(--primary)] mt-1.5 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-[#111827] dark:text-[#F5F5F5] truncate">
-                          {act.action}
+                          {formatActivityAction(act.action)}
                         </p>
                         <p className="text-[#6B7280] dark:text-[#A3A3AD] text-[10px]">
                           {formatDate(act.createdAt)} às {formatTime(act.createdAt)}
