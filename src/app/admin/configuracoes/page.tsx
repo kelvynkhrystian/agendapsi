@@ -31,14 +31,6 @@ import {
   Calendar,
 } from "lucide-react";
 
-interface NotificationTemplate {
-  id: string;
-  eventType: string;
-  title: string;
-  body: string;
-  deliveryMode: "APP_ONLY" | "APP_EMAIL" | "ALL_CHANNELS";
-}
-
 interface VideoProviderItem {
   key: "JITSI" | "PEERJS" | "GOOGLE_MEET";
   name: string;
@@ -51,17 +43,8 @@ interface VideoProviderItem {
 
 export default function AdminSettingsPage() {
   const [activeTab, setActiveTab] = useState<
-    "general" | "notifications" | "appearance" | "video" | "security"
-  >("notifications");
-
-  // Notifications State (Task 6)
-  const [templates, setTemplates] = useState<NotificationTemplate[]>([]);
-  const [selectedEventType, setSelectedEventType] = useState<string>("");
-  const [editedTitle, setEditedTitle] = useState("");
-  const [editedBody, setEditedBody] = useState("");
-  const [editedMode, setEditedMode] = useState<"APP_ONLY" | "APP_EMAIL" | "ALL_CHANNELS">("APP_ONLY");
-  const [isSavingTemplate, setIsSavingTemplate] = useState(false);
-  const [templateFeedback, setTemplateFeedback] = useState<string | null>(null);
+    "appearance" | "video" | "general" | "security"
+  >("appearance");
 
   // Appearance State (Task 8)
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -129,23 +112,10 @@ export default function AdminSettingsPage() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [tplRes, appRes, vidRes] = await Promise.all([
-        fetch("/api/admin/notification-templates"),
+      const [appRes, vidRes] = await Promise.all([
         fetch("/api/admin/appearance"),
         fetch("/api/admin/video-providers"),
       ]);
-
-      if (tplRes.ok) {
-        const tplData: NotificationTemplate[] = await tplRes.json();
-        setTemplates(tplData);
-        if (tplData.length > 0 && !selectedEventType) {
-          const first = tplData[0];
-          setSelectedEventType(first.eventType);
-          setEditedTitle(first.title);
-          setEditedBody(first.body);
-          setEditedMode(first.deliveryMode);
-        }
-      }
 
       if (appRes.ok) {
         const appData = await appRes.json();
@@ -204,76 +174,6 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     loadData();
   }, []);
-
-  // Seleciona template diferente
-  const handleSelectTemplate = (evt: string) => {
-    setSelectedEventType(evt);
-    const found = templates.find((t) => t.eventType === evt);
-    if (found) {
-      setEditedTitle(found.title);
-      setEditedBody(found.body);
-      setEditedMode(found.deliveryMode);
-    }
-    setTemplateFeedback(null);
-  };
-
-  // Salva template
-  const handleSaveTemplate = async () => {
-    if (!selectedEventType) return;
-    setIsSavingTemplate(true);
-    setTemplateFeedback(null);
-
-    try {
-      const res = await fetch(`/api/admin/notification-templates/${selectedEventType}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: editedTitle,
-          body: editedBody,
-          deliveryMode: editedMode,
-        }),
-      });
-
-      if (res.ok) {
-        setTemplates((prev) =>
-          prev.map((t) =>
-            t.eventType === selectedEventType
-              ? { ...t, title: editedTitle, body: editedBody, deliveryMode: editedMode }
-              : t
-          )
-        );
-        setTemplateFeedback("Template de mensagem atualizado com sucesso!");
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsSavingTemplate(false);
-    }
-  };
-
-  // Restaura template padrão
-  const handleRestoreTemplateDefault = async () => {
-    if (!selectedEventType) return;
-    setIsSavingTemplate(true);
-    try {
-      const res = await fetch("/api/admin/notification-templates/restore-default", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ eventType: selectedEventType }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setEditedTitle(data.template.title);
-        setEditedBody(data.template.body);
-        setEditedMode(data.template.deliveryMode);
-        setTemplateFeedback("Template restaurado para o padrão do sistema.");
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsSavingTemplate(false);
-    }
-  };
 
   // Upload de Asset de Aparência
   const handleUploadAsset = async (assetType: "logo" | "logoHorizontal" | "favicon", file: File) => {
@@ -531,50 +431,17 @@ export default function AdminSettingsPage() {
     return <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />;
   }
 
-  // Gera prévia do texto substituindo variáveis de exemplo
-  const previewTitle = editedTitle
-    .replace("{nome_paciente}", "Carlos Eduardo")
-    .replace("{nome_profissional}", "Dr(a). Silva")
-    .replace("{servico}", "Psicoterapia Individual")
-    .replace("{data}", "10/11/2026")
-    .replace("{hora}", "14:30")
-    .replace("{valor}", "R$ 180,00")
-    .replace("{local}", "Sala Virtual Segura")
-    .replace("{link_consulta}", "https://consultorio.psi.br/consulta-virtual/demo");
-
-  const previewBody = editedBody
-    .replace("{nome_paciente}", "Carlos Eduardo")
-    .replace("{nome_profissional}", "Dr(a). Silva")
-    .replace("{servico}", "Psicoterapia Individual")
-    .replace("{data}", "10/11/2026")
-    .replace("{hora}", "14:30")
-    .replace("{valor}", "R$ 180,00")
-    .replace("{local}", "Sala Virtual Segura")
-    .replace("{link_consulta}", "https://consultorio.psi.br/consulta-virtual/demo");
-
   return (
     <div className="space-y-6 max-w-5xl">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Configurações do Consultório</h1>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Personalize mensagens de notificação, identidade visual da clínica, teleconsulta e políticas operacionais.
+          Personalize a identidade visual da clínica, teleconsulta, agenda e políticas operacionais.
         </p>
       </div>
 
       {/* Tabs Principais */}
       <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3 overflow-x-auto text-xs font-medium">
-        <button
-          onClick={() => setActiveTab("notifications")}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-colors shrink-0 ${
-            activeTab === "notifications"
-              ? "bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 font-semibold"
-              : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-          }`}
-        >
-          <Bell className="h-4 w-4" />
-          <span>Notificações & Mensagens</span>
-        </button>
-
         <button
           onClick={() => setActiveTab("appearance")}
           className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-colors shrink-0 ${
@@ -624,233 +491,7 @@ export default function AdminSettingsPage() {
         </button>
       </div>
 
-      {/* ================= ABA 1: NOTIFICAÇÕES (TASK 6) ================= */}
-      {activeTab === "notifications" && (
-        <div className="space-y-6">
-          <div className="p-4 rounded-xl bg-teal-50/50 dark:bg-teal-950/20 border border-teal-200/60 dark:border-teal-900/40 text-xs text-teal-800 dark:text-teal-300 space-y-1">
-            <p className="font-semibold flex items-center gap-1.5">
-              <Sparkles className="h-4 w-4 text-teal-600" />
-              <span>Regra de Mensagem Compartilhada Unificada (Task 6)</span>
-            </p>
-            <p>
-              Cada evento possui <strong>uma única mensagem central</strong> (título + corpo) e <strong>um dos três modos de entrega</strong>:
-              Somente no aplicativo, Aplicativo + Email, ou Aplicativo + Email + WhatsApp.
-            </p>
-          </div>
-
-          {templateFeedback && <Alert variant="success">{templateFeedback}</Alert>}
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Seletor de Eventos */}
-            <div className="space-y-3">
-              <h3 className="font-bold text-sm">Selecione o Evento</h3>
-              <div className="space-y-1 max-h-[500px] overflow-y-auto pr-1">
-                {templates.map((tpl) => (
-                  <button
-                    key={tpl.eventType}
-                    onClick={() => handleSelectTemplate(tpl.eventType)}
-                    className={`w-full text-left p-3 rounded-xl border text-xs transition-colors flex flex-col gap-1 ${
-                      selectedEventType === tpl.eventType
-                        ? "border-teal-500 bg-teal-50 dark:bg-teal-950/60 font-semibold text-teal-900 dark:text-teal-200"
-                        : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60"
-                    }`}
-                  >
-                    <span>{tpl.title}</span>
-                    <span className="text-[10px] text-slate-400 font-normal truncate">
-                      {tpl.deliveryMode === "APP_ONLY" && "Somente Aplicativo"}
-                      {tpl.deliveryMode === "APP_EMAIL" && "Aplicativo + Email"}
-                      {tpl.deliveryMode === "ALL_CHANNELS" && "App + Email + WhatsApp"}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Editor de Mensagem e Modo de Entrega */}
-            <div className="lg:col-span-2 space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Editar Mensagem do Evento</CardTitle>
-                  <CardDescription className="text-xs">
-                    Evento: <code>{selectedEventType}</code>
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent className="space-y-4 text-xs">
-                  {/* Modo de Entrega (Exatamente 3 Opções) */}
-                  <div className="space-y-2">
-                    <label className="font-semibold block text-slate-800 dark:text-slate-200">
-                      Modo de Entrega Obrigatório:
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      <label
-                        className={`p-3 rounded-xl border cursor-pointer flex flex-col gap-1 transition-colors ${
-                          editedMode === "APP_ONLY"
-                            ? "border-teal-500 bg-teal-50/50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-200 font-semibold"
-                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="radio"
-                            name="deliveryMode"
-                            value="APP_ONLY"
-                            checked={editedMode === "APP_ONLY"}
-                            onChange={() => setEditedMode("APP_ONLY")}
-                            className="text-teal-600"
-                          />
-                          <span>Somente no aplicativo</span>
-                        </div>
-                        <span className="text-[10px] text-slate-400 font-normal">
-                          Gera apenas alerta no sininho interno.
-                        </span>
-                      </label>
-
-                      <label
-                        className={`p-3 rounded-xl border cursor-pointer flex flex-col gap-1 transition-colors ${
-                          editedMode === "APP_EMAIL"
-                            ? "border-teal-500 bg-teal-50/50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-200 font-semibold"
-                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="radio"
-                            name="deliveryMode"
-                            value="APP_EMAIL"
-                            checked={editedMode === "APP_EMAIL"}
-                            onChange={() => setEditedMode("APP_EMAIL")}
-                            className="text-teal-600"
-                          />
-                          <span>Aplicativo + Email</span>
-                        </div>
-                        <span className="text-[10px] text-slate-400 font-normal">
-                          Salva no app e envia a mesma mensagem por e-mail.
-                        </span>
-                      </label>
-
-                      <label
-                        className={`p-3 rounded-xl border cursor-pointer flex flex-col gap-1 transition-colors ${
-                          editedMode === "ALL_CHANNELS"
-                            ? "border-teal-500 bg-teal-50/50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-200 font-semibold"
-                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="radio"
-                            name="deliveryMode"
-                            value="ALL_CHANNELS"
-                            checked={editedMode === "ALL_CHANNELS"}
-                            onChange={() => setEditedMode("ALL_CHANNELS")}
-                            className="text-teal-600"
-                          />
-                          <span>App + Email + WhatsApp</span>
-                        </div>
-                        <span className="text-[10px] text-slate-400 font-normal">
-                          Envia por todos os 3 canais simultaneamente.
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Título */}
-                  <div className="space-y-1">
-                    <label className="font-semibold block text-slate-800 dark:text-slate-200">
-                      Título da Notificação
-                    </label>
-                    <Input
-                      value={editedTitle}
-                      onChange={(e) => setEditedTitle(e.target.value)}
-                      placeholder="Ex: Consulta confirmada"
-                    />
-                  </div>
-
-                  {/* Corpo */}
-                  <div className="space-y-1">
-                    <label className="font-semibold block text-slate-800 dark:text-slate-200">
-                      Mensagem Completa (Corpo)
-                    </label>
-                    <textarea
-                      rows={4}
-                      value={editedBody}
-                      onChange={(e) => setEditedBody(e.target.value)}
-                      className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-2.5 text-xs outline-none focus:ring-2 focus:ring-teal-500"
-                      placeholder="Escreva a mensagem..."
-                    />
-                  </div>
-
-                  {/* Tags / Variáveis Dinâmicas */}
-                  <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-lg space-y-1.5 border border-slate-100 dark:border-slate-800">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300 block">
-                      Variáveis Dinâmicas Disponíveis:
-                    </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {[
-                        "{nome_paciente}",
-                        "{nome_profissional}",
-                        "{servico}",
-                        "{data}",
-                        "{hora}",
-                        "{valor}",
-                        "{local}",
-                        "{link_consulta}",
-                      ].map((v) => (
-                        <button
-                          key={v}
-                          type="button"
-                          onClick={() => setEditedBody((prev) => `${prev} ${v}`)}
-                          className="px-2 py-0.5 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-[11px] hover:bg-teal-50 dark:hover:bg-teal-950/50"
-                          title="Clique para adicionar ao texto"
-                        >
-                          {v}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Prévia Dinâmica */}
-                  <div className="space-y-1.5 pt-2">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                      <Eye className="h-4 w-4 text-teal-600" />
-                      <span>Prévia do Destinatário:</span>
-                    </span>
-                    <div className="p-3.5 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-1">
-                      <p className="font-bold text-slate-900 dark:text-slate-100">{previewTitle}</p>
-                      <p className="text-slate-600 dark:text-slate-300 leading-relaxed">{previewBody}</p>
-                    </div>
-                  </div>
-
-                  {/* Ações */}
-                  <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={handleRestoreTemplateDefault}
-                      disabled={isSavingTemplate}
-                      className="text-xs gap-1.5 text-slate-500 hover:text-slate-800"
-                    >
-                      <RotateCcw className="h-3.5 w-3.5" />
-                      <span>Restaurar Padrão</span>
-                    </Button>
-
-                    <Button
-                      onClick={handleSaveTemplate}
-                      disabled={isSavingTemplate}
-                      className="gap-2 text-xs bg-teal-600 hover:bg-teal-700 text-white"
-                    >
-                      <Save className="h-4 w-4" />
-                      <span>{isSavingTemplate ? "Salvando..." : "Salvar Template"}</span>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ================= ABA 2: APARÊNCIA & CORES (TASK 8) ================= */}
+      {/* ================= ABA 1: APARÊNCIA & CORES (TASK 8) ================= */}
       {activeTab === "appearance" && (
         <div className="space-y-6">
           <div className="p-4 rounded-xl bg-teal-50/50 dark:bg-teal-950/20 border border-teal-200/60 dark:border-teal-900/40 text-xs text-teal-800 dark:text-teal-300 space-y-1">

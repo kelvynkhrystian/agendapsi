@@ -24,6 +24,7 @@ import {
   Stethoscope,
   ChevronRight,
   Bell,
+  BellRing,
   Share2,
 } from "lucide-react";
 
@@ -35,7 +36,7 @@ const navItems = [
   { href: "/admin/pacotes", label: "Pacotes de Sessões", icon: Boxes },
   { href: "/admin/financeiro", label: "Financeiro", icon: DollarSign },
   { href: "/admin/minisite", label: "MiniSite & Páginas", icon: Globe },
-  { href: "/admin/notificacoes", label: "Notificações", icon: Bell },
+  { href: "/admin/lembretes", label: "Lembretes", icon: BellRing },
   { href: "/admin/integracoes", label: "Integrações", icon: Share2 },
   { href: "/admin/arquivos", label: "Armazenamento & Backup", icon: HardDrive },
   { href: "/admin/configuracoes", label: "Configurações Gerais", icon: Settings },

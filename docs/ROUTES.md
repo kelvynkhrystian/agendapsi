@@ -38,8 +38,9 @@ Este documento relaciona todas as páginas e rotas de API disponíveis no sistem
 | `/admin/minisite` | Editor de conteúdo do MiniSite (biografia, endereço, cores, redes sociais) |
 | `/admin/arquivos` | Monitor de uso de disco e rotina de geração de backup com checksum SHA-256 |
 | `/admin/integracoes` | Central independente de integrações: E-mail (SMTP) e WhatsApp com testes de conexão |
-| `/admin/notificacoes` | Central administrativa de notificações internas e histórico |
-| `/admin/configuracoes` | Parâmetros do consultório, identidade visual, templates de notificação, teleconsulta e logs |
+| `/admin/lembretes` | Gerenciamento de templates e canais de disparo de lembretes e mensagens do consultório |
+| `/admin/notificacoes` | Central administrativa de notificações internas e histórico (acessível via sino no cabeçalho) |
+| `/admin/configuracoes` | Parâmetros do consultório, identidade visual, teleconsulta, agenda e segurança |
 
 ---
 

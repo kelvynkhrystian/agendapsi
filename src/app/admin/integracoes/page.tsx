@@ -224,7 +224,7 @@ export default function AdminIntegrationsPage() {
           <span>Arquitetura Desacoplada e Segura</span>
         </p>
         <p>
-          Esta tela gerencia exclusivamente a conexão e credenciais de transporte. Os textos, variáveis dinâmicas e o modo de entrega são gerenciados de forma centralizada em <strong>Configurações &gt; Notificações</strong>.
+          Esta tela gerencia exclusivamente a conexão e credenciais de transporte. Os textos, variáveis dinâmicas e o modo de entrega são gerenciados de forma centralizada em <strong>Lembretes</strong>.
         </p>
       </div>
 
