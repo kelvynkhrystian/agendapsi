@@ -937,6 +937,8 @@ erDiagram
 | `provider` | `String` | Sim | `"JITSI"` | Provedor de vídeo utilizado: `"JITSI"`, `"PEERJS"`, `"GOOGLE_MEET"` | `"JITSI"` |
 | `roomName` | `String` | Sim | Nenhum | Nome único pseudoaleatório da sala (`@unique`) | `"psi_sala_98a7bc6d5e4f"` |
 | `psiEntryToken` | `String` | Sim | Nenhum | Token interno de autorização de entrada (`@unique`) | `"tok_meet_18273645"` |
+| `conferenceUrl` | `String?` | Não | `null` | URL direta da conferência (ex: link do Google Meet) | `"https://meet.google.com/abc-defg-hij"` |
+| `calendarEventId` | `String?` | Não | `null` | ID do evento gerado no Google Calendar para sincronização e cancelamento | `"event_18273645"` |
 | `createdAt` | `DateTime` | Sim | `now()` | Momento em que a sala foi gerada | `2026-11-04T12:00:00.000Z` |
 
 ---
@@ -1162,6 +1164,13 @@ erDiagram
 | `whatsappProvider`| `String` | Sim | `"GENERIC"` | Provedor de mensageria: `"EVOLUTION"`, `"ZAPI"`, `"GENERIC"` | `"EVOLUTION"` |
 | `whatsappSenderNumber`| `String?`| Não | `null` | Número emissor cadastrado na API | `"5511999998888"` |
 | `googleMeetClientId`| `String?`| Não | `null` | Client ID para integração com API do Google Meet | `null` |
+| `googleMeetClientSecret` | `String?` | Não | `null` | Client Secret do aplicativo OAuth no Google Cloud Console | `"••••••••"` |
+| `googleMeetRefreshToken` | `String?` | Não | `null` | Refresh token OAuth persistido para renovação de acesso | `null` |
+| `googleMeetAccessToken` | `String?` | Não | `null` | Access token temporário ativo para chamadas da API do Google Calendar | `null` |
+| `googleMeetTokenExpiresAt`| `DateTime?`| Não | `null` | Timestamp de expiração do access token atual | `2026-11-05T09:00:00.000Z` |
+| `googleMeetAccountEmail` | `String?` | Não | `null` | E-mail da conta Google conectada pelo profissional | `"psicologo@gmail.com"` |
+| `googleMeetConnectedAt` | `DateTime?`| Não | `null` | Data e hora em que a autorização OAuth foi concluída | `2026-11-05T08:00:00.000Z` |
+| `googleMeetStatus` | `String?` | Não | `null` | Status da integração: `"CONNECTED"`, `"REVOKED"`, `"DISCONNECTED"` | `"CONNECTED"` |
 | `peerJsServerHost`| `String?` | Não | `null` | Host de servidor próprio WebRTC / PeerJS | `null` |
 | `peerJsServerPort`| `Int?` | Não | `null` | Porta do servidor PeerJS | `null` |
 | `peerJsPath` | `String?` | Não | `"/peerjs"` | Caminho raiz da API de sinalização PeerJS | `"/peerjs"` |

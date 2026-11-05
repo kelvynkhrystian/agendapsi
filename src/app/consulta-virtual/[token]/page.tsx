@@ -17,6 +17,7 @@ import {
   ArrowLeft,
   UserCheck,
   LogIn,
+  ExternalLink,
 } from "lucide-react";
 import PeerJsRoom, { PeerJsConfig } from "@/components/video/peerjs-room";
 
@@ -24,6 +25,7 @@ interface MeetingData {
   provider: "JITSI" | "PEERJS" | "GOOGLE_MEET";
   roomName: string;
   domain: string;
+  rawMeetingUrl?: string | null;
   peerJsConfig?: PeerJsConfig | null;
   canEnter: boolean;
   isEarly: boolean;
@@ -187,23 +189,51 @@ export default function VirtualConsultationPage({
               <div className="p-3 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-xl text-xs space-y-1">
                 <div>Paciente: <strong>{appointment.patientName}</strong></div>
                 <div>Horário: <strong>{formatTime(appointment.startAt)} às {formatTime(appointment.endAt)}</strong></div>
-                <div>Provedor: <strong>{meeting.provider === "PEERJS" ? "PeerJS / WebRTC Direto" : "Jitsi Meet"}</strong></div>
+                <div>
+                  Provedor:{" "}
+                  <strong>
+                    {meeting.provider === "GOOGLE_MEET"
+                      ? "Google Meet"
+                      : meeting.provider === "PEERJS"
+                      ? "PeerJS / WebRTC Direto"
+                      : "Jitsi Meet"}
+                  </strong>
+                </div>
               </div>
 
               <Alert variant="info" title="Privacidade e Criptografia">
-                {meeting.provider === "PEERJS"
+                {meeting.provider === "GOOGLE_MEET"
+                  ? "Esta sessão é realizada através do Google Meet oficial integrado ao Google Agenda do consultório. Ao acessar a chamada, sua videoconferência será aberta em uma nova guia com a segurança e infraestrutura da Google."
+                  : meeting.provider === "PEERJS"
                   ? "Sua chamada é realizada ponto a ponto (P2P) com áudio e vídeo criptografados diretamente entre seu dispositivo e o profissional, sem intermediação de servidores de mídia."
                   : "Sua chamada é processada de ponta a ponta sem gravação no servidor do PSI. Verifique se sua câmera e microfone estão conectados."}
               </Alert>
 
-              <Button
-                size="lg"
-                onClick={() => setInCall(true)}
-                className="w-full gap-2 text-sm bg-teal-600 hover:bg-teal-700 text-white"
-              >
-                <Video className="h-4 w-4" />
-                <span>Entrar na Sessão Agora</span>
-              </Button>
+              {meeting.provider === "GOOGLE_MEET" ? (
+                <a
+                  href={meeting.rawMeetingUrl || meeting.roomName}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full block"
+                >
+                  <Button
+                    size="lg"
+                    className="w-full gap-2 text-sm bg-teal-600 hover:bg-teal-700 text-white"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span>Entrar na Sessão do Google Meet</span>
+                  </Button>
+                </a>
+              ) : (
+                <Button
+                  size="lg"
+                  onClick={() => setInCall(true)}
+                  className="w-full gap-2 text-sm bg-teal-600 hover:bg-teal-700 text-white"
+                >
+                  <Video className="h-4 w-4" />
+                  <span>Entrar na Sessão Agora</span>
+                </Button>
+              )}
             </CardContent>
           </Card>
         ) : (
@@ -239,7 +269,12 @@ export default function VirtualConsultationPage({
       </main>
 
       <footer className="border-t border-slate-200 dark:border-slate-800 py-4 text-center text-[11px] text-slate-400">
-        Ambiente de Teleconsulta Integrado PSI • Provedor: {meeting.provider === "PEERJS" ? "PeerJS / WebRTC Direto" : "Jitsi Meet"}
+        Ambiente de Teleconsulta Integrado PSI • Provedor:{" "}
+        {meeting.provider === "GOOGLE_MEET"
+          ? "Google Meet"
+          : meeting.provider === "PEERJS"
+          ? "PeerJS / WebRTC Direto"
+          : "Jitsi Meet"}
       </footer>
     </div>
   );

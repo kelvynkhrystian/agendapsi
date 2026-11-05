@@ -26,6 +26,9 @@ import {
   Monitor,
   Activity,
   Radio,
+  Link2,
+  Unlink,
+  Calendar,
 } from "lucide-react";
 
 interface NotificationTemplate {
@@ -91,6 +94,17 @@ export default function AdminSettingsPage() {
     date?: string;
   } | null>(null);
   const [googleMeetClientId, setGoogleMeetClientId] = useState("");
+  const [googleMeetClientSecret, setGoogleMeetClientSecret] = useState("");
+  const [googleMeetAccountEmail, setGoogleMeetAccountEmail] = useState<string | null>(null);
+  const [googleMeetConnectedAt, setGoogleMeetConnectedAt] = useState<string | null>(null);
+  const [googleMeetStatus, setGoogleMeetStatus] = useState<string | null>(null);
+  const [isTestingGoogleMeet, setIsTestingGoogleMeet] = useState(false);
+  const [isDisconnectingGoogle, setIsDisconnectingGoogle] = useState(false);
+  const [googleMeetFeedback, setGoogleMeetFeedback] = useState<{
+    success: boolean;
+    message: string;
+    meetUrl?: string;
+  } | null>(null);
   const [isSavingVideo, setIsSavingVideo] = useState(false);
   const [videoFeedback, setVideoFeedback] = useState<string | null>(null);
 
@@ -167,7 +181,13 @@ export default function AdminSettingsPage() {
           }
         }
         const gmeet = vidData.providers?.find((p: any) => p.key === "GOOGLE_MEET");
-        if (gmeet) setGoogleMeetClientId(gmeet.config?.clientId || "");
+        if (gmeet) {
+          setGoogleMeetClientId(gmeet.config?.clientId || "");
+          setGoogleMeetClientSecret(gmeet.config?.clientSecret || "");
+          setGoogleMeetAccountEmail(gmeet.config?.accountEmail || null);
+          setGoogleMeetConnectedAt(gmeet.config?.connectedAt || null);
+          setGoogleMeetStatus(gmeet.status || gmeet.config?.status || null);
+        }
       }
     } catch (e) {
       console.error(e);
@@ -320,6 +340,77 @@ export default function AdminSettingsPage() {
     setAppearanceFeedback("Cores restauradas para a paleta padrão do PSI. Clique em Salvar para persistir.");
   };
 
+  // Conectar Conta Google OAuth
+  const handleConnectGoogle = () => {
+    window.location.href = "/api/admin/integrations/google/auth";
+  };
+
+  // Desconectar Conta Google
+  const handleDisconnectGoogle = async () => {
+    if (!confirm("Tem certeza que deseja desconectar a conta Google? O Google Meet deixará de gerar links para novas consultas.")) {
+      return;
+    }
+    setIsDisconnectingGoogle(true);
+    setGoogleMeetFeedback(null);
+    try {
+      const res = await fetch("/api/admin/integrations/google/disconnect", {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setGoogleMeetFeedback({
+          success: true,
+          message: data.message || "Conta Google desconectada com sucesso.",
+        });
+        loadData();
+      } else {
+        setGoogleMeetFeedback({
+          success: false,
+          message: data.error || "Erro ao desconectar conta Google.",
+        });
+      }
+    } catch {
+      setGoogleMeetFeedback({
+        success: false,
+        message: "Erro de rede ao desconectar conta Google.",
+      });
+    } finally {
+      setIsDisconnectingGoogle(false);
+    }
+  };
+
+  // Testar Integração Google Meet
+  const handleTestGoogleMeet = async () => {
+    setIsTestingGoogleMeet(true);
+    setGoogleMeetFeedback(null);
+    try {
+      const res = await fetch("/api/admin/video-providers/google/test", {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setGoogleMeetFeedback({
+          success: true,
+          message: data.message || "Integração Google Meet validada com sucesso!",
+          meetUrl: data.meetUrl,
+        });
+        loadData();
+      } else {
+        setGoogleMeetFeedback({
+          success: false,
+          message: data.error || "Falha ao validar integração com Google Meet.",
+        });
+      }
+    } catch {
+      setGoogleMeetFeedback({
+        success: false,
+        message: "Erro de rede ao testar Google Meet.",
+      });
+    } finally {
+      setIsTestingGoogleMeet(false);
+    }
+  };
+
   // Testar Conexão de Sinalização PeerJS
   const handleTestPeerJs = async () => {
     setIsTestingPeerJs(true);
@@ -381,6 +472,7 @@ export default function AdminSettingsPage() {
           peerJsTurnUser: peerJsTurnUser || null,
           peerJsTurnSecret: peerJsTurnSecret || null,
           googleMeetClientId: googleMeetClientId || null,
+          googleMeetClientSecret: googleMeetClientSecret || null,
         }),
       });
 
@@ -1094,6 +1186,14 @@ export default function AdminSettingsPage() {
                                 : provider.status === "CONFIGURED"
                                 ? "outline"
                                 : "default"
+                              : provider.key === "GOOGLE_MEET"
+                              ? provider.status === "CONNECTED"
+                                ? "success"
+                                : provider.status === "REVOKED"
+                                ? "destructive"
+                                : provider.status === "CONFIGURED"
+                                ? "outline"
+                                : "default"
                               : provider.status === "CONFIGURED"
                               ? "outline"
                               : "default"
@@ -1108,6 +1208,14 @@ export default function AdminSettingsPage() {
                               ? "Falha na Conexão"
                               : provider.status === "CONFIGURED"
                               ? "Configurado (Não Testado)"
+                              : "Configuração Necessária"
+                            : provider.key === "GOOGLE_MEET"
+                            ? provider.status === "CONNECTED"
+                              ? "Conectado via Google OAuth"
+                              : provider.status === "REVOKED"
+                              ? "Autorização Revogada"
+                              : provider.status === "CONFIGURED"
+                              ? "Credenciais Salvas (Pendente Autorização)"
                               : "Configuração Necessária"
                             : provider.status === "CONFIGURED"
                             ? "Configurado"
@@ -1254,18 +1362,132 @@ export default function AdminSettingsPage() {
                       )}
 
                       {provider.key === "GOOGLE_MEET" && (
-                        <div className="space-y-1">
-                          <label className="font-medium text-slate-700 dark:text-slate-300">
-                            Client ID Google Cloud (OAuth)
-                          </label>
-                          <Input
-                            placeholder="123456789-apps.googleusercontent.com"
-                            value={googleMeetClientId}
-                            onChange={(e) => setGoogleMeetClientId(e.target.value)}
-                          />
-                          <p className="text-[10px] text-slate-400">
-                            Requer projeto aprovado com permissão Google Calendar API.
-                          </p>
+                        <div className="space-y-3">
+                          <div className="space-y-1">
+                            <label className="font-medium text-slate-700 dark:text-slate-300">
+                              Client ID Google Cloud (OAuth 2.0)
+                            </label>
+                            <Input
+                              placeholder="ex: 123456789-xxxx.apps.googleusercontent.com"
+                              value={googleMeetClientId}
+                              onChange={(e) => setGoogleMeetClientId(e.target.value)}
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="font-medium text-slate-700 dark:text-slate-300">
+                              Client Secret Google Cloud
+                            </label>
+                            <Input
+                              type="password"
+                              placeholder={provider.config?.hasClientSecret ? "••••••••" : "Cole o Client Secret aqui"}
+                              value={googleMeetClientSecret}
+                              onChange={(e) => setGoogleMeetClientSecret(e.target.value)}
+                            />
+                            <p className="text-[10px] text-slate-400">
+                              Armazenado com segurança no servidor. Nunca exposto na interface do usuário.
+                            </p>
+                          </div>
+
+                          {/* Caixa de Instruções Google Cloud Console */}
+                          <div className="p-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl space-y-2 text-[11px] text-slate-600 dark:text-slate-400">
+                            <div className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                              <Info className="h-3.5 w-3.5 text-teal-600" />
+                              <span>Passo a passo no Google Cloud Console:</span>
+                            </div>
+                            <ol className="list-decimal list-inside space-y-1 pl-1 text-[10px] leading-relaxed">
+                              <li>Acesse o <strong>Google Cloud Console</strong> (<code>console.cloud.google.com</code>) e selecione seu projeto.</li>
+                              <li>Ative a <strong>Google Calendar API</strong> no menu <em>APIs e Serviços &gt; Biblioteca</em>.</li>
+                              <li>Em <em>Tela de consentimento OAuth</em>, configure como <em>Externo</em> e inclua o escopo <code>calendar.events</code>.</li>
+                              <li>Em <em>Credenciais</em>, crie um <strong>ID do cliente OAuth</strong> do tipo <em>Aplicativo da Web</em>.</li>
+                              <li>Adicione em <strong>URIs de redirecionamento autorizados</strong>:
+                                <div className="mt-1 font-mono text-[10px] bg-white dark:bg-slate-800 p-1.5 rounded border border-slate-200 dark:border-slate-700 break-all select-all text-teal-700 dark:text-teal-400">
+                                  {typeof window !== "undefined" ? `${window.location.origin}/api/admin/integrations/google/callback` : "http://localhost:3000/api/admin/integrations/google/callback"}
+                                </div>
+                              </li>
+                              <li>Cole o Client ID e Client Secret nos campos acima, clique em <strong>Salvar Configurações</strong> e depois em <strong>Conectar Conta Google</strong>.</li>
+                            </ol>
+                          </div>
+
+                          {/* Se conectado, exibe conta e ações */}
+                          {googleMeetStatus === "CONNECTED" && googleMeetAccountEmail ? (
+                            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-xl space-y-2 text-xs">
+                              <div className="flex items-center justify-between">
+                                <span className="font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                                  <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                                  Conta Google Conectada
+                                </span>
+                                <Badge variant="success" className="text-[10px]">Ativo</Badge>
+                              </div>
+                              <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
+                                Conectado como: <strong>{googleMeetAccountEmail}</strong>
+                                {googleMeetConnectedAt && (
+                                  <span className="block text-[10px] opacity-75 mt-0.5">
+                                    Conectado em: {new Date(googleMeetConnectedAt).toLocaleString("pt-BR")}
+                                  </span>
+                                )}
+                              </p>
+
+                              <div className="pt-2 flex flex-col sm:flex-row gap-2">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={handleTestGoogleMeet}
+                                  disabled={isTestingGoogleMeet}
+                                  className="gap-1.5 text-xs border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40"
+                                >
+                                  <Calendar className="h-3.5 w-3.5" />
+                                  <span>{isTestingGoogleMeet ? "Testando Google Meet..." : "Testar Emissão Google Meet"}</span>
+                                </Button>
+
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={handleDisconnectGoogle}
+                                  disabled={isDisconnectingGoogle}
+                                  className="gap-1.5 text-xs"
+                                >
+                                  <Unlink className="h-3.5 w-3.5" />
+                                  <span>{isDisconnectingGoogle ? "Desconectando..." : "Desconectar Conta"}</span>
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="pt-1">
+                              <Button
+                                type="button"
+                                onClick={handleConnectGoogle}
+                                disabled={!googleMeetClientId || (!googleMeetClientSecret && !provider.config?.hasClientSecret)}
+                                className="w-full gap-2 text-xs bg-teal-600 hover:bg-teal-700 text-white"
+                              >
+                                <Link2 className="h-3.5 w-3.5" />
+                                <span>Conectar Conta Google via OAuth</span>
+                              </Button>
+                              {(!googleMeetClientId || (!googleMeetClientSecret && !provider.config?.hasClientSecret)) && (
+                                <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1.5 text-center">
+                                  * Preencha e salve o Client ID e Client Secret antes de autorizar a conta.
+                                </p>
+                              )}
+                            </div>
+                          )}
+
+                          {googleMeetFeedback && (
+                            <Alert
+                              variant={googleMeetFeedback.success ? "success" : "destructive"}
+                              title={googleMeetFeedback.success ? "Integração Validada" : "Falha na Validação"}
+                            >
+                              <div className="text-[11px] space-y-1">
+                                <p>{googleMeetFeedback.message}</p>
+                                {googleMeetFeedback.meetUrl && (
+                                  <p className="text-[10px] font-mono break-all text-teal-700 dark:text-teal-300">
+                                    Sala gerada com sucesso: {googleMeetFeedback.meetUrl}
+                                  </p>
+                                )}
+                              </div>
+                            </Alert>
+                          )}
                         </div>
                       )}
                     </CardContent>
@@ -1276,7 +1498,7 @@ export default function AdminSettingsPage() {
                       type="button"
                       variant={isSelected ? "primary" : "outline"}
                       onClick={() => setActiveVideoKey(provider.key)}
-                      disabled={provider.key === "PEERJS" ? !provider.isFunctional : (provider.key !== "JITSI" && !googleMeetClientId)}
+                      disabled={!provider.isFunctional}
                       className={`w-full text-xs gap-1.5 ${
                         isSelected ? "bg-teal-600 text-white" : ""
                       }`}

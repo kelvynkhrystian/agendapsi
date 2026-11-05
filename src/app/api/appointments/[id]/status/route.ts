@@ -42,6 +42,7 @@ export async function PATCH(
         service: true,
         payment: true,
         patient: true,
+        videoMeeting: true,
       },
     });
 
@@ -140,6 +141,16 @@ export async function PATCH(
     const serviceName = appointment.service.name;
 
     if (finalStatus.includes("CANCELLED")) {
+      // Se a consulta possui evento associado no Google Calendar, remove-o
+      if (appointment.videoMeeting?.calendarEventId) {
+        try {
+          const { deleteGoogleMeetConference } = await import("@/lib/google-calendar");
+          await deleteGoogleMeetConference(appointment.videoMeeting.calendarEventId);
+        } catch (calErr) {
+          console.warn("[Google Calendar] Aviso ao remover evento cancelado da agenda:", calErr);
+        }
+      }
+
       // 1. Notifica o paciente
       await dispatchNotification({
         recipientId: appointment.patientId,

@@ -454,13 +454,15 @@ model StoredFileShare {
 }
 
 model VideoMeeting {
-  id            String      @id @default(cuid())
-  appointmentId String      @unique
-  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-  provider      String      @default("JITSI")
-  roomName      String      @unique
-  psiEntryToken String      @unique
-  createdAt     DateTime    @default(now())
+  id              String      @id @default(cuid())
+  appointmentId   String      @unique
+  appointment     Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  provider        String      @default("JITSI")
+  roomName        String      @unique
+  psiEntryToken   String      @unique
+  conferenceUrl   String?     @db.Text
+  calendarEventId String?
+  createdAt       DateTime    @default(now())
 }
 
 model NotificationTemplate {
@@ -556,6 +558,13 @@ model SystemSettings {
   whatsappProvider             String   @default("GENERIC")
   whatsappSenderNumber         String?
   googleMeetClientId           String?
+  googleMeetClientSecret       String?
+  googleMeetRefreshToken       String?  @db.Text
+  googleMeetAccessToken        String?  @db.Text
+  googleMeetTokenExpiresAt     DateTime?
+  googleMeetAccountEmail       String?
+  googleMeetConnectedAt        DateTime?
+  googleMeetStatus             String?
   peerJsServerHost             String?
   peerJsServerPort             Int?
   peerJsPath                   String?  @default("/peerjs")

@@ -5,13 +5,23 @@ export interface VideoRoom {
   roomName: string;
   entryUrl: string;
   rawMeetingUrl: string;
+  calendarEventId?: string | null;
+  conferenceUrl?: string | null;
   isPreparedOnly?: boolean;
 }
 
 export interface VideoProvider {
   providerKey: SupportedVideoProvider;
   isFunctional: boolean;
-  createRoom(appointmentId: string): Promise<VideoRoom>;
+  createRoom(
+    appointmentId: string,
+    details?: {
+      summary?: string;
+      description?: string;
+      startAt?: Date;
+      endAt?: Date;
+    }
+  ): Promise<VideoRoom>;
 }
 
 /**
@@ -104,25 +114,67 @@ export class PeerJsVideoProvider implements VideoProvider {
 }
 
 /**
- * Provedor 3: Google Meet (Adaptador extensível preparado para OAuth/Calendar)
+ * Provedor 3: Google Meet (Integração oficial OAuth 2.0 com Google Calendar API)
  */
 export class GoogleMeetVideoProvider implements VideoProvider {
   providerKey: SupportedVideoProvider = "GOOGLE_MEET";
-  isFunctional = false; // Requer credenciais OAuth do Google Cloud Console
-  private clientId: string | null;
+  isFunctional: boolean;
+  public clientId: string | null;
+  public status: string | null;
+  public accountEmail: string | null;
 
-  constructor(clientId: string | null = null) {
+  constructor(
+    clientId: string | null = null,
+    status: string | null = null,
+    accountEmail: string | null = null,
+    hasRefreshToken: boolean = false
+  ) {
     this.clientId = clientId;
+    this.status = status;
+    this.accountEmail = accountEmail;
+    // Funcional exclusivamente quando configurado com Client ID e conta Google conectada via OAuth com refresh_token
+    this.isFunctional = Boolean(clientId && status === "CONNECTED" && hasRefreshToken);
   }
 
-  async createRoom(appointmentId: string): Promise<VideoRoom> {
-    const token = Math.random().toString(36).substring(2, 15);
+  async createRoom(
+    appointmentId: string,
+    details?: {
+      summary?: string;
+      description?: string;
+      startAt?: Date;
+      endAt?: Date;
+    }
+  ): Promise<VideoRoom> {
+    const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     const appUrl = process.env.APP_URL || "http://localhost:3000";
+    const entryUrl = `${appUrl}/consulta-virtual/${token}`;
+
+    // Se o provedor estiver funcional e datas forem passadas, cria o evento real no Google Calendar
+    if (this.isFunctional && details?.startAt && details?.endAt) {
+      const { createGoogleMeetConference } = await import("@/lib/google-calendar");
+      const conference = await createGoogleMeetConference({
+        appointmentId,
+        summary: details.summary || `Consulta PSI - ${appointmentId}`,
+        description: details.description,
+        startAt: details.startAt,
+        endAt: details.endAt,
+      });
+
+      return {
+        provider: "GOOGLE_MEET",
+        roomName: conference.meetUrl,
+        entryUrl,
+        rawMeetingUrl: conference.meetUrl,
+        conferenceUrl: conference.meetUrl,
+        calendarEventId: conference.calendarEventId,
+        isPreparedOnly: false,
+      };
+    }
 
     return {
       provider: "GOOGLE_MEET",
       roomName: `gmeet-${appointmentId}`,
-      entryUrl: `${appUrl}/consulta-virtual/${token}?provider=GOOGLE_MEET`,
+      entryUrl: `${appUrl}/consulta-virtual/${token}`,
       rawMeetingUrl: `https://meet.google.com/new`,
       isPreparedOnly: true,
     };
@@ -146,6 +198,9 @@ export function getVideoProvider(
     peerJsTurnUser?: string | null;
     peerJsTurnSecret?: string | null;
     googleMeetClientId?: string | null;
+    googleMeetStatus?: string | null;
+    googleMeetAccountEmail?: string | null;
+    googleMeetHasRefreshToken?: boolean;
   }
 ): VideoProvider {
   switch (activeKey) {
@@ -164,7 +219,12 @@ export function getVideoProvider(
         }
       );
     case "GOOGLE_MEET":
-      return new GoogleMeetVideoProvider(options?.googleMeetClientId);
+      return new GoogleMeetVideoProvider(
+        options?.googleMeetClientId,
+        options?.googleMeetStatus,
+        options?.googleMeetAccountEmail,
+        options?.googleMeetHasRefreshToken
+      );
     case "JITSI":
     default:
       return new JitsiVideoProvider(options?.jitsiDomain);

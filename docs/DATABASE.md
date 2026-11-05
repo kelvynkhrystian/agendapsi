@@ -96,7 +96,7 @@ erDiagram
 - `StoredFileShare`: Permissões de visualização/download pelo paciente com expiração e revogação (`id`, `fileId`, `patientId`, `canDownload`, `expiresAt`, `revokedAt`, `sharedAt`).
 
 ### 3.8 Comunicação, Configuração e Auditoria
-- `VideoMeeting`: Dados da sala de vídeo (`id`, `appointmentId`, `provider`, `roomName`, `psiEntryToken`, `createdAt`).
+- `VideoMeeting`: Dados da sala de vídeo (`id`, `appointmentId`, `provider`, `roomName`, `psiEntryToken`, `conferenceUrl`, `calendarEventId`, `createdAt`).
 - `NotificationTemplate`: Modelos de mensagens legados (`id`, `type`, `channel` [EMAIL/WHATSAPP], `subject`, `bodyTemplate`).
 - `NotificationDelivery`: Registro de disparos e status de entrega externa (`id`, `recipient`, `channel`, `templateType`, `status`, `simulated`, `sentAt`, `errorDetails`).
 - `Notification`: Notificações internas persistentes no aplicativo para Admin e Paciente (`id`, `recipientId`, `recipientRole`, `eventType`, `title`, `message`, `targetUrl`, `isRead`, `readAt`, `relatedEntityType`, `relatedEntityId`, `createdAt`).
@@ -104,7 +104,7 @@ erDiagram
 - `SiteSettings`: Configurações visuais, textos do MiniSite, logos (padrão e horizontal), favicon, paleta de cores (primária, secundária, destaque, botões), endereço e redes sociais.
 - `ProfessionalProfile`: Dados do profissional (nome, biografia, foto, CRP/CRM).
 - `LegalPage`: Conteúdo dos termos legais (Privacidade, Termos, Cookies, LGPD).
-- `SystemSettings`: Preferências globais (fuso horário, prazos, provedor de vídeo ativo [Jitsi/PeerJS/Meet], configurações completas de sinalização PeerJS WebRTC com suporte STUN/TURN, credenciais SMTP independentes, credenciais WhatsApp independentes, flags de pagamento).
+- `SystemSettings`: Preferências globais (fuso horário, prazos, provedor de vídeo ativo [Jitsi/PeerJS/Meet], sinalização PeerJS WebRTC com suporte STUN/TURN, integração Google Meet OAuth com Google Calendar API, credenciais SMTP independentes, credenciais WhatsApp independentes, flags de pagamento).
 - `AuditLog`: Log de segurança de operações sensíveis (`id`, `userId`, `userRole`, `action`, `resource`, `resourceId`, `details`, `ipAddress`, `createdAt`).
 - `TechnicalAccessLog`: Log de acessos ao endpoint `/api/technical/status`.
 - `BackupJob`: Registro de backups gerados e integridade (`id`, `filename`, `sizeBytes`, `checksumSha256`, `status`, `details`, `createdAt`).

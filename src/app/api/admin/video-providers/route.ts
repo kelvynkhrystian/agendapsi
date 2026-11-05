@@ -15,6 +15,7 @@ const updateVideoProvidersSchema = z.object({
   peerJsTurnUser: z.string().optional().nullable(),
   peerJsTurnSecret: z.string().optional().nullable(),
   googleMeetClientId: z.string().optional().nullable(),
+  googleMeetClientSecret: z.string().optional().nullable(),
 });
 
 export async function GET() {
@@ -24,8 +25,9 @@ export async function GET() {
     const sys = await prisma.systemSettings.findFirst();
 
     const activeProvider = sys?.activeVideoProvider || "JITSI";
-    const isPeerJsFunctional = !!(sys?.peerJsServerHost && sys?.peerJsTestStatus === "SUCCESS");
 
+    // 1. PeerJS Status & Funcionalidade
+    const isPeerJsFunctional = !!(sys?.peerJsServerHost && sys?.peerJsTestStatus === "SUCCESS");
     let peerJsStatus = "CONFIG_REQUIRED";
     if (!sys?.peerJsServerHost) {
       peerJsStatus = "CONFIG_REQUIRED";
@@ -37,11 +39,29 @@ export async function GET() {
       peerJsStatus = "CONFIGURED";
     }
 
+    // 2. Google Meet Status & Funcionalidade (OAuth 2.0 / Google Calendar)
+    const hasGoogleCredentials = Boolean(sys?.googleMeetClientId && sys?.googleMeetClientSecret);
+    const hasGoogleRefreshToken = Boolean(sys?.googleMeetRefreshToken);
+    const isGoogleConnected = sys?.googleMeetStatus === "CONNECTED" && hasGoogleRefreshToken;
+    const isGoogleMeetFunctional = hasGoogleCredentials && isGoogleConnected;
+
+    let googleMeetStatus = "CONFIG_REQUIRED";
+    if (!sys?.googleMeetClientId || !sys?.googleMeetClientSecret) {
+      googleMeetStatus = "CONFIG_REQUIRED";
+    } else if (sys?.googleMeetStatus === "REVOKED") {
+      googleMeetStatus = "REVOKED";
+    } else if (isGoogleConnected) {
+      googleMeetStatus = "CONNECTED";
+    } else {
+      googleMeetStatus = "CONFIGURED"; // Credenciais salvas, pendente autorização OAuth
+    }
+
     const providers = [
       {
         key: "JITSI",
         name: "Jitsi Meet",
-        description: "Salas de teleconsulta integradas com link temporário criptografado e sala de espera do consultório.",
+        description:
+          "Salas de teleconsulta integradas com link temporário criptografado e sala de espera do consultório.",
         status: "ACTIVE", // Sempre disponível no V1
         isFunctional: true,
         isActive: activeProvider === "JITSI",
@@ -52,7 +72,8 @@ export async function GET() {
       {
         key: "PEERJS",
         name: "PeerJS / WebRTC Direto",
-        description: "Comunicação P2P ponta a ponta sem servidores intermediários de mídia. Requer servidor de sinalização STUN/TURN.",
+        description:
+          "Comunicação P2P ponta a ponta sem servidores intermediários de mídia. Requer servidor de sinalização STUN/TURN.",
         status: peerJsStatus,
         isFunctional: isPeerJsFunctional,
         isActive: activeProvider === "PEERJS",
@@ -73,12 +94,18 @@ export async function GET() {
       {
         key: "GOOGLE_MEET",
         name: "Google Meet",
-        description: "Geração automática de reuniões no Google Agenda. Requer credenciais OAuth de projeto no Google Cloud Console.",
-        status: sys?.googleMeetClientId ? "CONFIGURED" : "CONFIG_REQUIRED",
-        isFunctional: false, // Adaptador preparado para OAuth
+        description:
+          "Geração automática de reuniões no Google Agenda via Google OAuth 2.0 e Google Calendar API.",
+        status: googleMeetStatus,
+        isFunctional: isGoogleMeetFunctional,
         isActive: activeProvider === "GOOGLE_MEET",
         config: {
           clientId: sys?.googleMeetClientId || "",
+          hasClientSecret: Boolean(sys?.googleMeetClientSecret),
+          clientSecret: sys?.googleMeetClientSecret ? "••••••••" : "",
+          accountEmail: sys?.googleMeetAccountEmail || null,
+          connectedAt: sys?.googleMeetConnectedAt || null,
+          status: sys?.googleMeetStatus || null,
         },
       },
     ];
@@ -121,11 +148,12 @@ export async function PUT(req: NextRequest) {
       peerJsTurnUser,
       peerJsTurnSecret,
       googleMeetClientId,
+      googleMeetClientSecret,
     } = result.data;
 
     const existing = await prisma.systemSettings.findFirst();
 
-    // Regra: Não permitir que um provedor indisponível/não funcional se torne o ativo
+    // Regra da Task 9 / Phase 1: Bloqueia PeerJS não funcional
     if (activeVideoProvider === "PEERJS") {
       if (!peerJsServerHost) {
         return NextResponse.json(
@@ -141,17 +169,43 @@ export async function PUT(req: NextRequest) {
       }
     }
 
-    if (activeVideoProvider === "GOOGLE_MEET" && !googleMeetClientId) {
-      return NextResponse.json(
-        { error: "O Google Meet requer configuração prévia do Client ID OAuth do Google Cloud." },
-        { status: 400 }
+    // Regra da Phase 2: Bloqueia Google Meet não funcional
+    if (activeVideoProvider === "GOOGLE_MEET") {
+      const hasId = Boolean(googleMeetClientId || existing?.googleMeetClientId);
+      const hasSecret = Boolean(
+        (googleMeetClientSecret && googleMeetClientSecret !== "••••••••") ||
+          existing?.googleMeetClientSecret
       );
+      const isConnected = existing?.googleMeetStatus === "CONNECTED" && Boolean(existing?.googleMeetRefreshToken);
+
+      if (!hasId || !hasSecret) {
+        return NextResponse.json(
+          { error: "O Google Meet requer configuração do Client ID e Client Secret do Google Cloud Console." },
+          { status: 400 }
+        );
+      }
+
+      if (!isConnected) {
+        return NextResponse.json(
+          {
+            error:
+              "O Google Meet não pode ser definido como provedor padrão antes de autorizar e conectar sua conta Google via OAuth.",
+          },
+          { status: 400 }
+        );
+      }
     }
 
-    // Preserva secret existente se mascarado ou omitido
+    // Preserva TURN secret existente se mascarado ou omitido
     let finalTurnSecret = existing?.peerJsTurnSecret || null;
     if (peerJsTurnSecret !== undefined && peerJsTurnSecret !== "••••••••") {
       finalTurnSecret = peerJsTurnSecret ? peerJsTurnSecret.trim() : null;
+    }
+
+    // Preserva Google Client Secret existente se mascarado ou omitido
+    let finalGoogleSecret = existing?.googleMeetClientSecret || null;
+    if (googleMeetClientSecret !== undefined && googleMeetClientSecret !== "••••••••") {
+      finalGoogleSecret = googleMeetClientSecret ? googleMeetClientSecret.trim() : null;
     }
 
     const updated = await prisma.systemSettings.upsert({
@@ -168,6 +222,7 @@ export async function PUT(req: NextRequest) {
         peerJsTurnUser: peerJsTurnUser || null,
         peerJsTurnSecret: finalTurnSecret,
         googleMeetClientId: googleMeetClientId || null,
+        googleMeetClientSecret: finalGoogleSecret,
       },
       create: {
         id: "default",
@@ -182,6 +237,7 @@ export async function PUT(req: NextRequest) {
         peerJsTurnUser: peerJsTurnUser || null,
         peerJsTurnSecret: finalTurnSecret,
         googleMeetClientId: googleMeetClientId || null,
+        googleMeetClientSecret: finalGoogleSecret,
       },
     });
 

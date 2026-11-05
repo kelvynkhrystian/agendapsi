@@ -84,10 +84,18 @@ export async function GET(
           }
         : null;
 
+    const rawMeetingUrl =
+      videoMeeting.provider === "GOOGLE_MEET"
+        ? videoMeeting.conferenceUrl || videoMeeting.roomName
+        : videoMeeting.provider === "JITSI"
+        ? `https://${settings?.jitsiDomain || "meet.jit.si"}/${videoMeeting.roomName}`
+        : null;
+
     return NextResponse.json({
       provider: videoMeeting.provider,
       roomName: videoMeeting.roomName,
       domain: settings?.jitsiDomain || "meet.jit.si",
+      rawMeetingUrl,
       peerJsConfig,
       canEnter: access.canEnter,
       isEarly: access.isEarly,
