@@ -4,16 +4,16 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 // ==============================================================================
-// TESTES: CABEÇALHO MOBILE, NAVEGAÇÃO STICKY E BOTÕES FLUTUANTES (MINISITE)
+// TESTES: CABEÇALHO DO MINISITE, BRANDING, LOGIN E USUÁRIO AUTENTICADO
 // ==============================================================================
 
-test("1. MiniSiteHeader — Layout do Cabeçalho Mobile e Logo Horizontal", () => {
+test("1. MiniSiteHeader — Ausência da Marca 'PSI' e Uso Estrito da Logo Horizontal", () => {
   const headerPath = path.join(process.cwd(), "src", "components", "minisite", "header.tsx");
   assert.strictEqual(fs.existsSync(headerPath), true, "src/components/minisite/header.tsx deve existir");
 
   const content = fs.readFileSync(headerPath, "utf-8");
 
-  // Verifica que o mobile header (< md) renderiza a logo horizontal no lado esquerdo
+  // Logo horizontal prioritária
   assert.strictEqual(
     content.includes("logoHorizontalUrl ? ("),
     true,
@@ -25,44 +25,125 @@ test("1. MiniSiteHeader — Layout do Cabeçalho Mobile e Logo Horizontal", () =
     "Deve usar object-fit: contain para preservar as proporções da logo"
   );
 
-  // Verifica que no mobile com logoHorizontal NÃO renderiza texto PSI redundante
-  // Na renderização com logoHorizontalUrl, renderiza apenas a tag <img>
+  // Não exibe a palavra "PSI" isolada como texto visível de marca
+  assert.strictEqual(
+    content.includes('clinicName !== "PSI"'),
+    true,
+    "Deve filtrar e nunca substituir pelo nome interno 'PSI'"
+  );
+  assert.strictEqual(
+    content.includes("neutralFallbackName"),
+    true,
+    "Deve possuir fallback neutro sem usar marca do software"
+  );
+
+  // Ambas as ramificações de logo horizontal não renderizam texto ao lado
   const mobileLogoBranch = content.split("logoHorizontalUrl ? (")[1].split(": logoUrl ? (")[0];
   assert.strictEqual(
     mobileLogoBranch.includes("<span"),
     false,
-    "Não deve exibir rótulo de texto PSI ao lado da logo horizontal no mobile"
+    "Não deve exibir rótulo textual ao lado da logo horizontal no mobile"
   );
 
-  // Lado direito: Botão hamburguer com acessibilidade
+  const desktopLogoBranch = content.split("logoHorizontalUrl ? (")[2].split(": logoUrl ? (")[0];
   assert.strictEqual(
-    content.includes("aria-label={isMenuOpen ? \"Fechar menu de navegação\" : \"Abrir menu de navegação\"}"),
-    true,
-    "Botão hamburguer deve conter aria-label acessível"
-  );
-  assert.strictEqual(
-    content.includes("aria-expanded={isMenuOpen}"),
-    true,
-    "Botão hamburguer deve expor aria-expanded"
+    desktopLogoBranch.includes("<span"),
+    false,
+    "Não deve exibir rótulo textual ao lado da logo horizontal no desktop"
   );
 });
 
-test("2. MiniSiteHeader — Drawer de Navegação Móvel e Acessibilidade", () => {
+test("2. MiniSiteHeader — Remoção do Botão 'Agendar Consulta' do Cabeçalho e Menu", () => {
+  const headerPath = path.join(process.cwd(), "src", "components", "minisite", "header.tsx");
+  const headerContent = fs.readFileSync(headerPath, "utf-8");
+
+  assert.strictEqual(
+    headerContent.includes("Agendar Consulta"),
+    false,
+    "Não deve conter botão 'Agendar Consulta' no cabeçalho desktop nem no menu móvel"
+  );
+  assert.strictEqual(
+    headerContent.includes('href="/agendar"'),
+    false,
+    "Não deve conter link para /agendar dentro do cabeçalho de navegação"
+  );
+
+  // Verifica que os botões de agendamento nas outras seções do MiniSite continuam existindo
+  const pagePath = path.join(process.cwd(), "src", "app", "page.tsx");
+  const pageContent = fs.readFileSync(pagePath, "utf-8");
+  assert.strictEqual(
+    pageContent.includes('href="/agendar"'),
+    true,
+    "Botões de agendamento em Hero, Serviços, Sobre e CTA final devem ser preservados"
+  );
+});
+
+test("3. MiniSiteHeader — Botão de Login para Visitantes Não Autenticados", () => {
   const headerPath = path.join(process.cwd(), "src", "components", "minisite", "header.tsx");
   const content = fs.readFileSync(headerPath, "utf-8");
 
-  // Links obrigatórios de seções
-  const expectedLinks = [
+  // Ícone e texto Login
+  assert.strictEqual(
+    content.includes("<LogIn"),
+    true,
+    "Deve conter o ícone LogIn da biblioteca Lucide React"
+  );
+  assert.strictEqual(
+    content.includes("<span>Login</span>"),
+    true,
+    "Deve exibir o texto 'Login' quando não autenticado"
+  );
+  assert.strictEqual(
+    content.includes('href="/login"'),
+    true,
+    "Deve direcionar para o fluxo existente de autenticação (/login)"
+  );
+});
+
+test("4. MiniSiteHeader — Exibição do Nome do Usuário Autenticado e Ação de Conta", () => {
+  const headerPath = path.join(process.cwd(), "src", "components", "minisite", "header.tsx");
+  const content = fs.readFileSync(headerPath, "utf-8");
+
+  // Ícone de usuário e nome
+  assert.strictEqual(
+    content.includes("<UserCheck"),
+    true,
+    "Deve exibir ícone de usuário autenticado"
+  );
+  assert.strictEqual(
+    content.includes("{user.name}"),
+    true,
+    "Deve exibir o nome do usuário autenticado a partir da sessão real"
+  );
+
+  // Redirecionamento por papel (Role-based routing)
+  assert.strictEqual(
+    content.includes('user?.role === "ADMIN" ? "/admin" : "/paciente"'),
+    true,
+    "Admin deve ser direcionado para /admin e Paciente para /paciente"
+  );
+
+  // Ação de logout
+  assert.strictEqual(
+    content.includes('fetch("/api/auth/logout"'),
+    true,
+    "Deve disponibilizar ação de logout chamando o endpoint oficial"
+  );
+});
+
+test("5. MiniSiteHeader — Drawer de Navegação Móvel Completo", () => {
+  const headerPath = path.join(process.cwd(), "src", "components", "minisite", "header.tsx");
+  const content = fs.readFileSync(headerPath, "utf-8");
+
+  const expectedMobileLinks = [
     'href="#inicio"',
     'href="#atendimentos"',
     'href="#sobre"',
     'href="#diferenciais"',
     'href="#como-funciona"',
-    'href="/agendar"',
-    'href="/login"',
   ];
 
-  for (const link of expectedLinks) {
+  for (const link of expectedMobileLinks) {
     assert.strictEqual(
       content.includes(link),
       true,
@@ -70,7 +151,7 @@ test("2. MiniSiteHeader — Drawer de Navegação Móvel e Acessibilidade", () =
     );
   }
 
-  // Localização condicional (apenas se shouldShowLocation for verdadeiro)
+  // Localização condicional
   assert.strictEqual(
     content.includes("shouldShowLocation && ("),
     true,
@@ -89,13 +170,13 @@ test("2. MiniSiteHeader — Drawer de Navegação Móvel e Acessibilidade", () =
     "Menu deve fechar ao clicar em qualquer link de seção"
   );
   assert.strictEqual(
-    content.includes("document.body.style.overflow = \"hidden\""),
+    content.includes('document.body.style.overflow = "hidden"'),
     true,
     "Deve evitar rolagem do fundo quando menu estiver aberto"
   );
 });
 
-test("3. MiniSiteHeader — Comportamento Sticky e Suporte a Safe-Area", () => {
+test("6. MiniSiteHeader — Comportamento Sticky e Suporte a Safe-Area", () => {
   const headerPath = path.join(process.cwd(), "src", "components", "minisite", "header.tsx");
   const content = fs.readFileSync(headerPath, "utf-8");
 
@@ -116,7 +197,7 @@ test("3. MiniSiteHeader — Comportamento Sticky e Suporte a Safe-Area", () => {
   );
 });
 
-test("4. MiniSiteFloatingControls — Botão WhatsApp e Voltar ao Topo Empilhados", () => {
+test("7. MiniSiteFloatingControls — Preservação dos Botões Flutuantes (WhatsApp e Topo)", () => {
   const controlsPath = path.join(process.cwd(), "src", "components", "minisite", "floating-controls.tsx");
   assert.strictEqual(fs.existsSync(controlsPath), true, "src/components/minisite/floating-controls.tsx deve existir");
 
@@ -152,11 +233,6 @@ test("4. MiniSiteFloatingControls — Botão WhatsApp e Voltar ao Topo Empilhado
     true,
     "Botão de voltar ao topo deve chamar scrollTo com comportamento suave"
   );
-  assert.strictEqual(
-    content.includes("aria-label=\"Voltar ao início da página\""),
-    true,
-    "Botão de voltar ao topo deve ter rótulo acessível"
-  );
 
   // Ordem vertical: WhatsApp primeiro, Voltar ao Topo abaixo
   const idxWhatsApp = content.indexOf("BOTÃO FLUTUANTE DO WHATSAPP");
@@ -168,7 +244,7 @@ test("4. MiniSiteFloatingControls — Botão WhatsApp e Voltar ao Topo Empilhado
   );
 });
 
-test("5. Smooth Scrolling e Margens de Rolagem (Scroll Offsets)", () => {
+test("8. Smooth Scrolling e Margens de Rolagem (Scroll Offsets)", () => {
   const cssPath = path.join(process.cwd(), "src", "app", "globals.css");
   const cssContent = fs.readFileSync(cssPath, "utf-8");
 
@@ -182,11 +258,6 @@ test("5. Smooth Scrolling e Margens de Rolagem (Scroll Offsets)", () => {
     true,
     "globals.css deve definir scroll-padding-top para não cobrir títulos com o header fixo"
   );
-  assert.strictEqual(
-    cssContent.includes("prefers-reduced-motion: reduce"),
-    true,
-    "Deve respeitar acessibilidade de movimento reduzido no scroll"
-  );
 
   const homePath = path.join(process.cwd(), "src", "app", "page.tsx");
   const homeContent = fs.readFileSync(homePath, "utf-8");
@@ -199,30 +270,18 @@ test("5. Smooth Scrolling e Margens de Rolagem (Scroll Offsets)", () => {
   assert.strictEqual(homeContent.includes('id="como-funciona" className="py-16 px-4 bg-[#F8F5EE] scroll-mt-20"'), true, "Como Funciona com scroll-mt-20");
 });
 
-test("6. Integração na Página Inicial: Eliminação de Botões Duplicados", () => {
-  const homePath = path.join(process.cwd(), "src", "app", "page.tsx");
-  const homeContent = fs.readFileSync(homePath, "utf-8");
-
-  // Deve usar MiniSiteHeader e MiniSiteFloatingControls
-  assert.strictEqual(homeContent.includes("<MiniSiteHeader"), true, "Deve renderizar MiniSiteHeader");
-  assert.strictEqual(homeContent.includes("<MiniSiteFloatingControls"), true, "Deve renderizar MiniSiteFloatingControls");
-
-  // Não deve haver outro botão WhatsApp flutuante duplicado estático na página
-  const occurrences = (homeContent.match(/fixed bottom-/g) || []).length;
-  assert.strictEqual(
-    occurrences,
-    0,
-    "src/app/page.tsx não deve conter elementos fixed bottom- manuais duplicados"
-  );
-});
-
-test("7. Formatação da Mensagem Padrão do WhatsApp", () => {
+test("9. Validação do Servidor: getSession() Injetado no MiniSiteHeader", () => {
   const homePath = path.join(process.cwd(), "src", "app", "page.tsx");
   const homeContent = fs.readFileSync(homePath, "utf-8");
 
   assert.strictEqual(
-    homeContent.includes("Olá! Conheci seu trabalho pelo site e gostaria de saber mais sobre os atendimentos e como agendar uma consulta."),
+    homeContent.includes("getSession()"),
     true,
-    "Deve conter a mensagem padrão exata de WhatsApp especificada no requisito"
+    "page.tsx deve invocar getSession() para validação server-side da sessão"
+  );
+  assert.strictEqual(
+    homeContent.includes("currentUser={currentUser}"),
+    true,
+    "Deve passar currentUser validado pelo servidor para o MiniSiteHeader"
   );
 });

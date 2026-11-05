@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
 import { formatBRL } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,14 +43,22 @@ import {
 } from "lucide-react";
 
 export default async function HomePage() {
-  const [site, profile, services] = await Promise.all([
+  const [site, profile, services, session] = await Promise.all([
     prisma.siteSettings.findUnique({ where: { id: "default" } }),
     prisma.professionalProfile.findUnique({ where: { id: "default" } }),
     prisma.service.findMany({
       where: { isActive: true },
       orderBy: { priceCents: "asc" },
     }),
+    getSession(),
   ]);
+
+  const currentUser = session
+    ? {
+        name: session.name,
+        role: session.role,
+      }
+    : null;
 
   const clinicName = site?.clinicName || "Consultório de Psicologia & Psiquiatria";
   const professionalName = profile?.fullName || "Dra. Helena Martins";
@@ -145,7 +154,9 @@ export default async function HomePage() {
         logoHorizontalUrl={site?.logoHorizontalUrl}
         logoUrl={site?.logoUrl}
         clinicName={clinicName}
+        professionalName={professionalName}
         shouldShowLocation={shouldShowLocation}
+        currentUser={currentUser}
       />
 
       {/* ================= 1. HERO SECTION (Referência Visual) ================= */}

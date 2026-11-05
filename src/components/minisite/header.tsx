@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import {
   Menu,
   X,
-  Calendar,
-  User,
+  LogIn,
+  LogOut,
+  UserCheck,
   MapPin,
   Sparkles,
   Heart,
@@ -17,21 +18,59 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+export interface HeaderUser {
+  name: string;
+  role: "ADMIN" | "PATIENT";
+}
+
 export interface MiniSiteHeaderProps {
   logoHorizontalUrl?: string | null;
   logoUrl?: string | null;
   clinicName?: string;
+  professionalName?: string;
   shouldShowLocation?: boolean;
+  currentUser?: HeaderUser | null;
 }
 
 export function MiniSiteHeader({
   logoHorizontalUrl,
   logoUrl,
   clinicName = "Consultório de Psicologia",
+  professionalName,
   shouldShowLocation = false,
+  currentUser = null,
 }: MiniSiteHeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState<HeaderUser | null>(currentUser);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(false);
+
+  // Nome neutro de fallback que NUNCA utiliza a marca interna "PSI"
+  const neutralFallbackName =
+    clinicName && clinicName !== "PSI"
+      ? clinicName
+      : professionalName || "Consultório de Psicologia";
+
+  // Sincroniza sessão no cliente caso tenha ocorrido login/logout em outra aba ou via router
+  useEffect(() => {
+    setIsLoadingAuth(true);
+    fetch("/api/auth/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.authenticated && data?.user) {
+          setUser({
+            name: data.user.name || data.user.fullName || "Usuário",
+            role: data.role,
+          });
+        } else {
+          setUser(null);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        setIsLoadingAuth(false);
+      });
+  }, []);
 
   // Monitora scroll para ativar efeito de sombra e fundo translúcido
   useEffect(() => {
@@ -86,6 +125,18 @@ export function MiniSiteHeader({
     setIsMenuOpen(false);
   };
 
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } finally {
+      setUser(null);
+      setIsMenuOpen(false);
+      window.location.href = "/";
+    }
+  };
+
+  const dashboardUrl = user?.role === "ADMIN" ? "/admin" : "/paciente";
+
   return (
     <header
       className={`sticky top-0 z-40 w-full transition-all duration-200 ${
@@ -97,7 +148,7 @@ export function MiniSiteHeader({
     >
       {/* ================= 1. CABEÇALHO MOBILE (< 768px) ================= */}
       <div className="flex md:hidden items-center justify-between w-full h-16 px-4">
-        {/* LADO ESQUERDO: Logo Horizontal Configurado */}
+        {/* LADO ESQUERDO: Logo Horizontal Oficial Sem Rótulo "PSI" */}
         <Link
           href="/"
           onClick={handleLinkClick}
@@ -107,29 +158,22 @@ export function MiniSiteHeader({
           {logoHorizontalUrl ? (
             <img
               src={logoHorizontalUrl}
-              alt={clinicName}
+              alt={neutralFallbackName}
               className="h-9 w-auto max-w-[190px] sm:max-w-[220px] object-contain transition-transform active:scale-98"
             />
           ) : logoUrl ? (
-            <div className="flex items-center gap-2">
-              <img
-                src={logoUrl}
-                alt={clinicName}
-                className="h-8 w-auto max-w-[140px] object-contain rounded-sm"
-              />
-              {clinicName && clinicName !== "PSI" && (
-                <span className="text-sm font-semibold tracking-tight text-slate-900 truncate max-w-[130px]">
-                  {clinicName}
-                </span>
-              )}
-            </div>
+            <img
+              src={logoUrl}
+              alt={neutralFallbackName}
+              className="h-8 w-auto max-w-[140px] object-contain rounded-sm"
+            />
           ) : (
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-serif font-black text-lg">
                 Ψ
               </div>
               <span className="text-sm font-semibold tracking-tight text-slate-900">
-                {clinicName}
+                {neutralFallbackName}
               </span>
             </div>
           )}
@@ -150,7 +194,7 @@ export function MiniSiteHeader({
 
       {/* ================= 2. CABEÇALHO DESKTOP (>= 768px) ================= */}
       <div className="hidden md:flex items-center justify-between w-full h-16 max-w-5xl mx-auto px-4">
-        {/* LADO ESQUERDO: Logo */}
+        {/* LADO ESQUERDO: Logo Horizontal Oficial Sem Rótulo "PSI" */}
         <Link
           href="/"
           className="flex items-center gap-2.5 font-bold text-[var(--primary)] group shrink-0"
@@ -159,33 +203,28 @@ export function MiniSiteHeader({
           {logoHorizontalUrl ? (
             <img
               src={logoHorizontalUrl}
-              alt={clinicName}
+              alt={neutralFallbackName}
               className="h-9 w-auto max-w-[210px] lg:max-w-[240px] object-contain transition-transform group-hover:scale-102"
             />
           ) : logoUrl ? (
-            <div className="flex items-center gap-2.5">
-              <img
-                src={logoUrl}
-                alt={clinicName}
-                className="h-8 w-8 object-contain rounded-md"
-              />
-              <span className="text-base lg:text-lg tracking-tight font-semibold text-slate-900">
-                {clinicName}
-              </span>
-            </div>
+            <img
+              src={logoUrl}
+              alt={neutralFallbackName}
+              className="h-8 w-auto max-w-[160px] object-contain rounded-sm"
+            />
           ) : (
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] font-serif font-black text-lg">
                 Ψ
               </div>
               <span className="text-base lg:text-lg tracking-tight font-semibold text-slate-900">
-                {clinicName}
+                {neutralFallbackName}
               </span>
             </div>
           )}
         </Link>
 
-        {/* CENTRO: Links de Navegação da Página */}
+        {/* CENTRO: Links de Navegação para as Seções do MiniSite */}
         <nav className="flex items-center gap-4 lg:gap-6 text-xs uppercase tracking-wider font-semibold text-slate-600">
           <a
             href="#inicio"
@@ -227,26 +266,42 @@ export function MiniSiteHeader({
           )}
         </nav>
 
-        {/* LADO DIREITO: Botões de Ação */}
-        <div className="flex items-center gap-2 lg:gap-3 shrink-0">
-          <Link href="/login">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs text-slate-600 hover:text-slate-900 cursor-pointer"
-            >
-              Área do Paciente
-            </Button>
-          </Link>
-          <Link href="/agendar">
-            <Button
-              size="sm"
-              className="gap-1.5 text-xs shadow-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer"
-            >
-              <Calendar className="h-3.5 w-3.5" />
-              <span>Agendar Consulta</span>
-            </Button>
-          </Link>
+        {/* LADO DIREITO: Autenticação (Login ou Usuário Autenticado) - Sem Botão de Agendamento */}
+        <div className="flex items-center gap-3 shrink-0">
+          {isLoadingAuth ? (
+            <div className="w-20 h-8 rounded-md bg-slate-100 animate-pulse" />
+          ) : user ? (
+            <div className="flex items-center gap-2">
+              <Link
+                href={dashboardUrl}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200/90 hover:border-[var(--primary)]/40 bg-slate-50/80 hover:bg-[var(--primary)]/5 text-slate-800 text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 group"
+                aria-label={`Acessar painel (${user.name})`}
+              >
+                <UserCheck className="h-4 w-4 text-[var(--primary)] group-hover:scale-105 transition-transform" />
+                <span className="max-w-[140px] truncate">{user.name}</span>
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                title="Sair da conta"
+                aria-label="Sair da conta"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <Link href="/login">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 text-xs font-semibold text-slate-700 hover:text-slate-900 border-slate-200 hover:bg-slate-100/80 rounded-xl cursor-pointer"
+              >
+                <LogIn className="h-3.5 w-3.5 text-slate-600" />
+                <span>Login</span>
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -346,28 +401,47 @@ export function MiniSiteHeader({
               {/* Divisor */}
               <div className="pt-2 border-t border-slate-100" />
 
-              {/* Botões de Ação Principais no Mobile */}
-              <div className="space-y-2.5 pt-1 pb-2">
-                <Link href="/agendar" onClick={handleLinkClick} className="block w-full">
-                  <Button
-                    size="lg"
-                    className="w-full gap-2 text-sm font-bold shadow-md bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white rounded-xl py-6 cursor-pointer"
-                  >
-                    <Calendar className="h-4 w-4" />
-                    <span>Agendar Consulta</span>
-                  </Button>
-                </Link>
+              {/* Autenticação no Mobile (Sem botão de Agendamento) */}
+              <div className="pt-1 pb-2">
+                {isLoadingAuth ? (
+                  <div className="w-full h-12 rounded-xl bg-slate-100 animate-pulse" />
+                ) : user ? (
+                  <div className="space-y-2">
+                    <Link
+                      href={dashboardUrl}
+                      onClick={handleLinkClick}
+                      className="flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-bold text-slate-800 bg-[var(--primary)]/8 hover:bg-[var(--primary)]/15 text-[var(--primary)] transition-colors"
+                    >
+                      <span className="flex items-center gap-3">
+                        <UserCheck className="h-4 w-4 text-[var(--primary)]" />
+                        <span className="truncate max-w-[190px]">{user.name}</span>
+                      </span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-[var(--primary)] text-white px-2.5 py-0.5 rounded-full">
+                        {user.role === "ADMIN" ? "Admin" : "Paciente"}
+                      </span>
+                    </Link>
 
-                <Link href="/login" onClick={handleLinkClick} className="block w-full">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="w-full gap-2 text-sm font-semibold border-slate-200 text-slate-700 hover:bg-slate-100 rounded-xl py-6 cursor-pointer"
-                  >
-                    <User className="h-4 w-4 text-slate-500" />
-                    <span>Área do Paciente</span>
-                  </Button>
-                </Link>
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-semibold text-slate-500 hover:text-red-600 transition-colors cursor-pointer"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Sair da conta</span>
+                    </button>
+                  </div>
+                ) : (
+                  <Link href="/login" onClick={handleLinkClick} className="block w-full">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="w-full gap-2 text-sm font-semibold border-slate-200 text-slate-700 hover:bg-slate-100 rounded-xl py-6 cursor-pointer shadow-xs"
+                    >
+                      <LogIn className="h-4 w-4 text-slate-600" />
+                      <span>Login</span>
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
