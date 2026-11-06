@@ -51,27 +51,27 @@ export function Modal({
     >
       <div
         className={cn(
-          "w-full rounded-2xl bg-white dark:bg-[#19191C] border border-[#E2E4E8] dark:border-[#303034] p-6 shadow-2xl relative animate-in zoom-in-95 duration-200",
+          "w-full rounded-2xl bg-white dark:bg-[#191919] border border-[#E5E5E5] dark:border-[#333333] p-6 shadow-2xl relative animate-in zoom-in-95 duration-200",
           maxStyles[maxWidth]
         )}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
       >
-        <div className="flex items-center justify-between pb-4 border-b border-[#E2E4E8] dark:border-[#303034]">
+        <div className="flex items-center justify-between pb-4 border-b border-[#E5E5E5] dark:border-[#333333]">
           <div>
-            <h2 className="font-heading text-lg font-semibold text-[#111827] dark:text-[#F5F5F5] tracking-tight">
+            <h2 className="font-heading text-lg font-semibold text-[#171717] dark:text-[#F5F5F5] tracking-tight">
               {title}
             </h2>
             {description && (
-              <p className="text-xs sm:text-sm text-[#4B5563] dark:text-[#A3A3AD] mt-1 leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#525252] dark:text-[#A6A6A6] mt-1 leading-relaxed">
                 {description}
               </p>
             )}
           </div>
           <button
             onClick={onClose}
-            className="rounded-xl p-2 text-[#6B7280] hover:text-[#111827] dark:text-[#A3A3AD] dark:hover:text-[#F5F5F5] hover:bg-[#F3F4F6] dark:hover:bg-[#222226] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
+            className="rounded-xl p-2 text-[#737373] hover:text-[#171717] dark:text-[#A6A6A6] dark:hover:text-[#F5F5F5] hover:bg-[#F2F2F2] dark:hover:bg-[#242424] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
             aria-label="Fechar modal"
           >
             <X className="h-5 w-5" />

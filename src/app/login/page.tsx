@@ -48,7 +48,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col justify-between p-4 sm:p-6 bg-slate-50 dark:bg-slate-950">
       <div className="flex justify-between items-center max-w-5xl w-full mx-auto">
-        <Link href="/" className="flex items-center gap-2 font-bold text-lg text-teal-700 dark:text-teal-400">
+        <Link href="/" className="flex items-center gap-2 font-bold text-lg text-[var(--primary)]">
           <Stethoscope className="h-6 w-6" />
           <span>PSI Consultório</span>
         </Link>
@@ -58,7 +58,7 @@ export default function LoginPage() {
       <div className="max-w-md w-full mx-auto my-8">
         <Card className="border-slate-200 dark:border-slate-800 shadow-md">
           <CardHeader className="text-center space-y-2">
-            <div className="mx-auto w-12 h-12 rounded-full bg-teal-100 dark:bg-teal-950/60 flex items-center justify-center text-teal-600 dark:text-teal-400 mb-2">
+            <div className="mx-auto w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] mb-2">
               <ShieldCheck className="h-6 w-6" />
             </div>
             <CardTitle className="text-2xl font-bold">Acesse sua Conta</CardTitle>
@@ -94,7 +94,7 @@ export default function LoginPage() {
                 <div className="flex justify-end mt-1.5">
                   <Link
                     href="/recuperar-senha"
-                    className="text-xs text-teal-600 dark:text-teal-400 hover:underline"
+                    className="text-xs text-[var(--primary)] hover:underline"
                   >
                     Esqueceu sua senha?
                   </Link>

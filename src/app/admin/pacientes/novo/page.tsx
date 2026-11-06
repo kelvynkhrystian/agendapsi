@@ -148,14 +148,14 @@ export default function AdminNovoPacientePage() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-12">
       {/* ================= BARRA DE TOPO & VOLTAR ================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E2E4E8] dark:border-[#303034]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E5E5E5] dark:border-[#333333]">
         <div className="flex items-center gap-3">
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={handleCancel}
-            className="gap-1.5 text-xs text-[#6B7280] hover:text-[#111827] dark:text-[#A3A3AD] dark:hover:text-[#F5F5F5]"
+            className="gap-1.5 text-xs text-[#737373] hover:text-[#171717] dark:text-[#A6A6A6] dark:hover:text-[#F5F5F5]"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Voltar para Pacientes</span>
@@ -163,12 +163,12 @@ export default function AdminNovoPacientePage() {
 
           <span className="text-slate-300 dark:text-slate-700">|</span>
 
-          <nav className="text-xs text-[#6B7280] dark:text-[#A3A3AD] flex items-center gap-1.5">
+          <nav className="text-xs text-[#737373] dark:text-[#A6A6A6] flex items-center gap-1.5">
             <Link href="/admin/pacientes" className="hover:underline">
               Pacientes
             </Link>
             <span>&gt;</span>
-            <span className="font-semibold text-[#111827] dark:text-[#F5F5F5]">
+            <span className="font-semibold text-[#171717] dark:text-[#F5F5F5]">
               Novo Paciente
             </span>
           </nav>
@@ -177,10 +177,10 @@ export default function AdminNovoPacientePage() {
 
       {/* ================= TÍTULO DA PÁGINA ================= */}
       <div>
-        <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#111827] dark:text-[#F5F5F5]">
+        <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
           Cadastro de Novo Paciente
         </h1>
-        <p className="text-xs sm:text-sm text-[#4B5563] dark:text-[#A3A3AD] mt-1">
+        <p className="text-xs sm:text-sm text-[#525252] dark:text-[#A6A6A6] mt-1">
           Preencha os dados cadastrais para iniciar prontuários, agendamentos e emissão de documentos.
         </p>
       </div>
@@ -215,17 +215,17 @@ export default function AdminNovoPacientePage() {
               Uma senha temporária de primeiro acesso foi gerada automaticamente. Forneça estas credenciais para que o paciente acesse o Painel do Paciente e complete sua ficha de anamnese:
             </Alert>
 
-            <div className="p-4 rounded-xl bg-[#F8F9FA] dark:bg-[#141416] border border-[#E2E4E8] dark:border-[#303034] space-y-3 font-mono text-xs sm:text-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E2E4E8] dark:border-[#303034] pb-2.5">
-                <span className="text-[#6B7280] dark:text-[#A3A3AD]">E-mail de Acesso:</span>
-                <span className="font-bold text-[#111827] dark:text-[#F5F5F5]">
+            <div className="p-4 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#333333] space-y-3 font-mono text-xs sm:text-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E5E5] dark:border-[#333333] pb-2.5">
+                <span className="text-[#737373] dark:text-[#A6A6A6]">E-mail de Acesso:</span>
+                <span className="font-bold text-[#171717] dark:text-[#F5F5F5]">
                   {createdPatient.email}
                 </span>
               </div>
 
               {createdPatient.tempPassword && (
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className="text-[#6B7280] dark:text-[#A3A3AD]">Senha Temporária:</span>
+                  <span className="text-[#737373] dark:text-[#A6A6A6]">Senha Temporária:</span>
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-lg text-[var(--primary)] bg-[var(--primary)]/10 px-3 py-1 rounded-lg tracking-wider">
                       {createdPatient.tempPassword}
@@ -253,11 +253,11 @@ export default function AdminNovoPacientePage() {
               )}
             </div>
 
-            <p className="text-xs text-[#6B7280] dark:text-[#A3A3AD] leading-relaxed">
+            <p className="text-xs text-[#737373] dark:text-[#A6A6A6] leading-relaxed">
               * Por segurança e em conformidade com as diretrizes do CFP/LGPD, o paciente será convidado a definir uma nova senha definitiva e pessoal logo no primeiro acesso.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-[#E2E4E8] dark:border-[#303034]">
+            <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
               <Link href="/admin/pacientes">
                 <Button variant="ghost" size="sm" className="w-full sm:w-auto">
                   Voltar para Lista de Pacientes
@@ -277,7 +277,7 @@ export default function AdminNovoPacientePage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* SEÇÃO 1: DADOS PESSOAIS */}
           <Card className="shadow-xs">
-            <CardHeader className="p-5 pb-3 border-b border-[#E2E4E8] dark:border-[#303034]">
+            <CardHeader className="p-5 pb-3 border-b border-[#E5E5E5] dark:border-[#333333]">
               <CardTitle className="text-base font-bold flex items-center gap-2">
                 <User className="h-4 w-4 text-[var(--primary)]" />
                 <span>Dados Pessoais</span>
@@ -333,7 +333,7 @@ export default function AdminNovoPacientePage() {
 
           {/* SEÇÃO 2: CONTATO & LOCALIZAÇÃO */}
           <Card className="shadow-xs">
-            <CardHeader className="p-5 pb-3 border-b border-[#E2E4E8] dark:border-[#303034]">
+            <CardHeader className="p-5 pb-3 border-b border-[#E5E5E5] dark:border-[#333333]">
               <CardTitle className="text-base font-bold flex items-center gap-2">
                 <Phone className="h-4 w-4 text-[var(--primary)]" />
                 <span>Contato e Localização</span>
@@ -388,7 +388,7 @@ export default function AdminNovoPacientePage() {
 
           {/* SEÇÃO 3: PROTEÇÃO AO MENOR DE IDADE */}
           <Card className={`shadow-xs transition-colors ${isMinor ? "border-amber-400/60 dark:border-amber-700/60" : ""}`}>
-            <CardHeader className="p-5 pb-3 border-b border-[#E2E4E8] dark:border-[#303034]">
+            <CardHeader className="p-5 pb-3 border-b border-[#E5E5E5] dark:border-[#333333]">
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-base font-bold flex items-center gap-2">
@@ -400,14 +400,14 @@ export default function AdminNovoPacientePage() {
                   </CardDescription>
                 </div>
 
-                <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-[#141416] px-3 py-1.5 rounded-xl border border-[#E2E4E8] dark:border-[#303034]">
+                <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-[#141414] px-3 py-1.5 rounded-xl border border-[#E5E5E5] dark:border-[#333333]">
                   <input
                     type="checkbox"
                     checked={isMinor}
                     onChange={(e) => setIsMinor(e.target.checked)}
-                    className="rounded border-[#E2E4E8] text-[var(--primary)] focus:ring-[var(--primary)] h-4 w-4 cursor-pointer"
+                    className="rounded border-[#E5E5E5] text-[var(--primary)] focus:ring-[var(--primary)] h-4 w-4 cursor-pointer"
                   />
-                  <span className="text-xs font-semibold text-[#111827] dark:text-[#F5F5F5]">
+                  <span className="text-xs font-semibold text-[#171717] dark:text-[#F5F5F5]">
                     Paciente menor de 18 anos
                   </span>
                 </label>
@@ -474,7 +474,7 @@ export default function AdminNovoPacientePage() {
                   </div>
                 </div>
               ) : (
-                <p className="text-xs text-[#6B7280] dark:text-[#A3A3AD]">
+                <p className="text-xs text-[#737373] dark:text-[#A6A6A6]">
                   Paciente maior de idade (18+ anos). O consentimento é prestado diretamente pelo titular.
                 </p>
               )}
@@ -482,7 +482,7 @@ export default function AdminNovoPacientePage() {
           </Card>
 
           {/* ================= BOTÕES DE AÇÃO ================= */}
-          <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-4 border-t border-[#E2E4E8] dark:border-[#303034]">
+          <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
             <Button
               type="button"
               variant="ghost"
@@ -512,10 +512,10 @@ export default function AdminNovoPacientePage() {
         maxWidth="sm"
       >
         <div className="space-y-4 text-xs">
-          <p className="text-[#6B7280] dark:text-[#A3A3AD]">
+          <p className="text-[#737373] dark:text-[#A6A6A6]">
             Se você sair agora, todos os dados preenchidos neste formulário serão perdidos. Deseja continuar editando ou sair sem salvar?
           </p>
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#E2E4E8] dark:border-[#303034]">
+          <div className="flex justify-end gap-2 pt-2 border-t border-[#E5E5E5] dark:border-[#333333]">
             <Button
               type="button"
               variant="outline"

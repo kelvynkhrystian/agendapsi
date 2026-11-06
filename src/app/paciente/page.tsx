@@ -148,12 +148,12 @@ export default function PatientAppointmentsPage() {
   return (
     <div ref={pageRef} className="space-y-8">
       {/* ================= 1. WELCOME HEADER ================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E2E4E8] dark:border-[#303034]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E5E5E5] dark:border-[#333333]">
         <div className="space-y-1">
-          <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#111827] dark:text-[#F5F5F5]">
+          <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
             Minhas Consultas
           </h1>
-          <p className="text-xs sm:text-sm text-[#4B5563] dark:text-[#A3A3AD] leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#525252] dark:text-[#A6A6A6] leading-relaxed">
             Acompanhe suas sessões presenciais ou online, confira a localização e acesse a teleconsulta.
           </p>
         </div>
@@ -170,7 +170,7 @@ export default function PatientAppointmentsPage() {
 
       {/* ================= 2. NEXT APPOINTMENT HIGHLIGHT (SE HOUVER) ================= */}
       {nextAppointment && !isLoading && (
-        <Card className="border-[var(--primary)]/30 bg-gradient-to-br from-white via-white to-[var(--primary)]/5 dark:from-[#19191C] dark:via-[#19191C] dark:to-[var(--primary)]/10 shadow-sm">
+        <Card className="border-[var(--primary)]/30 bg-gradient-to-br from-white via-white to-[var(--primary)]/5 dark:from-[#191919] dark:via-[#191919] dark:to-[var(--primary)]/10 shadow-sm">
           <CardHeader className="p-5 sm:p-6 pb-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-heading font-semibold bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/20">
@@ -190,14 +190,14 @@ export default function PatientAppointmentsPage() {
           </CardHeader>
 
           <CardContent className="p-5 sm:p-6 pt-2 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-xl bg-[#F8F9FA] dark:bg-[#141416] border border-[#E2E4E8] dark:border-[#303034] text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#333333] text-xs">
               <div className="flex items-center gap-2.5">
                 <div className="h-8 w-8 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
                   <Calendar className="h-4 w-4" />
                 </div>
                 <div>
-                  <span className="text-[#6B7280] dark:text-[#A3A3AD] block text-[11px]">Data</span>
-                  <span className="font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F5]">
+                  <span className="text-[#737373] dark:text-[#A6A6A6] block text-[11px]">Data</span>
+                  <span className="font-heading font-semibold text-sm text-[#171717] dark:text-[#F5F5F5]">
                     {formatDate(nextAppointment.startAt)}
                   </span>
                 </div>
@@ -208,8 +208,8 @@ export default function PatientAppointmentsPage() {
                   <Clock className="h-4 w-4" />
                 </div>
                 <div>
-                  <span className="text-[#6B7280] dark:text-[#A3A3AD] block text-[11px]">Horário</span>
-                  <span className="font-mono font-semibold text-sm text-[#111827] dark:text-[#F5F5F5]">
+                  <span className="text-[#737373] dark:text-[#A6A6A6] block text-[11px]">Horário</span>
+                  <span className="font-mono font-semibold text-sm text-[#171717] dark:text-[#F5F5F5]">
                     {formatTime(nextAppointment.startAt)} às {formatTime(nextAppointment.endAt)}
                   </span>
                 </div>
@@ -235,7 +235,7 @@ export default function PatientAppointmentsPage() {
                   </Button>
                 </Link>
               ) : (
-                <span className="text-xs text-[#6B7280] dark:text-[#A3A3AD] italic">
+                <span className="text-xs text-[#737373] dark:text-[#A6A6A6] italic">
                   Link da sala sendo preparado pelo profissional
                 </span>
               )}
@@ -256,16 +256,16 @@ export default function PatientAppointmentsPage() {
       {/* ================= 3. TODAS AS PRÓXIMAS CONSULTAS ================= */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-heading text-lg font-bold text-[#111827] dark:text-[#F5F5F5]">
+          <h2 className="font-heading text-lg font-bold text-[#171717] dark:text-[#F5F5F5]">
             Próximos Atendimentos
           </h2>
-          <span className="text-xs text-[#6B7280] dark:text-[#A3A3AD]">
+          <span className="text-xs text-[#737373] dark:text-[#A6A6A6]">
             {upcomingAppointments.length} agendado(s)
           </span>
         </div>
 
         {isLoading ? (
-          <div className="h-36 bg-slate-200 dark:bg-[#19191C] rounded-2xl animate-pulse" />
+          <div className="h-36 bg-slate-200 dark:bg-[#191919] rounded-2xl animate-pulse" />
         ) : upcomingAppointments.length > 0 ? (
           <div ref={cardsGridRef} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {upcomingAppointments.map((appt) => {
@@ -287,19 +287,19 @@ export default function PatientAppointmentsPage() {
                     </CardHeader>
 
                     <CardContent className="space-y-3 p-5 pt-0">
-                      <div className="p-3 bg-[#F8F9FA] dark:bg-[#141416] border border-[#E2E4E8] dark:border-[#303034] rounded-xl space-y-1.5 text-xs">
-                        <div className="flex items-center gap-2 font-heading font-semibold text-[#111827] dark:text-[#F5F5F5]">
+                      <div className="p-3 bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#333333] rounded-xl space-y-1.5 text-xs">
+                        <div className="flex items-center gap-2 font-heading font-semibold text-[#171717] dark:text-[#F5F5F5]">
                           <Calendar className="h-4 w-4 text-[var(--primary)]" />
                           <span>{formatDate(appt.startAt)}</span>
                         </div>
-                        <div className="flex items-center gap-2 font-mono text-[#4B5563] dark:text-[#A3A3AD]">
+                        <div className="flex items-center gap-2 font-mono text-[#525252] dark:text-[#A6A6A6]">
                           <Clock className="h-4 w-4 text-[var(--primary)]" />
                           <span>
                             {formatTime(appt.startAt)} às {formatTime(appt.endAt)}
                           </span>
                         </div>
                         {isPresential && appt.establishment?.address && (
-                          <div className="flex items-start gap-2 text-[#6B7280] dark:text-[#A3A3AD] pt-1.5 border-t border-[#E2E4E8] dark:border-[#303034]">
+                          <div className="flex items-start gap-2 text-[#737373] dark:text-[#A6A6A6] pt-1.5 border-t border-[#E5E5E5] dark:border-[#333333]">
                             <MapPin className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
                             <span className="truncate">{appt.establishment.address}</span>
                           </div>
@@ -310,7 +310,7 @@ export default function PatientAppointmentsPage() {
 
                   {/* Actions Bar */}
                   <div className="p-5 pt-0">
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#E2E4E8] dark:border-[#303034]">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#E5E5E5] dark:border-[#333333]">
                       {isPresential ? (
                         <Button
                           size="sm"
@@ -329,7 +329,7 @@ export default function PatientAppointmentsPage() {
                           </Button>
                         </Link>
                       ) : (
-                        <span className="text-xs text-[#6B7280] dark:text-[#A3A3AD] italic">Link sendo preparado</span>
+                        <span className="text-xs text-[#737373] dark:text-[#A6A6A6] italic">Link sendo preparado</span>
                       )}
 
                       <Button
@@ -370,10 +370,10 @@ export default function PatientAppointmentsPage() {
                 <FileText className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <h4 className="font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F5] truncate">
+                <h4 className="font-heading font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] truncate">
                   Ficha de Anamnese
                 </h4>
-                <p className="text-xs text-[#6B7280] dark:text-[#A3A3AD]">
+                <p className="text-xs text-[#737373] dark:text-[#A6A6A6]">
                   Histórico de saúde e hábitos
                 </p>
               </div>
@@ -388,10 +388,10 @@ export default function PatientAppointmentsPage() {
                 <FolderLock className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <h4 className="font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F5] truncate">
+                <h4 className="font-heading font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] truncate">
                   Documentos Liberados
                 </h4>
-                <p className="text-xs text-[#6B7280] dark:text-[#A3A3AD]">
+                <p className="text-xs text-[#737373] dark:text-[#A6A6A6]">
                   Declarações e atestados
                 </p>
               </div>
@@ -406,10 +406,10 @@ export default function PatientAppointmentsPage() {
                 <Boxes className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <h4 className="font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F5] truncate">
+                <h4 className="font-heading font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] truncate">
                   Pacotes & Faturas
                 </h4>
-                <p className="text-xs text-[#6B7280] dark:text-[#A3A3AD]">
+                <p className="text-xs text-[#737373] dark:text-[#A6A6A6]">
                   Sessões contratadas e recibos
                 </p>
               </div>
@@ -421,20 +421,20 @@ export default function PatientAppointmentsPage() {
       {/* ================= 5. HISTÓRICO DE CONSULTAS PASSADAS ================= */}
       {pastAppointments.length > 0 && (
         <div className="space-y-4 pt-4">
-          <h2 className="font-heading text-lg font-bold text-[#111827] dark:text-[#F5F5F5]">
+          <h2 className="font-heading text-lg font-bold text-[#171717] dark:text-[#F5F5F5]">
             Histórico de Atendimentos
           </h2>
-          <div className="divide-y divide-[#E2E4E8] dark:divide-[#303034] bg-white dark:bg-[#19191C] rounded-2xl border border-[#E2E4E8] dark:border-[#303034] p-4 sm:p-5">
+          <div className="divide-y divide-[#E5E5E5] dark:divide-[#333333] bg-white dark:bg-[#191919] rounded-2xl border border-[#E5E5E5] dark:border-[#333333] p-4 sm:p-5">
             {pastAppointments.map((appt) => (
               <div
                 key={appt.id}
-                className="py-3.5 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs hover:bg-[#F3F4F6]/50 dark:hover:bg-[#222226]/40 p-2 rounded-xl transition-colors"
+                className="py-3.5 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs hover:bg-[#F3F4F6]/50 dark:hover:bg-[#242424]/40 p-2 rounded-xl transition-colors"
               >
                 <div>
-                  <span className="font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F5] block">
+                  <span className="font-heading font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] block">
                     {appt.service.name}
                   </span>
-                  <span className="text-[#6B7280] dark:text-[#A3A3AD] block mt-0.5">
+                  <span className="text-[#737373] dark:text-[#A6A6A6] block mt-0.5">
                     {formatDate(appt.startAt)} às {formatTime(appt.startAt)} •{" "}
                     {appt.modality === "PRESENTIAL" ? "Presencial" : "Online"}
                   </span>
@@ -469,30 +469,30 @@ export default function PatientAppointmentsPage() {
             {/* Header com serviço e profissional */}
             <div className="p-4 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="font-heading font-bold text-sm text-[#111827] dark:text-[#F5F5F5]">
+                <span className="font-heading font-bold text-sm text-[#171717] dark:text-[#F5F5F5]">
                   {selectedInPersonAppt.service.name}
                 </span>
                 <Badge variant="outline" className="text-[10px]">Presencial</Badge>
               </div>
 
-              <div className="flex items-center gap-2 text-[#4B5563] dark:text-[#C7C7CC]">
+              <div className="flex items-center gap-2 text-[#525252] dark:text-[#CCCCCC]">
                 <User className="h-4 w-4 text-[var(--primary)] shrink-0" />
                 <span>Profissional: <strong>{selectedInPersonAppt.establishment?.professionalName || "Dr(a). Profissional PSI"}</strong></span>
               </div>
             </div>
 
             {/* Data e Horário */}
-            <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-[#F8F9FA] dark:bg-[#141416] border border-[#E2E4E8] dark:border-[#303034]">
+            <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#333333]">
               <div className="space-y-1">
-                <span className="text-[#6B7280] dark:text-[#A3A3AD] block text-[11px]">Data da Sessão</span>
-                <span className="font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F5] flex items-center gap-1.5">
+                <span className="text-[#737373] dark:text-[#A6A6A6] block text-[11px]">Data da Sessão</span>
+                <span className="font-heading font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] flex items-center gap-1.5">
                   <Calendar className="h-3.5 w-3.5 text-[var(--primary)]" />
                   {formatDate(selectedInPersonAppt.startAt)}
                 </span>
               </div>
               <div className="space-y-1">
-                <span className="text-[#6B7280] dark:text-[#A3A3AD] block text-[11px]">Horário e Duração</span>
-                <span className="font-mono font-semibold text-sm text-[#111827] dark:text-[#F5F5F5] flex items-center gap-1.5">
+                <span className="text-[#737373] dark:text-[#A6A6A6] block text-[11px]">Horário e Duração</span>
+                <span className="font-mono font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] flex items-center gap-1.5">
                   <Clock className="h-3.5 w-3.5 text-[var(--primary)]" />
                   {formatTime(selectedInPersonAppt.startAt)} ({selectedInPersonAppt.service.durationMinutes} min)
                 </span>
@@ -500,15 +500,15 @@ export default function PatientAppointmentsPage() {
             </div>
 
             {/* Estabelecimento e Endereço */}
-            <div className="space-y-2 p-4 rounded-xl border border-[#E2E4E8] dark:border-[#303034] bg-white dark:bg-[#19191C]">
-              <div className="flex items-center gap-2 font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F5]">
+            <div className="space-y-2 p-4 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919]">
+              <div className="flex items-center gap-2 font-heading font-semibold text-sm text-[#171717] dark:text-[#F5F5F5]">
                 <Building2 className="h-4 w-4 text-[var(--primary)]" />
                 <span>{selectedInPersonAppt.establishment?.name || "Consultório"}</span>
               </div>
 
               {selectedInPersonAppt.establishment?.address ? (
                 <div className="space-y-3 pt-2">
-                  <div className="flex items-start gap-2 text-[#4B5563] dark:text-[#C7C7CC]">
+                  <div className="flex items-start gap-2 text-[#525252] dark:text-[#CCCCCC]">
                     <MapPin className="h-4 w-4 text-[var(--primary)] shrink-0 mt-0.5" />
                     <p className="leading-relaxed">{selectedInPersonAppt.establishment.address}</p>
                   </div>
@@ -567,12 +567,12 @@ export default function PatientAppointmentsPage() {
             {cancelError && <Alert variant="destructive">{cancelError}</Alert>}
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-[#374151] dark:text-[#E5E7EB]">
+              <label className="block text-xs font-medium text-[#404040] dark:text-[#E5E7EB]">
                 Motivo do cancelamento (opcional):
               </label>
               <textarea
                 rows={3}
-                className="w-full rounded-xl border border-[#E2E4E8] dark:border-[#303034] bg-white dark:bg-[#141416] p-3 text-sm text-[#111827] dark:text-[#F5F5F5] placeholder:text-[#9CA3AF] dark:placeholder:text-[#71717A] outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 transition-all"
+                className="w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] p-3 text-sm text-[#171717] dark:text-[#F5F5F5] placeholder:text-[#9CA3AF] dark:placeholder:text-[#71717A] outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 transition-all"
                 placeholder="Informe o motivo do imprevisto se desejar..."
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}

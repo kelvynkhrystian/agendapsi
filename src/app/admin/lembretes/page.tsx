@@ -161,7 +161,7 @@ export default function AdminRemindersPage() {
     <div className="space-y-6 max-w-5xl">
       <div>
         <div className="flex items-center gap-2">
-          <BellRing className="h-6 w-6 text-teal-600 dark:text-teal-400" />
+          <BellRing className="h-6 w-6 text-[var(--primary)]" />
           <h1 className="text-2xl font-bold tracking-tight">Lembretes & Mensagens</h1>
         </div>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -187,9 +187,9 @@ export default function AdminRemindersPage() {
         </Link>
       </div>
 
-      <div className="p-4 rounded-xl bg-teal-50/50 dark:bg-teal-950/20 border border-teal-200/60 dark:border-teal-900/40 text-xs text-teal-800 dark:text-teal-300 space-y-1">
+      <div className="p-4 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-xs text-[var(--primary)] space-y-1">
         <p className="font-semibold flex items-center gap-1.5">
-          <Sparkles className="h-4 w-4 text-teal-600" />
+          <Sparkles className="h-4 w-4 text-[var(--primary)]" />
           <span>Regra de Mensagem Compartilhada Unificada (Task 6)</span>
         </p>
         <p>
@@ -211,7 +211,7 @@ export default function AdminRemindersPage() {
                 onClick={() => handleSelectTemplate(tpl.eventType)}
                 className={`w-full text-left p-3 rounded-xl border text-xs transition-colors flex flex-col gap-1 ${
                   selectedEventType === tpl.eventType
-                    ? "border-teal-500 bg-teal-50 dark:bg-teal-950/60 font-semibold text-teal-900 dark:text-teal-200"
+                    ? "border-[var(--primary)] bg-[var(--primary)]/10 font-semibold text-[var(--primary)]"
                     : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60"
                 }`}
               >
@@ -246,7 +246,7 @@ export default function AdminRemindersPage() {
                   <label
                     className={`p-3 rounded-xl border cursor-pointer flex flex-col gap-1 transition-colors ${
                       editedMode === "APP_ONLY"
-                        ? "border-teal-500 bg-teal-50/50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-200 font-semibold"
+                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
                         : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
                     }`}
                   >
@@ -257,7 +257,7 @@ export default function AdminRemindersPage() {
                         value="APP_ONLY"
                         checked={editedMode === "APP_ONLY"}
                         onChange={() => setEditedMode("APP_ONLY")}
-                        className="text-teal-600"
+                        className="accent-[var(--primary)]"
                       />
                       <span>Somente no aplicativo</span>
                     </div>
@@ -269,7 +269,7 @@ export default function AdminRemindersPage() {
                   <label
                     className={`p-3 rounded-xl border cursor-pointer flex flex-col gap-1 transition-colors ${
                       editedMode === "APP_EMAIL"
-                        ? "border-teal-500 bg-teal-50/50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-200 font-semibold"
+                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
                         : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
                     }`}
                   >
@@ -280,7 +280,7 @@ export default function AdminRemindersPage() {
                         value="APP_EMAIL"
                         checked={editedMode === "APP_EMAIL"}
                         onChange={() => setEditedMode("APP_EMAIL")}
-                        className="text-teal-600"
+                        className="accent-[var(--primary)]"
                       />
                       <span>Aplicativo + Email</span>
                     </div>
@@ -292,7 +292,7 @@ export default function AdminRemindersPage() {
                   <label
                     className={`p-3 rounded-xl border cursor-pointer flex flex-col gap-1 transition-colors ${
                       editedMode === "ALL_CHANNELS"
-                        ? "border-teal-500 bg-teal-50/50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-200 font-semibold"
+                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
                         : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
                     }`}
                   >
@@ -303,7 +303,7 @@ export default function AdminRemindersPage() {
                         value="ALL_CHANNELS"
                         checked={editedMode === "ALL_CHANNELS"}
                         onChange={() => setEditedMode("ALL_CHANNELS")}
-                        className="text-teal-600"
+                        className="accent-[var(--primary)]"
                       />
                       <span>App + Email + WhatsApp</span>
                     </div>
@@ -335,7 +335,7 @@ export default function AdminRemindersPage() {
                   rows={4}
                   value={editedBody}
                   onChange={(e) => setEditedBody(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-2.5 text-xs outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-2.5 text-xs outline-none focus:ring-2 focus:ring-[var(--primary)]"
                   placeholder="Escreva a mensagem..."
                 />
               </div>
@@ -360,7 +360,7 @@ export default function AdminRemindersPage() {
                       key={v}
                       type="button"
                       onClick={() => setEditedBody((prev) => `${prev} ${v}`)}
-                      className="px-2 py-0.5 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-[11px] hover:bg-teal-50 dark:hover:bg-teal-950/50"
+                      className="px-2 py-0.5 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-[11px] hover:bg-[var(--primary)]/10"
                       title="Clique para adicionar ao texto"
                     >
                       {v}
@@ -372,7 +372,7 @@ export default function AdminRemindersPage() {
               {/* Prévia Dinâmica */}
               <div className="space-y-1.5 pt-2">
                 <span className="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                  <Eye className="h-4 w-4 text-teal-600" />
+                  <Eye className="h-4 w-4 text-[var(--primary)]" />
                   <span>Prévia do Destinatário:</span>
                 </span>
                 <div className="p-3.5 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-1">
@@ -397,7 +397,7 @@ export default function AdminRemindersPage() {
                 <Button
                   onClick={handleSaveTemplate}
                   disabled={isSavingTemplate}
-                  className="gap-2 text-xs bg-teal-600 hover:bg-teal-700 text-white"
+                  className="gap-2 text-xs"
                 >
                   <Save className="h-4 w-4" />
                   <span>{isSavingTemplate ? "Salvando..." : "Salvar Template"}</span>

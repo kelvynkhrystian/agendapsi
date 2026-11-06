@@ -135,8 +135,8 @@ export default function AdminMessageDetailPage({
         );
       case "DELIVERED":
         return (
-          <Badge variant="outline" className="bg-teal-50 text-teal-800 dark:bg-teal-950/40 dark:text-teal-300 border-teal-300 dark:border-teal-700 text-xs gap-1.5 py-1 px-3 font-bold">
-            <CheckCircle2 className="h-3.5 w-3.5 text-teal-600" />
+          <Badge variant="outline" className="bg-[var(--primary)]/10 text-[var(--primary)] border-[var(--primary)]/30 text-xs gap-1.5 py-1 px-3 font-bold">
+            <CheckCircle2 className="h-3.5 w-3.5 text-[var(--primary)]" />
             <span>Entregue na Caixa de Entrada</span>
           </Badge>
         );
@@ -363,8 +363,8 @@ export default function AdminMessageDetailPage({
               {/* Evento 4: Entrega Confirmada (Webhook) */}
               {log.deliveredAt && (
                 <div className="relative pl-4 pb-2">
-                  <div className="absolute -left-[9px] top-1 h-3 w-3 rounded-full bg-teal-500 border-2 border-white dark:border-slate-900" />
-                  <p className="font-semibold text-teal-800 dark:text-teal-300">
+                  <div className="absolute -left-[9px] top-1 h-3 w-3 rounded-full bg-[var(--primary)] border-2 border-white dark:border-slate-900" />
+                  <p className="font-semibold text-[var(--primary)]">
                     Entrega confirmada no destino (Webhook verificado)
                   </p>
                   <p className="text-[11px] text-slate-500">

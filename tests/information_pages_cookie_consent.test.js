@@ -85,8 +85,8 @@ test("5. LegalPageView: Light mode obrigatório, proteção de rascunho e saniti
 
   const src = fs.readFileSync(compPath, "utf8");
 
-  // Light Mode estrito
-  assert.ok(src.includes("bg-[#F8F9FA]") && src.includes("text-[#111827]"), "Deve utilizar paleta estritamente clara");
+  // Light Mode estrito neutro
+  assert.ok((src.includes("bg-[#F8F8F8]") || src.includes("bg-[#F8F9FA]")) && (src.includes("text-[#171717]") || src.includes("text-[#111827]")), "Deve utilizar paleta estritamente clara");
   assert.ok(!src.includes("dark:bg-"), "Não deve possuir classes escuras no layout público");
 
   // Sanitização

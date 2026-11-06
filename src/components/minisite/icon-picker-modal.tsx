@@ -94,7 +94,7 @@ export function IconPickerModal({
                 onClick={() => setSelectedCategory(cat.id)}
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
                   selectedCategory === cat.id
-                    ? "bg-teal-600 text-white shadow-xs"
+                    ? "bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] shadow-xs"
                     : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
                 }`}
               >
@@ -118,17 +118,17 @@ export function IconPickerModal({
                 }}
                 className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-2 text-center transition-all cursor-pointer relative group ${
                   isSelected
-                    ? "border-teal-500 bg-teal-50/50 dark:bg-teal-950/30 text-teal-600 dark:text-teal-400 shadow-xs ring-2 ring-teal-500/20"
+                    ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] shadow-xs ring-2 ring-[var(--primary)]/20"
                     : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300"
                 }`}
               >
                 {isSelected && (
-                  <div className="absolute top-1 right-1 p-0.5 rounded-full bg-teal-600 text-white">
+                  <div className="absolute top-1 right-1 p-0.5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)]">
                     <Check className="h-2.5 w-2.5" />
                   </div>
                 )}
                 <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:scale-110 transition-transform">
-                  <ThemeIcon iconName={icon.key} className="h-6 w-6 text-teal-600 dark:text-teal-400" />
+                  <ThemeIcon iconName={icon.key} className="h-6 w-6 text-[var(--primary)]" />
                 </div>
                 <span className="text-[10px] font-medium line-clamp-2 leading-tight">
                   {icon.name}

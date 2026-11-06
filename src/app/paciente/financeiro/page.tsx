@@ -109,7 +109,7 @@ export default function PatientFinancePage() {
       {/* Propostas de Pacotes Pendentes */}
       {pendingProposals.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-lg font-bold flex items-center gap-2 text-[#111827] dark:text-[#F5F5F5]">
+          <h2 className="text-lg font-bold flex items-center gap-2 text-[#171717] dark:text-[#F5F5F5]">
             <Boxes className="h-5 w-5 text-[var(--primary)]" />
             <span>Propostas de Pacotes Aguardando sua Aprovação</span>
           </h2>

@@ -108,7 +108,7 @@ export function NotificationBell({ role }: { role: "ADMIN" | "PATIENT" }) {
           setIsOpen(!isOpen);
           if (!isOpen) fetchNotifications();
         }}
-        className="relative p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500"
+        className="relative p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
         title="Notificações"
         aria-label="Abrir notificações"
       >
@@ -129,7 +129,7 @@ export function NotificationBell({ role }: { role: "ADMIN" | "PATIENT" }) {
                 Notificações
               </span>
               {unreadCount > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300 text-[10px] font-semibold">
+                <span className="px-1.5 py-0.5 rounded-full bg-[var(--primary)]/15 text-[var(--primary)] text-[10px] font-semibold">
                   {unreadCount} nova{unreadCount > 1 ? "s" : ""}
                 </span>
               )}
@@ -139,7 +139,7 @@ export function NotificationBell({ role }: { role: "ADMIN" | "PATIENT" }) {
               <button
                 onClick={handleMarkAllAsRead}
                 disabled={isLoading}
-                className="flex items-center gap-1 text-[11px] text-teal-600 hover:text-teal-700 dark:text-teal-400 font-medium transition-colors"
+                className="flex items-center gap-1 text-[11px] text-[var(--primary)] hover:opacity-80 font-medium transition-colors"
                 title="Marcar todas como lidas"
               >
                 <CheckCheck className="h-3.5 w-3.5" />
@@ -157,7 +157,7 @@ export function NotificationBell({ role }: { role: "ADMIN" | "PATIENT" }) {
                   onClick={() => handleNotificationClick(n)}
                   className={`p-3.5 flex items-start gap-3 transition-colors cursor-pointer ${
                     !n.isRead
-                      ? "bg-teal-50/40 dark:bg-teal-950/20 hover:bg-teal-50/80 dark:hover:bg-teal-950/40"
+                      ? "bg-[var(--primary)]/5 hover:bg-[var(--primary)]/10"
                       : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
                   }`}
                 >
@@ -165,7 +165,7 @@ export function NotificationBell({ role }: { role: "ADMIN" | "PATIENT" }) {
                   <div className="pt-1 shrink-0">
                     <span
                       className={`block h-2 w-2 rounded-full ${
-                        !n.isRead ? "bg-teal-600" : "bg-transparent"
+                        !n.isRead ? "bg-[var(--primary)]" : "bg-transparent"
                       }`}
                     />
                   </div>
@@ -196,7 +196,7 @@ export function NotificationBell({ role }: { role: "ADMIN" | "PATIENT" }) {
                     {!n.isRead && (
                       <button
                         onClick={(e) => handleMarkAsRead(n.id, e)}
-                        className="p-1 rounded-md text-slate-400 hover:text-teal-600 hover:bg-teal-100/50 dark:hover:bg-teal-950/50 transition-colors"
+                        className="p-1 rounded-md text-slate-400 hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors"
                         title="Marcar como lida"
                       >
                         <Check className="h-3.5 w-3.5" />
@@ -223,7 +223,7 @@ export function NotificationBell({ role }: { role: "ADMIN" | "PATIENT" }) {
             <Link
               href={historyUrl}
               onClick={() => setIsOpen(false)}
-              className="text-[11px] font-semibold text-teal-600 hover:text-teal-700 dark:text-teal-400 hover:underline inline-block py-1"
+              className="text-[11px] font-semibold text-[var(--primary)] hover:opacity-80 hover:underline inline-block py-1"
             >
               Ver histórico completo de notificações &rarr;
             </Link>

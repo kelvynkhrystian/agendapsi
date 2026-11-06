@@ -272,13 +272,13 @@ export default function BookingPage() {
       {/* Header */}
       <header className="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-bold text-teal-700 dark:text-teal-400">
+          <Link href="/" className="flex items-center gap-2 font-bold text-[var(--primary)]">
             <Stethoscope className="h-6 w-6" />
             <span>PSI Consultório</span>
           </Link>
 
           <div className="flex items-center gap-4">
-            <Link href="/" className="text-xs text-slate-500 hover:text-teal-600">
+            <Link href="/" className="text-xs text-slate-500 hover:text-[var(--primary)]">
               Voltar ao Início
             </Link>
             <ThemeToggle />
@@ -291,22 +291,22 @@ export default function BookingPage() {
         {/* Progress Bar 3 Passos */}
         <div className="mb-8">
           <div className="flex items-center justify-between max-w-md mx-auto text-xs font-semibold text-slate-500">
-            <div className={`flex items-center gap-1.5 ${step >= 1 ? "text-teal-600 font-bold" : ""}`}>
-              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 1 ? "bg-teal-600 text-white" : "bg-slate-200"}`}>
+            <div className={`flex items-center gap-1.5 ${step >= 1 ? "text-[var(--primary)] font-bold" : ""}`}>
+              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 1 ? "bg-[var(--primary)] text-white" : "bg-slate-200"}`}>
                 1
               </span>
               <span>Serviço</span>
             </div>
-            <div className={`h-0.5 flex-1 mx-2 ${step >= 2 ? "bg-teal-600" : "bg-slate-200"}`} />
-            <div className={`flex items-center gap-1.5 ${step >= 2 ? "text-teal-600 font-bold" : ""}`}>
-              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 2 ? "bg-teal-600 text-white" : "bg-slate-200"}`}>
+            <div className={`h-0.5 flex-1 mx-2 ${step >= 2 ? "bg-[var(--primary)]" : "bg-slate-200"}`} />
+            <div className={`flex items-center gap-1.5 ${step >= 2 ? "text-[var(--primary)] font-bold" : ""}`}>
+              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 2 ? "bg-[var(--primary)] text-white" : "bg-slate-200"}`}>
                 2
               </span>
               <span>Data e Horário</span>
             </div>
-            <div className={`h-0.5 flex-1 mx-2 ${step >= 3 ? "bg-teal-600" : "bg-slate-200"}`} />
-            <div className={`flex items-center gap-1.5 ${step >= 3 ? "text-teal-600 font-bold" : ""}`}>
-              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 3 ? "bg-teal-600 text-white" : "bg-slate-200"}`}>
+            <div className={`h-0.5 flex-1 mx-2 ${step >= 3 ? "bg-[var(--primary)]" : "bg-slate-200"}`} />
+            <div className={`flex items-center gap-1.5 ${step >= 3 ? "text-[var(--primary)] font-bold" : ""}`}>
+              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 3 ? "bg-[var(--primary)] text-white" : "bg-slate-200"}`}>
                 3
               </span>
               <span>Identificação</span>
@@ -331,7 +331,7 @@ export default function BookingPage() {
                 <Card
                   key={service.id}
                   onClick={() => handleSelectService(service)}
-                  className="hover:border-teal-500 hover:shadow-md transition-all cursor-pointer border-slate-200 dark:border-slate-800"
+                  className="hover:border-[var(--primary)] hover:shadow-md transition-all cursor-pointer border-slate-200 dark:border-slate-800"
                 >
                   <CardHeader className="flex flex-row items-start justify-between pb-2">
                     <div>
@@ -340,7 +340,7 @@ export default function BookingPage() {
                         {service.description || "Atendimento clínico especializado"}
                       </CardDescription>
                     </div>
-                    <span className="text-base font-bold text-teal-600 dark:text-teal-400 shrink-0">
+                    <span className="text-base font-bold text-[var(--primary)] shrink-0">
                       {service.isFree ? "Gratuito" : formatBRL(service.priceCents)}
                     </span>
                   </CardHeader>
@@ -400,7 +400,7 @@ export default function BookingPage() {
                           onClick={() => setSelectedModality("ONLINE")}
                           className={`p-3 rounded-lg border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
                             selectedModality === "ONLINE"
-                              ? "border-teal-600 bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300"
+                              ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
                               : "border-slate-200 dark:border-slate-800"
                           }`}
                         >
@@ -412,7 +412,7 @@ export default function BookingPage() {
                           onClick={() => setSelectedModality("PRESENTIAL")}
                           className={`p-3 rounded-lg border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
                             selectedModality === "PRESENTIAL"
-                              ? "border-teal-600 bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300"
+                              ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
                               : "border-slate-200 dark:border-slate-800"
                           }`}
                         >
@@ -449,8 +449,8 @@ export default function BookingPage() {
                             !slot.available
                               ? "opacity-30 bg-slate-100 dark:bg-slate-800 cursor-not-allowed text-slate-400"
                               : selectedSlot?.startAt === slot.startAt
-                              ? "bg-teal-600 text-white shadow-xs"
-                              : "border border-slate-200 dark:border-slate-800 hover:border-teal-500 bg-white dark:bg-slate-900"
+                              ? "bg-[var(--primary)] text-white shadow-xs"
+                              : "border border-slate-200 dark:border-slate-800 hover:border-[var(--primary)] bg-white dark:bg-slate-900"
                           }`}
                         >
                           {slot.formattedTime}
@@ -525,8 +525,8 @@ export default function BookingPage() {
                 </CardHeader>
                 <CardContent>
                   {currentUser ? (
-                    <div className="p-4 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-xl space-y-2 text-xs">
-                      <div className="flex items-center gap-2 text-teal-800 dark:text-teal-300 font-semibold">
+                    <div className="p-4 bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-xl space-y-2 text-xs">
+                      <div className="flex items-center gap-2 text-[var(--primary)] font-semibold">
                         <CheckCircle2 className="h-4 w-4" />
                         <span>Identificado com sucesso</span>
                       </div>
@@ -604,7 +604,7 @@ export default function BookingPage() {
                   <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-1.5">
                     <div className="flex justify-between">
                       <span className="text-slate-500">Valor da Sessão:</span>
-                      <span className="font-bold text-sm text-teal-600 dark:text-teal-400">
+                      <span className="font-bold text-sm text-[var(--primary)]">
                         {selectedService.isFree ? "Gratuito" : formatBRL(selectedService.priceCents)}
                       </span>
                     </div>
@@ -624,7 +624,7 @@ export default function BookingPage() {
                             name="paymentMethod"
                             checked={paymentMethod === "ONLINE_SIMULATED"}
                             onChange={() => setPaymentMethod("ONLINE_SIMULATED")}
-                            className="text-teal-600"
+                            className="accent-[var(--primary)]"
                           />
                           <div>
                             <div className="font-semibold">Pagamento Online (Cartão / Pix Simulado)</div>
@@ -640,7 +640,7 @@ export default function BookingPage() {
                             name="paymentMethod"
                             checked={paymentMethod === "IN_PERSON"}
                             onChange={() => setPaymentMethod("IN_PERSON")}
-                            className="text-teal-600"
+                            className="accent-[var(--primary)]"
                           />
                           <div>
                             <div className="font-semibold">Pagamento Presencial no Consultório</div>

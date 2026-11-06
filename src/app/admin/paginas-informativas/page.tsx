@@ -74,7 +74,7 @@ export default function AdminInformationPagesPage() {
   const getPageIcon = (id: string) => {
     switch (id) {
       case "terms":
-        return <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />;
+        return <FileText className="h-5 w-5 text-[var(--primary)]" />;
       case "privacy":
         return <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />;
       case "lgpd":

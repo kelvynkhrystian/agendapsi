@@ -22,7 +22,7 @@ export function ThemeToggle() {
       }}
       aria-label={theme === "dark" ? "Mudar para modo claro" : "Mudar para modo escuro"}
       title={theme === "dark" ? "Mudar para modo claro" : "Mudar para modo escuro"}
-      className="rounded-xl hover:bg-slate-100 dark:hover:bg-[#222226] text-slate-700 dark:text-[#F5F5F5] transition-colors cursor-pointer"
+      className="rounded-xl hover:bg-slate-100 dark:hover:bg-[#242424] text-slate-700 dark:text-[#F5F5F5] transition-colors cursor-pointer"
     >
       {theme === "dark" ? (
         <Sun className="h-4 w-4 text-amber-400 transition-transform hover:rotate-45" />

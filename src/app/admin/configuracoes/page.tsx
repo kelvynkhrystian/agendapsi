@@ -899,7 +899,7 @@ export default function AdminSettingsPage() {
       {activeTab === "profile" && (
         <form onSubmit={handleSaveProfile} className="space-y-6">
           <div className="p-4 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 space-y-1">
-            <p className="font-bold flex items-center gap-1.5 text-[#111827] dark:text-[#F5F5F5]">
+            <p className="font-bold flex items-center gap-1.5 text-[#171717] dark:text-[#F5F5F5]">
               <UserCircle className="h-4 w-4 text-[var(--primary)]" />
               <span>Fonte Centralizada de Perfil e Contato</span>
             </p>
@@ -1115,7 +1115,7 @@ export default function AdminSettingsPage() {
       {activeTab === "appearance" && (
         <div className="space-y-6">
           <div className="p-4 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 space-y-1">
-            <p className="font-bold flex items-center gap-1.5 text-[#111827] dark:text-[#F5F5F5]">
+            <p className="font-bold flex items-center gap-1.5 text-[#171717] dark:text-[#F5F5F5]">
               <Palette className="h-4 w-4 text-[var(--primary)]" />
               <span>Sistema Global de Aparência e Temas (Fase 1 de 5)</span>
             </p>
@@ -1710,7 +1710,7 @@ export default function AdminSettingsPage() {
                         onClick={() => setHeroMediaType("IMAGE")}
                         className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
                           heroMediaType === "IMAGE"
-                            ? "border-teal-500 bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
+                            ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
                             : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
                         }`}
                       >
@@ -1723,7 +1723,7 @@ export default function AdminSettingsPage() {
                         onClick={() => setHeroMediaType("FRAME_ANIMATION")}
                         className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
                           heroMediaType === "FRAME_ANIMATION"
-                            ? "border-teal-500 bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
+                            ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
                             : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
                         }`}
                       >
@@ -1736,7 +1736,7 @@ export default function AdminSettingsPage() {
                         onClick={() => setHeroMediaType("VIDEO")}
                         className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
                           heroMediaType === "VIDEO"
-                            ? "border-teal-500 bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
+                            ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
                             : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
                         }`}
                       >
@@ -2053,7 +2053,7 @@ export default function AdminSettingsPage() {
                         onClick={() => setAboutMediaType("IMAGE")}
                         className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
                           aboutMediaType === "IMAGE"
-                            ? "border-teal-500 bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
+                            ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
                             : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
                         }`}
                       >
@@ -2066,7 +2066,7 @@ export default function AdminSettingsPage() {
                         onClick={() => setAboutMediaType("FRAME_ANIMATION")}
                         className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
                           aboutMediaType === "FRAME_ANIMATION"
-                            ? "border-teal-500 bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
+                            ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
                             : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
                         }`}
                       >
@@ -2079,7 +2079,7 @@ export default function AdminSettingsPage() {
                         onClick={() => setAboutMediaType("VIDEO")}
                         className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
                           aboutMediaType === "VIDEO"
-                            ? "border-teal-500 bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
+                            ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
                             : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
                         }`}
                       >

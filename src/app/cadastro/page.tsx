@@ -105,7 +105,7 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex flex-col justify-between p-4 sm:p-6 bg-slate-50 dark:bg-slate-950">
       <div className="flex justify-between items-center max-w-5xl w-full mx-auto">
-        <Link href="/" className="flex items-center gap-2 font-bold text-lg text-teal-700 dark:text-teal-400">
+        <Link href="/" className="flex items-center gap-2 font-bold text-lg text-[var(--primary)]">
           <Stethoscope className="h-6 w-6" />
           <span>PSI Consultório</span>
         </Link>
@@ -115,7 +115,7 @@ export default function RegisterPage() {
       <div className="max-w-xl w-full mx-auto my-8">
         <Card className="border-slate-200 dark:border-slate-800 shadow-md">
           <CardHeader className="text-center space-y-2">
-            <div className="mx-auto w-12 h-12 rounded-full bg-teal-100 dark:bg-teal-950/60 flex items-center justify-center text-teal-600 dark:text-teal-400 mb-2">
+            <div className="mx-auto w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] mb-2">
               <UserCheck className="h-6 w-6" />
             </div>
             <CardTitle className="text-2xl font-bold">Cadastro de Paciente</CardTitle>
@@ -184,7 +184,7 @@ export default function RegisterPage() {
                     Gênero
                   </label>
                   <select
-                    className="flex h-10 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+                    className="flex h-10 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
                     value={gender}
                     onChange={(e) => setGender(e.target.value)}
                   >
@@ -205,7 +205,7 @@ export default function RegisterPage() {
                     type="checkbox"
                     checked={isMinor}
                     onChange={(e) => setIsMinor(e.target.checked)}
-                    className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
+                    className="rounded border-slate-300 accent-[var(--primary)] h-4 w-4"
                   />
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                     O paciente é menor de 18 anos
@@ -215,8 +215,8 @@ export default function RegisterPage() {
 
               {/* Seção do Responsável Legal */}
               {isMinor && (
-                <div className="p-4 rounded-xl bg-teal-50/60 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-800 space-y-3 animate-in fade-in">
-                  <div className="flex items-center gap-2 text-teal-800 dark:text-teal-300 text-sm font-semibold">
+                <div className="p-4 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 space-y-3 animate-in fade-in">
+                  <div className="flex items-center gap-2 text-[var(--primary)] text-sm font-semibold">
                     <AlertCircle className="h-4 w-4" />
                     <span>Dados do Responsável Legal Obrigatórios</span>
                   </div>
@@ -278,15 +278,15 @@ export default function RegisterPage() {
                     type="checkbox"
                     checked={acceptTerms}
                     onChange={(e) => setAcceptTerms(e.target.checked)}
-                    className="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
+                    className="mt-0.5 rounded border-slate-300 accent-[var(--primary)] h-4 w-4"
                   />
                   <span>
                     Concordo com os{" "}
-                    <Link href="/termos" target="_blank" className="text-teal-600 dark:text-teal-400 underline">
+                    <Link href="/termos" target="_blank" className="text-[var(--primary)] underline">
                       Termos de Uso
                     </Link>{" "}
                     e confirmo que li e aceito a{" "}
-                    <Link href="/privacidade" target="_blank" className="text-teal-600 dark:text-teal-400 underline">
+                    <Link href="/privacidade" target="_blank" className="text-[var(--primary)] underline">
                       Política de Privacidade e Tratamento de Dados (LGPD)
                     </Link>
                     .
@@ -306,7 +306,7 @@ export default function RegisterPage() {
 
             <div className="text-center text-sm text-slate-500 pt-2">
               Já possui uma conta?{" "}
-              <Link href="/login" className="text-teal-600 dark:text-teal-400 font-semibold hover:underline">
+              <Link href="/login" className="text-[var(--primary)] font-semibold hover:underline">
                 Fazer Login
               </Link>
             </div>

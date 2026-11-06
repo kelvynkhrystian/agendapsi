@@ -337,7 +337,7 @@ export default function PeerJsRoom({
         </div>
 
         <div className="flex items-center gap-2 text-[11px] text-slate-300">
-          <ShieldCheck className="h-3.5 w-3.5 text-teal-400" />
+          <ShieldCheck className="h-3.5 w-3.5 text-[var(--primary)]" />
           <span className="hidden sm:inline">Sem gravação no servidor</span>
         </div>
       </div>
@@ -372,7 +372,7 @@ export default function PeerJsRoom({
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="w-16 h-16 rounded-full bg-teal-950/60 border border-teal-500/30 text-teal-400 flex items-center justify-center mx-auto">
+                <div className="w-16 h-16 rounded-full bg-[var(--primary)]/20 border border-[var(--primary)]/40 text-[var(--primary)] flex items-center justify-center mx-auto">
                   <User className="h-8 w-8 animate-pulse" />
                 </div>
                 <h3 className="text-base font-semibold text-white">{statusMessage}</h3>
@@ -398,7 +398,7 @@ export default function PeerJsRoom({
         )}
 
         {/* Local Self-View PiP (Picture in Picture) */}
-        <div className="absolute bottom-20 right-4 z-20 w-32 h-24 sm:w-48 sm:h-36 rounded-xl overflow-hidden border-2 border-teal-500/60 shadow-xl bg-slate-900">
+        <div className="absolute bottom-20 right-4 z-20 w-32 h-24 sm:w-48 sm:h-36 rounded-xl overflow-hidden border-2 border-[var(--primary)]/60 shadow-xl bg-slate-900">
           <video
             ref={localVideoRef}
             autoPlay

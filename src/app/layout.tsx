@@ -52,14 +52,14 @@ export default async function RootLayout({
   }
 
   const primary = site?.primaryColor || "#0d9488";
-  const secondary = site?.secondaryColor || "#f1f5f9";
+  const secondary = site?.secondaryColor || "#f2f2f2";
   const accent = site?.accentColor || "#f0fdfa";
   const buttonBg = site?.buttonColor || primary;
-  const bgColor = site?.backgroundColor || "#f8f9fa";
-  const textColor = site?.textColor || "#111827";
+  const bgColor = site?.backgroundColor || "#f8f8f8";
+  const textColor = site?.textColor || "#171717";
 
-  // Cálculo automático de contraste acessível para o texto do botão primário
-  const buttonForeground = calculateContrastRatio("#ffffff", buttonBg) >= 4.5 ? "#ffffff" : "#111827";
+  // Cálculo automático de contraste acessível para o texto do botão primário (evita dark blue-gray)
+  const buttonForeground = calculateContrastRatio("#ffffff", buttonBg) >= 4.5 ? "#ffffff" : "#111111";
 
   const dynamicCss = `
     :root {
@@ -79,8 +79,8 @@ export default async function RootLayout({
       --color-background: ${bgColor};
       --color-surface: #ffffff;
       --color-text: ${textColor};
-      --color-text-muted: #6b7280;
-      --color-border: #e2e4e8;
+      --color-text-muted: #737373;
+      --color-border: #e5e5e5;
     }
     .dark, [data-theme="dark"] {
       --primary: ${primary};
@@ -90,14 +90,14 @@ export default async function RootLayout({
       --ring: ${primary};
       --color-primary: ${primary};
       --color-primary-hover: ${buttonBg};
-      --color-secondary: #222226;
-      --color-accent: #222226;
-      --color-background: #080809;
-      --color-surface: #19191c;
+      --color-secondary: #242424;
+      --color-accent: #242424;
+      --color-background: #080808;
+      --color-surface: #191919;
       --color-text: #f5f5f5;
-      --color-text-secondary: #c7c7cc;
-      --color-text-muted: #a3a3ad;
-      --color-border: #303034;
+      --color-text-secondary: #cccccc;
+      --color-text-muted: #a6a6a6;
+      --color-border: #333333;
     }
   `;
 
@@ -107,7 +107,7 @@ export default async function RootLayout({
         {site?.faviconUrl && <link rel="icon" href={site.faviconUrl} />}
         <style id="psi-theme-vars" dangerouslySetInnerHTML={{ __html: dynamicCss }} />
       </head>
-      <body className="min-h-screen bg-[#F8F9FA] dark:bg-[#080809] text-[#111827] dark:text-[#F5F5F5] antialiased selection:bg-[var(--primary)] selection:text-white">
+      <body className="min-h-screen bg-[#F8F8F8] dark:bg-[#080808] text-[#171717] dark:text-[#F5F5F5] antialiased selection:bg-[var(--primary)] selection:text-white">
         <Script
           id="psi-theme-init"
           strategy="beforeInteractive"

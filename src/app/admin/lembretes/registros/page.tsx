@@ -167,8 +167,8 @@ export default function AdminMessageLogsPage() {
         );
       case "DELIVERED":
         return (
-          <Badge variant="outline" className="bg-teal-50 text-teal-800 dark:bg-teal-950/40 dark:text-teal-300 border-teal-300 dark:border-teal-700 text-[11px] gap-1 py-0.5 font-bold">
-            <CheckCircle2 className="h-3 w-3 text-teal-600" />
+          <Badge variant="outline" className="bg-[var(--primary)]/10 text-[var(--primary)] border-[var(--primary)]/30 text-[11px] gap-1 py-0.5 font-bold">
+            <CheckCircle2 className="h-3 w-3 text-[var(--primary)]" />
             <span>Entregue</span>
           </Badge>
         );
@@ -259,9 +259,9 @@ export default function AdminMessageLogsPage() {
             <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">Aceitos pelo Provedor</p>
             <p className="text-xl font-bold text-emerald-700 dark:text-emerald-400 mt-0.5">{summary.accepted}</p>
           </Card>
-          <Card className="p-3.5 border-teal-200/60 dark:border-teal-900/40 bg-teal-50/20 dark:bg-teal-950/10">
-            <p className="text-[11px] text-teal-700 dark:text-teal-400 font-medium">Entregas Confirmadas</p>
-            <p className="text-xl font-bold text-teal-700 dark:text-teal-400 mt-0.5">{summary.delivered}</p>
+          <Card className="p-3.5 border-[var(--primary)]/30 bg-[var(--primary)]/10">
+            <p className="text-[11px] text-[var(--primary)] font-medium">Entregas Confirmadas</p>
+            <p className="text-xl font-bold text-[var(--primary)] mt-0.5">{summary.delivered}</p>
           </Card>
           <Card className="p-3.5 border-red-200/60 dark:border-red-900/40 bg-red-50/20 dark:bg-red-950/10">
             <p className="text-[11px] text-red-700 dark:text-red-400 font-medium">Falhas de Envio</p>

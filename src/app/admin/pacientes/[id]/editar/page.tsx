@@ -206,14 +206,14 @@ export default function AdminEditarPacientePage({
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-12">
       {/* ================= BARRA DE TOPO & VOLTAR ================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E2E4E8] dark:border-[#303034]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E5E5E5] dark:border-[#333333]">
         <div className="flex items-center gap-3">
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={handleCancel}
-            className="gap-1.5 text-xs text-[#6B7280] hover:text-[#111827] dark:text-[#A3A3AD] dark:hover:text-[#F5F5F5]"
+            className="gap-1.5 text-xs text-[#737373] hover:text-[#171717] dark:text-[#A6A6A6] dark:hover:text-[#F5F5F5]"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Voltar para a Ficha do Paciente</span>
@@ -221,7 +221,7 @@ export default function AdminEditarPacientePage({
 
           <span className="text-slate-300 dark:text-slate-700">|</span>
 
-          <nav className="text-xs text-[#6B7280] dark:text-[#A3A3AD] flex items-center gap-1.5 truncate">
+          <nav className="text-xs text-[#737373] dark:text-[#A6A6A6] flex items-center gap-1.5 truncate">
             <Link href="/admin/pacientes" className="hover:underline">
               Pacientes
             </Link>
@@ -230,7 +230,7 @@ export default function AdminEditarPacientePage({
               {patient.fullName}
             </Link>
             <span>&gt;</span>
-            <span className="font-semibold text-[#111827] dark:text-[#F5F5F5]">
+            <span className="font-semibold text-[#171717] dark:text-[#F5F5F5]">
               Editar Cadastro
             </span>
           </nav>
@@ -239,10 +239,10 @@ export default function AdminEditarPacientePage({
 
       {/* ================= TÍTULO DA PÁGINA ================= */}
       <div>
-        <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#111827] dark:text-[#F5F5F5]">
+        <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
           Editar Cadastro: {patient.fullName}
         </h1>
-        <p className="text-xs sm:text-sm text-[#4B5563] dark:text-[#A3A3AD] mt-1">
+        <p className="text-xs sm:text-sm text-[#525252] dark:text-[#A6A6A6] mt-1">
           Atualize as informações de identificação, contato e situação cadastral do paciente.
         </p>
       </div>
@@ -263,7 +263,7 @@ export default function AdminEditarPacientePage({
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* SEÇÃO 1: DADOS PESSOAIS */}
         <Card className="shadow-xs">
-          <CardHeader className="p-5 pb-3 border-b border-[#E2E4E8] dark:border-[#303034]">
+          <CardHeader className="p-5 pb-3 border-b border-[#E5E5E5] dark:border-[#333333]">
             <CardTitle className="text-base font-bold flex items-center gap-2">
               <User className="h-4 w-4 text-[var(--primary)]" />
               <span>Dados Pessoais e Identificação</span>
@@ -328,7 +328,7 @@ export default function AdminEditarPacientePage({
 
         {/* SEÇÃO 2: CONTATO & LOCALIZAÇÃO */}
         <Card className="shadow-xs">
-          <CardHeader className="p-5 pb-3 border-b border-[#E2E4E8] dark:border-[#303034]">
+          <CardHeader className="p-5 pb-3 border-b border-[#E5E5E5] dark:border-[#333333]">
             <CardTitle className="text-base font-bold flex items-center gap-2">
               <Phone className="h-4 w-4 text-[var(--primary)]" />
               <span>Canais de Contato</span>
@@ -379,7 +379,7 @@ export default function AdminEditarPacientePage({
 
         {/* SEÇÃO 3: SITUAÇÃO CADASTRAL */}
         <Card className="shadow-xs">
-          <CardHeader className="p-5 pb-3 border-b border-[#E2E4E8] dark:border-[#303034]">
+          <CardHeader className="p-5 pb-3 border-b border-[#E5E5E5] dark:border-[#333333]">
             <CardTitle className="text-base font-bold flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-[var(--primary)]" />
               <span>Situação Cadastral</span>
@@ -395,13 +395,13 @@ export default function AdminEditarPacientePage({
                 type="checkbox"
                 checked={isActive}
                 onChange={(e) => setIsActive(e.target.checked)}
-                className="rounded border-[#E2E4E8] text-[var(--primary)] focus:ring-[var(--primary)] h-4 w-4 cursor-pointer"
+                className="rounded border-[#E5E5E5] text-[var(--primary)] focus:ring-[var(--primary)] h-4 w-4 cursor-pointer"
               />
               <div>
-                <span className="font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F5] block">
+                <span className="font-heading font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] block">
                   Paciente Ativo
                 </span>
-                <span className="text-xs text-[#6B7280] dark:text-[#A3A3AD] block">
+                <span className="text-xs text-[#737373] dark:text-[#A6A6A6] block">
                   Desmarcar esta opção suspende novos agendamentos públicos mantendo prontuários preservados.
                 </span>
               </div>
@@ -410,7 +410,7 @@ export default function AdminEditarPacientePage({
         </Card>
 
         {/* BOTÕES DE AÇÃO */}
-        <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-4 border-t border-[#E2E4E8] dark:border-[#303034]">
+        <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
           <Button
             type="button"
             variant="ghost"
@@ -439,10 +439,10 @@ export default function AdminEditarPacientePage({
         maxWidth="sm"
       >
         <div className="space-y-4 text-xs">
-          <p className="text-[#6B7280] dark:text-[#A3A3AD]">
+          <p className="text-[#737373] dark:text-[#A6A6A6]">
             Se você sair agora, as alterações feitas neste formulário serão descartadas. Deseja continuar editando ou sair sem salvar?
           </p>
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#E2E4E8] dark:border-[#303034]">
+          <div className="flex justify-end gap-2 pt-2 border-t border-[#E5E5E5] dark:border-[#333333]">
             <Button
               type="button"
               variant="outline"

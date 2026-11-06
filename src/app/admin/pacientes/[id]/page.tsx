@@ -1144,7 +1144,7 @@ export default function AdminPatientDetailPage({
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-7 text-xs text-[var(--primary)] border-teal-300 hover:bg-teal-50 cursor-pointer"
+                            className="h-7 text-xs text-[var(--primary)] border-[var(--primary)]/30 hover:bg-[var(--primary)]/10 cursor-pointer"
                             onClick={() => handleReactivateShare(share.id)}
                           >
                             Reativar (+30d)
@@ -1272,7 +1272,7 @@ export default function AdminPatientDetailPage({
                   title={m.label}
                   className={`p-2 rounded-xl text-center border transition-all cursor-pointer ${
                     newMood === m.val
-                      ? "border-teal-600 bg-teal-50 dark:bg-teal-950/60 font-bold text-[var(--primary)] ring-2 ring-teal-500/30"
+                      ? "border-[var(--primary)] bg-[var(--primary)]/10 font-bold text-[var(--primary)] ring-2 ring-[var(--primary)]/30"
                       : "border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800"
                   }`}
                 >
@@ -1391,7 +1391,7 @@ export default function AdminPatientDetailPage({
                   title={m.label}
                   className={`p-2 rounded-xl text-center border transition-all cursor-pointer ${
                     editMood === m.val
-                      ? "border-teal-600 bg-teal-50 dark:bg-teal-950/60 font-bold text-[var(--primary)] ring-2 ring-teal-500/30"
+                      ? "border-[var(--primary)] bg-[var(--primary)]/10 font-bold text-[var(--primary)] ring-2 ring-[var(--primary)]/30"
                       : "border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800"
                   }`}
                 >

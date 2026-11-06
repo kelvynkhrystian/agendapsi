@@ -94,7 +94,7 @@ export function NotificationHistoryView({
             onClick={handleMarkAllAsRead}
             className="gap-2 shrink-0 text-xs"
           >
-            <CheckCheck className="h-4 w-4 text-teal-600" />
+            <CheckCheck className="h-4 w-4 text-[var(--primary)]" />
             <span>Marcar todas como lidas</span>
           </Button>
         )}
@@ -110,7 +110,7 @@ export function NotificationHistoryView({
           }}
           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
             filter === "all"
-              ? "bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 font-semibold"
+              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
@@ -123,13 +123,13 @@ export function NotificationHistoryView({
           }}
           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
             filter === "unread"
-              ? "bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 font-semibold"
+              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
           <span>Não lidas</span>
           {unreadCount > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full bg-teal-600 text-white text-[10px] font-bold">
+            <span className="px-1.5 py-0.2 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] text-[10px] font-bold">
               {unreadCount}
             </span>
           )}
@@ -141,7 +141,7 @@ export function NotificationHistoryView({
           }}
           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
             filter === "read"
-              ? "bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 font-semibold"
+              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
@@ -163,7 +163,7 @@ export function NotificationHistoryView({
               key={n.id}
               className={`transition-colors ${
                 !n.isRead
-                  ? "border-teal-200 dark:border-teal-900/60 bg-teal-50/20 dark:bg-teal-950/10 shadow-xs"
+                  ? "border-[var(--primary)]/30 bg-[var(--primary)]/5 shadow-xs"
                   : "bg-white dark:bg-slate-900"
               }`}
             >
@@ -171,7 +171,7 @@ export function NotificationHistoryView({
                 <div className="space-y-1.5 flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     {!n.isRead && (
-                      <span className="h-2 w-2 rounded-full bg-teal-600 shrink-0" />
+                      <span className="h-2 w-2 rounded-full bg-[var(--primary)] shrink-0" />
                     )}
                     <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">
                       {n.title}

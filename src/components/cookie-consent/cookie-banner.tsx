@@ -139,17 +139,17 @@ export function CookieBanner() {
         <div
           role="region"
           aria-label="Consentimento de Cookies"
-          className="fixed bottom-0 inset-x-0 z-50 p-4 sm:p-5 bg-white border-t border-[#E2E4E8] shadow-2xl text-[#111827] transition-all animate-in fade-in slide-in-from-bottom duration-300"
+          className="fixed bottom-0 inset-x-0 z-50 p-4 sm:p-5 bg-white border-t border-[#E5E5E5] shadow-2xl text-[#171717] transition-all animate-in fade-in slide-in-from-bottom duration-300"
         >
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="space-y-1 max-w-3xl">
               <div className="flex items-center gap-2">
                 <Cookie className="h-5 w-5 text-[var(--primary)] shrink-0" />
-                <h3 className="font-heading font-bold text-sm text-[#111827]">
+                <h3 className="font-heading font-bold text-sm text-[#171717]">
                   Privacidade e Cookies do Consultório
                 </h3>
               </div>
-              <p className="text-xs text-[#4B5563] leading-relaxed">
+              <p className="text-xs text-[#525252] leading-relaxed">
                 Valorizamos sua privacidade. Utilizamos recursos necessários para o funcionamento do site e, com sua autorização, tecnologias opcionais para melhorar sua experiência. Você pode aceitar, rejeitar ou personalizar suas preferências. Saiba mais em nossa{" "}
                 <Link
                   href="/politica-de-privacidade"
@@ -203,13 +203,13 @@ export function CookieBanner() {
         description="Controle com transparência quais tecnologias de armazenamento você autoriza em sua navegação."
         maxWidth="lg"
       >
-        <div className="space-y-5 text-xs text-[#111827]">
+        <div className="space-y-5 text-xs text-[#171717]">
           {/* CATEGORIA 1: ESTRITAMENTE NECESSÁRIOS */}
-          <div className="p-4 rounded-xl bg-slate-50 border border-[#E2E4E8] space-y-2">
+          <div className="p-4 rounded-xl bg-slate-50 border border-[#E5E5E5] space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-[var(--primary)] shrink-0" />
-                <span className="font-bold text-sm text-[#111827]">
+                <span className="font-bold text-sm text-[#171717]">
                   Cookies Estritamente Necessários (Essenciais)
                 </span>
               </div>
@@ -223,11 +223,11 @@ export function CookieBanner() {
           </div>
 
           {/* CATEGORIA 2: ESTATÍSTICAS E DESEMPENHO */}
-          <div className="p-4 rounded-xl bg-white border border-[#E2E4E8] space-y-2">
+          <div className="p-4 rounded-xl bg-white border border-[#E5E5E5] space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Cookie className="h-4 w-4 text-blue-600 shrink-0" />
-                <span className="font-bold text-sm text-[#111827]">
+                <Cookie className="h-4 w-4 text-[var(--primary)] shrink-0" />
+                <span className="font-bold text-sm text-[#171717]">
                   Estatísticas e Desempenho (Opcionais)
                 </span>
               </div>
@@ -247,11 +247,11 @@ export function CookieBanner() {
           </div>
 
           {/* CATEGORIA 3: MÍDIAS EXTERNAS E RECURSOS INTERATIVOS */}
-          <div className="p-4 rounded-xl bg-white border border-[#E2E4E8] space-y-2">
+          <div className="p-4 rounded-xl bg-white border border-[#E5E5E5] space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <SlidersHorizontal className="h-4 w-4 text-purple-600 shrink-0" />
-                <span className="font-bold text-sm text-[#111827]">
+                <span className="font-bold text-sm text-[#171717]">
                   Mídias Externas e Recursos Interativos (Opcionais)
                 </span>
               </div>
@@ -270,7 +270,7 @@ export function CookieBanner() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 p-3 bg-slate-50 border border-[#E2E4E8] rounded-xl text-[11px] text-slate-500">
+          <div className="flex items-center gap-2 p-3 bg-slate-50 border border-[#E5E5E5] rounded-xl text-[11px] text-slate-500">
             <Info className="h-4 w-4 text-[var(--primary)] shrink-0" />
             <span>
               Suas preferências têm validade de 180 dias e podem ser alteradas ou revogadas a qualquer momento pelo link <strong>Preferências de cookies</strong> no rodapé da página.
@@ -278,7 +278,7 @@ export function CookieBanner() {
           </div>
 
           {/* BOTÕES DE AÇÃO */}
-          <div className="flex flex-col sm:flex-row justify-end gap-2 pt-3 border-t border-[#E2E4E8]">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 pt-3 border-t border-[#E5E5E5]">
             <Button
               type="button"
               variant="outline"

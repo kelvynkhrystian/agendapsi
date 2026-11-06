@@ -9,7 +9,7 @@ export function Table({
   return (
     <div
       className={cn(
-        "relative w-full overflow-auto rounded-2xl border border-[#E2E4E8] dark:border-[#303034] bg-white dark:bg-[#19191C] shadow-xs",
+        "relative w-full overflow-auto rounded-2xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] shadow-xs",
         containerClassName
       )}
     >
@@ -28,7 +28,7 @@ export function TableHeader({
   return (
     <thead
       className={cn(
-        "border-b border-[#E2E4E8] dark:border-[#303034] bg-[#F8F9FA] dark:bg-[#101012]/80",
+        "border-b border-[#E5E5E5] dark:border-[#333333] bg-[#F8F8F8] dark:bg-[#101010]/80",
         className
       )}
       {...props}
@@ -42,7 +42,7 @@ export function TableBody({
 }: React.HTMLAttributes<HTMLTableSectionElement>) {
   return (
     <tbody
-      className={cn("divide-y divide-[#E2E4E8] dark:divide-[#303034]", className)}
+      className={cn("divide-y divide-[#E5E5E5] dark:divide-[#333333]", className)}
       {...props}
     />
   );
@@ -55,7 +55,7 @@ export function TableFooter({
   return (
     <tfoot
       className={cn(
-        "border-t border-[#E2E4E8] dark:border-[#303034] bg-[#F8F9FA] dark:bg-[#101012] font-medium text-[#111827] dark:text-[#F5F5F5]",
+        "border-t border-[#E5E5E5] dark:border-[#333333] bg-[#F8F8F8] dark:bg-[#101010] font-medium text-[#171717] dark:text-[#F5F5F5]",
         className
       )}
       {...props}
@@ -70,7 +70,7 @@ export function TableRow({
   return (
     <tr
       className={cn(
-        "transition-colors hover:bg-[#F3F4F6]/70 dark:hover:bg-[#222226]/50 data-[state=selected]:bg-[#F3F4F6] dark:data-[state=selected]:bg-[#222226]",
+        "transition-colors hover:bg-[#F2F2F2]/70 dark:hover:bg-[#242424]/50 data-[state=selected]:bg-[#F2F2F2] dark:data-[state=selected]:bg-[#242424]",
         className
       )}
       {...props}
@@ -85,7 +85,7 @@ export function TableHead({
   return (
     <th
       className={cn(
-        "h-11 px-4 text-left align-middle font-heading text-xs font-semibold uppercase tracking-wider text-[#6B7280] dark:text-[#A3A3AD]",
+        "h-11 px-4 text-left align-middle font-heading text-xs font-semibold uppercase tracking-wider text-[#737373] dark:text-[#A6A6A6]",
         className
       )}
       {...props}
@@ -99,7 +99,7 @@ export function TableCell({
 }: React.TdHTMLAttributes<HTMLTableCellElement>) {
   return (
     <td
-      className={cn("p-4 align-middle text-sm text-[#111827] dark:text-[#F5F5F5]", className)}
+      className={cn("p-4 align-middle text-sm text-[#171717] dark:text-[#F5F5F5]", className)}
       {...props}
     />
   );
@@ -111,7 +111,7 @@ export function TableCaption({
 }: React.HTMLAttributes<HTMLTableCaptionElement>) {
   return (
     <caption
-      className={cn("mt-4 text-xs text-[#6B7280] dark:text-[#A3A3AD]", className)}
+      className={cn("mt-4 text-xs text-[#737373] dark:text-[#A6A6A6]", className)}
       {...props}
     />
   );

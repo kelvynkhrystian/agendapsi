@@ -139,12 +139,12 @@ export default function AdminDashboardPage() {
         {/* Header Skeleton */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-2">
-            <div className="h-8 w-64 bg-slate-200 dark:bg-[#222226] rounded-xl" />
-            <div className="h-4 w-96 bg-slate-200 dark:bg-[#222226] rounded-lg" />
+            <div className="h-8 w-64 bg-slate-200 dark:bg-[#242424] rounded-xl" />
+            <div className="h-4 w-96 bg-slate-200 dark:bg-[#242424] rounded-lg" />
           </div>
           <div className="flex gap-2">
-            <div className="h-10 w-36 bg-slate-200 dark:bg-[#222226] rounded-xl" />
-            <div className="h-10 w-28 bg-slate-200 dark:bg-[#222226] rounded-xl" />
+            <div className="h-10 w-36 bg-slate-200 dark:bg-[#242424] rounded-xl" />
+            <div className="h-10 w-28 bg-slate-200 dark:bg-[#242424] rounded-xl" />
           </div>
         </div>
 
@@ -153,15 +153,15 @@ export default function AdminDashboardPage() {
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="h-32 bg-white dark:bg-[#19191C] border border-[#E2E4E8] dark:border-[#303034] rounded-2xl p-5"
+              className="h-32 bg-white dark:bg-[#191919] border border-[#E5E5E5] dark:border-[#333333] rounded-2xl p-5"
             />
           ))}
         </div>
 
         {/* Content Skeleton Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 h-96 bg-white dark:bg-[#19191C] border border-[#E2E4E8] dark:border-[#303034] rounded-2xl" />
-          <div className="h-96 bg-white dark:bg-[#19191C] border border-[#E2E4E8] dark:border-[#303034] rounded-2xl" />
+          <div className="lg:col-span-2 h-96 bg-white dark:bg-[#191919] border border-[#E5E5E5] dark:border-[#333333] rounded-2xl" />
+          <div className="h-96 bg-white dark:bg-[#191919] border border-[#E5E5E5] dark:border-[#333333] rounded-2xl" />
         </div>
       </div>
     );
@@ -172,10 +172,10 @@ export default function AdminDashboardPage() {
   return (
     <div ref={pageRef} className="space-y-8">
       {/* ================= 1. PAGE HEADER & QUICK ACTIONS ================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E2E4E8] dark:border-[#303034]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E5E5E5] dark:border-[#333333]">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#111827] dark:text-[#F5F5F5]">
+            <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
               Painel do Consultório
             </h1>
             <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
@@ -183,7 +183,7 @@ export default function AdminDashboardPage() {
               Ao Vivo
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-[#4B5563] dark:text-[#A3A3AD] leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#525252] dark:text-[#A6A6A6] leading-relaxed">
             Visão geral em tempo real dos agendamentos, pacientes e finanças.
           </p>
         </div>
@@ -209,7 +209,7 @@ export default function AdminDashboardPage() {
         {/* Atendimentos Hoje */}
         <Card className="hover:border-[var(--primary)]/50 transition-all duration-200">
           <CardHeader className="flex flex-row items-center justify-between pb-2 p-5">
-            <CardTitle className="text-xs sm:text-sm font-medium text-[#4B5563] dark:text-[#A3A3AD]">
+            <CardTitle className="text-xs sm:text-sm font-medium text-[#525252] dark:text-[#A6A6A6]">
               Atendimentos Hoje
             </CardTitle>
             <div className="h-9 w-9 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
@@ -217,10 +217,10 @@ export default function AdminDashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="p-5 pt-0">
-            <div className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#111827] dark:text-[#F5F5F5]">
+            <div className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
               {todayCount}
             </div>
-            <p className="text-xs text-[#6B7280] dark:text-[#A3A3AD] mt-1.5 flex items-center gap-1.5">
+            <p className="text-xs text-[#737373] dark:text-[#A6A6A6] mt-1.5 flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
               {todayCount === 1 ? "1 consulta marcada para hoje" : `${todayCount} consultas marcadas para hoje`}
             </p>
@@ -230,18 +230,18 @@ export default function AdminDashboardPage() {
         {/* Pacientes Cadastrados */}
         <Card className="hover:border-[var(--primary)]/50 transition-all duration-200">
           <CardHeader className="flex flex-row items-center justify-between pb-2 p-5">
-            <CardTitle className="text-xs sm:text-sm font-medium text-[#4B5563] dark:text-[#A3A3AD]">
+            <CardTitle className="text-xs sm:text-sm font-medium text-[#525252] dark:text-[#A6A6A6]">
               Pacientes Cadastrados
             </CardTitle>
-            <div className="h-9 w-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+            <div className="h-9 w-9 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
               <Users className="h-4 w-4" />
             </div>
           </CardHeader>
           <CardContent className="p-5 pt-0">
-            <div className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#111827] dark:text-[#F5F5F5]">
+            <div className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
               {data?.activePatientsCount ?? 0}
             </div>
-            <p className="text-xs text-[#6B7280] dark:text-[#A3A3AD] mt-1.5 flex items-center gap-1.5">
+            <p className="text-xs text-[#737373] dark:text-[#A6A6A6] mt-1.5 flex items-center gap-1.5">
               {data?.pendingApprovalsCount && data.pendingApprovalsCount > 0 ? (
                 <span className="text-amber-600 dark:text-amber-400 font-medium">
                   {data.pendingApprovalsCount} alteração(ões) pendente(s)
@@ -256,7 +256,7 @@ export default function AdminDashboardPage() {
         {/* Receita deste Mês */}
         <Card className="hover:border-[var(--primary)]/50 transition-all duration-200">
           <CardHeader className="flex flex-row items-center justify-between pb-2 p-5">
-            <CardTitle className="text-xs sm:text-sm font-medium text-[#4B5563] dark:text-[#A3A3AD]">
+            <CardTitle className="text-xs sm:text-sm font-medium text-[#525252] dark:text-[#A6A6A6]">
               Receita deste Mês
             </CardTitle>
             <div className="h-9 w-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
@@ -264,7 +264,7 @@ export default function AdminDashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="p-5 pt-0">
-            <div className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#111827] dark:text-[#F5F5F5]">
+            <div className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
               {formatBRL(data?.revenueMonth?.totalCombinedCents ?? 0)}
             </div>
             <div className="flex items-center gap-2 mt-1.5">
@@ -284,7 +284,7 @@ export default function AdminDashboardPage() {
         {/* Recebimentos Pendentes */}
         <Card className="hover:border-[var(--primary)]/50 transition-all duration-200">
           <CardHeader className="flex flex-row items-center justify-between pb-2 p-5">
-            <CardTitle className="text-xs sm:text-sm font-medium text-[#4B5563] dark:text-[#A3A3AD]">
+            <CardTitle className="text-xs sm:text-sm font-medium text-[#525252] dark:text-[#A6A6A6]">
               Recebimentos Pendentes
             </CardTitle>
             <div className="h-9 w-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
@@ -292,10 +292,10 @@ export default function AdminDashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="p-5 pt-0">
-            <div className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#111827] dark:text-[#F5F5F5]">
+            <div className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
               {formatBRL(data?.pendingBalanceCents ?? 0)}
             </div>
-            <p className="text-xs text-[#6B7280] dark:text-[#A3A3AD] mt-1.5">
+            <p className="text-xs text-[#737373] dark:text-[#A6A6A6] mt-1.5">
               {data?.pendingPaymentsCount ?? 0} pagamento(s) a confirmar
             </p>
           </CardContent>
@@ -307,7 +307,7 @@ export default function AdminDashboardPage() {
         {/* Agenda de Hoje (2 Colunas) */}
         <div className="lg:col-span-2 space-y-6">
           <Card>
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 sm:p-6 border-b border-[#E2E4E8] dark:border-[#303034]">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 sm:p-6 border-b border-[#E5E5E5] dark:border-[#333333]">
               <div>
                 <div className="flex items-center gap-2">
                   <CardTitle className="text-lg">Agenda de Hoje</CardTitle>
@@ -330,7 +330,7 @@ export default function AdminDashboardPage() {
 
             <CardContent className="p-5 sm:p-6">
               {data?.todayAppointments && data.todayAppointments.length > 0 ? (
-                <div className="divide-y divide-[#E2E4E8] dark:divide-[#303034]">
+                <div className="divide-y divide-[#E5E5E5] dark:divide-[#333333]">
                   {data.todayAppointments.map((appt) => {
                     const isConfirmed = appt.status === "CONFIRMED";
                     const isCompleted = appt.status === "COMPLETED";
@@ -338,19 +338,19 @@ export default function AdminDashboardPage() {
                     return (
                       <div
                         key={appt.id}
-                        className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 hover:bg-[#F3F4F6]/50 dark:hover:bg-[#222226]/40 p-2.5 rounded-xl transition-colors"
+                        className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 hover:bg-[#F3F4F6]/50 dark:hover:bg-[#242424]/40 p-2.5 rounded-xl transition-colors"
                       >
                         <div className="flex items-start gap-3.5 min-w-0">
                           <div className="px-3 py-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] font-mono text-sm font-bold text-center shrink-0 border border-[var(--primary)]/20 shadow-2xs">
                             {formatTime(appt.startAt)}
                           </div>
                           <div className="min-w-0">
-                            <h4 className="font-heading font-semibold text-sm text-[#111827] dark:text-[#F5F5F5] truncate">
+                            <h4 className="font-heading font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] truncate">
                               {appt.patient.fullName}
                             </h4>
-                            <p className="text-xs text-[#4B5563] dark:text-[#A3A3AD] mt-0.5">
+                            <p className="text-xs text-[#525252] dark:text-[#A6A6A6] mt-0.5">
                               {appt.service.name} • {appt.service.durationMinutes} min •{" "}
-                              <span className="font-medium text-[#111827] dark:text-[#F5F5F5]">
+                              <span className="font-medium text-[#171717] dark:text-[#F5F5F5]">
                                 {appt.modality === "ONLINE" ? "Teleconsulta" : "Presencial"}
                               </span>
                             </p>
@@ -401,7 +401,7 @@ export default function AdminDashboardPage() {
 
           {/* Próximas Consultas */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between p-5 sm:p-6 border-b border-[#E2E4E8] dark:border-[#303034]">
+            <CardHeader className="flex flex-row items-center justify-between p-5 sm:p-6 border-b border-[#E5E5E5] dark:border-[#333333]">
               <div>
                 <CardTitle className="text-base sm:text-lg">Próximos Atendimentos</CardTitle>
                 <CardDescription className="mt-0.5">
@@ -417,25 +417,25 @@ export default function AdminDashboardPage() {
             </CardHeader>
             <CardContent className="p-5 sm:p-6">
               {data?.nextAppointments && data.nextAppointments.length > 0 ? (
-                <div className="divide-y divide-[#E2E4E8] dark:divide-[#303034]">
+                <div className="divide-y divide-[#E5E5E5] dark:divide-[#333333]">
                   {data.nextAppointments.map((appt) => (
                     <div
                       key={appt.id}
-                      className="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between text-sm hover:bg-[#F3F4F6]/50 dark:hover:bg-[#222226]/40 p-2 rounded-xl transition-colors"
+                      className="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between text-sm hover:bg-[#F3F4F6]/50 dark:hover:bg-[#242424]/40 p-2 rounded-xl transition-colors"
                     >
                       <div className="min-w-0">
-                        <span className="font-heading font-semibold text-[#111827] dark:text-[#F5F5F5] block truncate">
+                        <span className="font-heading font-semibold text-[#171717] dark:text-[#F5F5F5] block truncate">
                           {appt.patient.fullName}
                         </span>
-                        <span className="text-xs text-[#6B7280] dark:text-[#A3A3AD] block mt-0.5">
+                        <span className="text-xs text-[#737373] dark:text-[#A6A6A6] block mt-0.5">
                           {appt.service.name} • {appt.service.durationMinutes} min
                         </span>
                       </div>
                       <div className="text-right shrink-0">
-                        <span className="text-xs font-heading font-semibold text-[#111827] dark:text-[#F5F5F5] block">
+                        <span className="text-xs font-heading font-semibold text-[#171717] dark:text-[#F5F5F5] block">
                           {formatDate(appt.startAt)} às {formatTime(appt.startAt)}
                         </span>
-                        <span className="text-[11px] text-[#6B7280] dark:text-[#A3A3AD]">
+                        <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                           {appt.modality === "ONLINE" ? "Teleconsulta" : "Presencial"}
                         </span>
                       </div>
@@ -443,7 +443,7 @@ export default function AdminDashboardPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-[#6B7280] dark:text-[#A3A3AD] py-6 text-center">
+                <p className="text-xs text-[#737373] dark:text-[#A6A6A6] py-6 text-center">
                   Nenhum atendimento futuro cadastrado para os próximos dias.
                 </p>
               )}
@@ -455,7 +455,7 @@ export default function AdminDashboardPage() {
         <div className="space-y-6">
           {/* Quick Actions Card */}
           <Card>
-            <CardHeader className="pb-3 p-5 border-b border-[#E2E4E8] dark:border-[#303034]">
+            <CardHeader className="pb-3 p-5 border-b border-[#E5E5E5] dark:border-[#333333]">
               <CardTitle className="text-base">Ações Rápidas</CardTitle>
               <CardDescription>Atalhos operacionais diários</CardDescription>
             </CardHeader>
@@ -468,7 +468,7 @@ export default function AdminDashboardPage() {
               </Link>
               <Link href="/admin/pacientes" className="block">
                 <Button variant="outline" className="w-full justify-start gap-2.5 text-xs rounded-xl h-10 shadow-2xs">
-                  <Users className="h-4 w-4 text-blue-500" />
+                  <Users className="h-4 w-4 text-[var(--primary)]" />
                   <span>Cadastrar Novo Paciente</span>
                 </Button>
               </Link>
@@ -489,7 +489,7 @@ export default function AdminDashboardPage() {
 
           {/* Message Delivery Widget */}
           <Card className={data?.messageDeliveryStats?.hasFailures ? "border-amber-500/40 dark:border-amber-500/30" : ""}>
-            <CardHeader className="pb-3 p-5 border-b border-[#E2E4E8] dark:border-[#303034]">
+            <CardHeader className="pb-3 p-5 border-b border-[#E5E5E5] dark:border-[#333333]">
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-base flex items-center gap-2">
@@ -510,27 +510,27 @@ export default function AdminDashboardPage() {
             </CardHeader>
             <CardContent className="p-5 space-y-3">
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#1E1E22] border border-slate-200/60 dark:border-slate-800/60">
-                  <span className="text-[#6B7280] dark:text-[#A3A3AD] block text-[11px]">Tentativas</span>
-                  <span className="font-heading font-bold text-base text-[#111827] dark:text-[#F5F5F5]">
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#242424] border border-slate-200/60 dark:border-slate-800/60">
+                  <span className="text-[#737373] dark:text-[#A6A6A6] block text-[11px]">Tentativas</span>
+                  <span className="font-heading font-bold text-base text-[#171717] dark:text-[#F5F5F5]">
                     {data?.messageDeliveryStats?.totalAttempts ?? 0}
                   </span>
                 </div>
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#1E1E22] border border-slate-200/60 dark:border-slate-800/60">
-                  <span className="text-[#6B7280] dark:text-[#A3A3AD] block text-[11px]">Aceitos (SMTP)</span>
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#242424] border border-slate-200/60 dark:border-slate-800/60">
+                  <span className="text-[#737373] dark:text-[#A6A6A6] block text-[11px]">Aceitos (SMTP)</span>
                   <span className="font-heading font-bold text-base text-blue-600 dark:text-blue-400">
                     {data?.messageDeliveryStats?.accepted ?? 0}
                   </span>
                 </div>
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#1E1E22] border border-slate-200/60 dark:border-slate-800/60">
-                  <span className="text-[#6B7280] dark:text-[#A3A3AD] block text-[11px]">Entregues</span>
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#242424] border border-slate-200/60 dark:border-slate-800/60">
+                  <span className="text-[#737373] dark:text-[#A6A6A6] block text-[11px]">Entregues</span>
                   <span className="font-heading font-bold text-base text-emerald-600 dark:text-emerald-400">
                     {data?.messageDeliveryStats?.delivered ?? 0}
                   </span>
                 </div>
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#1E1E22] border border-slate-200/60 dark:border-slate-800/60">
-                  <span className="text-[#6B7280] dark:text-[#A3A3AD] block text-[11px]">Falhas</span>
-                  <span className={`font-heading font-bold text-base ${(data?.messageDeliveryStats?.failed ?? 0) > 0 ? "text-rose-600 dark:text-rose-400" : "text-[#111827] dark:text-[#F5F5F5]"}`}>
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#242424] border border-slate-200/60 dark:border-slate-800/60">
+                  <span className="text-[#737373] dark:text-[#A6A6A6] block text-[11px]">Falhas</span>
+                  <span className={`font-heading font-bold text-base ${(data?.messageDeliveryStats?.failed ?? 0) > 0 ? "text-rose-600 dark:text-rose-400" : "text-[#171717] dark:text-[#F5F5F5]"}`}>
                     {data?.messageDeliveryStats?.failed ?? 0}
                   </span>
                 </div>
@@ -538,12 +538,12 @@ export default function AdminDashboardPage() {
 
               {(data?.messageDeliveryStats?.pending ?? 0) > 0 && (
                 <div className="flex justify-between text-xs pt-1">
-                  <span className="text-[#6B7280] dark:text-[#A3A3AD]">Em fila / processamento:</span>
+                  <span className="text-[#737373] dark:text-[#A6A6A6]">Em fila / processamento:</span>
                   <span className="font-medium text-amber-600 dark:text-amber-400">{data?.messageDeliveryStats?.pending}</span>
                 </div>
               )}
 
-              <div className="pt-2 border-t border-[#E2E4E8] dark:border-[#303034]">
+              <div className="pt-2 border-t border-[#E5E5E5] dark:border-[#333333]">
                 <Link href="/admin/lembretes/registros" className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--primary)] hover:underline">
                   <span>Ver registros detalhados</span>
                   <ArrowRight className="h-3 w-3" />
@@ -554,7 +554,7 @@ export default function AdminDashboardPage() {
 
           {/* Storage Widget */}
           <Card>
-            <CardHeader className="pb-3 p-5 border-b border-[#E2E4E8] dark:border-[#303034]">
+            <CardHeader className="pb-3 p-5 border-b border-[#E5E5E5] dark:border-[#333333]">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base">Armazenamento Local</CardTitle>
                 <div className="h-7 w-7 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center">
@@ -565,18 +565,18 @@ export default function AdminDashboardPage() {
             </CardHeader>
             <CardContent className="p-5 space-y-3">
               <div className="flex justify-between text-xs sm:text-sm">
-                <span className="text-[#6B7280] dark:text-[#A3A3AD]">Total de Arquivos:</span>
-                <span className="font-heading font-semibold text-[#111827] dark:text-[#F5F5F5]">
+                <span className="text-[#737373] dark:text-[#A6A6A6]">Total de Arquivos:</span>
+                <span className="font-heading font-semibold text-[#171717] dark:text-[#F5F5F5]">
                   {data?.storage?.fileCount ?? 0}
                 </span>
               </div>
               <div className="flex justify-between text-xs sm:text-sm">
-                <span className="text-[#6B7280] dark:text-[#A3A3AD]">Espaço Ocupado:</span>
-                <span className="font-heading font-semibold text-[#111827] dark:text-[#F5F5F5]">
+                <span className="text-[#737373] dark:text-[#A6A6A6]">Espaço Ocupado:</span>
+                <span className="font-heading font-semibold text-[#171717] dark:text-[#F5F5F5]">
                   {((data?.storage?.totalBytes ?? 0) / (1024 * 1024)).toFixed(2)} MB
                 </span>
               </div>
-              <p className="text-[11px] text-[#6B7280] dark:text-[#A3A3AD] pt-2.5 border-t border-[#E2E4E8] dark:border-[#303034] leading-relaxed">
+              <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] pt-2.5 border-t border-[#E5E5E5] dark:border-[#333333] leading-relaxed">
                 Sem cotas artificiais limitantes. Armazenamento persistente no servidor local.
               </p>
             </CardContent>
@@ -584,7 +584,7 @@ export default function AdminDashboardPage() {
 
           {/* Atividades Recentes */}
           <Card>
-            <CardHeader className="pb-3 p-5 border-b border-[#E2E4E8] dark:border-[#303034]">
+            <CardHeader className="pb-3 p-5 border-b border-[#E5E5E5] dark:border-[#333333]">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base">Últimas Atividades</CardTitle>
                 <div className="h-7 w-7 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center">
@@ -600,10 +600,10 @@ export default function AdminDashboardPage() {
                     <div key={act.id} className="flex items-start gap-2.5">
                       <div className="h-2 w-2 rounded-full bg-[var(--primary)] mt-1.5 shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-[#111827] dark:text-[#F5F5F5] truncate">
+                        <p className="font-medium text-[#171717] dark:text-[#F5F5F5] truncate">
                           {formatActivityAction(act.action)}
                         </p>
-                        <p className="text-[#6B7280] dark:text-[#A3A3AD] text-[10px]">
+                        <p className="text-[#737373] dark:text-[#A6A6A6] text-[10px]">
                           {formatDate(act.createdAt)} às {formatTime(act.createdAt)}
                         </p>
                       </div>
@@ -611,7 +611,7 @@ export default function AdminDashboardPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-[#6B7280] dark:text-[#A3A3AD] py-4 text-center">
+                <p className="text-xs text-[#737373] dark:text-[#A6A6A6] py-4 text-center">
                   Nenhuma atividade registrada recentemente.
                 </p>
               )}

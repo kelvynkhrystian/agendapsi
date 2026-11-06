@@ -19,14 +19,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-xs sm:text-sm font-medium text-[#374151] dark:text-[#E5E7EB]"
+            className="block text-xs sm:text-sm font-medium text-[#404040] dark:text-[#E5E5E5]"
           >
             {label}
           </label>
         )}
         <div className="relative flex items-center">
           {leftIcon && (
-            <div className="absolute left-3.5 flex items-center pointer-events-none text-[#9CA3AF] dark:text-[#A3A3AD]">
+            <div className="absolute left-3.5 flex items-center pointer-events-none text-[#737373] dark:text-[#A6A6A6]">
               {leftIcon}
             </div>
           )}
@@ -35,18 +35,18 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             type={type}
             ref={ref}
             className={cn(
-              "flex h-10 w-full rounded-xl border bg-white dark:bg-[#141416] px-3.5 py-2 text-sm text-[#111827] dark:text-[#F5F5F5] placeholder:text-[#9CA3AF] dark:placeholder:text-[#71717A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 focus-visible:border-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-50 transition-all shadow-2xs",
+              "flex h-10 w-full rounded-xl border bg-white dark:bg-[#141414] px-3.5 py-2 text-sm text-[#171717] dark:text-[#F5F5F5] placeholder:text-[#737373] dark:placeholder:text-[#737373] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 focus-visible:border-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-50 transition-all shadow-2xs",
               leftIcon && "pl-10",
               rightIcon && "pr-10",
               error
                 ? "border-red-500 focus-visible:ring-red-500/30"
-                : "border-[#E2E4E8] dark:border-[#303034]",
+                : "border-[#E5E5E5] dark:border-[#333333]",
               className
             )}
             {...props}
           />
           {rightIcon && (
-            <div className="absolute right-3.5 flex items-center text-[#9CA3AF] dark:text-[#A3A3AD]">
+            <div className="absolute right-3.5 flex items-center text-[#737373] dark:text-[#A6A6A6]">
               {rightIcon}
             </div>
           )}
@@ -57,7 +57,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </p>
         )}
         {!error && helperText && (
-          <p className="text-xs text-[#6B7280] dark:text-[#A3A3AD]">
+          <p className="text-xs text-[#737373] dark:text-[#A6A6A6]">
             {helperText}
           </p>
         )}

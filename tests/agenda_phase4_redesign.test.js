@@ -149,18 +149,19 @@ test("Phase 4 Agenda — 5. Tokens de Modo Escuro (Deep Black) e Contraste Acess
   const agendaPath = path.join(process.cwd(), "src", "app", "admin", "agenda", "page.tsx");
   const content = fs.readFileSync(agendaPath, "utf-8");
 
-  // Superfícies Deep Black
-  assert.ok(content.includes("dark:bg-[#19191C]"), "Deve utilizar card Deep Black (#19191C)");
-  assert.ok(content.includes("dark:border-[#303034]"), "Deve utilizar bordas Deep Black (#303034)");
+  // Superfícies Deep Black neutras
+  assert.ok(content.includes("dark:bg-[#191919]"), "Deve utilizar card Deep Black (#191919)");
+  assert.ok(content.includes("dark:border-[#333333]"), "Deve utilizar bordas Deep Black (#333333)");
   assert.ok(content.includes("dark:text-[#F5F5F5]"), "Deve utilizar texto de alto contraste (#F5F5F5)");
 
-  // Invariantes estritas de testes anteriores
+  // Invariantes estritas de contraste
   assert.ok(
-    content.includes("text-[#111827] dark:text-[#F5F5F5] font-bold"),
+    content.includes("text-[#171717] dark:text-[#F5F5F5] font-bold") ||
+    content.includes("font-bold text-[#171717] dark:text-[#F5F5F5]"),
     "Deve manter string exigida no cabeçalho de dia para compatibilidade com a suite existente"
   );
   assert.ok(
-    content.includes("font-bold text-[#111827] dark:text-[#F5F5F5] block text-xs"),
+    content.includes("font-bold text-[#171717] dark:text-[#F5F5F5] block text-xs"),
     "Deve manter string exigida no modal de teleconsulta para compatibilidade com a suite existente"
   );
 });

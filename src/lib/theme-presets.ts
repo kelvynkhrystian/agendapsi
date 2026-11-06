@@ -91,13 +91,13 @@ export const THEME_PRESETS: Record<string, ThemePalette> = {
   CINZA: {
     key: "CINZA",
     label: "Cinza",
-    swatch: "#64748B",
-    primaryColor: "#475569",
-    secondaryColor: "#F1F5F9",
-    accentColor: "#CBD5E1",
-    buttonColor: "#334155",
-    backgroundColor: "#F8FAFC",
-    textColor: "#0F172A",
+    swatch: "#737373",
+    primaryColor: "#525252",
+    secondaryColor: "#F5F5F5",
+    accentColor: "#D4D4D4",
+    buttonColor: "#404040",
+    backgroundColor: "#F8F8F8",
+    textColor: "#171717",
   },
 };
 

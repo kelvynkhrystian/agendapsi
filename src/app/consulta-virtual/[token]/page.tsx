@@ -87,7 +87,7 @@ export default function VirtualConsultationPage({
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="text-center space-y-3">
-          <div className="w-12 h-12 rounded-full border-4 border-teal-600 border-t-transparent animate-spin mx-auto" />
+          <div className="w-12 h-12 rounded-full border-4 border-[var(--primary)] border-t-transparent animate-spin mx-auto" />
           <p className="text-sm text-slate-500">Conectando à sala segura de teleconsulta...</p>
         </div>
       </div>
@@ -132,7 +132,7 @@ export default function VirtualConsultationPage({
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
       {/* Header */}
       <header className="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2 font-bold text-teal-700 dark:text-teal-400">
+        <div className="flex items-center gap-2 font-bold text-[var(--primary)]">
           <Stethoscope className="h-5 w-5" />
           <span className="text-sm">PSI Teleconsulta Segura</span>
         </div>
@@ -174,9 +174,9 @@ export default function VirtualConsultationPage({
           )
         ) : meeting.canEnter ? (
           /* Sala de Espera Liberada */
-          <Card className="max-w-lg w-full text-center border-teal-500 shadow-lg animate-in zoom-in-95">
+          <Card className="max-w-lg w-full text-center border-[var(--primary)] shadow-lg animate-in zoom-in-95">
             <CardHeader className="space-y-3 pb-2">
-              <div className="w-16 h-16 rounded-full bg-teal-100 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center mx-auto">
+              <div className="w-16 h-16 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center mx-auto">
                 <Video className="h-8 w-8" />
               </div>
               <CardTitle className="text-xl">Sala de Teleconsulta Pronta</CardTitle>
@@ -186,7 +186,7 @@ export default function VirtualConsultationPage({
             </CardHeader>
 
             <CardContent className="space-y-4 pt-2">
-              <div className="p-3 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-xl text-xs space-y-1">
+              <div className="p-3 bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-xl text-xs space-y-1">
                 <div>Paciente: <strong>{appointment.patientName}</strong></div>
                 <div>Horário: <strong>{formatTime(appointment.startAt)} às {formatTime(appointment.endAt)}</strong></div>
                 <div>
@@ -218,7 +218,7 @@ export default function VirtualConsultationPage({
                 >
                   <Button
                     size="lg"
-                    className="w-full gap-2 text-sm bg-teal-600 hover:bg-teal-700 text-white"
+                    className="w-full gap-2 text-sm"
                   >
                     <ExternalLink className="h-4 w-4" />
                     <span>Entrar na Sessão do Google Meet</span>
@@ -228,7 +228,7 @@ export default function VirtualConsultationPage({
                 <Button
                   size="lg"
                   onClick={() => setInCall(true)}
-                  className="w-full gap-2 text-sm bg-teal-600 hover:bg-teal-700 text-white"
+                  className="w-full gap-2 text-sm"
                 >
                   <Video className="h-4 w-4" />
                   <span>Entrar na Sessão Agora</span>
@@ -260,7 +260,7 @@ export default function VirtualConsultationPage({
               </div>
 
               <div className="flex items-center justify-center gap-2 text-[11px] text-slate-500 pt-2">
-                <span className="w-2 h-2 rounded-full bg-teal-500 animate-ping" />
+                <span className="w-2 h-2 rounded-full bg-[var(--primary)] animate-ping" />
                 <span>Esta página atualizará automaticamente quando o horário for liberado.</span>
               </div>
             </CardContent>

@@ -236,7 +236,7 @@ export default function AdminIntegrationsPage() {
             <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-lg bg-teal-100 dark:bg-teal-950 text-[var(--primary)]">
+                  <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
                     <Mail className="h-5 w-5" />
                   </div>
                   <div>

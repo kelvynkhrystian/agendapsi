@@ -34,9 +34,9 @@ export async function LegalPageView({ slug, defaultTitle }: LegalPageViewProps) 
   const cleanContent = sanitizeCustomHtml(rawContent);
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-[#F8F9FA] text-[#111827]">
+    <div className="min-h-screen flex flex-col justify-between bg-[#F8F8F8] text-[#171717]">
       {/* ================= CABEÇALHO PÚBLICO (SEMPRE LIGHT MODE) ================= */}
-      <header className="border-b border-[#E2E4E8] bg-white/95 backdrop-blur-md sticky top-0 z-40">
+      <header className="border-b border-[#E5E5E5] bg-white/95 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 font-bold text-lg text-[var(--primary)] hover:opacity-90 transition-opacity">
             {site?.logoHorizontalUrl ? (
@@ -73,11 +73,11 @@ export async function LegalPageView({ slug, defaultTitle }: LegalPageViewProps) 
 
       {/* ================= CORPO PRINCIPAL ================= */}
       <main className="max-w-4xl mx-auto w-full px-4 py-10 sm:py-14 flex-1">
-        <div className="bg-white rounded-3xl border border-[#E2E4E8] p-7 sm:p-12 shadow-sm">
+        <div className="bg-white rounded-3xl border border-[#E5E5E5] p-7 sm:p-12 shadow-sm">
           {isPublished ? (
             <>
               <div className="border-b border-slate-100 pb-6 mb-8">
-                <h1 className="text-2xl sm:text-3xl font-heading font-extrabold tracking-tight text-[#111827]">
+                <h1 className="text-2xl sm:text-3xl font-heading font-extrabold tracking-tight text-[#171717]">
                   {title}
                 </h1>
                 {page?.description && (
@@ -123,7 +123,7 @@ export async function LegalPageView({ slug, defaultTitle }: LegalPageViewProps) 
       </main>
 
       {/* ================= RODAPÉ DA PÁGINA INFORMATIVA ================= */}
-      <footer className="border-t border-[#E2E4E8] py-8 bg-white">
+      <footer className="border-t border-[#E5E5E5] py-8 bg-white">
         <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-5 text-xs text-slate-500">
           <p className="text-center sm:text-left text-[11px]">
             &copy; {new Date().getFullYear()} {site?.clinicName || "Consultório"}. Todos os direitos reservados.
