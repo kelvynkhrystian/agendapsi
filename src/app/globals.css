@@ -178,4 +178,10 @@
     letter-spacing: -0.02em;
     font-weight: 600;
   }
+
+  button,
+  [role="button"],
+  a {
+    cursor: pointer;
+  }
 }

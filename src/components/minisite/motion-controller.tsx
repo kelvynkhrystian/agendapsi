@@ -11,7 +11,9 @@ export function MiniSiteMotionController() {
     // Se o usuário prefere redução de movimento, não aplica animações espaciais
     if (isReducedMotion()) return;
 
-    // Garante que o ScrollTrigger recalculou posições após o carregamento inicial
+    const isDesktop = typeof window !== "undefined" && window.innerWidth >= 768;
+
+    // Recalcula posições após carregamento de fontes e imagens
     ScrollTrigger.refresh();
 
     // ============================================================================
@@ -28,6 +30,7 @@ export function MiniSiteMotionController() {
         opacity: 0,
         duration: 1.1,
         ease: "power2.out",
+        clearProps: "scale,opacity",
       }, 0);
     }
 
@@ -38,11 +41,11 @@ export function MiniSiteMotionController() {
         opacity: 0,
         duration: 0.6,
         ease: "power2.out",
+        clearProps: "all",
       }, 0.1);
     }
 
     // 1.3 Container de mídia (Retrato / Frames ZIP / Vídeo)
-    // O conteúdo de mídia interno (frames/vídeo) continua seu loop normalmente sem interferência
     if (document.querySelector("#hero-media-container")) {
       heroTl.from("#hero-media-container", {
         scale: 0.92,
@@ -50,6 +53,7 @@ export function MiniSiteMotionController() {
         y: 15,
         duration: 0.85,
         ease: EASINGS.expressive,
+        clearProps: "all",
       }, 0.2);
     }
 
@@ -60,6 +64,7 @@ export function MiniSiteMotionController() {
         opacity: 0,
         duration: 0.7,
         ease: EASINGS.smooth,
+        clearProps: "all",
       }, 0.35);
     }
 
@@ -70,6 +75,7 @@ export function MiniSiteMotionController() {
         opacity: 0,
         duration: 0.6,
         ease: "power2.out",
+        clearProps: "all",
       }, 0.45);
     }
 
@@ -80,6 +86,7 @@ export function MiniSiteMotionController() {
         opacity: 0,
         duration: 0.6,
         ease: "power2.out",
+        clearProps: "all",
       }, 0.55);
     }
 
@@ -92,23 +99,26 @@ export function MiniSiteMotionController() {
         duration: 0.5,
         stagger: 0.08,
         ease: "power2.out",
+        clearProps: "all",
       }, 0.65);
     }
 
     // ============================================================================
-    // 2. PRINCIPAIS DEMANDAS (ScrollTrigger com Stagger nos cards)
+    // 2. PRINCIPAIS DEMANDAS & ATENDIMENTOS (Transição Horizontal da Esquerda no Desktop)
     // ============================================================================
     if (document.querySelector("#atendimentos")) {
       gsap.from("#atendimentos-header", {
         scrollTrigger: {
           trigger: "#atendimentos",
-          start: "top 82%",
+          start: "top 88%",
           toggleActions: "play none none none",
         },
-        y: 20,
+        x: isDesktop ? -40 : 0,
+        y: isDesktop ? 0 : 20,
         opacity: 0,
-        duration: 0.6,
-        ease: "power2.out",
+        duration: 0.65,
+        ease: EASINGS.smooth,
+        clearProps: "all",
       });
 
       const serviceCards = document.querySelectorAll("#services-list > a");
@@ -116,33 +126,37 @@ export function MiniSiteMotionController() {
         gsap.from(serviceCards, {
           scrollTrigger: {
             trigger: "#services-list",
-            start: "top 82%",
+            start: "top 88%",
             toggleActions: "play none none none",
           },
-          y: 28,
+          x: isDesktop ? -45 : 0,
+          y: isDesktop ? 0 : 24,
           opacity: 0,
-          duration: 0.55,
+          duration: 0.6,
           stagger: 0.08,
           ease: "power2.out",
+          clearProps: "all",
         });
       }
     }
 
     // ============================================================================
-    // 3. SOBRE MIM (ScrollTrigger com entrada harmonizada de Mídia e Biografia)
+    // 3. SOBRE MIM (Transição Horizontal Convergente: Mídia da Esquerda, Texto da Direita)
     // ============================================================================
     if (document.querySelector("#sobre")) {
       if (document.querySelector("#sobre-media")) {
         gsap.from("#sobre-media", {
           scrollTrigger: {
             trigger: "#sobre",
-            start: "top 80%",
+            start: "top 88%",
             toggleActions: "play none none none",
           },
-          x: -24,
+          x: isDesktop ? -50 : 0,
+          y: isDesktop ? 0 : 20,
           opacity: 0,
           duration: 0.75,
           ease: EASINGS.smooth,
+          clearProps: "all",
         });
       }
 
@@ -150,31 +164,35 @@ export function MiniSiteMotionController() {
         gsap.from("#sobre-content", {
           scrollTrigger: {
             trigger: "#sobre",
-            start: "top 80%",
+            start: "top 88%",
             toggleActions: "play none none none",
           },
-          x: 24,
+          x: isDesktop ? 50 : 0,
+          y: isDesktop ? 0 : 20,
           opacity: 0,
           duration: 0.75,
           ease: EASINGS.smooth,
+          clearProps: "all",
         });
       }
     }
 
     // ============================================================================
-    // 4. DIFERENCIAIS (ScrollTrigger com Stagger elegante nos 4 pilares)
+    // 4. DIFERENCIAIS (Transição Horizontal da Direita no Desktop)
     // ============================================================================
     if (document.querySelector("#diferenciais")) {
       gsap.from("#diferenciais-header", {
         scrollTrigger: {
           trigger: "#diferenciais",
-          start: "top 82%",
+          start: "top 88%",
           toggleActions: "play none none none",
         },
-        y: 20,
+        x: isDesktop ? 40 : 0,
+        y: isDesktop ? 0 : 20,
         opacity: 0,
-        duration: 0.6,
-        ease: "power2.out",
+        duration: 0.65,
+        ease: EASINGS.smooth,
+        clearProps: "all",
       });
 
       const diferencialCards = document.querySelectorAll("#diferenciais-grid > div");
@@ -182,32 +200,36 @@ export function MiniSiteMotionController() {
         gsap.from(diferencialCards, {
           scrollTrigger: {
             trigger: "#diferenciais-grid",
-            start: "top 82%",
+            start: "top 88%",
             toggleActions: "play none none none",
           },
-          y: 24,
+          x: isDesktop ? 45 : 0,
+          y: isDesktop ? 0 : 24,
           opacity: 0,
-          duration: 0.55,
+          duration: 0.6,
           stagger: 0.08,
           ease: "power2.out",
+          clearProps: "all",
         });
       }
     }
 
     // ============================================================================
-    // 5. COMO FUNCIONA (ScrollTrigger com sequência progressiva dos 3 passos)
+    // 5. COMO FUNCIONA (Transição Horizontal Progressiva da Esquerda no Desktop)
     // ============================================================================
     if (document.querySelector("#como-funciona")) {
       gsap.from("#como-funciona-header", {
         scrollTrigger: {
           trigger: "#como-funciona",
-          start: "top 82%",
+          start: "top 88%",
           toggleActions: "play none none none",
         },
-        y: 20,
+        x: isDesktop ? -35 : 0,
+        y: isDesktop ? 0 : 20,
         opacity: 0,
-        duration: 0.6,
-        ease: "power2.out",
+        duration: 0.65,
+        ease: EASINGS.smooth,
+        clearProps: "all",
       });
 
       const stepItems = document.querySelectorAll("#como-funciona-steps > div");
@@ -215,61 +237,69 @@ export function MiniSiteMotionController() {
         gsap.from(stepItems, {
           scrollTrigger: {
             trigger: "#como-funciona-steps",
-            start: "top 82%",
+            start: "top 88%",
             toggleActions: "play none none none",
           },
-          y: 26,
+          x: isDesktop ? -40 : 0,
+          y: isDesktop ? 0 : 24,
           opacity: 0,
-          duration: 0.6,
+          duration: 0.65,
           stagger: 0.12,
           ease: EASINGS.expressive,
+          clearProps: "all",
         });
       }
     }
 
     // ============================================================================
-    // 6. DEPOIMENTOS (ScrollTrigger do depoimento com validação ética)
+    // 6. DEPOIMENTOS (Transição Horizontal da Direita no Desktop)
     // ============================================================================
     if (document.querySelector("#depoimentos")) {
       gsap.from("#depoimento-card", {
         scrollTrigger: {
           trigger: "#depoimentos",
-          start: "top 84%",
+          start: "top 88%",
           toggleActions: "play none none none",
         },
-        y: 22,
+        x: isDesktop ? 40 : 0,
+        y: isDesktop ? 0 : 22,
         opacity: 0,
-        duration: 0.65,
+        duration: 0.7,
         ease: "power2.out",
+        clearProps: "all",
       });
     }
 
     // ============================================================================
-    // 7. LOCALIZAÇÃO (ScrollTrigger seguro com preservação de mapa)
+    // 7. LOCALIZAÇÃO (Transição Horizontal Convergente: Informações da Esquerda, Mapa da Direita)
     // ============================================================================
     if (document.querySelector("#localizacao")) {
       gsap.from("#localizacao-info", {
         scrollTrigger: {
           trigger: "#localizacao",
-          start: "top 82%",
+          start: "top 88%",
           toggleActions: "play none none none",
         },
-        x: -22,
+        x: isDesktop ? -45 : 0,
+        y: isDesktop ? 0 : 22,
         opacity: 0,
-        duration: 0.65,
+        duration: 0.7,
         ease: "power2.out",
+        clearProps: "all",
       });
 
       gsap.from("#localizacao-map", {
         scrollTrigger: {
           trigger: "#localizacao",
-          start: "top 82%",
+          start: "top 88%",
           toggleActions: "play none none none",
         },
-        x: 22,
+        x: isDesktop ? 45 : 0,
+        y: isDesktop ? 0 : 22,
         opacity: 0,
-        duration: 0.65,
+        duration: 0.7,
         ease: "power2.out",
+        clearProps: "all",
       });
     }
 
@@ -280,16 +310,61 @@ export function MiniSiteMotionController() {
       gsap.from("#cta-final-box", {
         scrollTrigger: {
           trigger: "#cta-final",
-          start: "top 85%",
+          start: "top 90%",
           toggleActions: "play none none none",
         },
         scale: 0.96,
-        y: 22,
+        y: 20,
         opacity: 0,
         duration: 0.7,
         ease: EASINGS.smooth,
+        clearProps: "all",
       });
     }
+
+    // Failsafe de visibilidade: garante que NENHUM elemento fique invisível com espaços vazios
+    const failSafeTimer = setTimeout(() => {
+      ScrollTrigger.refresh();
+      const selectors = [
+        "#services-list > a",
+        "#diferenciais-grid > div",
+        "#como-funciona-steps > div",
+        "#sobre-media",
+        "#sobre-content",
+        "#depoimento-card",
+        "#localizacao-info",
+        "#localizacao-map",
+        "#cta-final-box",
+      ];
+      selectors.forEach((sel) => {
+        document.querySelectorAll(sel).forEach((node) => {
+          const el = node as HTMLElement;
+          if (el && el.style.opacity === "0") {
+            gsap.to(el, { opacity: 1, x: 0, y: 0, duration: 0.3, clearProps: "all" });
+          }
+        });
+      });
+    }, 1000);
+
+    return () => clearTimeout(failSafeTimer);
+  }, []);
+
+  // Recálculo ao carregar fontes ou imagens tardias
+  useEffect(() => {
+    const handleLoad = () => {
+      ScrollTrigger.refresh();
+    };
+
+    window.addEventListener("load", handleLoad);
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(() => {
+        ScrollTrigger.refresh();
+      });
+    }
+
+    return () => {
+      window.removeEventListener("load", handleLoad);
+    };
   }, []);
 
   return null;

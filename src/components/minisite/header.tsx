@@ -193,6 +193,25 @@ export function MiniSiteHeader({
 
   const handleLinkClick = () => {
     setIsMenuOpen(false);
+    document.body.style.overflow = "";
+  };
+
+  const handleMobileNavClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    setIsMenuOpen(false);
+    document.body.style.overflow = "";
+
+    const el = document.getElementById(id);
+    if (el) {
+      const headerOffset = 68;
+      const elementPosition = el.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+      setActiveSection(id);
+    }
   };
 
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
@@ -216,6 +235,7 @@ export function MiniSiteHeader({
     } finally {
       setUser(null);
       setIsMenuOpen(false);
+      document.body.style.overflow = "";
       window.location.href = "/";
     }
   };
@@ -225,22 +245,22 @@ export function MiniSiteHeader({
   return (
     <header
       ref={headerRef}
-      className="fixed top-0 left-0 right-0 z-40 w-full bg-transparent border-none shadow-none pointer-events-none transition-all duration-300 py-2.5 sm:py-3 md:py-3.5 lg:py-4"
-      style={{ paddingTop: "max(0.625rem, env(safe-area-inset-top, 0px))" }}
+      className="fixed top-0 left-0 right-0 z-40 w-full bg-transparent border-none shadow-none pointer-events-none transition-all duration-300 py-0 md:py-3.5 lg:py-4"
     >
       {/* ================= 1. CABEÇALHO MOBILE (< 768px) ================= */}
       <div
-        className={`flex md:hidden items-center justify-between w-full h-14 px-4 pointer-events-auto transition-all duration-300 ${
+        className={`flex md:hidden items-center justify-between w-full h-16 px-4 pointer-events-auto transition-all duration-300 ${
           isScrolled
             ? "bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs"
-            : "bg-white/70 backdrop-blur-sm border-b border-slate-200/40"
+            : "bg-white/90 backdrop-blur-sm border-b border-slate-200/40"
         }`}
+        style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
       >
         {/* LADO ESQUERDO: Logo Horizontal Oficial Sem Rótulo "PSI" */}
         <Link
           href="/"
           onClick={handleLinkClick}
-          className="flex items-center focus:outline-none"
+          className="flex items-center focus:outline-none cursor-pointer"
           aria-label="Página inicial"
         >
           {logoHorizontalUrl ? (
@@ -456,23 +476,27 @@ export function MiniSiteHeader({
         <>
           {/* Fundo Escurecido com Fechamento ao Tocar */}
           <div
-            className="fixed inset-0 top-14 bg-slate-950/40 backdrop-blur-xs z-30 md:hidden animate-in fade-in duration-200"
-            onClick={() => setIsMenuOpen(false)}
+            className="fixed inset-0 top-16 bg-slate-950/40 backdrop-blur-xs z-40 md:hidden animate-in fade-in duration-200 pointer-events-auto cursor-pointer"
+            onClick={() => {
+              setIsMenuOpen(false);
+              document.body.style.overflow = "";
+            }}
             aria-hidden="true"
           />
 
-          {/* Painel de Navegação Móvel */}
+          {/* Painel de Navegação Móvel Perfeitamente Ancorado */}
           <div
             id="mobile-navigation-menu"
-            className="absolute top-full left-0 w-full bg-white border-b border-slate-200/90 shadow-2xl z-40 md:hidden animate-in slide-in-from-top-3 duration-200 ease-out flex flex-col max-h-[calc(100vh-3.5rem)] overflow-y-auto"
+            className="fixed top-16 left-0 right-0 w-full max-h-[calc(100vh-4rem)] bg-white border-b border-slate-200/90 shadow-2xl z-50 md:hidden animate-in slide-in-from-top-2 duration-200 ease-out flex flex-col overflow-y-auto pointer-events-auto"
+            style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom, 0px))" }}
           >
             <div className="px-5 py-5 space-y-4">
               {/* Lista de Seções */}
               <div className="flex flex-col space-y-1">
                 <a
                   href="#inicio"
-                  onClick={handleLinkClick}
-                  className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-800 hover:bg-slate-100/80 active:bg-slate-200/70 hover:text-[var(--primary)] transition-colors"
+                  onClick={(e) => handleMobileNavClick(e, "inicio")}
+                  className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-800 hover:bg-slate-100/80 active:bg-slate-200/70 hover:text-[var(--primary)] transition-colors cursor-pointer"
                 >
                   <span className="flex items-center gap-3">
                     <Home className="h-4 w-4 text-[var(--primary)]" />
@@ -483,8 +507,8 @@ export function MiniSiteHeader({
 
                 <a
                   href="#atendimentos"
-                  onClick={handleLinkClick}
-                  className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-800 hover:bg-slate-100/80 active:bg-slate-200/70 hover:text-[var(--primary)] transition-colors"
+                  onClick={(e) => handleMobileNavClick(e, "atendimentos")}
+                  className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-800 hover:bg-slate-100/80 active:bg-slate-200/70 hover:text-[var(--primary)] transition-colors cursor-pointer"
                 >
                   <span className="flex items-center gap-3">
                     <Brain className="h-4 w-4 text-[var(--primary)]" />
@@ -495,8 +519,8 @@ export function MiniSiteHeader({
 
                 <a
                   href="#sobre"
-                  onClick={handleLinkClick}
-                  className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-800 hover:bg-slate-100/80 active:bg-slate-200/70 hover:text-[var(--primary)] transition-colors"
+                  onClick={(e) => handleMobileNavClick(e, "sobre")}
+                  className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-800 hover:bg-slate-100/80 active:bg-slate-200/70 hover:text-[var(--primary)] transition-colors cursor-pointer"
                 >
                   <span className="flex items-center gap-3">
                     <Heart className="h-4 w-4 text-[var(--primary)]" />
@@ -507,8 +531,8 @@ export function MiniSiteHeader({
 
                 <a
                   href="#diferenciais"
-                  onClick={handleLinkClick}
-                  className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-800 hover:bg-slate-100/80 active:bg-slate-200/70 hover:text-[var(--primary)] transition-colors"
+                  onClick={(e) => handleMobileNavClick(e, "diferenciais")}
+                  className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-800 hover:bg-slate-100/80 active:bg-slate-200/70 hover:text-[var(--primary)] transition-colors cursor-pointer"
                 >
                   <span className="flex items-center gap-3">
                     <Sparkles className="h-4 w-4 text-[var(--primary)]" />
@@ -519,8 +543,8 @@ export function MiniSiteHeader({
 
                 <a
                   href="#como-funciona"
-                  onClick={handleLinkClick}
-                  className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-800 hover:bg-slate-100/80 active:bg-slate-200/70 hover:text-[var(--primary)] transition-colors"
+                  onClick={(e) => handleMobileNavClick(e, "como-funciona")}
+                  className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-800 hover:bg-slate-100/80 active:bg-slate-200/70 hover:text-[var(--primary)] transition-colors cursor-pointer"
                 >
                   <span className="flex items-center gap-3">
                     <HelpCircle className="h-4 w-4 text-[var(--primary)]" />
@@ -532,8 +556,8 @@ export function MiniSiteHeader({
                 {shouldShowLocation && (
                   <a
                     href="#localizacao"
-                    onClick={handleLinkClick}
-                    className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-800 hover:bg-slate-100/80 active:bg-slate-200/70 hover:text-[var(--primary)] transition-colors"
+                    onClick={(e) => handleMobileNavClick(e, "localizacao")}
+                    className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-800 hover:bg-slate-100/80 active:bg-slate-200/70 hover:text-[var(--primary)] transition-colors cursor-pointer"
                   >
                     <span className="flex items-center gap-3">
                       <MapPin className="h-4 w-4 text-[var(--primary)]" />
@@ -556,7 +580,7 @@ export function MiniSiteHeader({
                     <Link
                       href={dashboardUrl}
                       onClick={handleLinkClick}
-                      className="flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-bold text-slate-800 bg-[var(--primary)]/8 hover:bg-[var(--primary)]/15 text-[var(--primary)] transition-colors"
+                      className="flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-bold text-slate-800 bg-[var(--primary)]/8 hover:bg-[var(--primary)]/15 text-[var(--primary)] transition-colors cursor-pointer"
                     >
                       <span className="flex items-center gap-3">
                         <UserCheck className="h-4 w-4 text-[var(--primary)]" />
