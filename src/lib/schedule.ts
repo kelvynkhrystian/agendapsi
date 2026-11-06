@@ -129,7 +129,8 @@ export async function getAvailableSlotsForDate({
 
   const slots: TimeSlot[] = [];
   const duration = service.durationMinutes;
-  const buffer = service.bufferMinutes || 0;
+  const defaultBuffer = settings?.defaultBufferMinutes ?? 10;
+  const buffer = typeof service.bufferMinutes === "number" && service.bufferMinutes > 0 ? service.bufferMinutes : defaultBuffer;
   const totalSlotDuration = duration + buffer;
 
   // Itera sobre as faixas de horário de trabalho do dia

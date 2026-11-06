@@ -11,9 +11,13 @@ Este documento detalha as políticas de funcionamento, transições de estado e 
 - Exceções e bloqueios (`AvailabilityException`) têm precedência sobre a grade semanal, removendo horários bloqueados ou adicionando horários extras.
 - O cálculo de conflitos utiliza comparação de intervalos semiabertos:
   $$\text{Conflito} \iff (\text{slotStart} < \text{apptEnd}) \land (\text{slotEnd} > \text{apptStart})$$
-- **Buffer de Atendimento:** Cada serviço pode definir um tempo de intervalo (`bufferMinutes`). O motor de agenda garante que o término da consulta mais o buffer não invada o início da próxima sessão.
+- **Buffer de Atendimento:** O intervalo operacional entre atendimentos (`defaultBufferMinutes`) é centralizado nas Configurações Gerais do módulo de Serviços (`SystemSettings`). O motor de agenda garante que o término da consulta mais o buffer não invada o início da próxima sessão.
 
-### 1.2 Reserva Temporária (*Draft Hold*)
+### 1.2 Separação de Parâmetros de Serviços vs. Configurações Globais
+- **Parâmetros Específicos do Serviço:** O formulário de criação/edição de cada serviço em `/admin/servicos` mantém estritamente os campos essenciais do atendimento: Nome, Descrição detalhada, Preço em Reais (com opção de gratuidade), Duração em minutos e visibilidade pública (`isActive`).
+- **Políticas Globais de Agendamento:** Fuso horário padrão do consultório (`timezone`), antecedência mínima para reserva (`minBookingNoticeHours`), horizonte máximo de abertura da agenda (`maxBookingHorizonDays`), prazo de cancelamento sem penalidade (`defaultCancellationNoticeDays`), buffer padrão entre sessões (`defaultBufferMinutes`), modalidade padrão (`defaultModality`) e política de confirmação (`defaultConfirmationPolicy`) são centralizados na aba **Configurações Gerais** (`/admin/servicos` -> aba Configurações Gerais) e persistidos na tabela `SystemSettings`. Novos serviços herdam automaticamente esses padrões.
+
+### 1.3 Reserva Temporária (*Draft Hold*)
 - Ao selecionar um horário na etapa 2 do agendamento público, o sistema cria um registro `AppointmentHold` com validade de **15 minutos**.
 - Enquanto o hold estiver ativo, o slot é considerado ocupado para outros usuários.
 - Se a confirmação não for concluída em 15 minutos, o hold expira automaticamente e o horário volta a ficar visível.

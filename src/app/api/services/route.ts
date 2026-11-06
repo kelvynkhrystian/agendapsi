@@ -9,10 +9,10 @@ const serviceSchema = z.object({
   priceCents: z.number().int().min(0, "O preço deve ser um valor positivo em centavos"),
   isFree: z.boolean().default(false),
   durationMinutes: z.number().int().min(15, "A duração mínima é de 15 minutos"),
-  bufferMinutes: z.number().int().min(0).default(0),
-  modality: z.enum(["PRESENTIAL", "ONLINE", "BOTH"]).default("BOTH"),
-  confirmationPolicy: z.enum(["AUTOMATIC", "UPON_PAYMENT", "MANUAL_ADMIN", "PAYMENT_AND_ADMIN"]).default("AUTOMATIC"),
-  cancellationNoticeDays: z.number().int().min(0).default(3),
+  bufferMinutes: z.number().int().min(0).optional(),
+  modality: z.enum(["PRESENTIAL", "ONLINE", "BOTH"]).optional(),
+  confirmationPolicy: z.enum(["AUTOMATIC", "UPON_PAYMENT", "MANUAL_ADMIN", "PAYMENT_AND_ADMIN"]).optional(),
+  cancellationNoticeDays: z.number().int().min(0).optional(),
   isActive: z.boolean().default(true),
 });
 
@@ -51,8 +51,23 @@ export async function POST(req: NextRequest) {
       data.priceCents = 0;
     }
 
+    const settings = await prisma.systemSettings.findUnique({
+      where: { id: "default" },
+    });
+
     const service = await prisma.service.create({
-      data,
+      data: {
+        name: data.name,
+        description: data.description,
+        priceCents: data.priceCents,
+        isFree: data.isFree,
+        durationMinutes: data.durationMinutes,
+        bufferMinutes: data.bufferMinutes ?? settings?.defaultBufferMinutes ?? 10,
+        modality: data.modality ?? settings?.defaultModality ?? "BOTH",
+        confirmationPolicy: data.confirmationPolicy ?? settings?.defaultConfirmationPolicy ?? "AUTOMATIC",
+        cancellationNoticeDays: data.cancellationNoticeDays ?? settings?.defaultCancellationNoticeDays ?? 3,
+        isActive: data.isActive,
+      },
     });
 
     return NextResponse.json(service, { status: 201 });

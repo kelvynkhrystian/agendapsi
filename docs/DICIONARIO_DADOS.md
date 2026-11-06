@@ -1181,6 +1181,9 @@ erDiagram
 | `holdExpiryMinutes` | `Int` | Sim | `60` | Minutos de validade do hold temporário padrão | `60` |
 | `defaultCancellationNoticeDays`| `Int`| Sim | `3` | Dias mínimos de antecedência para cancelar sem penalidade | `3` |
 | `allowPatientReschedule`| `Boolean` | Sim | `true` | Autoriza que o próprio paciente remarque consulta | `true` |
+| `defaultBufferMinutes` | `Int` | Sim | `10` | Buffer/intervalo padrão em minutos entre atendimentos | `10` |
+| `defaultModality` | `Modality` | Sim | `BOTH` | Modalidade padrão de atendimento do consultório (`PRESENTIAL`, `ONLINE`, `BOTH`) | `BOTH` |
+| `defaultConfirmationPolicy`| `ConfirmationPolicy` | Sim | `AUTOMATIC` | Política padrão de confirmação de consultas do consultório | `AUTOMATIC` |
 | `activeVideoProvider`| `String` | Sim | `"JITSI"` | Provedor de vídeo selecionado: `"JITSI"`, `"PEERJS"`, `"GOOGLE_MEET"` | `"JITSI"` |
 | `jitsiDomain` | `String` | Sim | `"meet.jit.si"` | Domínio do servidor Jitsi Meet utilizado | `"meet.jit.si"` |
 | `enableOnlinePayment`| `Boolean` | Sim | `true` | Habilita fluxo de pagamento online simulado/gateway | `true` |

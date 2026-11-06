@@ -29,7 +29,7 @@ Este documento relaciona todas as páginas e rotas de API disponíveis no sistem
 | :--- | :--- |
 | `/admin` | Painel de controle executivo com métricas financeiras, taxa de no-show e agendamentos |
 | `/admin/agenda` | Calendário de atendimentos, alteração de status, faltas e cancelamentos |
-| `/admin/servicos` | Gestão dos serviços oferecidos, modalidades, durações, preços e tempos de buffer |
+| `/admin/servicos` | Gestão do catálogo de serviços e configurações gerais de agendamento (fuso horário, prazos, buffer e confirmações) |
 | `/admin/pacientes` | Gestão de pacientes cadastrados, responsáveis de menores e aprovação de alterações |
 | `/admin/pacientes/novo` | Cadastro manual completo de novos pacientes em página dedicada com geração de credencial |
 | `/admin/pacientes/[id]` | Ficha detalhada do paciente, gestão privativa de prontuários clínicos (criação, edição e histórico auditado de revisões), agendamentos e finanças |
@@ -88,6 +88,8 @@ Este documento relaciona todas as páginas e rotas de API disponíveis no sistem
 | `POST` | `/api/booking/confirm` | Público | Confirmação atômica do agendamento a partir de um hold ativo |
 | `GET` | `/api/appointments` | Autenticado | Listagem de agendamentos (filtrada por paciente se for `PATIENT`) |
 | `PATCH`| `/api/appointments/[id]/status`| Autenticado | Atualização de status (cancelamento, no-show, conclusão) |
+| `GET`  | `/api/admin/services/settings` | Admin | Consulta as políticas gerais de agendamento, buffer e confirmações |
+| `PUT`  | `/api/admin/services/settings` | Admin | Atualiza as políticas globais de agendamento do consultório |
 
 ### 4.3 Prontuários e Documentos Clínicos
 | Método | Endpoint | Permissão | Descrição |
