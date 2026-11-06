@@ -257,12 +257,14 @@ export function MiniSiteHeader({
       className="fixed top-0 left-0 right-0 z-50 w-full bg-transparent border-none shadow-none pointer-events-none transition-all duration-300 py-0 md:py-3.5 lg:py-4"
     >
       {/* ================= 1. CABEÇALHO MOBILE (< 768px: FLOATING ROUNDED PILL) ================= */}
-      <div className="flex md:hidden w-full px-3 pt-2.5 sm:px-4 sm:pt-3 pointer-events-none relative z-50">
+      <div className="flex md:hidden w-full px-3 pt-3 sm:px-4 pointer-events-none relative z-50">
         <div
-          className={`flex items-center justify-between w-full h-14 px-4 rounded-full pointer-events-auto transition-all duration-300 relative z-50 ${
-            isScrolled || isMenuOpen
-              ? "bg-white border border-slate-200/80 shadow-[0_6px_24px_rgba(0,0,0,0.12)]"
-              : "bg-white/40 backdrop-blur-md border border-white/40 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:bg-white/60"
+          className={`flex items-center justify-between w-full h-14 px-4 pointer-events-auto transition-all duration-200 relative z-50 ${
+            isMenuOpen
+              ? "bg-white rounded-t-2xl rounded-b-none border border-slate-200/90 border-b-slate-100 shadow-none"
+              : isScrolled
+              ? "bg-white/95 backdrop-blur-lg rounded-full border border-slate-200/70 shadow-[0_6px_24px_rgba(0,0,0,0.08)]"
+              : "bg-white/40 backdrop-blur-md rounded-full border border-white/40 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:bg-white/60"
           }`}
           style={{ marginTop: "env(safe-area-inset-top, 0px)" }}
         >
@@ -495,10 +497,10 @@ export function MiniSiteHeader({
             aria-hidden="true"
           />
 
-          {/* Painel de Navegação Móvel posicionado imediatamente abaixo do header */}
+          {/* Painel de Navegação Móvel unificado imediatamente abaixo do header */}
           <div
             id="mobile-navigation-menu"
-            className="fixed left-3 right-3 sm:left-4 sm:right-4 max-h-[calc(100vh-5.5rem)] bg-white backdrop-blur-xl rounded-2xl border border-slate-200/90 shadow-2xl z-40 md:hidden animate-menu-drawer flex flex-col overflow-y-auto pointer-events-auto"
+            className="fixed left-3 right-3 sm:left-4 sm:right-4 max-h-[calc(100vh-5.5rem)] bg-white rounded-b-2xl rounded-t-none border border-t-0 border-slate-200/90 shadow-2xl z-40 md:hidden animate-menu-drawer flex flex-col overflow-y-auto pointer-events-auto"
             style={{
               top: "calc(68px + env(safe-area-inset-top, 0px))",
               paddingBottom: "max(1.5rem, env(safe-area-inset-bottom, 0px))",
