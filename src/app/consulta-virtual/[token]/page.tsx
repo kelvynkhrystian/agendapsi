@@ -238,7 +238,7 @@ export default function VirtualConsultationPage({
           </Card>
         ) : (
           /* Sala de Espera Antecipada (Mais de 15 minutos antes) */
-          <Card className="max-w-md w-full text-center border-slate-200 dark:border-slate-800 shadow-md">
+          <Card className="max-w-md w-full text-center border-[#E5E5E5] dark:border-[#333333] shadow-md">
             <CardHeader className="space-y-2">
               <div className="w-14 h-14 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto">
                 <Clock className="h-7 w-7" />
@@ -250,16 +250,16 @@ export default function VirtualConsultationPage({
             </CardHeader>
 
             <CardContent className="space-y-4 text-xs">
-              <p className="text-slate-600 dark:text-slate-400">
+              <p className="text-[#525252] dark:text-[#CCCCCC]">
                 {meeting.message}
               </p>
 
-              <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl space-y-1 font-medium">
+              <div className="p-3.5 bg-[#F8F8F8] dark:bg-[#141414] rounded-xl border border-[#E5E5E5] dark:border-[#333333] space-y-1.5 font-medium text-[#171717] dark:text-[#F5F5F5]">
                 <div>Consulta: <strong>{appointment.serviceName}</strong></div>
                 <div>Data: <strong>{formatDate(appointment.startAt)}</strong> às <strong>{formatTime(appointment.startAt)}</strong></div>
               </div>
 
-              <div className="flex items-center justify-center gap-2 text-[11px] text-slate-500 pt-2">
+              <div className="flex items-center justify-center gap-2 text-[11px] text-[#737373] dark:text-[#A6A6A6] pt-2">
                 <span className="w-2 h-2 rounded-full bg-[var(--primary)] animate-ping" />
                 <span>Esta página atualizará automaticamente quando o horário for liberado.</span>
               </div>
@@ -268,7 +268,7 @@ export default function VirtualConsultationPage({
         )}
       </main>
 
-      <footer className="border-t border-slate-200 dark:border-slate-800 py-4 text-center text-[11px] text-slate-400">
+      <footer className="border-t border-[#E5E5E5] dark:border-[#333333] py-4 text-center text-[11px] text-[#737373] dark:text-[#A6A6A6]">
         Ambiente de Teleconsulta Integrado PSI • Provedor:{" "}
         {meeting.provider === "GOOGLE_MEET"
           ? "Google Meet"

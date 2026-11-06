@@ -489,7 +489,7 @@ export default function AdminServicesPage() {
                   </label>
                 </div>
 
-                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-400">
+                <div className="p-3.5 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#333333] flex items-start gap-2.5 text-xs text-[#525252] dark:text-[#A6A6A6]">
                   <Info className="h-4 w-4 text-[var(--primary)] shrink-0 mt-0.5" />
                   <span>
                     Regras operacionais de <strong>intervalo entre sessões (buffer)</strong>, <strong>prazo de cancelamento</strong> e <strong>política de confirmação</strong> são gerenciadas globalmente na aba <strong>Configurações Gerais</strong>.
@@ -497,7 +497,7 @@ export default function AdminServicesPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex justify-end gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
                 <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
                   Cancelar
                 </Button>
@@ -527,7 +527,7 @@ export default function AdminServicesPage() {
 
           {/* CARD 1: POLÍTICAS DE AGENDAMENTO E PRAZOS */}
           <Card className="shadow-xs">
-            <CardHeader className="p-5 pb-3 border-b border-slate-100 dark:border-slate-800">
+            <CardHeader className="p-5 sm:p-6 pb-4 border-b border-[#E5E5E5] dark:border-[#333333]">
               <CardTitle className="text-base font-bold flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-[var(--primary)]" />
                 <span>Políticas de Agendamento e Horários</span>
@@ -537,16 +537,16 @@ export default function AdminServicesPage() {
               </CardDescription>
             </CardHeader>
 
-            <CardContent className="p-5 space-y-4">
+            <CardContent className="p-5 sm:p-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-800 dark:text-slate-200">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-[#171717] dark:text-[#F5F5F5]">
                     Fuso Horário Padrão do Consultório
                   </label>
                   <select
                     value={timezone}
                     onChange={(e) => setTimezone(e.target.value)}
-                    className="flex h-10 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+                    className="flex h-10 w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3.5 py-2 text-sm text-[#171717] dark:text-[#F5F5F5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 focus-visible:border-[var(--primary)] transition-all shadow-2xs cursor-pointer"
                   >
                     <option value="America/Sao_Paulo">Brasília (America/Sao_Paulo - GMT-3)</option>
                     <option value="America/Manaus">Manaus (America/Manaus - GMT-4)</option>
@@ -554,13 +554,13 @@ export default function AdminServicesPage() {
                     <option value="America/Cuiaba">Cuiabá (America/Cuiaba - GMT-4)</option>
                     <option value="America/Fortaleza">Fortaleza (America/Fortaleza - GMT-3)</option>
                   </select>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                     Base temporal utilizada para todos os cálculos de slots e lembretes aos pacientes.
                   </p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-800 dark:text-slate-200">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-[#171717] dark:text-[#F5F5F5]">
                     Antecedência Mínima para Reserva (Horas)
                   </label>
                   <Input
@@ -569,13 +569,13 @@ export default function AdminServicesPage() {
                     value={minBookingNoticeHours}
                     onChange={(e) => setMinBookingNoticeHours(Number(e.target.value))}
                   />
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                     Tempo mínimo prévio exigido para que um paciente possa agendar um novo horário.
                   </p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-800 dark:text-slate-200">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-[#171717] dark:text-[#F5F5F5]">
                     Horizonte Máximo de Agendamento (Dias à frente)
                   </label>
                   <Input
@@ -584,13 +584,13 @@ export default function AdminServicesPage() {
                     value={maxBookingHorizonDays}
                     onChange={(e) => setMaxBookingHorizonDays(Number(e.target.value))}
                   />
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                     Limite máximo de dias futuros disponibilizados para agendamento na agenda pública.
                   </p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-800 dark:text-slate-200">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-[#171717] dark:text-[#F5F5F5]">
                     Prazo Limite para Cancelamento sem Penalidade (Dias)
                   </label>
                   <Input
@@ -600,7 +600,7 @@ export default function AdminServicesPage() {
                     value={defaultCancellationNoticeDays}
                     onChange={(e) => setDefaultCancellationNoticeDays(Number(e.target.value))}
                   />
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                     Padrão do contrato terapêutico: 3 dias úteis de antecedência mínima.
                   </p>
                 </div>
@@ -610,7 +610,7 @@ export default function AdminServicesPage() {
 
           {/* CARD 2: OPERAÇÃO DE ATENDIMENTOS & CONFIRMAÇÕES */}
           <Card className="shadow-xs">
-            <CardHeader className="p-5 pb-3 border-b border-slate-100 dark:border-slate-800">
+            <CardHeader className="p-5 sm:p-6 pb-4 border-b border-[#E5E5E5] dark:border-[#333333]">
               <CardTitle className="text-base font-bold flex items-center gap-2">
                 <Layers className="h-4 w-4 text-[var(--primary)]" />
                 <span>Operação das Sessões & Confirmações Globais</span>
@@ -620,10 +620,10 @@ export default function AdminServicesPage() {
               </CardDescription>
             </CardHeader>
 
-            <CardContent className="p-5 space-y-4">
+            <CardContent className="p-5 sm:p-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-800 dark:text-slate-200">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-[#171717] dark:text-[#F5F5F5]">
                     Buffer / Intervalo entre Atendimentos (Minutos)
                   </label>
                   <Input
@@ -633,31 +633,31 @@ export default function AdminServicesPage() {
                     value={defaultBufferMinutes}
                     onChange={(e) => setDefaultBufferMinutes(Number(e.target.value))}
                   />
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                     Tempo de resguardo reservado na agenda após cada consulta para anotações clínicas e intervalo.
                   </p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-800 dark:text-slate-200">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-[#171717] dark:text-[#F5F5F5]">
                     Modalidade Padrão do Consultório
                   </label>
                   <select
                     value={defaultModality}
                     onChange={(e) => setDefaultModality(e.target.value as "PRESENTIAL" | "ONLINE" | "BOTH")}
-                    className="flex h-10 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+                    className="flex h-10 w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3.5 py-2 text-sm text-[#171717] dark:text-[#F5F5F5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 focus-visible:border-[var(--primary)] transition-all shadow-2xs cursor-pointer"
                   >
                     <option value="BOTH">Ambas (Presencial e Online)</option>
                     <option value="ONLINE">Apenas Online (Teleconsulta)</option>
                     <option value="PRESENTIAL">Apenas Presencial no Consultório</option>
                   </select>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                     Formato de atendimento padrão oferecido nos serviços do consultório.
                   </p>
                 </div>
 
-                <div className="sm:col-span-2 space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-800 dark:text-slate-200">
+                <div className="sm:col-span-2 space-y-2">
+                  <label className="block text-sm font-medium text-[#171717] dark:text-[#F5F5F5]">
                     Política de Confirmação Padrão
                   </label>
                   <select
@@ -667,38 +667,38 @@ export default function AdminServicesPage() {
                         e.target.value as "AUTOMATIC" | "UPON_PAYMENT" | "MANUAL_ADMIN" | "PAYMENT_AND_ADMIN"
                       )
                     }
-                    className="flex h-10 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+                    className="flex h-10 w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3.5 py-2 text-sm text-[#171717] dark:text-[#F5F5F5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 focus-visible:border-[var(--primary)] transition-all shadow-2xs cursor-pointer"
                   >
                     <option value="AUTOMATIC">Automática após agendamento válido</option>
                     <option value="UPON_PAYMENT">Apenas após pagamento online confirmado</option>
                     <option value="MANUAL_ADMIN">Apenas após aprovação manual do profissional</option>
                     <option value="PAYMENT_AND_ADMIN">Após pagamento E aprovação manual</option>
                   </select>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                     Define o fluxo de validação e confirmação dos horários agendados pelos pacientes.
                   </p>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3">
-                <label className="flex items-center gap-2 cursor-pointer">
+              <div className="pt-4 border-t border-[#E5E5E5] dark:border-[#333333] space-y-3">
+                <label className="flex items-center gap-2.5 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={allowPatientReschedule}
                     onChange={(e) => setAllowPatientReschedule(e.target.checked)}
-                    className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)] h-4 w-4"
+                    className="rounded border-[#CCCCCC] dark:border-[#525252] text-[var(--primary)] focus:ring-[var(--primary)] h-4 w-4"
                   />
-                  <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                  <span className="text-sm font-medium text-[#171717] dark:text-[#F5F5F5]">
                     Permitir que o próprio paciente solicite remarcação de consulta pelo portal
                   </span>
                 </label>
 
-                <label className="flex items-center gap-2 cursor-pointer bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl">
+                <label className="flex items-center gap-2.5 cursor-pointer bg-amber-500/10 border border-amber-500/20 p-3.5 rounded-xl">
                   <input
                     type="checkbox"
                     checked={syncExistingServices}
                     onChange={(e) => setSyncExistingServices(e.target.checked)}
-                    className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)] h-4 w-4"
+                    className="rounded border-[#CCCCCC] dark:border-[#525252] text-[var(--primary)] focus:ring-[var(--primary)] h-4 w-4"
                   />
                   <div className="text-xs">
                     <span className="font-semibold text-amber-900 dark:text-amber-200 block">
@@ -714,7 +714,7 @@ export default function AdminServicesPage() {
           </Card>
 
           {/* BOTÃO SALVAR CONFIGURAÇÕES */}
-          <div className="flex justify-end pt-2">
+          <div className="flex justify-end pt-3">
             <Button type="submit" isLoading={isSavingGeneral} className="gap-2">
               <Save className="h-4 w-4" />
               <span>Salvar Configurações Gerais</span>

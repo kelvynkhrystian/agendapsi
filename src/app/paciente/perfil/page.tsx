@@ -448,7 +448,7 @@ export default function PatientProfilePage() {
             required
           />
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
             <Button
               type="button"
               variant="ghost"

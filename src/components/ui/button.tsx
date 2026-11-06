@@ -41,10 +41,10 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const sizeStyles = {
-      sm: "text-xs px-3 py-1.5 min-h-[34px] gap-1.5 rounded-lg",
-      md: "text-sm px-4 py-2 min-h-[40px] gap-2 rounded-xl",
-      lg: "text-base px-5 py-2.5 min-h-[46px] gap-2.5 rounded-xl",
-      icon: "h-9 w-9 min-h-[36px] min-w-[36px] p-0 rounded-xl",
+      sm: "text-xs px-3.5 py-1.5 min-h-[36px] gap-2 rounded-xl",
+      md: "text-sm px-4.5 py-2 min-h-[40px] gap-2 rounded-xl",
+      lg: "text-base px-6 py-2.5 min-h-[46px] gap-2.5 rounded-xl",
+      icon: "h-9 w-9 min-h-[36px] min-w-[36px] p-0 rounded-xl flex items-center justify-center shrink-0",
     };
 
     return (

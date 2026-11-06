@@ -147,33 +147,33 @@ export default function PatientDocumentsPage() {
               <p>Carregando seus documentos...</p>
             </div>
           ) : activeDocs.length > 0 ? (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            <div className="divide-y divide-[#E5E5E5] dark:divide-[#333333]">
               {activeDocs.map((doc) => (
                 <div
                   key={doc.shareId}
-                  className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors"
+                  className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#F2F2F2]/50 dark:hover:bg-[#242424]/30 transition-colors"
                 >
-                  <div className="flex items-start gap-3.5">
-                    <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0 mt-0.5">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#333333] shrink-0 mt-0.5">
                       {getFileIcon(doc.mimeType)}
                     </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-sm text-slate-900 dark:text-slate-100">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <span className="font-bold text-sm text-[#171717] dark:text-[#F5F5F5]">
                           {doc.name}
                         </span>
-                        <Badge variant="outline" className="text-[10px] font-mono uppercase">
+                        <Badge variant="outline" className="text-[10px] font-mono uppercase border-[#E5E5E5] dark:border-[#333333]">
                           {getFormatLabel(doc.mimeType, doc.originalName)}
                         </Badge>
                       </div>
 
                       {doc.description && (
-                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                        <p className="text-xs text-[#525252] dark:text-[#A6A6A6] leading-relaxed">
                           {doc.description}
                         </p>
                       )}
 
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-500 text-[11px] pt-0.5">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[#737373] dark:text-[#A6A6A6] text-[11px] pt-1">
                         <span>Liberado em {formatDate(doc.sharedAt)}</span>
                         <span>•</span>
                         <span>{(doc.sizeBytes / 1024).toFixed(1)} KB</span>
@@ -194,19 +194,19 @@ export default function PatientDocumentsPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                  <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
                     <a
                       href={`/api/files/${doc.id}/download?view=inline`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 cursor-pointer">
+                      <Button variant="outline" size="sm" className="h-9 min-h-[36px] px-3.5 text-xs gap-1.5 cursor-pointer">
                         <Eye className="h-3.5 w-3.5" />
                         <span>Visualizar</span>
                       </Button>
                     </a>
                     <a href={`/api/files/${doc.id}/download`} download>
-                      <Button size="sm" className="h-8 text-xs gap-1.5 bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer">
+                      <Button size="sm" className="h-9 min-h-[36px] px-3.5 text-xs gap-1.5 bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer">
                         <Download className="h-3.5 w-3.5" />
                         <span>Baixar</span>
                       </Button>

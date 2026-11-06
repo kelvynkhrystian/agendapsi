@@ -200,12 +200,12 @@ export default function AdminFinancePage() {
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-wrap items-center gap-3 p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
-        <Filter className="h-4 w-4 text-slate-400" />
+      <div className="flex flex-wrap items-center gap-3 p-3.5 bg-white dark:bg-[#141414] rounded-xl border border-[#E5E5E5] dark:border-[#333333]">
+        <Filter className="h-4 w-4 text-[#737373] dark:text-[#A6A6A6]" />
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500">Status:</span>
+          <span className="text-xs text-[#737373] dark:text-[#A6A6A6]">Status:</span>
           <select
-            className="h-8 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-xs"
+            className="h-9 sm:h-10 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] px-3 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30 cursor-pointer shadow-2xs"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -219,9 +219,9 @@ export default function AdminFinancePage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500">Método:</span>
+          <span className="text-xs text-[#737373] dark:text-[#A6A6A6]">Método:</span>
           <select
-            className="h-8 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-xs"
+            className="h-9 sm:h-10 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] px-3 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30 cursor-pointer shadow-2xs"
             value={methodFilter}
             onChange={(e) => setMethodFilter(e.target.value)}
           >
@@ -237,32 +237,32 @@ export default function AdminFinancePage() {
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-8 text-center text-xs text-slate-500 animate-pulse">
+            <div className="p-8 text-center text-xs text-[#737373] animate-pulse">
               Carregando lançamentos financeiros...
             </div>
           ) : payments.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-500">
+                <thead className="bg-[#F8F8F8] dark:bg-[#141414] border-b border-[#E5E5E5] dark:border-[#333333] text-[#737373] dark:text-[#A6A6A6]">
                   <tr>
-                    <th className="p-3.5 font-semibold">Paciente</th>
-                    <th className="p-3.5 font-semibold">Referência</th>
-                    <th className="p-3.5 font-semibold">Valor</th>
-                    <th className="p-3.5 font-semibold">Método</th>
-                    <th className="p-3.5 font-semibold">Status</th>
-                    <th className="p-3.5 font-semibold">Data</th>
-                    <th className="p-3.5 font-semibold text-right">Ações</th>
+                    <th className="py-3.5 px-4 sm:px-6 font-semibold">Paciente</th>
+                    <th className="py-3.5 px-4 sm:px-6 font-semibold">Referência</th>
+                    <th className="py-3.5 px-4 sm:px-6 font-semibold">Valor</th>
+                    <th className="py-3.5 px-4 sm:px-6 font-semibold">Método</th>
+                    <th className="py-3.5 px-4 sm:px-6 font-semibold">Status</th>
+                    <th className="py-3.5 px-4 sm:px-6 font-semibold">Data</th>
+                    <th className="py-3.5 px-4 sm:px-6 font-semibold text-right">Ações</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                <tbody className="divide-y divide-[#E5E5E5] dark:divide-[#333333]">
                   {payments.map((p) => (
-                    <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20">
-                      <td className="p-3.5">
-                        <span className="font-semibold block">{p.patient.fullName}</span>
-                        <span className="text-[11px] text-slate-400">{p.patient.phone}</span>
+                    <tr key={p.id} className="hover:bg-[#F2F2F2]/50 dark:hover:bg-[#242424]/30 transition-colors">
+                      <td className="py-3.5 px-4 sm:px-6">
+                        <span className="font-semibold block text-[#171717] dark:text-[#F5F5F5]">{p.patient.fullName}</span>
+                        <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">{p.patient.phone}</span>
                       </td>
 
-                      <td className="p-3.5">
+                      <td className="py-3.5 px-4 sm:px-6 text-[#171717] dark:text-[#F5F5F5]">
                         {p.appointment ? (
                           <span>Consulta: {p.appointment.service.name}</span>
                         ) : p.package ? (
@@ -272,11 +272,11 @@ export default function AdminFinancePage() {
                         )}
                       </td>
 
-                      <td className="p-3.5 font-bold font-mono text-sm">
+                      <td className="py-3.5 px-4 sm:px-6 font-bold font-mono text-sm text-[#171717] dark:text-[#F5F5F5]">
                         {formatBRL(p.amountCents)}
                       </td>
 
-                      <td className="p-3.5">
+                      <td className="py-3.5 px-4 sm:px-6">
                         <span>{formatPaymentMethod(p.method)}</span>
                         {p.isSimulated && (
                           <Badge variant="simulated" className="ml-1.5 text-[9px]">
@@ -285,7 +285,7 @@ export default function AdminFinancePage() {
                         )}
                       </td>
 
-                      <td className="p-3.5">
+                      <td className="py-3.5 px-4 sm:px-6">
                         <Badge
                           variant={
                             p.status === "APPROVED"
@@ -301,15 +301,15 @@ export default function AdminFinancePage() {
                         </Badge>
                       </td>
 
-                      <td className="p-3.5 text-slate-500">
+                      <td className="py-3.5 px-4 sm:px-6 text-[#737373] dark:text-[#A6A6A6]">
                         {formatDate(p.createdAt)}
                       </td>
 
-                      <td className="p-3.5 text-right space-x-1.5">
+                      <td className="py-3.5 px-4 sm:px-6 text-right space-x-2">
                         {p.status === "PENDING" && (
                           <Button
                             size="sm"
-                            className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700"
+                            className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
                             onClick={() => handleConfirmManual(p.id)}
                           >
                             <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
@@ -321,7 +321,7 @@ export default function AdminFinancePage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-7 text-xs text-red-500 hover:text-red-700"
+                            className="h-8 text-xs text-red-500 hover:text-red-700"
                             onClick={() => setRefundPayment(p)}
                           >
                             <RotateCcw className="h-3.5 w-3.5 mr-1" />

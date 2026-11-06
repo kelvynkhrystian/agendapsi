@@ -232,11 +232,11 @@ export default function AdminIntegrationsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* ================= SEÇÃO DE E-MAIL ================= */}
         <div className="space-y-4">
-          <Card className="border-slate-200 dark:border-slate-800">
-            <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
+          <Card className="border-[#E5E5E5] dark:border-[#333333]">
+            <CardHeader className="pb-4 border-b border-[#E5E5E5] dark:border-[#333333]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                  <div className="p-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)]">
                     <Mail className="h-5 w-5" />
                   </div>
                   <div>
@@ -261,8 +261,8 @@ export default function AdminIntegrationsPage() {
               )}
 
               <form onSubmit={handleSaveEmail} className="space-y-4">
-                <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700">
-                  <span className="font-medium">Habilitar envio por E-mail</span>
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#333333]">
+                  <span className="font-medium text-[#171717] dark:text-[#F5F5F5]">Habilitar envio por E-mail</span>
                   <input
                     type="checkbox"
                     checked={emailEnabled}
@@ -271,12 +271,12 @@ export default function AdminIntegrationsPage() {
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="font-medium text-slate-700 dark:text-slate-300">Provedor de E-mail</label>
+                <div className="space-y-2">
+                  <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">Provedor de E-mail</label>
                   <select
                     value={emailProvider}
                     onChange={(e) => setEmailProvider(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs"
+                    className="w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3.5 py-2 text-xs text-[#171717] dark:text-[#F5F5F5] h-10 outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] transition-all shadow-2xs cursor-pointer"
                   >
                     <option value="SMTP">SMTP Padrão / Hostinger / cPanel</option>
                     <option value="SENDGRID">SendGrid (SMTP Relay)</option>
@@ -285,17 +285,17 @@ export default function AdminIntegrationsPage() {
                   </select>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="col-span-2 space-y-1">
-                    <label className="font-medium text-slate-700 dark:text-slate-300">Host SMTP</label>
+                <div className="grid grid-cols-3 gap-3.5">
+                  <div className="col-span-2 space-y-2">
+                    <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">Host SMTP</label>
                     <Input
                       placeholder="smtp.meuconsultorio.com.br"
                       value={smtpHost}
                       onChange={(e) => setSmtpHost(e.target.value)}
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label className="font-medium text-slate-700 dark:text-slate-300">Porta</label>
+                  <div className="space-y-2">
+                    <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">Porta</label>
                     <Input
                       type="number"
                       placeholder="587"
@@ -305,12 +305,12 @@ export default function AdminIntegrationsPage() {
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="font-medium text-slate-700 dark:text-slate-300">Criptografia</label>
+                <div className="space-y-2">
+                  <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">Criptografia</label>
                   <select
                     value={smtpEncryption}
                     onChange={(e) => setSmtpEncryption(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs"
+                    className="w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3.5 py-2 text-xs text-[#171717] dark:text-[#F5F5F5] h-10 outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] transition-all shadow-2xs cursor-pointer"
                   >
                     <option value="TLS">STARTTLS (Recomendado - Porta 587)</option>
                     <option value="SSL">SSL / TLS Direto (Porta 465)</option>
@@ -318,17 +318,17 @@ export default function AdminIntegrationsPage() {
                   </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="font-medium text-slate-700 dark:text-slate-300">Usuário / Login</label>
+                <div className="grid grid-cols-2 gap-3.5">
+                  <div className="space-y-2">
+                    <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">Usuário / Login</label>
                     <Input
                       placeholder="contato@meuconsultorio.com.br"
                       value={smtpUser}
                       onChange={(e) => setSmtpUser(e.target.value)}
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label className="font-medium text-slate-700 dark:text-slate-300">
+                  <div className="space-y-2">
+                    <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">
                       Senha {hasExistingPassword && <span className="text-[var(--primary)] font-normal">(Gravada)</span>}
                     </label>
                     <Input
@@ -340,17 +340,17 @@ export default function AdminIntegrationsPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="font-medium text-slate-700 dark:text-slate-300">Nome do Remetente</label>
+                <div className="grid grid-cols-2 gap-3.5">
+                  <div className="space-y-2">
+                    <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">Nome do Remetente</label>
                     <Input
                       placeholder="Consultório PSI"
                       value={smtpSenderName}
                       onChange={(e) => setSmtpSenderName(e.target.value)}
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label className="font-medium text-slate-700 dark:text-slate-300">E-mail de Envio</label>
+                  <div className="space-y-2">
+                    <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">E-mail de Envio</label>
                     <Input
                       placeholder="noreply@meuconsultorio.com.br"
                       value={smtpSenderEmail}
@@ -359,7 +359,7 @@ export default function AdminIntegrationsPage() {
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-2">
+                <div className="flex justify-end pt-3">
                   <Button type="submit" disabled={isSavingEmail} className="gap-2 text-xs">
                     <Save className="h-4 w-4" />
                     <span>{isSavingEmail ? "Salvando..." : "Salvar Configuração de E-mail"}</span>
@@ -368,9 +368,9 @@ export default function AdminIntegrationsPage() {
               </form>
 
               {/* Bloco de Teste de E-mail */}
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                <span className="font-semibold block text-slate-800 dark:text-slate-200">Testar Envio de E-mail</span>
-                <div className="flex gap-2">
+              <div className="pt-4 border-t border-[#E5E5E5] dark:border-[#333333] space-y-2.5">
+                <span className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">Testar Envio de E-mail</span>
+                <div className="flex gap-3">
                   <Input
                     placeholder="Seu e-mail para receber o teste..."
                     value={emailTestAddress}
@@ -381,7 +381,7 @@ export default function AdminIntegrationsPage() {
                     variant="outline"
                     onClick={handleTestEmail}
                     disabled={isTestingEmail || !smtpHost}
-                    className="shrink-0 gap-1.5 text-xs"
+                    className="shrink-0 gap-2 text-xs"
                   >
                     <Send className="h-3.5 w-3.5 text-[var(--primary)]" />
                     <span>{isTestingEmail ? "Enviando..." : "Disparar Teste"}</span>
@@ -394,11 +394,11 @@ export default function AdminIntegrationsPage() {
 
         {/* ================= SEÇÃO DO WHATSAPP ================= */}
         <div className="space-y-4">
-          <Card className="border-slate-200 dark:border-slate-800">
-            <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
+          <Card className="border-[#E5E5E5] dark:border-[#333333]">
+            <CardHeader className="pb-4 border-b border-[#E5E5E5] dark:border-[#333333]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                  <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
                     <MessageSquare className="h-5 w-5" />
                   </div>
                   <div>
@@ -423,8 +423,8 @@ export default function AdminIntegrationsPage() {
               )}
 
               <form onSubmit={handleSaveWhatsapp} className="space-y-4">
-                <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700">
-                  <span className="font-medium">Habilitar envio por WhatsApp</span>
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#333333]">
+                  <span className="font-medium text-[#171717] dark:text-[#F5F5F5]">Habilitar envio por WhatsApp</span>
                   <input
                     type="checkbox"
                     checked={whatsappEnabled}
@@ -433,12 +433,12 @@ export default function AdminIntegrationsPage() {
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="font-medium text-slate-700 dark:text-slate-300">Provedor / Tipo de API</label>
+                <div className="space-y-2">
+                  <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">Provedor / Tipo de API</label>
                   <select
                     value={whatsappProvider}
                     onChange={(e) => setWhatsappProvider(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs"
+                    className="w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3.5 py-2 text-xs text-[#171717] dark:text-[#F5F5F5] h-10 outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] transition-all shadow-2xs cursor-pointer"
                   >
                     <option value="EVOLUTION_API">Evolution API (v1 / v2)</option>
                     <option value="Z_API">Z-API (Oficial / Parceira)</option>
@@ -447,8 +447,8 @@ export default function AdminIntegrationsPage() {
                   </select>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="font-medium text-slate-700 dark:text-slate-300">URL Base da API</label>
+                <div className="space-y-2">
+                  <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">URL Base da API</label>
                   <Input
                     placeholder="https://api.meu-whatsapp.com.br"
                     value={whatsappApiUrl}
@@ -456,8 +456,8 @@ export default function AdminIntegrationsPage() {
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="font-medium text-slate-700 dark:text-slate-300">
+                <div className="space-y-2">
+                  <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">
                     Chave de API / Token {hasExistingToken && <span className="text-[var(--primary)] font-normal">(Gravado)</span>}
                   </label>
                   <Input
@@ -468,17 +468,17 @@ export default function AdminIntegrationsPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="font-medium text-slate-700 dark:text-slate-300">Nome da Instância</label>
+                <div className="grid grid-cols-2 gap-3.5">
+                  <div className="space-y-2">
+                    <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">Nome da Instância</label>
                     <Input
                       placeholder="consultorio-psi"
                       value={whatsappInstanceId}
                       onChange={(e) => setWhatsappInstanceId(e.target.value)}
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label className="font-medium text-slate-700 dark:text-slate-300">Número Remetente</label>
+                  <div className="space-y-2">
+                    <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">Número Remetente</label>
                     <Input
                       placeholder="5511999999999"
                       value={whatsappSenderNumber}
@@ -487,7 +487,7 @@ export default function AdminIntegrationsPage() {
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-2">
+                <div className="flex justify-end pt-3">
                   <Button type="submit" disabled={isSavingWhatsapp} className="gap-2 text-xs">
                     <Save className="h-4 w-4" />
                     <span>{isSavingWhatsapp ? "Salvando..." : "Salvar Configuração do WhatsApp"}</span>
@@ -496,9 +496,9 @@ export default function AdminIntegrationsPage() {
               </form>
 
               {/* Bloco de Teste de WhatsApp */}
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                <span className="font-semibold block text-slate-800 dark:text-slate-200">Testar Conexão do WhatsApp</span>
-                <div className="flex gap-2">
+              <div className="pt-4 border-t border-[#E5E5E5] dark:border-[#333333] space-y-2.5">
+                <span className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">Testar Conexão do WhatsApp</span>
+                <div className="flex gap-3">
                   <Input
                     placeholder="DDD + Número (ex: 11987654321)"
                     value={whatsappTestPhone}
@@ -509,7 +509,7 @@ export default function AdminIntegrationsPage() {
                     variant="outline"
                     onClick={handleTestWhatsapp}
                     disabled={isTestingWhatsapp || !whatsappApiUrl}
-                    className="shrink-0 gap-1.5 text-xs"
+                    className="shrink-0 gap-2 text-xs"
                   >
                     <Send className="h-3.5 w-3.5 text-emerald-600" />
                     <span>{isTestingWhatsapp ? "Testando..." : "Enviar Teste"}</span>

@@ -272,11 +272,11 @@ export default function AdminPackagesPage() {
         <form onSubmit={handleCreatePackage} className="space-y-4 text-xs">
           {modalError && <Alert variant="destructive">{modalError}</Alert>}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="block font-medium">Paciente Destinatário *</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold text-[#404040] dark:text-[#E5E5E5]">Paciente Destinatário *</label>
               <select
-                className="flex h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-xs"
+                className="flex h-10 w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3.5 py-2 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] transition-all shadow-2xs cursor-pointer"
                 value={patientId}
                 onChange={(e) => setPatientId(e.target.value)}
                 required
@@ -290,10 +290,10 @@ export default function AdminPackagesPage() {
               </select>
             </div>
 
-            <div className="space-y-1">
-              <label className="block font-medium">Serviço Base *</label>
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold text-[#404040] dark:text-[#E5E5E5]">Serviço Base *</label>
               <select
-                className="flex h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-xs"
+                className="flex h-10 w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3.5 py-2 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] transition-all shadow-2xs cursor-pointer"
                 value={serviceId}
                 onChange={(e) => setServiceId(e.target.value)}
                 required
@@ -325,36 +325,36 @@ export default function AdminPackagesPage() {
           </div>
 
           {/* Seletor de Sessões Pré-definidas */}
-          <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+          <div className="space-y-3 pt-3 border-t border-[#E5E5E5] dark:border-[#333333]">
             <div className="flex items-center justify-between">
-              <span className="font-semibold block uppercase text-[11px] text-slate-500">
+              <span className="font-semibold block uppercase text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                 Datas e Horários Pré-definidos ({slotsList.length} sessões)
               </span>
-              <Button type="button" variant="outline" size="sm" onClick={handleAddSlot} className="h-6 text-[10px]">
+              <Button type="button" variant="outline" size="sm" onClick={handleAddSlot} className="text-xs gap-1.5">
                 + Adicionar Sessão
               </Button>
             </div>
 
-            <div className="space-y-2 max-h-48 overflow-y-auto p-1">
+            <div className="space-y-2.5 max-h-56 overflow-y-auto p-1">
               {slotsList.map((slot, i) => (
-                <div key={i} className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-800/40 rounded-lg">
-                  <span className="font-bold text-slate-400 w-4">{i + 1}.</span>
+                <div key={i} className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 p-2.5 bg-[#F8F8F8] dark:bg-[#141414] rounded-xl border border-[#E5E5E5] dark:border-[#333333]">
+                  <span className="font-bold text-[#737373] dark:text-[#A6A6A6] w-5 text-center">{i + 1}.</span>
                   <input
                     type="date"
-                    className="flex h-8 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-xs"
+                    className="flex h-10 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] px-3 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
                     value={slot.date}
                     onChange={(e) => handleSlotChange(i, "date", e.target.value)}
                     required
                   />
                   <input
                     type="time"
-                    className="flex h-8 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-xs"
+                    className="flex h-10 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] px-3 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
                     value={slot.time}
                     onChange={(e) => handleSlotChange(i, "time", e.target.value)}
                     required
                   />
                   <select
-                    className="flex h-8 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-xs"
+                    className="flex h-10 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] px-3 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30 cursor-pointer"
                     value={slot.modality}
                     onChange={(e) => handleSlotChange(i, "modality", e.target.value)}
                   >
@@ -365,7 +365,8 @@ export default function AdminPackagesPage() {
                     <button
                       type="button"
                       onClick={() => handleRemoveSlot(i)}
-                      className="text-red-500 hover:text-red-700 p-1"
+                      className="text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                      aria-label="Remover sessão"
                     >
                       ✕
                     </button>
@@ -375,7 +376,7 @@ export default function AdminPackagesPage() {
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
             <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
               Cancelar
             </Button>

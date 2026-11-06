@@ -196,26 +196,26 @@ export default function PatientAnamnesisPage() {
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit} className="space-y-6 text-xs">
               {fields.map((field) => (
-                <div key={field.id} className="space-y-1.5 p-4 rounded-xl border border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/30">
-                  <label className="block font-semibold text-sm text-slate-800 dark:text-slate-200">
+                <div key={field.id} className="space-y-3 p-5 sm:p-6 rounded-2xl border border-[#E5E5E5] dark:border-[#333333] bg-[#F8F8F8]/60 dark:bg-[#141414]/60">
+                  <label className="block font-semibold text-sm text-[#171717] dark:text-[#F5F5F5]">
                     {field.label} {field.required && <span className="text-red-500">*</span>}
                   </label>
 
                   {field.type === "textarea" ? (
                     <textarea
                       rows={4}
-                      className="flex w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs focus:ring-2 focus:ring-[var(--primary)] outline-none leading-relaxed"
+                      className="flex w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] p-3.5 text-xs text-[#171717] dark:text-[#F5F5F5] placeholder:text-[#737373] focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] outline-none leading-relaxed transition-all shadow-2xs"
                       placeholder="Sua resposta..."
                       value={answers[field.id] || ""}
                       onChange={(e) => handleAnswerChange(field.id, e.target.value)}
                       required={field.required}
                     />
                   ) : field.type === "radio" && field.options ? (
-                    <div className="space-y-2 pt-1">
+                    <div className="space-y-2.5 pt-1">
                       {field.options.map((opt) => (
                         <label
                           key={opt}
-                          className="flex items-center gap-2.5 cursor-pointer text-slate-700 dark:text-slate-300 hover:text-slate-900"
+                          className="flex items-center gap-2.5 cursor-pointer text-[#404040] dark:text-[#CCCCCC] hover:text-[#171717] dark:hover:text-[#F5F5F5] transition-colors"
                         >
                           <input
                             type="radio"
@@ -224,7 +224,7 @@ export default function PatientAnamnesisPage() {
                             checked={answers[field.id] === opt}
                             onChange={(e) => handleAnswerChange(field.id, e.target.value)}
                             required={field.required}
-                            className="text-[var(--primary)] focus:ring-[var(--primary)]"
+                            className="accent-[var(--primary)]"
                           />
                           <span>{opt}</span>
                         </label>
@@ -233,7 +233,7 @@ export default function PatientAnamnesisPage() {
                   ) : (
                     <input
                       type="text"
-                      className="flex h-10 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs focus:ring-2 focus:ring-[var(--primary)] outline-none"
+                      className="flex h-10 w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] px-3.5 py-2 text-xs text-[#171717] dark:text-[#F5F5F5] placeholder:text-[#737373] focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] outline-none transition-all shadow-2xs"
                       placeholder="Sua resposta..."
                       value={answers[field.id] || ""}
                       onChange={(e) => handleAnswerChange(field.id, e.target.value)}
@@ -243,8 +243,8 @@ export default function PatientAnamnesisPage() {
                 </div>
               ))}
 
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <span className="text-[11px] text-slate-400">
+              <div className="pt-5 border-t border-[#E5E5E5] dark:border-[#333333] flex items-center justify-between">
+                <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                   Após o envio, as respostas não poderão ser editadas diretamente.
                 </span>
 

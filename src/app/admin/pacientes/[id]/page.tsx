@@ -1306,7 +1306,7 @@ export default function AdminPatientDetailPage({
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+            <label className="text-xs font-semibold text-[#404040] dark:text-[#E5E5E5] block mb-2">
               Resumo Executivo da Sessão (Opcional):
             </label>
             <Input
@@ -1317,11 +1317,11 @@ export default function AdminPatientDetailPage({
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+            <label className="text-xs font-semibold text-[#404040] dark:text-[#E5E5E5] block mb-2">
               Evolução e Anotações Clínicas da Sessão: *
             </label>
             <textarea
-              className="flex min-h-[160px] w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs leading-relaxed focus:ring-2 focus:ring-[var(--primary)] font-mono"
+              className="flex min-h-[160px] w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] p-3.5 text-xs text-[#171717] dark:text-[#F5F5F5] placeholder:text-[#737373] leading-relaxed outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] font-mono transition-all shadow-2xs"
               placeholder="Descreva as queixas, intervenções realizadas, tarefas e evolução do paciente..."
               value={newNoteContent}
               onChange={(e) => setNewNoteContent(e.target.value)}
@@ -1329,7 +1329,7 @@ export default function AdminPatientDetailPage({
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex justify-end gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
             <Button
               type="button"
               variant="outline"
@@ -1379,10 +1379,10 @@ export default function AdminPatientDetailPage({
           )}
 
           <div>
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1.5">
+            <label className="text-xs font-semibold text-[#404040] dark:text-[#E5E5E5] block mb-2">
               Escala de Humor / Estado Geral:
             </label>
-            <div className="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
+            <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
               {moodScaleLabels.map((m) => (
                 <button
                   key={m.val}
@@ -1392,7 +1392,7 @@ export default function AdminPatientDetailPage({
                   className={`p-2 rounded-xl text-center border transition-all cursor-pointer ${
                     editMood === m.val
                       ? "border-[var(--primary)] bg-[var(--primary)]/10 font-bold text-[var(--primary)] ring-2 ring-[var(--primary)]/30"
-                      : "border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800"
+                      : "border-[#E5E5E5] dark:border-[#333333] hover:bg-[#F5F5F5] dark:hover:bg-[#242424]"
                   }`}
                 >
                   <div className="text-base">{m.emoji}</div>
@@ -1403,7 +1403,7 @@ export default function AdminPatientDetailPage({
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+            <label className="text-xs font-semibold text-[#404040] dark:text-[#E5E5E5] block mb-2">
               Resumo da Sessão:
             </label>
             <Input
@@ -1414,18 +1414,18 @@ export default function AdminPatientDetailPage({
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+            <label className="text-xs font-semibold text-[#404040] dark:text-[#E5E5E5] block mb-2">
               Conteúdo do Prontuário Clínico: *
             </label>
             <textarea
-              className="flex min-h-[180px] w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs leading-relaxed focus:ring-2 focus:ring-[var(--primary)] font-mono"
+              className="flex min-h-[180px] w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] p-3.5 text-xs text-[#171717] dark:text-[#F5F5F5] leading-relaxed outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] font-mono transition-all shadow-2xs"
               value={editNoteContent}
               onChange={(e) => setEditNoteContent(e.target.value)}
               required
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex justify-end gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
             <Button
               type="button"
               variant="outline"
@@ -1511,8 +1511,8 @@ export default function AdminPatientDetailPage({
         maxWidth="md"
       >
         <form onSubmit={handleUploadDocument} className="space-y-4 text-xs">
-          <div>
-            <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+          <div className="space-y-2">
+            <label className="font-semibold text-[#404040] dark:text-[#E5E5E5] block">
               Título do Documento (Opcional):
             </label>
             <Input
@@ -1520,13 +1520,13 @@ export default function AdminPatientDetailPage({
               value={docTitle}
               onChange={(e) => setDocTitle(e.target.value)}
             />
-            <span className="text-[11px] text-slate-400 mt-0.5 block">
+            <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6] block">
               Se omitido, o nome original do arquivo será utilizado como título.
             </span>
           </div>
 
-          <div>
-            <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+          <div className="space-y-2">
+            <label className="font-semibold text-[#404040] dark:text-[#E5E5E5] block">
               Arquivo (.PDF, .JPG, .PNG, .WEBP): *
             </label>
             <input
@@ -1534,32 +1534,32 @@ export default function AdminPatientDetailPage({
               required
               accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx"
               onChange={(e) => setDocFile(e.target.files?.[0] || null)}
-              className="flex h-10 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs file:mr-3 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[var(--primary)]/10 file:text-[var(--primary)] hover:file:bg-[var(--primary)]/20"
+              className="flex h-10 w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3.5 py-2 text-xs text-[#171717] dark:text-[#F5F5F5] file:mr-3.5 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[var(--primary)]/10 file:text-[var(--primary)] hover:file:bg-[var(--primary)]/20 transition-all shadow-2xs"
             />
-            <span className="text-[11px] text-slate-400 mt-0.5 block">
+            <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6] block">
               Tamanho máximo permitido: 25 MB.
             </span>
           </div>
 
-          <div>
-            <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+          <div className="space-y-2">
+            <label className="font-semibold text-[#404040] dark:text-[#E5E5E5] block">
               Descrição / Observações (Opcional):
             </label>
             <textarea
               rows={2}
-              className="flex w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs focus:ring-2 focus:ring-[var(--primary)] outline-none"
+              className="flex w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] p-3 text-xs text-[#171717] dark:text-[#F5F5F5] placeholder:text-[#737373] focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] outline-none transition-all shadow-2xs"
               placeholder="Ex: Declaração para comprovação de presença em sessão psicológica."
               value={docDescription}
               onChange={(e) => setDocDescription(e.target.value)}
             />
           </div>
 
-          <div>
-            <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+          <div className="space-y-2">
+            <label className="font-semibold text-[#404040] dark:text-[#E5E5E5] block">
               Prazo de Expiração do Acesso:
             </label>
             <select
-              className="flex h-10 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs"
+              className="flex h-10 w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3.5 py-2 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] transition-all shadow-2xs cursor-pointer"
               value={docShareDays}
               onChange={(e) => setDocShareDays(e.target.value)}
             >
@@ -1572,14 +1572,14 @@ export default function AdminPatientDetailPage({
           </div>
 
           {/* Preview da data calculada de expiração (Task 2) */}
-          <div className="p-3 bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-xl text-slate-800 dark:text-[#F5F5F5] text-xs flex items-center gap-2">
+          <div className="p-3.5 bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-xl text-[#171717] dark:text-[#F5F5F5] text-xs flex items-center gap-2">
             <Clock className="h-4 w-4 shrink-0 text-[var(--primary)]" />
             <span>
               <strong>Previsão de vigência:</strong> {getCalculatedExpirationText(docShareDays)}
             </span>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex justify-end gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
             <Button
               type="button"
               variant="outline"

@@ -289,24 +289,24 @@ export default function BookingPage() {
       {/* Main Container */}
       <main className="max-w-4xl mx-auto w-full p-4 sm:p-6 lg:p-8 flex-1">
         {/* Progress Bar 3 Passos */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between max-w-md mx-auto text-xs font-semibold text-slate-500">
-            <div className={`flex items-center gap-1.5 ${step >= 1 ? "text-[var(--primary)] font-bold" : ""}`}>
-              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 1 ? "bg-[var(--primary)] text-white" : "bg-slate-200"}`}>
+        <div className="mb-10 sm:mb-12">
+          <div className="flex items-center justify-between max-w-md mx-auto text-xs font-semibold text-[#737373] dark:text-[#A6A6A6]">
+            <div className={`flex items-center gap-2 ${step >= 1 ? "text-[var(--primary)] font-bold" : ""}`}>
+              <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 1 ? "bg-[var(--primary)] text-white shadow-xs" : "bg-[#E5E5E5] dark:bg-[#333333]"}`}>
                 1
               </span>
               <span>Serviço</span>
             </div>
-            <div className={`h-0.5 flex-1 mx-2 ${step >= 2 ? "bg-[var(--primary)]" : "bg-slate-200"}`} />
-            <div className={`flex items-center gap-1.5 ${step >= 2 ? "text-[var(--primary)] font-bold" : ""}`}>
-              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 2 ? "bg-[var(--primary)] text-white" : "bg-slate-200"}`}>
+            <div className={`h-0.5 flex-1 mx-3 ${step >= 2 ? "bg-[var(--primary)]" : "bg-[#E5E5E5] dark:bg-[#333333]"}`} />
+            <div className={`flex items-center gap-2 ${step >= 2 ? "text-[var(--primary)] font-bold" : ""}`}>
+              <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 2 ? "bg-[var(--primary)] text-white shadow-xs" : "bg-[#E5E5E5] dark:bg-[#333333]"}`}>
                 2
               </span>
               <span>Data e Horário</span>
             </div>
-            <div className={`h-0.5 flex-1 mx-2 ${step >= 3 ? "bg-[var(--primary)]" : "bg-slate-200"}`} />
-            <div className={`flex items-center gap-1.5 ${step >= 3 ? "text-[var(--primary)] font-bold" : ""}`}>
-              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step >= 3 ? "bg-[var(--primary)] text-white" : "bg-slate-200"}`}>
+            <div className={`h-0.5 flex-1 mx-3 ${step >= 3 ? "bg-[var(--primary)]" : "bg-[#E5E5E5] dark:bg-[#333333]"}`} />
+            <div className={`flex items-center gap-2 ${step >= 3 ? "text-[var(--primary)] font-bold" : ""}`}>
+              <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 3 ? "bg-[var(--primary)] text-white shadow-xs" : "bg-[#E5E5E5] dark:bg-[#333333]"}`}>
                 3
               </span>
               <span>Identificação</span>
@@ -478,12 +478,12 @@ export default function BookingPage() {
             </div>
 
             {/* Opção Alternativa: Solicitação WhatsApp */}
-            <div className="p-4 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-              <div className="space-y-0.5">
+            <div className="p-5 sm:p-6 rounded-2xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
+              <div className="space-y-1">
                 <span className="font-semibold text-amber-800 dark:text-amber-300">
                   Prefere tirar dúvidas antes de reservar?
                 </span>
-                <p className="text-amber-700 dark:text-amber-400">
+                <p className="text-amber-700 dark:text-amber-400 leading-relaxed">
                   Envie uma mensagem direta pelo WhatsApp para esclarecimentos. Atenção: a mensagem é apenas uma solicitação inicial e não bloqueia a agenda.
                 </p>
               </div>
@@ -492,9 +492,9 @@ export default function BookingPage() {
                 size="sm"
                 onClick={handleWhatsAppInquiry}
                 disabled={!selectedSlot}
-                className="shrink-0 gap-1.5 text-xs border-amber-300 text-amber-800 dark:text-amber-300"
+                className="shrink-0 gap-2 text-xs border-amber-300 text-amber-800 dark:text-amber-300 h-9 min-h-[36px]"
               >
-                <MessageSquare className="h-3.5 w-3.5" />
+                <MessageSquare className="h-4 w-4" />
                 <span>Solicitar via WhatsApp</span>
               </Button>
             </div>

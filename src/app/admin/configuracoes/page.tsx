@@ -941,21 +941,21 @@ export default function AdminSettingsPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                 <div>
-                  <label className="font-semibold block text-slate-800 dark:text-slate-200 mb-1">
+                  <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5] mb-2 text-xs sm:text-sm">
                     Versão da Aplicação
                   </label>
                   <div className="flex items-center gap-2">
                     <Input
                       value={`v${appVersion}`}
                       disabled
-                      className="bg-slate-100 dark:bg-slate-800 font-mono text-xs cursor-not-allowed"
+                      className="bg-[#F8F8F8] dark:bg-[#141414] font-mono text-xs cursor-not-allowed"
                     />
-                    <Badge variant="outline" className="shrink-0 text-[11px] py-1 border-slate-300 dark:border-slate-700">
-                      <Lock className="h-3 w-3 mr-1 text-slate-400" />
+                    <Badge variant="outline" className="shrink-0 text-[11px] py-1 border-[#E5E5E5] dark:border-[#333333]">
+                      <Lock className="h-3 w-3 mr-1 text-[#737373]" />
                       Metadado do Projeto
                     </Badge>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1">
+                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] mt-1.5">
                     Versão oficial recuperada diretamente dos metadados da instalação standalone.
                   </p>
                 </div>
@@ -1012,23 +1012,23 @@ export default function AdminSettingsPage() {
                 />
               </div>
 
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+              <div className="pt-2 border-t border-[#E5E5E5] dark:border-[#333333]">
                 <div className="max-w-md">
-                  <label className="font-semibold block text-slate-800 dark:text-slate-200 mb-1">
+                  <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5] mb-2 text-xs sm:text-sm">
                     E-mail Administrativo de Acesso
                   </label>
                   <div className="flex items-center gap-2">
                     <Input
                       value={adminEmail}
                       disabled
-                      className="bg-slate-100 dark:bg-slate-800 font-mono text-xs cursor-not-allowed"
+                      className="bg-[#F8F8F8] dark:bg-[#141414] font-mono text-xs cursor-not-allowed"
                     />
-                    <Badge variant="outline" className="shrink-0 text-[11px] py-1 border-slate-300 dark:border-slate-700">
-                      <Lock className="h-3 w-3 mr-1 text-slate-400" />
+                    <Badge variant="outline" className="shrink-0 text-[11px] py-1 border-[#E5E5E5] dark:border-[#333333]">
+                      <Lock className="h-3 w-3 mr-1 text-[#737373]" />
                       Autenticação Segura
                     </Badge>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1">
+                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] mt-1.5">
                     Utilizado exclusivamente para login do profissional titular. A alteração de credenciais deve seguir o fluxo seguro de autenticação.
                   </p>
                 </div>

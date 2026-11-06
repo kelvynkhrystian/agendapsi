@@ -126,11 +126,11 @@ export default function AdminRemindersPage() {
   if (isLoading) {
     return (
       <div className="space-y-6 max-w-5xl">
-        <div className="h-8 w-60 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-        <div className="h-20 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+        <div className="h-8 w-60 bg-[#E5E5E5] dark:bg-[#242424] rounded animate-pulse" />
+        <div className="h-20 bg-[#E5E5E5] dark:bg-[#242424] rounded-xl animate-pulse" />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="h-96 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
-          <div className="lg:col-span-2 h-96 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+          <div className="h-96 bg-[#E5E5E5] dark:bg-[#242424] rounded-xl animate-pulse" />
+          <div className="lg:col-span-2 h-96 bg-[#E5E5E5] dark:bg-[#242424] rounded-xl animate-pulse" />
         </div>
       </div>
     );
@@ -162,15 +162,15 @@ export default function AdminRemindersPage() {
       <div>
         <div className="flex items-center gap-2">
           <BellRing className="h-6 w-6 text-[var(--primary)]" />
-          <h1 className="text-2xl font-bold tracking-tight">Lembretes & Mensagens</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Lembretes & Mensagens</h1>
         </div>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        <p className="text-sm text-[#737373] dark:text-[#A6A6A6] mt-1">
           Configure os templates de mensagens, lembretes de consultas e regras de disparo (Aplicativo, E-mail e WhatsApp).
         </p>
       </div>
 
       {/* Subnavegação de Lembretes & Registros */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3 text-xs font-medium">
+      <div className="flex items-center gap-2 border-b border-[#E5E5E5] dark:border-[#333333] pb-3 text-xs font-medium">
         <Link
           href="/admin/lembretes"
           className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs"
@@ -180,7 +180,7 @@ export default function AdminRemindersPage() {
         </Link>
         <Link
           href="/admin/lembretes/registros"
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-[#737373] dark:text-[#A6A6A6] hover:bg-[#F2F2F2] dark:hover:bg-[#242424] transition-colors"
         >
           <History className="h-4 w-4" />
           <span>Registros de Mensagens</span>
@@ -203,20 +203,20 @@ export default function AdminRemindersPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Seletor de Eventos */}
         <div className="space-y-3">
-          <h3 className="font-bold text-sm">Selecione o Evento</h3>
-          <div className="space-y-1 max-h-[500px] overflow-y-auto pr-1">
+          <h3 className="font-bold text-sm text-[#171717] dark:text-[#F5F5F5]">Selecione o Evento</h3>
+          <div className="space-y-1.5 max-h-[500px] overflow-y-auto pr-1">
             {templates.map((tpl) => (
               <button
                 key={tpl.eventType}
                 onClick={() => handleSelectTemplate(tpl.eventType)}
-                className={`w-full text-left p-3 rounded-xl border text-xs transition-colors flex flex-col gap-1 ${
+                className={`w-full text-left p-3.5 rounded-xl border text-xs transition-colors flex flex-col gap-1.5 ${
                   selectedEventType === tpl.eventType
                     ? "border-[var(--primary)] bg-[var(--primary)]/10 font-semibold text-[var(--primary)]"
-                    : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                    : "border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] hover:bg-[#F5F5F5] dark:hover:bg-[#242424] text-[#171717] dark:text-[#F5F5F5]"
                 }`}
               >
                 <span>{tpl.title}</span>
-                <span className="text-[10px] text-slate-400 font-normal truncate">
+                <span className="text-[10px] text-[#737373] dark:text-[#A6A6A6] font-normal truncate">
                   {tpl.deliveryMode === "APP_ONLY" && "Somente Aplicativo"}
                   {tpl.deliveryMode === "APP_EMAIL" && "Aplicativo + Email"}
                   {tpl.deliveryMode === "ALL_CHANNELS" && "App + Email + WhatsApp"}
@@ -236,18 +236,18 @@ export default function AdminRemindersPage() {
               </CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-4 text-xs">
+            <CardContent className="space-y-5 text-xs">
               {/* Modo de Entrega (Exatamente 3 Opções) */}
               <div className="space-y-2">
-                <label className="font-semibold block text-slate-800 dark:text-slate-200">
+                <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">
                   Modo de Entrega Obrigatório:
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                   <label
-                    className={`p-3 rounded-xl border cursor-pointer flex flex-col gap-1 transition-colors ${
+                    className={`p-3.5 sm:p-4 rounded-xl border cursor-pointer flex flex-col gap-2 transition-colors ${
                       editedMode === "APP_ONLY"
                         ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
-                        : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
+                        : "border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] hover:border-[#CCCCCC] dark:hover:border-[#404040] text-[#171717] dark:text-[#F5F5F5]"
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -261,16 +261,16 @@ export default function AdminRemindersPage() {
                       />
                       <span>Somente no aplicativo</span>
                     </div>
-                    <span className="text-[10px] text-slate-400 font-normal">
+                    <span className="text-[10px] text-[#737373] dark:text-[#A6A6A6] font-normal leading-relaxed">
                       Gera apenas alerta no sininho interno.
                     </span>
                   </label>
 
                   <label
-                    className={`p-3 rounded-xl border cursor-pointer flex flex-col gap-1 transition-colors ${
+                    className={`p-3.5 sm:p-4 rounded-xl border cursor-pointer flex flex-col gap-2 transition-colors ${
                       editedMode === "APP_EMAIL"
                         ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
-                        : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
+                        : "border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] hover:border-[#CCCCCC] dark:hover:border-[#404040] text-[#171717] dark:text-[#F5F5F5]"
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -284,16 +284,16 @@ export default function AdminRemindersPage() {
                       />
                       <span>Aplicativo + Email</span>
                     </div>
-                    <span className="text-[10px] text-slate-400 font-normal">
+                    <span className="text-[10px] text-[#737373] dark:text-[#A6A6A6] font-normal leading-relaxed">
                       Salva no app e envia a mesma mensagem por e-mail.
                     </span>
                   </label>
 
                   <label
-                    className={`p-3 rounded-xl border cursor-pointer flex flex-col gap-1 transition-colors ${
+                    className={`p-3.5 sm:p-4 rounded-xl border cursor-pointer flex flex-col gap-2 transition-colors ${
                       editedMode === "ALL_CHANNELS"
                         ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
-                        : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
+                        : "border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] hover:border-[#CCCCCC] dark:hover:border-[#404040] text-[#171717] dark:text-[#F5F5F5]"
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -307,7 +307,7 @@ export default function AdminRemindersPage() {
                       />
                       <span>App + Email + WhatsApp</span>
                     </div>
-                    <span className="text-[10px] text-slate-400 font-normal">
+                    <span className="text-[10px] text-[#737373] dark:text-[#A6A6A6] font-normal leading-relaxed">
                       Envia por todos os 3 canais simultaneamente.
                     </span>
                   </label>
@@ -315,8 +315,8 @@ export default function AdminRemindersPage() {
               </div>
 
               {/* Título */}
-              <div className="space-y-1">
-                <label className="font-semibold block text-slate-800 dark:text-slate-200">
+              <div className="space-y-2">
+                <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">
                   Título da Notificação
                 </label>
                 <Input
@@ -327,25 +327,25 @@ export default function AdminRemindersPage() {
               </div>
 
               {/* Corpo */}
-              <div className="space-y-1">
-                <label className="font-semibold block text-slate-800 dark:text-slate-200">
+              <div className="space-y-2">
+                <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">
                   Mensagem Completa (Corpo)
                 </label>
                 <textarea
                   rows={4}
                   value={editedBody}
                   onChange={(e) => setEditedBody(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-2.5 text-xs outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  className="w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] p-3.5 text-xs text-[#171717] dark:text-[#F5F5F5] placeholder:text-[#737373] outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] transition-all shadow-2xs"
                   placeholder="Escreva a mensagem..."
                 />
               </div>
 
               {/* Tags / Variáveis Dinâmicas */}
-              <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-lg space-y-1.5 border border-slate-100 dark:border-slate-800">
-                <span className="font-semibold text-slate-700 dark:text-slate-300 block">
+              <div className="p-4 bg-[#F8F8F8] dark:bg-[#141414] rounded-xl space-y-2 border border-[#E5E5E5] dark:border-[#333333]">
+                <span className="font-semibold text-[#404040] dark:text-[#E5E5E5] block">
                   Variáveis Dinâmicas Disponíveis:
                 </span>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-2">
                   {[
                     "{nome_paciente}",
                     "{nome_profissional}",
@@ -360,7 +360,7 @@ export default function AdminRemindersPage() {
                       key={v}
                       type="button"
                       onClick={() => setEditedBody((prev) => `${prev} ${v}`)}
-                      className="px-2 py-0.5 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-[11px] hover:bg-[var(--primary)]/10"
+                      className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#191919] border border-[#E5E5E5] dark:border-[#333333] font-mono text-[11px] text-[#404040] dark:text-[#E5E5E5] hover:bg-[var(--primary)]/10 hover:border-[var(--primary)]/30 transition-colors"
                       title="Clique para adicionar ao texto"
                     >
                       {v}
@@ -370,25 +370,25 @@ export default function AdminRemindersPage() {
               </div>
 
               {/* Prévia Dinâmica */}
-              <div className="space-y-1.5 pt-2">
-                <span className="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+              <div className="space-y-2 pt-2">
+                <span className="font-semibold text-[#404040] dark:text-[#E5E5E5] flex items-center gap-1.5">
                   <Eye className="h-4 w-4 text-[var(--primary)]" />
                   <span>Prévia do Destinatário:</span>
                 </span>
-                <div className="p-3.5 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-1">
-                  <p className="font-bold text-slate-900 dark:text-slate-100">{previewTitle}</p>
-                  <p className="text-slate-600 dark:text-slate-300 leading-relaxed">{previewBody}</p>
+                <div className="p-4 sm:p-5 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#333333] space-y-2">
+                  <p className="font-bold text-[#171717] dark:text-[#F5F5F5]">{previewTitle}</p>
+                  <p className="text-[#525252] dark:text-[#A6A6A6] leading-relaxed">{previewBody}</p>
                 </div>
               </div>
 
               {/* Ações */}
-              <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-between pt-4 border-t border-[#E5E5E5] dark:border-[#333333] gap-3">
                 <Button
                   type="button"
                   variant="ghost"
                   onClick={handleRestoreTemplateDefault}
                   disabled={isSavingTemplate}
-                  className="text-xs gap-1.5 text-slate-500 hover:text-slate-800"
+                  className="text-xs gap-1.5 text-[#737373] hover:text-[#171717] dark:text-[#A6A6A6] dark:hover:text-[#F5F5F5]"
                 >
                   <RotateCcw className="h-3.5 w-3.5" />
                   <span>Restaurar Padrão</span>

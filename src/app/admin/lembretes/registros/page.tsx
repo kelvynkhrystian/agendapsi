@@ -197,7 +197,7 @@ export default function AdminMessageLogsPage() {
         );
       case "SIMULATED":
         return (
-          <Badge variant="outline" className="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700 text-[11px] gap-1 py-0.5">
+          <Badge variant="outline" className="bg-[#F2F2F2] text-[#404040] dark:bg-[#242424] dark:text-[#CCCCCC] border-[#E5E5E5] dark:border-[#333333] text-[11px] gap-1 py-0.5">
             <Info className="h-3 w-3" />
             <span>Simulado no sistema</span>
           </Badge>
@@ -217,18 +217,18 @@ export default function AdminMessageLogsPage() {
       <div>
         <div className="flex items-center gap-2">
           <History className="h-6 w-6 text-[var(--primary)]" />
-          <h1 className="text-2xl font-bold tracking-tight">Registros de Mensagens & Entregas</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Registros de Mensagens & Entregas</h1>
         </div>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        <p className="text-sm text-[#737373] dark:text-[#A6A6A6] mt-1">
           Monitoramento em tempo real de disparos externos (E-mail e WhatsApp), aceitação pelo servidor e confirmações de entrega.
         </p>
       </div>
 
       {/* Subnavegação de Lembretes & Registros */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3 text-xs font-medium">
+      <div className="flex items-center gap-2 border-b border-[#E5E5E5] dark:border-[#333333] pb-3 text-xs font-medium">
         <Link
           href="/admin/lembretes"
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-[#737373] dark:text-[#A6A6A6] hover:bg-[#F2F2F2] dark:hover:bg-[#242424] transition-colors"
         >
           <BellRing className="h-4 w-4" />
           <span>Configurações de Lembretes</span>
@@ -250,26 +250,26 @@ export default function AdminMessageLogsPage() {
 
       {/* Resumo Consolidado dos Últimos 7 Dias (Inspirado no FluentSMTP) */}
       {summary && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          <Card className="p-3.5">
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Disparos (7 Dias)</p>
-            <p className="text-xl font-bold mt-0.5">{summary.totalAttempts}</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+          <Card className="p-4 sm:p-5">
+            <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] font-medium">Disparos (7 Dias)</p>
+            <p className="text-xl font-bold mt-1 text-[#171717] dark:text-[#F5F5F5]">{summary.totalAttempts}</p>
           </Card>
-          <Card className="p-3.5 border-emerald-200/60 dark:border-emerald-900/40 bg-emerald-50/20 dark:bg-emerald-950/10">
+          <Card className="p-4 sm:p-5 border-emerald-200/60 dark:border-emerald-900/40 bg-emerald-50/20 dark:bg-emerald-950/10">
             <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">Aceitos pelo Provedor</p>
-            <p className="text-xl font-bold text-emerald-700 dark:text-emerald-400 mt-0.5">{summary.accepted}</p>
+            <p className="text-xl font-bold text-emerald-700 dark:text-emerald-400 mt-1">{summary.accepted}</p>
           </Card>
-          <Card className="p-3.5 border-[var(--primary)]/30 bg-[var(--primary)]/10">
+          <Card className="p-4 sm:p-5 border-[var(--primary)]/30 bg-[var(--primary)]/10">
             <p className="text-[11px] text-[var(--primary)] font-medium">Entregas Confirmadas</p>
-            <p className="text-xl font-bold text-[var(--primary)] mt-0.5">{summary.delivered}</p>
+            <p className="text-xl font-bold text-[var(--primary)] mt-1">{summary.delivered}</p>
           </Card>
-          <Card className="p-3.5 border-red-200/60 dark:border-red-900/40 bg-red-50/20 dark:bg-red-950/10">
+          <Card className="p-4 sm:p-5 border-red-200/60 dark:border-red-900/40 bg-red-50/20 dark:bg-red-950/10">
             <p className="text-[11px] text-red-700 dark:text-red-400 font-medium">Falhas de Envio</p>
-            <p className="text-xl font-bold text-red-700 dark:text-red-400 mt-0.5">{summary.failed}</p>
+            <p className="text-xl font-bold text-red-700 dark:text-red-400 mt-1">{summary.failed}</p>
           </Card>
-          <Card className="p-3.5 border-slate-200 dark:border-slate-800">
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Simulados / Fila</p>
-            <p className="text-xl font-bold text-slate-700 dark:text-slate-300 mt-0.5">
+          <Card className="p-4 sm:p-5 border-[#E5E5E5] dark:border-[#333333]">
+            <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] font-medium">Simulados / Fila</p>
+            <p className="text-xl font-bold text-[#404040] dark:text-[#CCCCCC] mt-1">
               {summary.simulated + summary.pending}
             </p>
           </Card>
@@ -278,12 +278,12 @@ export default function AdminMessageLogsPage() {
 
       {/* Barra de Filtros e Busca (Estilo FluentSMTP) */}
       <Card>
-        <CardContent className="pt-5 pb-5">
-          <form onSubmit={handleApplyFilters} className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        <CardContent className="p-5 sm:p-6">
+          <form onSubmit={handleApplyFilters} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
               {/* Filtro Canal */}
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-[#404040] dark:text-[#E5E5E5]">
                   Canal
                 </label>
                 <select
@@ -292,7 +292,7 @@ export default function AdminMessageLogsPage() {
                     setChannel(e.target.value);
                     setPage(1);
                   }}
-                  className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-2"
+                  className="w-full text-xs rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3 py-2 text-[#171717] dark:text-[#F5F5F5] h-10 outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] transition-all shadow-2xs cursor-pointer"
                 >
                   <option value="ALL">Todos os Canais</option>
                   <option value="EMAIL">E-mail</option>
@@ -301,8 +301,8 @@ export default function AdminMessageLogsPage() {
               </div>
 
               {/* Filtro Status */}
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-[#404040] dark:text-[#E5E5E5]">
                   Status da Mensagem
                 </label>
                 <select
@@ -311,7 +311,7 @@ export default function AdminMessageLogsPage() {
                     setStatus(e.target.value);
                     setPage(1);
                   }}
-                  className="w-full text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-2"
+                  className="w-full text-xs rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3 py-2 text-[#171717] dark:text-[#F5F5F5] h-10 outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] transition-all shadow-2xs cursor-pointer"
                 >
                   <option value="ALL">Todos os Status</option>
                   <option value="ACCEPTED">Aceito pelo provedor</option>
@@ -324,62 +324,60 @@ export default function AdminMessageLogsPage() {
               </div>
 
               {/* Data Inicial */}
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-[#404040] dark:text-[#E5E5E5]">
                   Data Inicial
                 </label>
                 <Input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="text-xs py-1.5 h-9"
+                  className="text-xs h-10"
                 />
               </div>
 
               {/* Data Final */}
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-[#404040] dark:text-[#E5E5E5]">
                   Data Final
                 </label>
                 <Input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="text-xs py-1.5 h-9"
+                  className="text-xs h-10"
                 />
               </div>
 
               {/* Busca Textual */}
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-[#404040] dark:text-[#E5E5E5]">
                   Buscar
                 </label>
-                <div className="relative">
-                  <Input
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Destinatário ou assunto..."
-                    className="text-xs py-1.5 h-9 pr-8"
-                  />
-                  <Search className="h-3.5 w-3.5 text-slate-400 absolute right-2.5 top-3 pointer-events-none" />
-                </div>
+                <Input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Destinatário ou assunto..."
+                  rightIcon={<Search className="h-4 w-4" />}
+                  className="text-xs h-10"
+                />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-1">
+            <div className="flex items-center justify-end gap-3 pt-2">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={handleClearFilters}
-                className="text-xs gap-1 h-8"
+                className="text-xs gap-1.5"
               >
-                <RotateCcw className="h-3 w-3" />
+                <RotateCcw className="h-3.5 w-3.5" />
                 <span>Limpar</span>
               </Button>
-              <Button type="submit" size="sm" className="text-xs gap-1 h-8 bg-[var(--primary)] text-white">
-                <Filter className="h-3 w-3" />
+              <Button type="submit" size="sm" className="text-xs gap-1.5 bg-[var(--primary)] text-white">
+                <Filter className="h-3.5 w-3.5" />
                 <span>Aplicar Filtros</span>
               </Button>
             </div>
@@ -389,14 +387,14 @@ export default function AdminMessageLogsPage() {
 
       {/* Tabela de Mensagens */}
       <Card>
-        <CardHeader className="pb-3 flex flex-row items-center justify-between">
+        <CardHeader className="p-5 sm:p-6 pb-4 flex flex-row items-center justify-between">
           <div>
             <CardTitle className="text-base">Histórico de Disparos</CardTitle>
             <CardDescription className="text-xs">
               {totalRecords} registro(s) encontrado(s) no total.
             </CardDescription>
           </div>
-          <Button variant="outline" size="sm" onClick={fetchLogs} className="text-xs h-8 gap-1.5">
+          <Button variant="outline" size="sm" onClick={fetchLogs} className="text-xs gap-1.5">
             <RotateCcw className="h-3.5 w-3.5" />
             <span>Atualizar</span>
           </Button>
@@ -404,13 +402,13 @@ export default function AdminMessageLogsPage() {
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-8 text-center space-y-3">
-              <div className="h-6 w-40 bg-slate-200 dark:bg-slate-800 rounded mx-auto animate-pulse" />
-              <div className="h-4 w-60 bg-slate-200 dark:bg-slate-800 rounded mx-auto animate-pulse" />
+              <div className="h-6 w-40 bg-[#E5E5E5] dark:bg-[#242424] rounded mx-auto animate-pulse" />
+              <div className="h-4 w-60 bg-[#E5E5E5] dark:bg-[#242424] rounded mx-auto animate-pulse" />
             </div>
           ) : logs.length === 0 ? (
             <div className="py-12">
               <EmptyState
-                icon={<Mail className="h-8 w-8 text-slate-400" />}
+                icon={<Mail className="h-8 w-8 text-[#737373]" />}
                 title="Nenhum registro de mensagem encontrado"
                 description="Nenhum disparo corresponde aos filtros selecionados ou ainda não houve envios no período."
               />
@@ -418,33 +416,33 @@ export default function AdminMessageLogsPage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left border-collapse">
-                <thead className="bg-slate-50 dark:bg-slate-800/60 border-y border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-semibold">
+                <thead className="bg-[#F8F8F8] dark:bg-[#141414] border-y border-[#E5E5E5] dark:border-[#333333] text-[#737373] dark:text-[#A6A6A6] font-semibold">
                   <tr>
-                    <th className="py-3 px-4">Data e Hora</th>
-                    <th className="py-3 px-3">Canal</th>
-                    <th className="py-3 px-4">Destinatário</th>
-                    <th className="py-3 px-4">Categoria / Assunto</th>
-                    <th className="py-3 px-3">Provedor</th>
-                    <th className="py-3 px-3">Status</th>
-                    <th className="py-3 px-2 text-center">Tentativas</th>
-                    <th className="py-3 px-4 text-right">Ações</th>
+                    <th className="py-3.5 px-4 sm:px-6">Data e Hora</th>
+                    <th className="py-3.5 px-3 sm:px-4">Canal</th>
+                    <th className="py-3.5 px-4 sm:px-6">Destinatário</th>
+                    <th className="py-3.5 px-4 sm:px-6">Categoria / Assunto</th>
+                    <th className="py-3.5 px-3 sm:px-4">Provedor</th>
+                    <th className="py-3.5 px-3 sm:px-4">Status</th>
+                    <th className="py-3.5 px-3 text-center">Tentativas</th>
+                    <th className="py-3.5 px-4 sm:px-6 text-right">Ações</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                <tbody className="divide-y divide-[#E5E5E5] dark:divide-[#333333]">
                   {logs.map((log) => {
                     const isEmail = log.channel === "EMAIL";
                     return (
                       <tr
                         key={log.id}
-                        className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
+                        className="hover:bg-[#F2F2F2]/60 dark:hover:bg-[#242424]/40 transition-colors"
                       >
                         {/* Data e Hora */}
-                        <td className="py-3 px-4 font-mono text-[11px] whitespace-nowrap text-slate-600 dark:text-slate-300">
+                        <td className="py-3.5 px-4 sm:px-6 font-mono text-[11px] whitespace-nowrap text-[#525252] dark:text-[#CCCCCC]">
                           {formatDate(log.sentAt)} {formatTime(log.sentAt)}
                         </td>
 
                         {/* Canal */}
-                        <td className="py-3 px-3 whitespace-nowrap">
+                        <td className="py-3.5 px-3 sm:px-4 whitespace-nowrap">
                           <span className="inline-flex items-center gap-1.5 font-medium">
                             {isEmail ? (
                               <>
@@ -461,35 +459,35 @@ export default function AdminMessageLogsPage() {
                         </td>
 
                         {/* Destinatário Mascarado */}
-                        <td className="py-3 px-4 font-mono text-[11px] text-slate-800 dark:text-slate-200">
+                        <td className="py-3.5 px-4 sm:px-6 font-mono text-[11px] text-[#171717] dark:text-[#F5F5F5]">
                           {log.maskedRecipient}
                         </td>
 
                         {/* Assunto / Categoria */}
-                        <td className="py-3 px-4 max-w-xs truncate text-slate-800 dark:text-slate-200 font-medium">
+                        <td className="py-3.5 px-4 sm:px-6 max-w-xs truncate text-[#171717] dark:text-[#F5F5F5] font-medium">
                           {log.subjectOrCategory}
                         </td>
 
                         {/* Provedor */}
-                        <td className="py-3 px-3 whitespace-nowrap font-mono text-[10px] text-slate-500">
+                        <td className="py-3.5 px-3 sm:px-4 whitespace-nowrap font-mono text-[10px] text-[#737373]">
                           {log.provider}
                         </td>
 
                         {/* Status */}
-                        <td className="py-3 px-3 whitespace-nowrap">
+                        <td className="py-3.5 px-3 sm:px-4 whitespace-nowrap">
                           {renderStatusBadge(log)}
                         </td>
 
                         {/* Tentativas */}
-                        <td className="py-3 px-2 text-center font-mono font-semibold text-slate-700 dark:text-slate-300">
+                        <td className="py-3.5 px-3 text-center font-mono font-semibold text-[#404040] dark:text-[#CCCCCC]">
                           {log.attemptCount}
                         </td>
 
                         {/* Ações */}
-                        <td className="py-3 px-4 text-right whitespace-nowrap space-x-1.5">
+                        <td className="py-3.5 px-4 sm:px-6 text-right whitespace-nowrap space-x-2">
                           <Link href={`/admin/lembretes/registros/${log.id}`}>
-                            <Button variant="ghost" size="sm" className="h-7 text-xs px-2 gap-1">
-                              <Eye className="h-3 w-3" />
+                            <Button variant="ghost" size="sm" className="h-8 text-xs px-2.5 gap-1.5">
+                              <Eye className="h-3.5 w-3.5" />
                               <span>Detalhes</span>
                             </Button>
                           </Link>
@@ -499,10 +497,10 @@ export default function AdminMessageLogsPage() {
                             size="sm"
                             disabled={resendingId === log.id}
                             onClick={() => handleResend(log.id)}
-                            className="h-7 text-xs px-2 gap-1 text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                            className="h-8 text-xs px-2.5 gap-1.5 text-[var(--primary)] hover:bg-[var(--primary)]/10"
                             title="Reenviar esta mensagem"
                           >
-                            <Send className="h-3 w-3" />
+                            <Send className="h-3.5 w-3.5" />
                             <span>{resendingId === log.id ? "Reenviando..." : "Reenviar"}</span>
                           </Button>
                         </td>
@@ -516,19 +514,19 @@ export default function AdminMessageLogsPage() {
 
           {/* Paginação */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-t border-[#E5E5E5] dark:border-[#333333] text-xs text-[#737373] dark:text-[#A6A6A6]">
               <div>
                 Página <strong>{page}</strong> de <strong>{totalPages}</strong>
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   disabled={page <= 1}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="h-7 text-xs px-2 gap-1"
+                  className="h-8 text-xs px-2.5 gap-1"
                 >
-                  <ChevronLeft className="h-3 w-3" />
+                  <ChevronLeft className="h-3.5 w-3.5" />
                   <span>Anterior</span>
                 </Button>
                 <Button
@@ -536,10 +534,10 @@ export default function AdminMessageLogsPage() {
                   size="sm"
                   disabled={page >= totalPages}
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  className="h-7 text-xs px-2 gap-1"
+                  className="h-8 text-xs px-2.5 gap-1"
                 >
                   <span>Próximo</span>
-                  <ChevronRight className="h-3 w-3" />
+                  <ChevronRight className="h-3.5 w-3.5" />
                 </Button>
               </div>
             </div>

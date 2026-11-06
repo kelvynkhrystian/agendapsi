@@ -580,7 +580,7 @@ export function MiniSiteHeader({
                     <Button
                       variant="outline"
                       size="lg"
-                      className="w-full gap-2 text-sm font-semibold border-slate-200 text-slate-700 hover:bg-slate-100 rounded-xl py-6 cursor-pointer shadow-xs"
+                      className="w-full gap-2 text-sm font-semibold border-slate-200 text-slate-700 hover:bg-slate-100 rounded-xl h-11 min-h-[44px] py-2.5 cursor-pointer shadow-xs"
                     >
                       <LogIn className="h-4 w-4 text-slate-600" />
                       <span>Login</span>
