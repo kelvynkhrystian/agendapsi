@@ -819,7 +819,7 @@ export default async function HomePage() {
         <div className="max-w-4xl mx-auto">
           <div
             id="cta-final-box"
-            className="p-8 sm:p-10 rounded-3xl text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden"
+            className="p-8 sm:p-10 rounded-3xl text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden bg-[var(--primary)]"
             style={{ backgroundColor: site?.buttonColor || "var(--primary)" }}
           >
             {/* Brilho decorativo sutil */}
@@ -866,63 +866,9 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ================= 9. FOOTER & NAVEGAÇÃO INFERIOR ================= */}
+      {/* ================= 9. FOOTER ================= */}
       <footer id="contato" className="border-t border-[#EFE9DF] bg-[#F8F5EE] py-14 px-4 text-xs text-slate-600">
         <div className="max-w-4xl mx-auto space-y-8">
-          {/* Barra de Navegação Inferior (Referência Visual do Rodapé) */}
-          <div className="flex flex-wrap justify-center items-center gap-3 py-4 border-b border-[#EFE9DF] text-center font-heading font-semibold text-xs text-slate-700">
-            {whatsappUrl && (
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl hover:bg-white hover:shadow-2xs transition-all"
-              >
-                <MessageCircle className="h-4 w-4 text-[var(--primary)]" />
-                <span>WhatsApp</span>
-              </a>
-            )}
-            {shouldShowLocation && (
-              <a
-                href="#localizacao"
-                className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl hover:bg-white hover:shadow-2xs transition-all"
-              >
-                <MapPin className="h-4 w-4 text-[var(--primary)]" />
-                <span>Localização</span>
-              </a>
-            )}
-            <a
-              href="#contato"
-              className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl hover:bg-white hover:shadow-2xs transition-all"
-            >
-              <Mail className="h-4 w-4 text-[var(--primary)]" />
-              <span>Contato</span>
-            </a>
-            {instagramUrl && (
-              <a
-                href={instagramUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl hover:bg-white hover:shadow-2xs transition-all"
-              >
-                <svg
-                  className="h-4 w-4 text-[var(--primary)]"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                  <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-                </svg>
-                <span>Instagram</span>
-              </a>
-            )}
-          </div>
-
           {/* Dados do Consultório e Ética */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left text-slate-500">
             <div className="space-y-1">

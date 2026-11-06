@@ -318,7 +318,7 @@ export function MiniSiteMotionController() {
         opacity: 0,
         duration: 0.7,
         ease: EASINGS.smooth,
-        clearProps: "all",
+        clearProps: "transform,opacity,scale,y",
       });
     }
 
@@ -340,7 +340,7 @@ export function MiniSiteMotionController() {
         document.querySelectorAll(sel).forEach((node) => {
           const el = node as HTMLElement;
           if (el && el.style.opacity === "0") {
-            gsap.to(el, { opacity: 1, x: 0, y: 0, duration: 0.3, clearProps: "all" });
+            gsap.to(el, { opacity: 1, x: 0, y: 0, duration: 0.3, clearProps: "transform,opacity" });
           }
         });
       });
