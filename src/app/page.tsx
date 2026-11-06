@@ -881,28 +881,32 @@ export default async function HomePage() {
               </p>
             </div>
 
-            <div className="flex flex-wrap justify-center sm:justify-end items-center gap-4 text-xs font-medium">
-              {publishedPageIds.has("privacy") && (
-                <Link href="/politica-de-privacidade" className="hover:text-[var(--primary)] hover:underline">
-                  Privacidade
-                </Link>
-              )}
-              {publishedPageIds.has("terms") && (
-                <Link href="/termos-de-uso" className="hover:text-[var(--primary)] hover:underline">
-                  Termos de Uso
-                </Link>
-              )}
-              {publishedPageIds.has("lgpd") && (
-                <Link href="/protecao-de-dados" className="hover:text-[var(--primary)] hover:underline">
-                  LGPD
-                </Link>
-              )}
-              {publishedPageIds.has("ethics") && (
-                <Link href="/etica-profissional" className="hover:text-[var(--primary)] hover:underline">
-                  Ética Profissional
-                </Link>
-              )}
-              <CookiePreferencesTrigger />
+            <div className="flex flex-col items-center sm:items-end gap-2 text-xs font-medium">
+              <div className="flex flex-wrap justify-center sm:justify-end items-center gap-4">
+                {publishedPageIds.has("privacy") && (
+                  <Link href="/politica-de-privacidade" className="hover:text-[var(--primary)] hover:underline">
+                    Política de Privacidade
+                  </Link>
+                )}
+                {publishedPageIds.has("terms") && (
+                  <Link href="/termos-de-uso" className="hover:text-[var(--primary)] hover:underline">
+                    Termos de Uso
+                  </Link>
+                )}
+                {publishedPageIds.has("lgpd") && (
+                  <Link href="/protecao-de-dados" className="hover:text-[var(--primary)] hover:underline">
+                    LGPD
+                  </Link>
+                )}
+              </div>
+              <div className="flex flex-wrap justify-center sm:justify-end items-center gap-4">
+                {publishedPageIds.has("ethics") && (
+                  <Link href="/etica-profissional" className="hover:text-[var(--primary)] hover:underline">
+                    Ética Profissional
+                  </Link>
+                )}
+                <CookiePreferencesTrigger />
+              </div>
             </div>
           </div>
 
