@@ -175,7 +175,7 @@ export default async function HomePage() {
       {/* ================= 1. HERO SECTION (Referência Visual) ================= */}
       <section
         id="inicio"
-        className="relative pt-10 sm:pt-14 pb-16 px-4 overflow-hidden bg-gradient-to-b from-[#F9F6F0] via-[#FAF7F2] to-[#FDFCFB] scroll-mt-20"
+        className="relative pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-16 px-4 overflow-hidden bg-gradient-to-b from-[#F9F6F0] via-[#FAF7F2] to-[#FDFCFB] scroll-mt-24"
       >
         {/* Padrão orgânico ondulado de fundo (Curvas suaves) */}
         <div className="absolute inset-0 pointer-events-none opacity-30 overflow-hidden" aria-hidden="true">

@@ -199,7 +199,7 @@ export function MiniSiteHeader({
     e.preventDefault();
     const el = document.getElementById(id);
     if (el) {
-      const headerOffset = 76;
+      const headerOffset = 84;
       const elementPosition = el.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
       window.scrollTo({
@@ -225,15 +225,17 @@ export function MiniSiteHeader({
   return (
     <header
       ref={headerRef}
-      className={`sticky top-0 z-40 w-full transition-all duration-300 ${
-        isScrolled
-          ? "bg-white/90 backdrop-blur-md shadow-xs border-b border-slate-200/80 py-2 sm:py-2.5"
-          : "bg-white/70 backdrop-blur-sm border-b border-slate-200/40 py-2.5 sm:py-3.5"
-      }`}
-      style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+      className="fixed top-0 left-0 right-0 z-40 w-full bg-transparent border-none shadow-none pointer-events-none transition-all duration-300 py-2.5 sm:py-3 md:py-3.5 lg:py-4"
+      style={{ paddingTop: "max(0.625rem, env(safe-area-inset-top, 0px))" }}
     >
       {/* ================= 1. CABEÇALHO MOBILE (< 768px) ================= */}
-      <div className="flex md:hidden items-center justify-between w-full h-14 px-4">
+      <div
+        className={`flex md:hidden items-center justify-between w-full h-14 px-4 pointer-events-auto transition-all duration-300 ${
+          isScrolled
+            ? "bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs"
+            : "bg-white/70 backdrop-blur-sm border-b border-slate-200/40"
+        }`}
+      >
         {/* LADO ESQUERDO: Logo Horizontal Oficial Sem Rótulo "PSI" */}
         <Link
           href="/"
@@ -279,9 +281,9 @@ export function MiniSiteHeader({
       </div>
 
       {/* ================= 2. CABEÇALHO DESKTOP (>= 768px: PREMIUM PILL NAVIGATION) ================= */}
-      <div className="hidden md:grid grid-cols-[1fr_auto_1fr] items-center w-full max-w-6xl mx-auto px-4 lg:px-6">
+      <div className="hidden md:grid grid-cols-[1fr_auto_1fr] items-center w-full max-w-6xl xl:max-w-7xl mx-auto px-4 lg:px-6 pointer-events-none">
         {/* LADO ESQUERDO: Logo Horizontal Oficial Sem Rótulo "PSI" */}
-        <div ref={logoRef} className="flex items-center justify-start">
+        <div ref={logoRef} className="flex items-center justify-start pointer-events-auto">
           <Link
             href="/"
             className="flex items-center gap-2.5 font-bold text-[var(--primary)] group shrink-0 focus:outline-none"
@@ -291,17 +293,17 @@ export function MiniSiteHeader({
               <img
                 src={logoHorizontalUrl}
                 alt={neutralFallbackName}
-                className="h-8 md:h-9 w-auto max-w-[210px] lg:max-w-[240px] object-contain transition-transform group-hover:scale-[1.02]"
+                className="h-8 md:h-9 lg:h-10 w-auto max-w-[200px] lg:max-w-[240px] object-contain transition-transform group-hover:scale-[1.02]"
               />
             ) : logoUrl ? (
               <img
                 src={logoUrl}
                 alt={neutralFallbackName}
-                className="h-8 w-auto max-w-[160px] object-contain rounded-sm"
+                className="h-8 md:h-9 w-auto max-w-[160px] object-contain rounded-sm"
               />
             ) : (
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] font-serif font-black text-lg">
+                <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] font-serif font-black text-lg">
                   Ψ
                 </div>
                 <span className="text-base lg:text-lg tracking-tight font-semibold text-slate-900">
@@ -313,18 +315,22 @@ export function MiniSiteHeader({
         </div>
 
         {/* CENTRO: Cápsula de Navegação Flutuante Centralizada (Floating Pill Navigation) */}
-        <div ref={pillRef} className="flex items-center justify-center">
+        <div ref={pillRef} className="flex items-center justify-center pointer-events-auto">
           <nav
             aria-label="Navegação principal"
-            className="inline-flex items-center p-1 rounded-full bg-white/90 backdrop-blur-md border border-[#E7E2DA] shadow-[0_2px_14px_rgba(0,0,0,0.04)] text-xs transition-all duration-300"
+            className={`inline-flex items-center p-1 md:p-1.5 lg:p-1.5 rounded-full border transition-all duration-300 ${
+              isScrolled
+                ? "bg-white/95 backdrop-blur-lg border-[#E2DDD5] shadow-[0_8px_28px_rgba(0,0,0,0.08)]"
+                : "bg-white/80 backdrop-blur-md border-[#E7E2DA]/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)]"
+            }`}
           >
             <a
               href="#inicio"
               onClick={(e) => scrollToSection(e, "inicio")}
-              className={`px-3.5 py-1.5 rounded-full font-heading font-medium text-xs tracking-tight transition-all duration-200 cursor-pointer select-none ${
+              className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                 activeSection === "inicio"
                   ? "text-white shadow-xs font-semibold"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.03]"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]"
               }`}
               style={activeSection === "inicio" ? { backgroundColor: "var(--primary)" } : undefined}
             >
@@ -333,10 +339,10 @@ export function MiniSiteHeader({
             <a
               href="#atendimentos"
               onClick={(e) => scrollToSection(e, "atendimentos")}
-              className={`px-3.5 py-1.5 rounded-full font-heading font-medium text-xs tracking-tight transition-all duration-200 cursor-pointer select-none ${
+              className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                 activeSection === "atendimentos"
                   ? "text-white shadow-xs font-semibold"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.03]"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]"
               }`}
               style={activeSection === "atendimentos" ? { backgroundColor: "var(--primary)" } : undefined}
             >
@@ -345,10 +351,10 @@ export function MiniSiteHeader({
             <a
               href="#sobre"
               onClick={(e) => scrollToSection(e, "sobre")}
-              className={`px-3.5 py-1.5 rounded-full font-heading font-medium text-xs tracking-tight transition-all duration-200 cursor-pointer select-none ${
+              className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                 activeSection === "sobre"
                   ? "text-white shadow-xs font-semibold"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.03]"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]"
               }`}
               style={activeSection === "sobre" ? { backgroundColor: "var(--primary)" } : undefined}
             >
@@ -357,10 +363,10 @@ export function MiniSiteHeader({
             <a
               href="#diferenciais"
               onClick={(e) => scrollToSection(e, "diferenciais")}
-              className={`px-3.5 py-1.5 rounded-full font-heading font-medium text-xs tracking-tight transition-all duration-200 cursor-pointer select-none ${
+              className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                 activeSection === "diferenciais"
                   ? "text-white shadow-xs font-semibold"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.03]"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]"
               }`}
               style={activeSection === "diferenciais" ? { backgroundColor: "var(--primary)" } : undefined}
             >
@@ -369,10 +375,10 @@ export function MiniSiteHeader({
             <a
               href="#como-funciona"
               onClick={(e) => scrollToSection(e, "como-funciona")}
-              className={`px-3.5 py-1.5 rounded-full font-heading font-medium text-xs tracking-tight transition-all duration-200 cursor-pointer select-none ${
+              className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                 activeSection === "como-funciona"
                   ? "text-white shadow-xs font-semibold"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.03]"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]"
               }`}
               style={activeSection === "como-funciona" ? { backgroundColor: "var(--primary)" } : undefined}
             >
@@ -382,10 +388,10 @@ export function MiniSiteHeader({
               <a
                 href="#localizacao"
                 onClick={(e) => scrollToSection(e, "localizacao")}
-                className={`px-3.5 py-1.5 rounded-full font-heading font-medium text-xs tracking-tight transition-all duration-200 cursor-pointer select-none ${
+                className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                   activeSection === "localizacao"
                     ? "text-white shadow-xs font-semibold"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.03]"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]"
                 }`}
                 style={activeSection === "localizacao" ? { backgroundColor: "var(--primary)" } : undefined}
               >
@@ -396,36 +402,48 @@ export function MiniSiteHeader({
         </div>
 
         {/* LADO DIREITO: Autenticação (Pill arredondado de Login ou Usuário) */}
-        <div ref={authRef} className="flex items-center justify-end gap-2.5 shrink-0">
+        <div ref={authRef} className="flex items-center justify-end gap-2.5 shrink-0 pointer-events-auto">
           {isLoadingAuth ? (
-            <div className="w-20 h-8 rounded-full bg-slate-100 animate-pulse" />
+            <div className="w-24 h-10 rounded-full bg-slate-100/80 animate-pulse" />
           ) : user ? (
             <div className="flex items-center gap-1.5">
               <Link
                 href={dashboardUrl}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-slate-200/90 hover:border-[var(--primary)]/50 bg-white/90 hover:bg-[var(--primary)]/5 text-slate-800 text-xs font-heading font-semibold shadow-2xs transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 group"
+                className={`inline-flex items-center gap-2 px-3.5 py-1.5 md:px-4 md:py-2 lg:px-4.5 lg:py-2 rounded-full border transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 group text-xs md:text-sm lg:text-[16px] font-heading font-semibold ${
+                  isScrolled
+                    ? "bg-white/95 backdrop-blur-lg border-[#E2DDD5] text-slate-800 hover:text-[var(--primary)] hover:border-[var(--primary)]/50 shadow-[0_6px_20px_rgba(0,0,0,0.06)]"
+                    : "bg-white/80 backdrop-blur-md border-[#E7E2DA]/90 text-slate-700 hover:text-[var(--primary)] hover:border-[var(--primary)]/40 shadow-[0_2px_12px_rgba(0,0,0,0.03)]"
+                }`}
                 aria-label={`Acessar painel (${user.name})`}
               >
-                <UserCheck className="h-3.5 w-3.5 text-[var(--primary)] group-hover:scale-105 transition-transform" />
-                <span className="max-w-[130px] truncate">{user.name}</span>
+                <UserCheck className="h-4 w-4 md:h-4.5 md:w-4.5 text-[var(--primary)] group-hover:scale-105 transition-transform" />
+                <span className="max-w-[120px] lg:max-w-[150px] truncate">{user.name}</span>
               </Link>
               <button
                 type="button"
                 onClick={handleLogout}
                 title="Sair da conta"
                 aria-label="Sair da conta"
-                className="p-1.5 rounded-full text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                className={`p-1.5 md:p-2 lg:p-2 rounded-full border transition-colors cursor-pointer ${
+                  isScrolled
+                    ? "bg-white/95 backdrop-blur-lg border-[#E2DDD5] text-slate-400 hover:text-red-600 hover:bg-red-50"
+                    : "bg-white/80 backdrop-blur-md border-[#E7E2DA]/90 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                }`}
               >
-                <LogOut className="h-3.5 w-3.5" />
+                <LogOut className="h-4 w-4 md:h-4.5 md:w-4.5" />
               </button>
             </div>
           ) : (
             <Link href="/login">
               <button
                 type="button"
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-slate-200/90 hover:border-[var(--primary)]/60 bg-white/90 hover:bg-[var(--primary)]/5 text-slate-700 hover:text-[var(--primary)] text-xs font-heading font-semibold shadow-2xs transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20"
+                className={`inline-flex items-center gap-2 px-4 py-1.5 md:px-4 md:py-2 lg:px-4.5 lg:py-2 rounded-full border transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 text-xs md:text-sm lg:text-[16px] font-heading font-semibold ${
+                  isScrolled
+                    ? "bg-white/95 backdrop-blur-lg border-[#E2DDD5] text-slate-800 hover:text-[var(--primary)] hover:border-[var(--primary)]/50 shadow-[0_6px_20px_rgba(0,0,0,0.06)]"
+                    : "bg-white/80 backdrop-blur-md border-[#E7E2DA]/90 text-slate-700 hover:text-[var(--primary)] hover:border-[var(--primary)]/40 shadow-[0_2px_12px_rgba(0,0,0,0.03)]"
+                }`}
               >
-                <LogIn className="h-3.5 w-3.5 text-slate-500" />
+                <LogIn className="h-4 w-4 md:h-4.5 md:w-4.5 text-slate-500" />
                 <span>Login</span>
               </button>
             </Link>

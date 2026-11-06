@@ -181,9 +181,9 @@ test("6. MiniSiteHeader — Comportamento Sticky e Suporte a Safe-Area", () => {
   const content = fs.readFileSync(headerPath, "utf-8");
 
   assert.strictEqual(
-    content.includes("sticky top-0 z-40"),
+    (content.includes("fixed top-0") || content.includes("sticky top-0")) && content.includes("z-40"),
     true,
-    "Cabeçalho deve ser sticky no topo da tela com z-index adequado"
+    "Cabeçalho deve ser fixo no topo da tela com z-index adequado"
   );
   assert.strictEqual(
     content.includes("env(safe-area-inset-top"),
