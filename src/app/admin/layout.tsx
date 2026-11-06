@@ -38,8 +38,8 @@ const navItems = [
   { href: "/admin/paginas-informativas", label: "Páginas Informativas", icon: FileText },
   { href: "/admin/lembretes", label: "Lembretes", icon: BellRing },
   { href: "/admin/integracoes", label: "Integrações", icon: Share2 },
-  { href: "/admin/arquivos", label: "Armazenamento & Backup", icon: HardDrive },
-  { href: "/admin/configuracoes", label: "Configurações Gerais", icon: Settings },
+  { href: "/admin/arquivos", label: "Backup", icon: HardDrive },
+  { href: "/admin/configuracoes", label: "Configurações", icon: Settings },
 ];
 
 function getAdminBreadcrumbLabel(pathname: string): string {
