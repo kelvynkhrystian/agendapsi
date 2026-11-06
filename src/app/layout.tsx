@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Plus_Jakarta_Sans, Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { prisma } from "@/lib/prisma";
@@ -105,8 +106,11 @@ export default async function RootLayout({
       <head>
         {site?.faviconUrl && <link rel="icon" href={site.faviconUrl} />}
         <style id="psi-theme-vars" dangerouslySetInnerHTML={{ __html: dynamicCss }} />
-        <script
+      </head>
+      <body className="min-h-screen bg-[#F8F9FA] dark:bg-[#080809] text-[#111827] dark:text-[#F5F5F5] antialiased selection:bg-[var(--primary)] selection:text-white">
+        <Script
           id="psi-theme-init"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
@@ -133,8 +137,6 @@ export default async function RootLayout({
             `,
           }}
         />
-      </head>
-      <body className="min-h-screen bg-[#F8F9FA] dark:bg-[#080809] text-[#111827] dark:text-[#F5F5F5] antialiased selection:bg-[var(--primary)] selection:text-white">
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

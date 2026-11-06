@@ -47,19 +47,44 @@ import {
 } from "lucide-react";
 
 export default async function HomePage() {
-  const [site, profile, services, session, publishedLegalPages] = await Promise.all([
-    prisma.siteSettings.findUnique({ where: { id: "default" } }),
-    prisma.professionalProfile.findUnique({ where: { id: "default" } }),
-    prisma.service.findMany({
-      where: { isActive: true },
-      orderBy: { priceCents: "asc" },
-    }),
-    getSession(),
-    prisma.legalPage.findMany({
-      where: { isPublished: true },
-      select: { id: true, title: true },
-    }),
-  ]);
+  let site, profile, services, session, publishedLegalPages;
+  try {
+    [site, profile, services, session, publishedLegalPages] = await Promise.all([
+      prisma.siteSettings.findUnique({ where: { id: "default" } }),
+      prisma.professionalProfile.findUnique({ where: { id: "default" } }),
+      prisma.service.findMany({
+        where: { isActive: true },
+        orderBy: { priceCents: "asc" },
+      }),
+      getSession(),
+      prisma.legalPage.findMany({
+        where: { isPublished: true },
+        select: { id: true, title: true },
+      }),
+    ]);
+  } catch (error: any) {
+    console.error("[PSI Server Diagnostic] Falha ao consultar banco de dados:", error?.message || error);
+    if (
+      error?.name === "PrismaClientInitializationError" ||
+      error?.code === "P1001" ||
+      error?.message?.includes("Can't reach database server")
+    ) {
+      return (
+        <main className="min-h-screen flex items-center justify-center p-6 bg-slate-50 text-slate-800">
+          <div className="max-w-md w-full bg-white p-8 rounded-2xl border border-rose-200 shadow-sm text-center space-y-4">
+            <div className="w-12 h-12 mx-auto rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-xl">
+              !
+            </div>
+            <h1 className="text-xl font-bold text-slate-900">Banco de Dados Indisponível</h1>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Não foi possível estabelecer conexão com o servidor de banco de dados MySQL local. Certifique-se de que o serviço MySQL (XAMPP) está iniciado na porta 3306.
+            </p>
+          </div>
+        </main>
+      );
+    }
+    throw error;
+  }
 
   const publishedPageIds = new Set(publishedLegalPages.map((p) => p.id));
 
