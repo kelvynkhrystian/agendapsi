@@ -98,8 +98,8 @@ export default function PatientFinancePage() {
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Pagamentos & Pacotes</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Pagamentos & Pacotes</h1>
+        <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">
           Consulte seus pagamentos e avalie propostas de pacotes de sessões.
         </p>
       </div>
@@ -110,13 +110,13 @@ export default function PatientFinancePage() {
       {pendingProposals.length > 0 && (
         <div className="space-y-4">
           <h2 className="text-lg font-bold flex items-center gap-2 text-[#171717] dark:text-[#F5F5F5]">
-            <Boxes className="h-5 w-5 text-[var(--primary)]" />
+            <Boxes className="h-5 w-5 text-[var(--primary)] dark:text-[#C0C0C0]" />
             <span>Propostas de Pacotes Aguardando sua Aprovação</span>
           </h2>
 
           <div className="grid grid-cols-1 gap-4">
             {pendingProposals.map((pkg) => (
-              <Card key={pkg.id} className="border-[var(--primary)]/60 shadow-md">
+              <Card key={pkg.id} className="border-[var(--primary)]/60 dark:border-[#393939] shadow-md">
                 <CardHeader className="flex flex-row items-start justify-between pb-2">
                   <div>
                     <CardTitle className="text-lg font-bold">{pkg.title}</CardTitle>
@@ -124,25 +124,25 @@ export default function PatientFinancePage() {
                       {pkg.description || "Pacote de sessões terapêuticas personalizadas"}
                     </CardDescription>
                   </div>
-                  <span className="text-xl font-extrabold text-[var(--primary)]">
+                  <span className="text-xl font-extrabold text-[var(--primary)] dark:text-[#F5F5F5]">
                     {formatBRL(pkg.totalPriceCents)}
                   </span>
                 </CardHeader>
 
                 <CardContent className="space-y-4 text-xs">
-                  <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-1">
-                    <span className="font-semibold block text-slate-700 dark:text-slate-300">
+                  <div className="p-3 bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#393939] rounded-xl space-y-1">
+                    <span className="font-semibold block text-[#171717] dark:text-[#F5F5F5]">
                       Sessões e Horários Propostos:
                     </span>
                     {pkg.holds.map((h, i) => (
-                      <div key={i} className="text-slate-600 dark:text-slate-400">
+                      <div key={i} className="text-[#525252] dark:text-[#D0D0D0]">
                         • Sessão {i + 1}: <strong>{formatDate(h.startAt)}</strong> às <strong>{formatTime(h.startAt)}</strong>
                       </div>
                     ))}
                   </div>
 
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-                    <span className="text-[11px] text-slate-500">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-[#E5E5E5] dark:border-[#393939]">
+                    <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                       Ao aceitar, todas as consultas acima serão confirmadas simultaneamente na agenda.
                     </span>
 
@@ -158,7 +158,7 @@ export default function PatientFinancePage() {
                       </Button>
                       <Button
                         size="sm"
-                        className="flex-1 sm:flex-none text-xs bg-emerald-600 hover:bg-emerald-700"
+                        className="flex-1 sm:flex-none text-xs"
                         onClick={() => handleAcceptPackage(pkg.id)}
                       >
                         <CheckCircle className="h-3.5 w-3.5 mr-1" />
@@ -180,22 +180,22 @@ export default function PatientFinancePage() {
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-8 text-center text-xs text-slate-500">Carregando pagamentos...</div>
+            <div className="p-8 text-center text-xs text-[#737373] dark:text-[#A6A6A6]">Carregando pagamentos...</div>
           ) : payments.length > 0 ? (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            <div className="divide-y divide-[#E5E5E5] dark:divide-[#393939]">
               {payments.map((p) => (
                 <div key={p.id} className="p-4 flex items-center justify-between text-xs">
                   <div>
-                    <span className="font-bold text-sm block">
+                    <span className="font-bold text-sm block text-[#171717] dark:text-[#F5F5F5]">
                       {p.appointment ? p.appointment.service.name : p.package ? p.package.title : "Consulta"}
                     </span>
-                    <span className="text-slate-500">
+                    <span className="text-[#737373] dark:text-[#A6A6A6]">
                       {formatDate(p.createdAt)} • {formatPaymentMethod(p.method)}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <span className="font-bold text-sm font-mono">
+                    <span className="font-bold text-sm font-mono text-[#171717] dark:text-[#F5F5F5]">
                       {formatBRL(p.amountCents)}
                     </span>
                     <Badge variant={p.status === "APPROVED" ? "success" : "warning"}>
@@ -206,7 +206,7 @@ export default function PatientFinancePage() {
               ))}
             </div>
           ) : (
-            <div className="p-8 text-center text-xs text-slate-400">
+            <div className="p-8 text-center text-xs text-[#737373] dark:text-[#A6A6A6]">
               Nenhum pagamento registrado até o momento.
             </div>
           )}

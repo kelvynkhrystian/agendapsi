@@ -9,7 +9,7 @@ export function Table({
   return (
     <div
       className={cn(
-        "relative w-full overflow-auto rounded-2xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] shadow-xs",
+        "relative w-full overflow-auto rounded-2xl border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#202020] shadow-xs",
         containerClassName
       )}
     >
@@ -28,7 +28,7 @@ export function TableHeader({
   return (
     <thead
       className={cn(
-        "border-b border-[#E5E5E5] dark:border-[#333333] bg-[#F8F8F8] dark:bg-[#101010]/80",
+        "border-b border-[#E5E5E5] dark:border-[#393939] bg-[#F8F8F8] dark:bg-[#1B1B1B]",
         className
       )}
       {...props}
@@ -42,7 +42,7 @@ export function TableBody({
 }: React.HTMLAttributes<HTMLTableSectionElement>) {
   return (
     <tbody
-      className={cn("divide-y divide-[#E5E5E5] dark:divide-[#333333]", className)}
+      className={cn("divide-y divide-[#E5E5E5] dark:divide-[#393939]", className)}
       {...props}
     />
   );
@@ -55,7 +55,7 @@ export function TableFooter({
   return (
     <tfoot
       className={cn(
-        "border-t border-[#E5E5E5] dark:border-[#333333] bg-[#F8F8F8] dark:bg-[#101010] font-medium text-[#171717] dark:text-[#F5F5F5]",
+        "border-t border-[#E5E5E5] dark:border-[#393939] bg-[#F8F8F8] dark:bg-[#141414] font-medium text-[#171717] dark:text-[#F5F5F5]",
         className
       )}
       {...props}
@@ -70,7 +70,7 @@ export function TableRow({
   return (
     <tr
       className={cn(
-        "transition-colors hover:bg-[#F2F2F2]/70 dark:hover:bg-[#242424]/50 data-[state=selected]:bg-[#F2F2F2] dark:data-[state=selected]:bg-[#242424]",
+        "transition-colors hover:bg-[#F2F2F2]/70 dark:hover:bg-[#292929]/70 data-[state=selected]:bg-[#F2F2F2] dark:data-[state=selected]:bg-[#292929]",
         className
       )}
       {...props}

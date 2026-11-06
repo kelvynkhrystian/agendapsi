@@ -83,8 +83,8 @@ export function NotificationHistoryView({
     <div className="space-y-6 max-w-4xl">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{subtitle}</p>
+          <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">{title}</h1>
+          <p className="text-sm text-[#737373] dark:text-[#A6A6A6] mt-1">{subtitle}</p>
         </div>
 
         {unreadCount > 0 && (
@@ -94,15 +94,15 @@ export function NotificationHistoryView({
             onClick={handleMarkAllAsRead}
             className="gap-2 shrink-0 text-xs"
           >
-            <CheckCheck className="h-4 w-4 text-[var(--primary)]" />
+            <CheckCheck className="h-4 w-4 text-[var(--primary)] dark:text-[#C0C0C0]" />
             <span>Marcar todas como lidas</span>
           </Button>
         )}
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-        <Filter className="h-4 w-4 text-slate-400" />
+      <div className="flex items-center gap-2 border-b border-[#E5E5E5] dark:border-[#393939] pb-3">
+        <Filter className="h-4 w-4 text-[#737373] dark:text-[#C0C0C0]" />
         <button
           onClick={() => {
             setFilter("all");
@@ -110,8 +110,8 @@ export function NotificationHistoryView({
           }}
           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
             filter === "all"
-              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
-              : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold dark:bg-[#292929] dark:text-[#FFFFFF] dark:border dark:border-[#393939]"
+              : "text-[#525252] dark:text-[#D0D0D0] hover:bg-[#F2F2F2] dark:hover:bg-[#202020] hover:text-[#171717] dark:hover:text-[#FFFFFF]"
           }`}
         >
           Todas
@@ -123,13 +123,13 @@ export function NotificationHistoryView({
           }}
           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
             filter === "unread"
-              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
-              : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold dark:bg-[#292929] dark:text-[#FFFFFF] dark:border dark:border-[#393939]"
+              : "text-[#525252] dark:text-[#D0D0D0] hover:bg-[#F2F2F2] dark:hover:bg-[#202020] hover:text-[#171717] dark:hover:text-[#FFFFFF]"
           }`}
         >
           <span>Não lidas</span>
           {unreadCount > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] text-[10px] font-bold">
+            <span className="px-1.5 py-0.2 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] dark:bg-[#424242] dark:text-[#FFFFFF] text-[10px] font-bold">
               {unreadCount}
             </span>
           )}
@@ -141,8 +141,8 @@ export function NotificationHistoryView({
           }}
           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
             filter === "read"
-              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
-              : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold dark:bg-[#292929] dark:text-[#FFFFFF] dark:border dark:border-[#393939]"
+              : "text-[#525252] dark:text-[#D0D0D0] hover:bg-[#F2F2F2] dark:hover:bg-[#202020] hover:text-[#171717] dark:hover:text-[#FFFFFF]"
           }`}
         >
           Lidas
@@ -153,7 +153,7 @@ export function NotificationHistoryView({
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-20 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+            <div key={i} className="h-20 rounded-xl bg-[#F2F2F2] dark:bg-[#202020] animate-pulse" />
           ))}
         </div>
       ) : notifications.length > 0 ? (
@@ -163,25 +163,25 @@ export function NotificationHistoryView({
               key={n.id}
               className={`transition-colors ${
                 !n.isRead
-                  ? "border-[var(--primary)]/30 bg-[var(--primary)]/5 shadow-xs"
-                  : "bg-white dark:bg-slate-900"
+                  ? "border-[var(--primary)]/30 bg-[var(--primary)]/5 dark:border-[#525252] dark:bg-[#292929] shadow-xs"
+                  : "bg-white dark:bg-[#202020] border-[#E5E5E5] dark:border-[#393939]"
               }`}
             >
-              <CardContent className="p-5 pt-5 sm:p-5 sm:pt-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <CardContent className="p-6 !pt-6 sm:p-6 sm:!pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="space-y-1.5 flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     {!n.isRead && (
-                      <span className="h-2 w-2 rounded-full bg-[var(--primary)] shrink-0" />
+                      <span className="h-2 w-2 rounded-full bg-[var(--primary)] dark:bg-[#FFFFFF] shrink-0" />
                     )}
-                    <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">
+                    <h3 className="font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] truncate">
                       {n.title}
                     </h3>
-                    <span className="text-[11px] text-slate-400 flex items-center gap-1 shrink-0 ml-auto sm:ml-2">
+                    <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6] flex items-center gap-1 shrink-0 ml-auto sm:ml-2">
                       <Clock className="h-3 w-3" />
                       {formatDate(n.createdAt)} às {formatTime(n.createdAt)}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                  <p className="text-xs text-[#525252] dark:text-[#D0D0D0] leading-relaxed">
                     {n.message}
                   </p>
                 </div>
@@ -213,7 +213,7 @@ export function NotificationHistoryView({
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between pt-4 text-xs text-slate-500">
+            <div className="flex items-center justify-between pt-4 text-xs text-[#737373] dark:text-[#A6A6A6]">
               <span>
                 Página {page} de {totalPages}
               </span>
@@ -239,11 +239,11 @@ export function NotificationHistoryView({
           )}
         </div>
       ) : (
-        <Card className="py-12 text-center text-slate-500">
+        <Card className="py-12 text-center text-[#737373] dark:text-[#A6A6A6]">
           <CardContent className="p-6 pt-6 sm:p-6 sm:pt-6 space-y-2">
-            <Bell className="h-8 w-8 mx-auto text-slate-400" />
-            <p className="text-sm font-medium">Nenhuma notificação encontrada.</p>
-            <p className="text-xs text-slate-400">
+            <Bell className="h-8 w-8 mx-auto text-[#737373] dark:text-[#A6A6A6]" />
+            <p className="text-sm font-medium text-[#171717] dark:text-[#F5F5F5]">Nenhuma notificação encontrada.</p>
+            <p className="text-xs text-[#737373] dark:text-[#A6A6A6]">
               Quando novos eventos ocorrerem, eles aparecerão registrados aqui.
             </p>
           </CardContent>

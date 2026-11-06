@@ -83,21 +83,28 @@ export default async function RootLayout({
       --color-border: #e5e5e5;
     }
     .dark, [data-theme="dark"] {
-      --primary: ${primary};
-      --primary-foreground: ${buttonForeground};
-      --button-bg: ${buttonBg};
-      --button-fg: ${buttonForeground};
-      --ring: ${primary};
-      --color-primary: ${primary};
-      --color-primary-hover: ${buttonBg};
-      --color-secondary: #242424;
-      --color-accent: #242424;
-      --color-background: #080808;
-      --color-surface: #191919;
+      --primary: #424242;
+      --primary-foreground: #ffffff;
+      --button-bg: #424242;
+      --button-fg: #ffffff;
+      --button-hover: #4f4f4f;
+      --ring: #525252;
+      --color-primary: #424242;
+      --color-primary-hover: #4f4f4f;
+      --color-secondary: #303030;
+      --color-accent: #292929;
+      --color-background: #0c0c0c;
+      --color-surface: #202020;
+      --color-elevated: #292929;
+      --color-hover: #383838;
+      --color-sidebar: #141414;
+      --color-header: #141414;
+      --color-input: #1b1b1b;
       --color-text: #f5f5f5;
-      --color-text-secondary: #cccccc;
+      --color-text-secondary: #d0d0d0;
       --color-text-muted: #a6a6a6;
-      --color-border: #333333;
+      --color-icons: #c0c0c0;
+      --color-border: #393939;
     }
   `;
 
@@ -107,7 +114,7 @@ export default async function RootLayout({
         {site?.faviconUrl && <link rel="icon" href={site.faviconUrl} />}
         <style id="psi-theme-vars" dangerouslySetInnerHTML={{ __html: dynamicCss }} />
       </head>
-      <body className="min-h-screen bg-[#F8F8F8] dark:bg-[#080808] text-[#171717] dark:text-[#F5F5F5] antialiased selection:bg-[var(--primary)] selection:text-white">
+      <body className="min-h-screen bg-[#F8F8F8] dark:bg-[#0C0C0C] text-[#171717] dark:text-[#F5F5F5] antialiased selection:bg-[var(--primary)] selection:text-white">
         <Script
           id="psi-theme-init"
           strategy="beforeInteractive"

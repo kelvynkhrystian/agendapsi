@@ -375,7 +375,7 @@ export default function AdminAgendaPage() {
   return (
     <div className="space-y-6">
       {/* ================= 1. REBRAND-STYLE WORKSPACE HEADER ================= */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b border-[#E5E5E5] dark:border-[#333333]">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b border-[#E5E5E5] dark:border-[#393939]">
         <div className="flex flex-wrap items-center gap-4">
           <div>
             <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
@@ -387,14 +387,14 @@ export default function AdminAgendaPage() {
           </div>
 
           {/* Seletor de visualização (Semana / Dia / Lista) */}
-          <div className="inline-flex items-center rounded-xl bg-[#F3F4F6] dark:bg-[#191919] p-1 border border-[#E5E5E5] dark:border-[#333333] text-xs font-heading font-medium">
+          <div className="inline-flex items-center rounded-xl bg-[#F3F4F6] dark:bg-[#1B1B1B] p-1 border border-[#E5E5E5] dark:border-[#393939] text-xs font-heading font-medium">
             <button
               type="button"
               onClick={() => setViewMode("week")}
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                 viewMode === "week"
-                  ? "bg-white dark:bg-[#242424] text-[#171717] dark:text-[#F5F5F5] font-semibold shadow-xs"
-                  : "text-[#737373] dark:text-[#A6A6A6] hover:text-[#171717] dark:hover:text-[#F5F5F5]"
+                  ? "bg-white dark:bg-[#292929] text-[#171717] dark:text-[#FFFFFF] font-semibold shadow-xs dark:border dark:border-[#393939]"
+                  : "text-[#737373] dark:text-[#A6A6A6] hover:text-[#171717] dark:hover:text-[#FFFFFF]"
               }`}
             >
               Semana
@@ -404,8 +404,8 @@ export default function AdminAgendaPage() {
               onClick={() => setViewMode("day")}
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                 viewMode === "day"
-                  ? "bg-white dark:bg-[#242424] text-[#171717] dark:text-[#F5F5F5] font-semibold shadow-xs"
-                  : "text-[#737373] dark:text-[#A6A6A6] hover:text-[#171717] dark:hover:text-[#F5F5F5]"
+                  ? "bg-white dark:bg-[#292929] text-[#171717] dark:text-[#FFFFFF] font-semibold shadow-xs dark:border dark:border-[#393939]"
+                  : "text-[#737373] dark:text-[#A6A6A6] hover:text-[#171717] dark:hover:text-[#FFFFFF]"
               }`}
             >
               Dia
@@ -415,8 +415,8 @@ export default function AdminAgendaPage() {
               onClick={() => setViewMode("list")}
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                 viewMode === "list"
-                  ? "bg-white dark:bg-[#242424] text-[#171717] dark:text-[#F5F5F5] font-semibold shadow-xs"
-                  : "text-[#737373] dark:text-[#A6A6A6] hover:text-[#171717] dark:hover:text-[#F5F5F5]"
+                  ? "bg-white dark:bg-[#292929] text-[#171717] dark:text-[#FFFFFF] font-semibold shadow-xs dark:border dark:border-[#393939]"
+                  : "text-[#737373] dark:text-[#A6A6A6] hover:text-[#171717] dark:hover:text-[#FFFFFF]"
               }`}
             >
               Lista
@@ -427,12 +427,12 @@ export default function AdminAgendaPage() {
         {/* Controles de Navegação e Ação Primária */}
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Navegação de Data */}
-          <div className="flex items-center rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] p-1 shadow-2xs">
+          <div className="flex items-center rounded-xl border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#202020] p-1 shadow-2xs">
             <Button
               variant="ghost"
               size="icon"
               onClick={handlePrevWeek}
-              className="h-8 w-8 text-[#737373] hover:text-[#171717] dark:text-[#A6A6A6] dark:hover:text-[#F5F5F5]"
+              className="h-8 w-8 text-[#737373] hover:text-[#171717] dark:text-[#C0C0C0] dark:hover:text-[#FFFFFF]"
               aria-label="Semana anterior"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -449,7 +449,7 @@ export default function AdminAgendaPage() {
               variant="ghost"
               size="icon"
               onClick={handleNextWeek}
-              className="h-8 w-8 text-[#737373] hover:text-[#171717] dark:text-[#A6A6A6] dark:hover:text-[#F5F5F5]"
+              className="h-8 w-8 text-[#737373] hover:text-[#171717] dark:text-[#C0C0C0] dark:hover:text-[#FFFFFF]"
               aria-label="Próxima semana"
             >
               <ChevronRight className="h-4 w-4" />
@@ -458,7 +458,7 @@ export default function AdminAgendaPage() {
 
           {/* Filtro de Status Rápido */}
           <select
-            className="h-10 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] px-3.5 text-xs text-[#171717] dark:text-[#F5F5F5] font-medium shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 cursor-pointer"
+            className="h-10 rounded-xl border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#1B1B1B] px-3.5 text-xs text-[#171717] dark:text-[#F5F5F5] font-medium shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 dark:focus-visible:ring-[#525252]/40 dark:focus-visible:border-[#525252] cursor-pointer"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -507,8 +507,8 @@ export default function AdminAgendaPage() {
                       key={dayIdx}
                       className={`flex flex-col min-h-[460px] transition-colors ${
                         isToday
-                          ? "bg-[var(--primary)]/[0.03] dark:bg-[var(--primary)]/[0.04]"
-                          : "bg-white dark:bg-[#191919]"
+                          ? "bg-[var(--primary)]/[0.03] dark:bg-[#292929]/30"
+                          : "bg-white dark:bg-[#202020]"
                       }`}
                     >
                       {/* Cabeçalho do dia */}
@@ -518,10 +518,10 @@ export default function AdminAgendaPage() {
                         }}
                         className={`p-3.5 text-center border-b transition-colors cursor-pointer select-none ${
                           isToday
-                            ? "border-[var(--primary)]/30 bg-[var(--primary)]/10 text-[#171717] dark:text-[#F5F5F5] font-bold"
+                            ? "border-[var(--primary)]/30 bg-[var(--primary)]/10 text-[#171717] dark:text-[#F5F5F5] font-bold dark:border-[#393939] dark:bg-[#292929]"
                             : isSelected
-                            ? "border-[#E5E5E5] dark:border-[#333333] bg-[#F3F4F6] dark:bg-[#242424] text-[#171717] dark:text-[#F5F5F5]"
-                            : "border-slate-100 dark:border-[#333333] text-[#525252] dark:text-[#CCCCCC]"
+                            ? "border-[#E5E5E5] dark:border-[#393939] bg-[#F3F4F6] dark:bg-[#292929] text-[#171717] dark:text-[#F5F5F5]"
+                            : "border-slate-100 dark:border-[#393939] text-[#525252] dark:text-[#D0D0D0]"
                         }`}
                       >
                         <div className="text-[11px] font-heading font-semibold uppercase tracking-wider">
@@ -531,7 +531,7 @@ export default function AdminAgendaPage() {
                           <span
                             className={`h-7 w-7 rounded-full flex items-center justify-center font-heading text-sm ${
                               isToday
-                                ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,var(--primary-foreground,#ffffff))] font-bold shadow-2xs"
+                                ? "bg-[var(--button-bg,var(--primary))] dark:bg-[#424242] text-[var(--button-fg,var(--primary-foreground,#ffffff))] font-bold shadow-2xs"
                                 : "font-bold text-[#171717] dark:text-[#F5F5F5]"
                             }`}
                           >
@@ -557,8 +557,8 @@ export default function AdminAgendaPage() {
                                     : isCancelled
                                     ? "border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20 opacity-75"
                                     : appt.status === "COMPLETED"
-                                    ? "border-[#E5E5E5] bg-[#F8F8F8] dark:border-[#333333] dark:bg-[#242424]/50 text-[#525252] dark:text-[#CCCCCC]"
-                                    : "border-[var(--primary)]/30 bg-[var(--primary)]/5 hover:border-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                    ? "border-[#E5E5E5] bg-[#F8F8F8] dark:border-[#393939] dark:bg-[#292929]/50 text-[#525252] dark:text-[#D0D0D0]"
+                                    : "border-[var(--primary)]/30 bg-[var(--primary)]/5 dark:border-[#393939] dark:bg-[#202020] hover:border-[var(--primary)] hover:bg-[var(--primary)]/10 dark:hover:bg-[#292929] dark:hover:border-[#525252]"
                                 }`}
                               >
                                 <div className="flex items-center justify-between font-mono font-semibold text-[11px] mb-1">
@@ -757,7 +757,7 @@ export default function AdminAgendaPage() {
           {/* VISUALIZAÇÃO: LISTA (LIST VIEW) */}
           {viewMode === "list" && (
             <Card className="shadow-xs">
-              <CardHeader className="p-5 border-b border-[#E5E5E5] dark:border-[#333333]">
+              <CardHeader className="p-5 border-b border-[#E5E5E5] dark:border-[#393939]">
                 <CardTitle className="text-lg">Todas as Consultas da Semana</CardTitle>
                 <CardDescription>
                   Visualização cronológica corrida das {filteredAppointments.length} consulta(s)
@@ -765,12 +765,12 @@ export default function AdminAgendaPage() {
               </CardHeader>
               <CardContent className="p-5">
                 {filteredAppointments.length > 0 ? (
-                  <div className="divide-y divide-[#E5E5E5] dark:divide-[#333333]">
+                  <div className="divide-y divide-[#E5E5E5] dark:divide-[#393939]">
                     {filteredAppointments.map((appt) => (
                       <div
                         key={appt.id}
                         onClick={() => setSelectedAppt(appt)}
-                        className="py-3.5 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#F3F4F6]/50 dark:hover:bg-[#242424]/40 p-2.5 rounded-xl transition-colors cursor-pointer"
+                        className="py-3.5 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#F3F4F6]/50 dark:hover:bg-[#292929]/50 p-2.5 rounded-xl transition-colors cursor-pointer"
                       >
                         <div className="flex items-start gap-3.5">
                           <div className="text-center font-mono text-xs shrink-0 w-24">
@@ -824,17 +824,17 @@ export default function AdminAgendaPage() {
         <div className="space-y-6">
           {/* Card do Mini Calendar */}
           <Card className="shadow-xs overflow-hidden">
-            <CardHeader className="p-4 pb-2 border-b border-[#E5E5E5] dark:border-[#333333] bg-[#F8F8F8] dark:bg-[#101010]/60">
+            <CardHeader className="p-4 pb-2 border-b border-[#E5E5E5] dark:border-[#393939] bg-[#F8F8F8] dark:bg-[#141414]">
               <div className="flex items-center justify-between">
-                <span className="font-heading font-bold text-xs uppercase tracking-wider text-[var(--primary)] flex items-center gap-1.5">
-                  <CalendarDays className="h-4 w-4" />
+                <span className="font-heading font-bold text-xs uppercase tracking-wider text-[var(--primary)] dark:text-[#F5F5F5] flex items-center gap-1.5">
+                  <CalendarDays className="h-4 w-4 text-[var(--primary)] dark:text-[#C0C0C0]" />
                   Mini Calendar
                 </span>
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
                     onClick={handleMiniCalPrevMonth}
-                    className="p-1 rounded-lg text-[#737373] hover:text-[#171717] dark:text-[#A6A6A6] dark:hover:text-[#F5F5F5] hover:bg-white dark:hover:bg-[#242424] transition-colors cursor-pointer"
+                    className="p-1 rounded-lg text-[#737373] hover:text-[#171717] dark:text-[#A6A6A6] dark:hover:text-[#F5F5F5] hover:bg-white dark:hover:bg-[#292929] transition-colors cursor-pointer"
                     aria-label="Mês anterior"
                   >
                     <ChevronLeft className="h-4 w-4" />
@@ -842,7 +842,7 @@ export default function AdminAgendaPage() {
                   <button
                     type="button"
                     onClick={handleMiniCalNextMonth}
-                    className="p-1 rounded-lg text-[#737373] hover:text-[#171717] dark:text-[#A6A6A6] dark:hover:text-[#F5F5F5] hover:bg-white dark:hover:bg-[#242424] transition-colors cursor-pointer"
+                    className="p-1 rounded-lg text-[#737373] hover:text-[#171717] dark:text-[#A6A6A6] dark:hover:text-[#F5F5F5] hover:bg-white dark:hover:bg-[#292929] transition-colors cursor-pointer"
                     aria-label="Próximo mês"
                   >
                     <ChevronRight className="h-4 w-4" />
@@ -856,7 +856,7 @@ export default function AdminAgendaPage() {
 
             <CardContent className="p-4 pt-3">
               {/* Linha com iniciais dos dias da semana (D, S, T, Q, Q, S, S) */}
-              <div className="grid grid-cols-7 gap-1 text-center font-heading text-[11px] font-semibold text-[#9CA3AF] dark:text-[#71717A] mb-1">
+              <div className="grid grid-cols-7 gap-1 text-center font-heading text-[11px] font-semibold text-[#9CA3AF] dark:text-[#A6A6A6] mb-1">
                 {WEEKDAY_INITIALS.map((init, i) => (
                   <span key={i} className="py-1">
                     {init}
@@ -879,12 +879,12 @@ export default function AdminAgendaPage() {
                       onClick={() => handleSelectMiniCalDay(item.date)}
                       className={`h-8 w-8 mx-auto rounded-full flex items-center justify-center font-medium transition-all cursor-pointer ${
                         isSelected
-                          ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,var(--primary-foreground,#ffffff))] font-bold shadow-xs"
+                          ? "bg-[var(--button-bg,var(--primary))] dark:bg-[#424242] text-[var(--button-fg,var(--primary-foreground,#ffffff))] font-bold shadow-xs"
                           : isCurrentToday
-                          ? "border border-[var(--primary)] text-[var(--primary)] font-bold"
+                          ? "border border-[var(--primary)] dark:border-[#525252] text-[var(--primary)] dark:text-[#F5F5F5] font-bold"
                           : item.isCurrentMonth
-                          ? "text-[#171717] dark:text-[#F5F5F5] hover:bg-[#F3F4F6] dark:hover:bg-[#242424]"
-                          : "text-[#D1D5DB] dark:text-[#52525B] hover:text-[#9CA3AF]"
+                          ? "text-[#171717] dark:text-[#F5F5F5] hover:bg-[#F3F4F6] dark:hover:bg-[#292929]"
+                          : "text-[#D1D5DB] dark:text-[#737373] hover:text-[#9CA3AF]"
                       }`}
                     >
                       {item.date.getDate()}

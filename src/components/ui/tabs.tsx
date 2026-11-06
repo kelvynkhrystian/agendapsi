@@ -52,7 +52,7 @@ export function TabsList({
     <div
       role="tablist"
       className={cn(
-        "inline-flex h-11 items-center justify-start rounded-xl bg-[#F2F2F2] dark:bg-[#191919] p-1 border border-[#E5E5E5] dark:border-[#333333] text-[#737373] dark:text-[#A6A6A6]",
+        "inline-flex h-11 items-center justify-start rounded-xl bg-[#F2F2F2] dark:bg-[#1B1B1B] p-1 border border-[#E5E5E5] dark:border-[#393939] text-[#737373] dark:text-[#A6A6A6]",
         className
       )}
       {...props}
@@ -80,10 +80,10 @@ export function TabsTrigger({
       disabled={disabled}
       onClick={() => context.onValueChange(value)}
       className={cn(
-        "inline-flex items-center justify-center whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
+        "inline-flex items-center justify-center whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] dark:focus-visible:ring-[#525252] disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
         isSelected
-          ? "bg-white dark:bg-[#242424] text-[#171717] dark:text-[#F5F5F5] shadow-xs font-semibold"
-          : "hover:text-[#171717] dark:hover:text-[#F5F5F5]",
+          ? "bg-white dark:bg-[#292929] text-[#171717] dark:text-[#FFFFFF] shadow-xs font-semibold dark:border dark:border-[#393939]"
+          : "text-[#737373] dark:text-[#D0D0D0] hover:text-[#171717] dark:hover:text-[#FFFFFF]",
         className
       )}
       {...props}

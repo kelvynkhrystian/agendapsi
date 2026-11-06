@@ -225,17 +225,17 @@ export default function AdminMessageLogsPage() {
       </div>
 
       {/* Subnavegação de Lembretes & Registros */}
-      <div className="flex items-center gap-2 border-b border-[#E5E5E5] dark:border-[#333333] pb-3 text-xs font-medium">
+      <div className="flex items-center gap-2 border-b border-[#E5E5E5] dark:border-[#393939] pb-3 text-xs font-medium">
         <Link
           href="/admin/lembretes"
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-[#737373] dark:text-[#A6A6A6] hover:bg-[#F2F2F2] dark:hover:bg-[#242424] transition-colors"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-[#737373] dark:text-[#D0D0D0] hover:bg-[#F2F2F2] dark:hover:bg-[#202020] transition-colors"
         >
           <BellRing className="h-4 w-4" />
           <span>Configurações de Lembretes</span>
         </Link>
         <Link
           href="/admin/lembretes/registros"
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs dark:bg-[#292929] dark:text-[#FFFFFF] dark:border dark:border-[#393939]"
         >
           <History className="h-4 w-4" />
           <span>Registros de Mensagens</span>
@@ -259,15 +259,15 @@ export default function AdminMessageLogsPage() {
             <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">Aceitos pelo Provedor</p>
             <p className="text-xl font-bold text-emerald-700 dark:text-emerald-400 mt-1">{summary.accepted}</p>
           </Card>
-          <Card className="p-4 sm:p-5 border-[var(--primary)]/30 bg-[var(--primary)]/10">
-            <p className="text-[11px] text-[var(--primary)] font-medium">Entregas Confirmadas</p>
-            <p className="text-xl font-bold text-[var(--primary)] mt-1">{summary.delivered}</p>
+          <Card className="p-4 sm:p-5 border-[var(--primary)]/30 bg-[var(--primary)]/10 dark:border-[#393939] dark:bg-[#202020]">
+            <p className="text-[11px] text-[var(--primary)] dark:text-[#A6A6A6] font-medium">Entregas Confirmadas</p>
+            <p className="text-xl font-bold text-[var(--primary)] dark:text-[#F5F5F5] mt-1">{summary.delivered}</p>
           </Card>
           <Card className="p-4 sm:p-5 border-red-200/60 dark:border-red-900/40 bg-red-50/20 dark:bg-red-950/10">
             <p className="text-[11px] text-red-700 dark:text-red-400 font-medium">Falhas de Envio</p>
             <p className="text-xl font-bold text-red-700 dark:text-red-400 mt-1">{summary.failed}</p>
           </Card>
-          <Card className="p-4 sm:p-5 border-[#E5E5E5] dark:border-[#333333]">
+          <Card className="p-4 sm:p-5 border-[#E5E5E5] dark:border-[#393939]">
             <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] font-medium">Simulados / Fila</p>
             <p className="text-xl font-bold text-[#404040] dark:text-[#CCCCCC] mt-1">
               {summary.simulated + summary.pending}
@@ -292,7 +292,7 @@ export default function AdminMessageLogsPage() {
                     setChannel(e.target.value);
                     setPage(1);
                   }}
-                  className="w-full text-xs rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3 py-2 text-[#171717] dark:text-[#F5F5F5] h-10 outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] transition-all shadow-2xs cursor-pointer"
+                  className="w-full text-xs rounded-xl border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#1B1B1B] px-3 py-2 text-[#171717] dark:text-[#F5F5F5] h-10 outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] dark:focus:ring-[#525252]/40 dark:focus:border-[#525252] transition-all shadow-2xs cursor-pointer"
                 >
                   <option value="ALL">Todos os Canais</option>
                   <option value="EMAIL">E-mail</option>
@@ -311,7 +311,7 @@ export default function AdminMessageLogsPage() {
                     setStatus(e.target.value);
                     setPage(1);
                   }}
-                  className="w-full text-xs rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3 py-2 text-[#171717] dark:text-[#F5F5F5] h-10 outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] transition-all shadow-2xs cursor-pointer"
+                  className="w-full text-xs rounded-xl border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#1B1B1B] px-3 py-2 text-[#171717] dark:text-[#F5F5F5] h-10 outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] dark:focus:ring-[#525252]/40 dark:focus:border-[#525252] transition-all shadow-2xs cursor-pointer"
                 >
                   <option value="ALL">Todos os Status</option>
                   <option value="ACCEPTED">Aceito pelo provedor</option>
@@ -416,7 +416,7 @@ export default function AdminMessageLogsPage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left border-collapse">
-                <thead className="bg-[#F8F8F8] dark:bg-[#141414] border-y border-[#E5E5E5] dark:border-[#333333] text-[#737373] dark:text-[#A6A6A6] font-semibold">
+                <thead className="bg-[#F8F8F8] dark:bg-[#1B1B1B] border-y border-[#E5E5E5] dark:border-[#393939] text-[#737373] dark:text-[#A6A6A6] font-semibold">
                   <tr>
                     <th className="py-3.5 px-4 sm:px-6">Data e Hora</th>
                     <th className="py-3.5 px-3 sm:px-4">Canal</th>
@@ -428,13 +428,13 @@ export default function AdminMessageLogsPage() {
                     <th className="py-3.5 px-4 sm:px-6 text-right">Ações</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E5E5E5] dark:divide-[#333333]">
+                <tbody className="divide-y divide-[#E5E5E5] dark:divide-[#393939]">
                   {logs.map((log) => {
                     const isEmail = log.channel === "EMAIL";
                     return (
                       <tr
                         key={log.id}
-                        className="hover:bg-[#F2F2F2]/60 dark:hover:bg-[#242424]/40 transition-colors"
+                        className="hover:bg-[#F2F2F2]/60 dark:hover:bg-[#292929]/50 transition-colors"
                       >
                         {/* Data e Hora */}
                         <td className="py-3.5 px-4 sm:px-6 font-mono text-[11px] whitespace-nowrap text-[#525252] dark:text-[#CCCCCC]">

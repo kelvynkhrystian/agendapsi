@@ -94,14 +94,14 @@ export default function PatientDocumentsPage() {
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Meus Documentos & Declarações</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Meus Documentos & Declarações</h1>
+        <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">
           Atestados, relatórios e declarações liberados pelo seu profissional de saúde para visualização e download seguro.
         </p>
       </div>
 
-      <div className="p-3.5 bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-xl flex items-start sm:items-center gap-3 text-xs text-slate-800 dark:text-[#F5F5F5] shadow-xs">
-        <ShieldCheck className="h-5 w-5 text-[var(--primary)] shrink-0 mt-0.5 sm:mt-0" />
+      <div className="p-3.5 bg-[var(--primary)]/10 dark:bg-[#202020] border border-[var(--primary)]/20 dark:border-[#393939] rounded-xl flex items-start sm:items-center gap-3 text-xs text-slate-800 dark:text-[#F5F5F5] shadow-xs">
+        <ShieldCheck className="h-5 w-5 text-[var(--primary)] dark:text-[#C0C0C0] shrink-0 mt-0.5 sm:mt-0" />
         <span>
           <strong>Ambiente Protegido e Confidencial:</strong> Os arquivos disponibilizados nesta área foram emitidos exclusivamente para você. Documentos com prazo de expiração devem ser baixados para sua guarda pessoal antes do término da vigência.
         </span>
@@ -120,12 +120,12 @@ export default function PatientDocumentsPage() {
       )}
 
       {/* Lista de Documentos Ativos */}
-      <Card className="border-slate-200 dark:border-slate-800 shadow-xs">
-        <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
+      <Card className="border-[#E5E5E5] dark:border-[#393939] shadow-xs">
+        <CardHeader className="pb-3 border-b border-[#E5E5E5] dark:border-[#393939]">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-base font-bold flex items-center gap-2">
-                <FileCheck2 className="h-4 w-4 text-[var(--primary)]" />
+                <FileCheck2 className="h-4 w-4 text-[var(--primary)] dark:text-[#C0C0C0]" />
                 <span>Documentos Disponíveis para Download</span>
               </CardTitle>
               <CardDescription className="text-xs">
@@ -142,19 +142,19 @@ export default function PatientDocumentsPage() {
 
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-12 text-center text-xs text-slate-500 space-y-2">
+            <div className="p-12 text-center text-xs text-[#737373] dark:text-[#A6A6A6] space-y-2">
               <div className="w-6 h-6 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin mx-auto" />
               <p>Carregando seus documentos...</p>
             </div>
           ) : activeDocs.length > 0 ? (
-            <div className="divide-y divide-[#E5E5E5] dark:divide-[#333333]">
+            <div className="divide-y divide-[#E5E5E5] dark:divide-[#393939]">
               {activeDocs.map((doc) => (
                 <div
                   key={doc.shareId}
-                  className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#F2F2F2]/50 dark:hover:bg-[#242424]/30 transition-colors"
+                  className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#F2F2F2]/50 dark:hover:bg-[#292929]/50 transition-colors"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#333333] shrink-0 mt-0.5">
+                    <div className="p-3 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#393939] shrink-0 mt-0.5">
                       {getFileIcon(doc.mimeType)}
                     </div>
                     <div className="space-y-1.5">
@@ -162,7 +162,7 @@ export default function PatientDocumentsPage() {
                         <span className="font-bold text-sm text-[#171717] dark:text-[#F5F5F5]">
                           {doc.name}
                         </span>
-                        <Badge variant="outline" className="text-[10px] font-mono uppercase border-[#E5E5E5] dark:border-[#333333]">
+                        <Badge variant="outline" className="text-[10px] font-mono uppercase border-[#E5E5E5] dark:border-[#393939]">
                           {getFormatLabel(doc.mimeType, doc.originalName)}
                         </Badge>
                       </div>
@@ -206,7 +206,7 @@ export default function PatientDocumentsPage() {
                       </Button>
                     </a>
                     <a href={`/api/files/${doc.id}/download`} download>
-                      <Button size="sm" className="h-9 min-h-[36px] px-3.5 text-xs gap-1.5 bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer">
+                      <Button size="sm" className="h-9 min-h-[36px] px-3.5 text-xs gap-1.5 bg-[var(--button-bg,var(--primary))] dark:bg-[#424242] hover:brightness-105 dark:hover:bg-[#4F4F4F] text-white cursor-pointer">
                         <Download className="h-3.5 w-3.5" />
                         <span>Baixar</span>
                       </Button>
@@ -216,15 +216,15 @@ export default function PatientDocumentsPage() {
               ))}
             </div>
           ) : (
-            <div className="p-12 text-center text-slate-500 space-y-3">
-              <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
+            <div className="p-12 text-center text-[#737373] dark:text-[#A6A6A6] space-y-3">
+              <div className="w-12 h-12 rounded-full bg-[#F2F2F2] dark:bg-[#292929] flex items-center justify-center mx-auto text-[#737373] dark:text-[#C0C0C0]">
                 <FolderLock className="h-6 w-6" />
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                <p className="text-sm font-semibold text-[#171717] dark:text-[#F5F5F5]">
                   Nenhum documento disponível no momento.
                 </p>
-                <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                <p className="text-xs text-[#737373] dark:text-[#A6A6A6] max-w-sm mx-auto">
                   Assim que o profissional liberar um atestado, laudo ou recibo para você, ele aparecerá aqui com botões para visualização e download.
                 </p>
               </div>
@@ -235,9 +235,9 @@ export default function PatientDocumentsPage() {
 
       {/* Histórico de Documentos Expirados ou com Acesso Encerrado */}
       {archivedDocs.length > 0 && (
-        <Card className="border-slate-200 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40">
-          <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
-            <CardTitle className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+        <Card className="border-[#E5E5E5] dark:border-[#393939] bg-[#F8F8F8]/50 dark:bg-[#202020]">
+          <CardHeader className="pb-3 border-b border-[#E5E5E5] dark:border-[#393939]">
+            <CardTitle className="text-sm font-semibold text-[#525252] dark:text-[#D0D0D0]">
               Histórico de Documentos Expirados ou Concluídos
             </CardTitle>
             <CardDescription className="text-xs">
@@ -245,14 +245,14 @@ export default function PatientDocumentsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+            <div className="divide-y divide-[#E5E5E5] dark:divide-[#393939] text-xs">
               {archivedDocs.map((doc) => (
-                <div key={doc.shareId} className="p-4 flex items-center justify-between gap-3 text-slate-500">
+                <div key={doc.shareId} className="p-4 flex items-center justify-between gap-3 text-[#737373] dark:text-[#A6A6A6]">
                   <div className="space-y-0.5">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300 block line-through opacity-75">
+                    <span className="font-semibold text-[#525252] dark:text-[#D0D0D0] block line-through opacity-75">
                       {doc.name}
                     </span>
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                       Liberado em {formatDate(doc.sharedAt)} •{" "}
                       {doc.isRevoked
                         ? "Acesso encerrado pelo consultório"

@@ -85,7 +85,7 @@ test("Phase 1 Design System — 3. Componentes de Formulário: Input e Select", 
     "Input não deve utilizar rótulos agressivos em caixa alta excessiva"
   );
   assert.ok(inputContent.includes("rounded-xl"), "Input deve manter cantos arredondados rounded-xl");
-  assert.ok(inputContent.includes("dark:bg-[#141414]"), "Input deve usar fundo Deep Black #141414");
+  assert.ok(inputContent.includes("dark:bg-[#1B1B1B]") || inputContent.includes("dark:bg-[#141414]"), "Input deve usar fundo escuro neutro");
   assert.ok(inputContent.includes("leftIcon") && inputContent.includes("rightIcon"), "Input deve suportar ícones à esquerda e à direita");
 
   const selectPath = path.join(process.cwd(), "src", "components", "ui", "select.tsx");
@@ -93,7 +93,7 @@ test("Phase 1 Design System — 3. Componentes de Formulário: Input e Select", 
   const selectContent = fs.readFileSync(selectPath, "utf-8");
 
   assert.ok(selectContent.includes("rounded-xl"), "Select deve ter cantos rounded-xl consistentes");
-  assert.ok(selectContent.includes("dark:bg-[#141414]"), "Select deve ter superfície escura Deep Black #141414");
+  assert.ok(selectContent.includes("dark:bg-[#1B1B1B]") || selectContent.includes("dark:bg-[#141414]"), "Select deve ter superfície escura neutra");
 });
 
 test("Phase 1 Design System — 4. Componente Table e Tabs", () => {
@@ -103,7 +103,7 @@ test("Phase 1 Design System — 4. Componente Table e Tabs", () => {
 
   assert.ok(tableContent.includes("TableHead"), "Table deve exportar TableHead");
   assert.ok(tableContent.includes("TableCell"), "Table deve exportar TableCell");
-  assert.ok(tableContent.includes("dark:bg-[#191919]"), "Table deve usar fundo Deep Black #191919");
+  assert.ok(tableContent.includes("dark:bg-[#202020]") || tableContent.includes("dark:bg-[#191919]"), "Table deve usar fundo escuro neutro");
 
   const tabsPath = path.join(process.cwd(), "src", "components", "ui", "tabs.tsx");
   assert.ok(fs.existsSync(tabsPath), "Tabs deve existir como componente compartilhado");

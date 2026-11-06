@@ -108,28 +108,28 @@ export function NotificationBell({ role }: { role: "ADMIN" | "PATIENT" }) {
           setIsOpen(!isOpen);
           if (!isOpen) fetchNotifications();
         }}
-        className="relative p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+        className="relative p-2 rounded-xl text-[#737373] dark:text-[#C0C0C0] hover:bg-[#F2F2F2] dark:hover:bg-[#292929] transition-colors focus:outline-none focus:ring-2 focus:ring-[#525252]"
         title="Notificações"
         aria-label="Abrir notificações"
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white ring-2 ring-white dark:ring-slate-900 animate-pulse">
+          <span className="absolute top-1 right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white ring-2 ring-white dark:ring-[#202020] animate-pulse">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white dark:bg-slate-900 shadow-xl border border-slate-200 dark:border-slate-800 z-50 overflow-hidden text-xs">
+        <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white dark:bg-[#202020] shadow-xl border border-[#E5E5E5] dark:border-[#393939] z-50 overflow-hidden text-xs">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E5E5] dark:border-[#393939] bg-[#F8F8F8] dark:bg-[#1B1B1B]">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-sm text-slate-800 dark:text-slate-200">
+              <span className="font-bold text-sm text-[#171717] dark:text-[#F5F5F5]">
                 Notificações
               </span>
               {unreadCount > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full bg-[var(--primary)]/15 text-[var(--primary)] text-[10px] font-semibold">
+                <span className="px-1.5 py-0.5 rounded-full bg-[var(--primary)]/15 text-[var(--primary)] dark:bg-[#292929] dark:text-[#FFFFFF] dark:border dark:border-[#393939] text-[10px] font-semibold">
                   {unreadCount} nova{unreadCount > 1 ? "s" : ""}
                 </span>
               )}
@@ -139,7 +139,7 @@ export function NotificationBell({ role }: { role: "ADMIN" | "PATIENT" }) {
               <button
                 onClick={handleMarkAllAsRead}
                 disabled={isLoading}
-                className="flex items-center gap-1 text-[11px] text-[var(--primary)] hover:opacity-80 font-medium transition-colors"
+                className="flex items-center gap-1 text-[11px] text-[var(--primary)] dark:text-[#D0D0D0] hover:opacity-80 dark:hover:text-[#FFFFFF] font-medium transition-colors"
                 title="Marcar todas como lidas"
               >
                 <CheckCheck className="h-3.5 w-3.5" />
@@ -149,7 +149,7 @@ export function NotificationBell({ role }: { role: "ADMIN" | "PATIENT" }) {
           </div>
 
           {/* List */}
-          <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="max-h-80 overflow-y-auto divide-y divide-[#E5E5E5] dark:divide-[#393939]">
             {notifications.length > 0 ? (
               notifications.map((n) => (
                 <div
@@ -157,15 +157,15 @@ export function NotificationBell({ role }: { role: "ADMIN" | "PATIENT" }) {
                   onClick={() => handleNotificationClick(n)}
                   className={`p-3.5 flex items-start gap-3 transition-colors cursor-pointer ${
                     !n.isRead
-                      ? "bg-[var(--primary)]/5 hover:bg-[var(--primary)]/10"
-                      : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                      ? "bg-[var(--primary)]/5 hover:bg-[var(--primary)]/10 dark:bg-[#292929]/50 dark:hover:bg-[#292929]/80"
+                      : "hover:bg-[#F8F8F8] dark:hover:bg-[#292929]/60"
                   }`}
                 >
                   {/* Unread dot */}
                   <div className="pt-1 shrink-0">
                     <span
                       className={`block h-2 w-2 rounded-full ${
-                        !n.isRead ? "bg-[var(--primary)]" : "bg-transparent"
+                        !n.isRead ? "bg-[var(--primary)] dark:bg-[#FFFFFF]" : "bg-transparent"
                       }`}
                     />
                   </div>
@@ -174,16 +174,16 @@ export function NotificationBell({ role }: { role: "ADMIN" | "PATIENT" }) {
                     <p
                       className={`text-xs leading-snug truncate ${
                         !n.isRead
-                          ? "font-bold text-slate-900 dark:text-slate-100"
-                          : "font-medium text-slate-700 dark:text-slate-300"
+                          ? "font-bold text-[#171717] dark:text-[#F5F5F5]"
+                          : "font-medium text-[#525252] dark:text-[#D0D0D0]"
                       }`}
                     >
                       {n.title}
                     </p>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                    <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] line-clamp-2 leading-relaxed">
                       {n.message}
                     </p>
-                    <div className="flex items-center gap-2 pt-0.5 text-[10px] text-slate-400">
+                    <div className="flex items-center gap-2 pt-0.5 text-[10px] text-[#737373] dark:text-[#A6A6A6]">
                       <Clock className="h-3 w-3" />
                       <span>
                         {formatDate(n.createdAt)} às {formatTime(n.createdAt)}
@@ -196,14 +196,14 @@ export function NotificationBell({ role }: { role: "ADMIN" | "PATIENT" }) {
                     {!n.isRead && (
                       <button
                         onClick={(e) => handleMarkAsRead(n.id, e)}
-                        className="p-1 rounded-md text-slate-400 hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors"
+                        className="p-1 rounded-md text-[#737373] dark:text-[#A6A6A6] hover:text-[var(--primary)] dark:hover:text-[#FFFFFF] hover:bg-[var(--primary)]/10 dark:hover:bg-[#383838] transition-colors"
                         title="Marcar como lida"
                       >
                         <Check className="h-3.5 w-3.5" />
                       </button>
                     )}
                     {n.targetUrl && (
-                      <span className="text-slate-400 hover:text-slate-600">
+                      <span className="text-[#737373] dark:text-[#A6A6A6] hover:text-[#171717] dark:hover:text-[#FFFFFF]">
                         <ExternalLink className="h-3 w-3" />
                       </span>
                     )}
@@ -211,19 +211,19 @@ export function NotificationBell({ role }: { role: "ADMIN" | "PATIENT" }) {
                 </div>
               ))
             ) : (
-              <div className="py-8 text-center text-slate-400 space-y-1">
-                <Bell className="h-6 w-6 mx-auto text-slate-300 dark:text-slate-700" />
+              <div className="py-8 text-center text-[#737373] dark:text-[#A6A6A6] space-y-1">
+                <Bell className="h-6 w-6 mx-auto text-[#A6A6A6] dark:text-[#525252]" />
                 <p className="text-xs">Nenhuma notificação no momento.</p>
               </div>
             )}
           </div>
 
           {/* Footer */}
-          <div className="p-2 border-t border-slate-100 dark:border-slate-800 text-center bg-slate-50/30 dark:bg-slate-800/20">
+          <div className="p-2 border-t border-[#E5E5E5] dark:border-[#393939] text-center bg-[#F8F8F8] dark:bg-[#1B1B1B]">
             <Link
               href={historyUrl}
               onClick={() => setIsOpen(false)}
-              className="text-[11px] font-semibold text-[var(--primary)] hover:opacity-80 hover:underline inline-block py-1"
+              className="text-[11px] font-semibold text-[var(--primary)] dark:text-[#D0D0D0] hover:opacity-80 dark:hover:text-[#FFFFFF] hover:underline inline-block py-1"
             >
               Ver histórico completo de notificações &rarr;
             </Link>

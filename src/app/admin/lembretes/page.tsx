@@ -170,26 +170,26 @@ export default function AdminRemindersPage() {
       </div>
 
       {/* Subnavegação de Lembretes & Registros */}
-      <div className="flex items-center gap-2 border-b border-[#E5E5E5] dark:border-[#333333] pb-3 text-xs font-medium">
+      <div className="flex items-center gap-2 border-b border-[#E5E5E5] dark:border-[#393939] pb-3 text-xs font-medium">
         <Link
           href="/admin/lembretes"
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs dark:bg-[#292929] dark:text-[#FFFFFF] dark:border dark:border-[#393939]"
         >
           <BellRing className="h-4 w-4" />
           <span>Configurações de Lembretes</span>
         </Link>
         <Link
           href="/admin/lembretes/registros"
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-[#737373] dark:text-[#A6A6A6] hover:bg-[#F2F2F2] dark:hover:bg-[#242424] transition-colors"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-[#737373] dark:text-[#D0D0D0] hover:bg-[#F2F2F2] dark:hover:bg-[#202020] transition-colors"
         >
           <History className="h-4 w-4" />
           <span>Registros de Mensagens</span>
         </Link>
       </div>
 
-      <div className="p-4 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-xs text-[var(--primary)] space-y-1">
+      <div className="p-4 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-xs text-[var(--primary)] dark:bg-[#202020] dark:border-[#393939] dark:text-[#D0D0D0] space-y-1">
         <p className="font-semibold flex items-center gap-1.5">
-          <Sparkles className="h-4 w-4 text-[var(--primary)]" />
+          <Sparkles className="h-4 w-4 text-[var(--primary)] dark:text-[#C0C0C0]" />
           <span>Regra de Mensagem Compartilhada Unificada (Task 6)</span>
         </p>
         <p>
@@ -211,8 +211,8 @@ export default function AdminRemindersPage() {
                 onClick={() => handleSelectTemplate(tpl.eventType)}
                 className={`w-full text-left p-3.5 rounded-xl border text-xs transition-colors flex flex-col gap-1.5 ${
                   selectedEventType === tpl.eventType
-                    ? "border-[var(--primary)] bg-[var(--primary)]/10 font-semibold text-[var(--primary)]"
-                    : "border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] hover:bg-[#F5F5F5] dark:hover:bg-[#242424] text-[#171717] dark:text-[#F5F5F5]"
+                    ? "border-[var(--primary)] bg-[var(--primary)]/10 font-semibold text-[var(--primary)] dark:border-[#525252] dark:bg-[#292929] dark:text-[#FFFFFF]"
+                    : "border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#202020] hover:bg-[#F5F5F5] dark:hover:bg-[#292929] text-[#171717] dark:text-[#F5F5F5]"
                 }`}
               >
                 <span>{tpl.title}</span>
@@ -246,8 +246,8 @@ export default function AdminRemindersPage() {
                   <label
                     className={`p-3.5 sm:p-4 rounded-xl border cursor-pointer flex flex-col gap-2 transition-colors ${
                       editedMode === "APP_ONLY"
-                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
-                        : "border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] hover:border-[#CCCCCC] dark:hover:border-[#404040] text-[#171717] dark:text-[#F5F5F5]"
+                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold dark:border-[#525252] dark:bg-[#292929] dark:text-[#FFFFFF]"
+                        : "border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#202020] hover:border-[#CCCCCC] dark:hover:border-[#525252] text-[#171717] dark:text-[#F5F5F5]"
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -257,7 +257,7 @@ export default function AdminRemindersPage() {
                         value="APP_ONLY"
                         checked={editedMode === "APP_ONLY"}
                         onChange={() => setEditedMode("APP_ONLY")}
-                        className="accent-[var(--primary)]"
+                        className="accent-[var(--primary)] dark:accent-[#737373]"
                       />
                       <span>Somente no aplicativo</span>
                     </div>
@@ -269,8 +269,8 @@ export default function AdminRemindersPage() {
                   <label
                     className={`p-3.5 sm:p-4 rounded-xl border cursor-pointer flex flex-col gap-2 transition-colors ${
                       editedMode === "APP_EMAIL"
-                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
-                        : "border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] hover:border-[#CCCCCC] dark:hover:border-[#404040] text-[#171717] dark:text-[#F5F5F5]"
+                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold dark:border-[#525252] dark:bg-[#292929] dark:text-[#FFFFFF]"
+                        : "border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#202020] hover:border-[#CCCCCC] dark:hover:border-[#525252] text-[#171717] dark:text-[#F5F5F5]"
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -280,7 +280,7 @@ export default function AdminRemindersPage() {
                         value="APP_EMAIL"
                         checked={editedMode === "APP_EMAIL"}
                         onChange={() => setEditedMode("APP_EMAIL")}
-                        className="accent-[var(--primary)]"
+                        className="accent-[var(--primary)] dark:accent-[#737373]"
                       />
                       <span>Aplicativo + Email</span>
                     </div>
@@ -292,8 +292,8 @@ export default function AdminRemindersPage() {
                   <label
                     className={`p-3.5 sm:p-4 rounded-xl border cursor-pointer flex flex-col gap-2 transition-colors ${
                       editedMode === "ALL_CHANNELS"
-                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
-                        : "border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] hover:border-[#CCCCCC] dark:hover:border-[#404040] text-[#171717] dark:text-[#F5F5F5]"
+                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold dark:border-[#525252] dark:bg-[#292929] dark:text-[#FFFFFF]"
+                        : "border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#202020] hover:border-[#CCCCCC] dark:hover:border-[#525252] text-[#171717] dark:text-[#F5F5F5]"
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -303,7 +303,7 @@ export default function AdminRemindersPage() {
                         value="ALL_CHANNELS"
                         checked={editedMode === "ALL_CHANNELS"}
                         onChange={() => setEditedMode("ALL_CHANNELS")}
-                        className="accent-[var(--primary)]"
+                        className="accent-[var(--primary)] dark:accent-[#737373]"
                       />
                       <span>App + Email + WhatsApp</span>
                     </div>
@@ -335,13 +335,13 @@ export default function AdminRemindersPage() {
                   rows={4}
                   value={editedBody}
                   onChange={(e) => setEditedBody(e.target.value)}
-                  className="w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] p-3.5 text-xs text-[#171717] dark:text-[#F5F5F5] placeholder:text-[#737373] outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] transition-all shadow-2xs"
+                  className="w-full rounded-xl border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#1B1B1B] p-3.5 text-xs text-[#171717] dark:text-[#F5F5F5] placeholder:text-[#737373] outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] dark:focus:ring-[#525252]/40 dark:focus:border-[#525252] transition-all shadow-2xs"
                   placeholder="Escreva a mensagem..."
                 />
               </div>
 
               {/* Tags / Variáveis Dinâmicas */}
-              <div className="p-4 bg-[#F8F8F8] dark:bg-[#141414] rounded-xl space-y-2 border border-[#E5E5E5] dark:border-[#333333]">
+              <div className="p-4 bg-[#F8F8F8] dark:bg-[#1B1B1B] rounded-xl space-y-2 border border-[#E5E5E5] dark:border-[#393939]">
                 <span className="font-semibold text-[#404040] dark:text-[#E5E5E5] block">
                   Variáveis Dinâmicas Disponíveis:
                 </span>
@@ -360,7 +360,7 @@ export default function AdminRemindersPage() {
                       key={v}
                       type="button"
                       onClick={() => setEditedBody((prev) => `${prev} ${v}`)}
-                      className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#191919] border border-[#E5E5E5] dark:border-[#333333] font-mono text-[11px] text-[#404040] dark:text-[#E5E5E5] hover:bg-[var(--primary)]/10 hover:border-[var(--primary)]/30 transition-colors"
+                      className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#202020] border border-[#E5E5E5] dark:border-[#393939] font-mono text-[11px] text-[#404040] dark:text-[#D0D0D0] hover:bg-[var(--primary)]/10 dark:hover:bg-[#292929] hover:border-[var(--primary)]/30 dark:hover:border-[#525252] transition-colors"
                       title="Clique para adicionar ao texto"
                     >
                       {v}
@@ -372,17 +372,17 @@ export default function AdminRemindersPage() {
               {/* Prévia Dinâmica */}
               <div className="space-y-2 pt-2">
                 <span className="font-semibold text-[#404040] dark:text-[#E5E5E5] flex items-center gap-1.5">
-                  <Eye className="h-4 w-4 text-[var(--primary)]" />
+                  <Eye className="h-4 w-4 text-[var(--primary)] dark:text-[#C0C0C0]" />
                   <span>Prévia do Destinatário:</span>
                 </span>
-                <div className="p-4 sm:p-5 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#333333] space-y-2">
+                <div className="p-4 sm:p-5 rounded-xl bg-[#F8F8F8] dark:bg-[#1B1B1B] border border-[#E5E5E5] dark:border-[#393939] space-y-2">
                   <p className="font-bold text-[#171717] dark:text-[#F5F5F5]">{previewTitle}</p>
                   <p className="text-[#525252] dark:text-[#A6A6A6] leading-relaxed">{previewBody}</p>
                 </div>
               </div>
 
               {/* Ações */}
-              <div className="flex items-center justify-between pt-4 border-t border-[#E5E5E5] dark:border-[#333333] gap-3">
+              <div className="flex items-center justify-between pt-4 border-t border-[#E5E5E5] dark:border-[#393939] gap-3">
                 <Button
                   type="button"
                   variant="ghost"

@@ -207,12 +207,12 @@ export default function AdminDashboardPage() {
       {/* ================= 2. KPI STATS CARDS ================= */}
       <div ref={kpiGridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Atendimentos Hoje */}
-        <Card className="hover:border-[var(--primary)]/50 transition-all duration-200">
+        <Card className="hover:border-[var(--primary)]/50 dark:hover:border-[#525252] transition-all duration-200">
           <CardHeader className="flex flex-row items-center justify-between pb-2 p-5">
             <CardTitle className="text-xs sm:text-sm font-medium text-[#525252] dark:text-[#A6A6A6]">
               Atendimentos Hoje
             </CardTitle>
-            <div className="h-9 w-9 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+            <div className="h-9 w-9 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] dark:bg-[#292929] dark:text-[#C0C0C0] dark:border dark:border-[#393939] flex items-center justify-center shrink-0">
               <CalendarCheck className="h-4 w-4" />
             </div>
           </CardHeader>
@@ -221,19 +221,19 @@ export default function AdminDashboardPage() {
               {todayCount}
             </div>
             <p className="text-xs text-[#737373] dark:text-[#A6A6A6] mt-1.5 flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)] dark:bg-[#C0C0C0]" />
               {todayCount === 1 ? "1 consulta marcada para hoje" : `${todayCount} consultas marcadas para hoje`}
             </p>
           </CardContent>
         </Card>
 
         {/* Pacientes Cadastrados */}
-        <Card className="hover:border-[var(--primary)]/50 transition-all duration-200">
+        <Card className="hover:border-[var(--primary)]/50 dark:hover:border-[#525252] transition-all duration-200">
           <CardHeader className="flex flex-row items-center justify-between pb-2 p-5">
             <CardTitle className="text-xs sm:text-sm font-medium text-[#525252] dark:text-[#A6A6A6]">
               Pacientes Cadastrados
             </CardTitle>
-            <div className="h-9 w-9 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+            <div className="h-9 w-9 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] dark:bg-[#292929] dark:text-[#C0C0C0] dark:border dark:border-[#393939] flex items-center justify-center shrink-0">
               <Users className="h-4 w-4" />
             </div>
           </CardHeader>
@@ -254,12 +254,12 @@ export default function AdminDashboardPage() {
         </Card>
 
         {/* Receita deste Mês */}
-        <Card className="hover:border-[var(--primary)]/50 transition-all duration-200">
+        <Card className="hover:border-[var(--primary)]/50 dark:hover:border-[#525252] transition-all duration-200">
           <CardHeader className="flex flex-row items-center justify-between pb-2 p-5">
             <CardTitle className="text-xs sm:text-sm font-medium text-[#525252] dark:text-[#A6A6A6]">
               Receita deste Mês
             </CardTitle>
-            <div className="h-9 w-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <div className="h-9 w-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:bg-[#292929] dark:text-[#C0C0C0] dark:border dark:border-[#393939] flex items-center justify-center shrink-0">
               <DollarSign className="h-4 w-4" />
             </div>
           </CardHeader>
@@ -282,12 +282,12 @@ export default function AdminDashboardPage() {
         </Card>
 
         {/* Recebimentos Pendentes */}
-        <Card className="hover:border-[var(--primary)]/50 transition-all duration-200">
+        <Card className="hover:border-[var(--primary)]/50 dark:hover:border-[#525252] transition-all duration-200">
           <CardHeader className="flex flex-row items-center justify-between pb-2 p-5">
             <CardTitle className="text-xs sm:text-sm font-medium text-[#525252] dark:text-[#A6A6A6]">
               Recebimentos Pendentes
             </CardTitle>
-            <div className="h-9 w-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+            <div className="h-9 w-9 rounded-xl bg-amber-500/10 text-amber-600 dark:bg-[#292929] dark:text-[#C0C0C0] dark:border dark:border-[#393939] flex items-center justify-center shrink-0">
               <Clock className="h-4 w-4" />
             </div>
           </CardHeader>
@@ -321,7 +321,7 @@ export default function AdminDashboardPage() {
               </div>
 
               <Link href="/admin/agenda">
-                <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-[var(--primary)] hover:text-[var(--primary)]">
+                <Button variant="ghost" size="sm" className="text-xs gap-1.5 text-[var(--primary)] dark:text-[#D0D0D0] hover:text-[var(--primary)] dark:hover:text-[#FFFFFF] dark:hover:bg-[#292929]">
                   <span>Ver Calendário Completo</span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
@@ -330,7 +330,7 @@ export default function AdminDashboardPage() {
 
             <CardContent className="p-5 sm:p-6">
               {data?.todayAppointments && data.todayAppointments.length > 0 ? (
-                <div className="divide-y divide-[#E5E5E5] dark:divide-[#333333]">
+                <div className="divide-y divide-[#E5E5E5] dark:divide-[#393939]">
                   {data.todayAppointments.map((appt) => {
                     const isConfirmed = appt.status === "CONFIRMED";
                     const isCompleted = appt.status === "COMPLETED";
@@ -338,10 +338,10 @@ export default function AdminDashboardPage() {
                     return (
                       <div
                         key={appt.id}
-                        className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 hover:bg-[#F3F4F6]/50 dark:hover:bg-[#242424]/40 p-2.5 rounded-xl transition-colors"
+                        className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 hover:bg-[#F3F4F6]/50 dark:hover:bg-[#292929]/50 p-2.5 rounded-xl transition-colors"
                       >
                         <div className="flex items-start gap-3.5 min-w-0">
-                          <div className="px-3 py-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] font-mono text-sm font-bold text-center shrink-0 border border-[var(--primary)]/20 shadow-2xs">
+                          <div className="px-3 py-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] dark:bg-[#292929] dark:text-[#FFFFFF] font-mono text-sm font-bold text-center shrink-0 border border-[var(--primary)]/20 dark:border-[#393939] shadow-2xs">
                             {formatTime(appt.startAt)}
                           </div>
                           <div className="min-w-0">
@@ -372,7 +372,7 @@ export default function AdminDashboardPage() {
 
                           {appt.modality !== "PRESENTIAL" && appt.meetingUrlSnapshot && (
                             <Link href={appt.meetingUrlSnapshot} target="_blank">
-                              <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs rounded-xl shadow-2xs border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/10">
+                              <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs rounded-xl shadow-2xs border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/10 dark:border-[#393939] dark:text-[#F5F5F5] dark:hover:bg-[#292929]">
                                 <Video className="h-3.5 w-3.5" />
                                 <span>Entrar na Sessão</span>
                               </Button>
@@ -385,7 +385,7 @@ export default function AdminDashboardPage() {
                 </div>
               ) : (
                 <EmptyState
-                  icon={<CalendarCheck className="h-6 w-6 text-[var(--primary)]" />}
+                  icon={<CalendarCheck className="h-6 w-6 text-[var(--primary)] dark:text-[#C0C0C0]" />}
                   title="Nenhum atendimento agendado para hoje"
                   description="Aproveite para revisar prontuários, cadastros ou planejar seus horários na agenda."
                   action={{
@@ -409,7 +409,7 @@ export default function AdminDashboardPage() {
                 </CardDescription>
               </div>
               <Link href="/admin/agenda">
-                <Button variant="ghost" size="sm" className="text-xs text-[var(--primary)]">
+                <Button variant="ghost" size="sm" className="text-xs text-[var(--primary)] dark:text-[#D0D0D0] hover:text-[var(--primary)] dark:hover:text-[#FFFFFF] dark:hover:bg-[#292929]">
                   <span>Ver Todos</span>
                   <ArrowRight className="h-3.5 w-3.5 ml-1" />
                 </Button>
@@ -417,11 +417,11 @@ export default function AdminDashboardPage() {
             </CardHeader>
             <CardContent className="p-5 sm:p-6">
               {data?.nextAppointments && data.nextAppointments.length > 0 ? (
-                <div className="divide-y divide-[#E5E5E5] dark:divide-[#333333]">
+                <div className="divide-y divide-[#E5E5E5] dark:divide-[#393939]">
                   {data.nextAppointments.map((appt) => (
                     <div
                       key={appt.id}
-                      className="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between text-sm hover:bg-[#F3F4F6]/50 dark:hover:bg-[#242424]/40 p-2 rounded-xl transition-colors"
+                      className="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between text-sm hover:bg-[#F3F4F6]/50 dark:hover:bg-[#292929]/50 p-2 rounded-xl transition-colors"
                     >
                       <div className="min-w-0">
                         <span className="font-heading font-semibold text-[#171717] dark:text-[#F5F5F5] block truncate">
@@ -455,32 +455,32 @@ export default function AdminDashboardPage() {
         <div className="space-y-6">
           {/* Quick Actions Card */}
           <Card>
-            <CardHeader className="pb-3 p-5 border-b border-[#E5E5E5] dark:border-[#333333]">
+            <CardHeader className="pb-3 p-5 border-b border-[#E5E5E5] dark:border-[#393939]">
               <CardTitle className="text-base">Ações Rápidas</CardTitle>
               <CardDescription>Atalhos operacionais diários</CardDescription>
             </CardHeader>
             <CardContent className="p-5 space-y-2.5">
               <Link href="/admin/agenda" className="block">
                 <Button variant="outline" className="w-full justify-start gap-2.5 text-xs rounded-xl h-10 shadow-2xs">
-                  <Calendar className="h-4 w-4 text-[var(--primary)]" />
+                  <Calendar className="h-4 w-4 text-[var(--primary)] dark:text-[#C0C0C0]" />
                   <span>Gerenciar Grade & Agenda</span>
                 </Button>
               </Link>
               <Link href="/admin/pacientes" className="block">
                 <Button variant="outline" className="w-full justify-start gap-2.5 text-xs rounded-xl h-10 shadow-2xs">
-                  <Users className="h-4 w-4 text-[var(--primary)]" />
+                  <Users className="h-4 w-4 text-[var(--primary)] dark:text-[#C0C0C0]" />
                   <span>Cadastrar Novo Paciente</span>
                 </Button>
               </Link>
               <Link href="/admin/financeiro" className="block">
                 <Button variant="outline" className="w-full justify-start gap-2.5 text-xs rounded-xl h-10 shadow-2xs">
-                  <DollarSign className="h-4 w-4 text-emerald-500" />
+                  <DollarSign className="h-4 w-4 text-emerald-500 dark:text-[#C0C0C0]" />
                   <span>Confirmar Recebimentos</span>
                 </Button>
               </Link>
               <Link href="/" target="_blank" className="block">
                 <Button variant="outline" className="w-full justify-start gap-2.5 text-xs rounded-xl h-10 shadow-2xs">
-                  <Globe className="h-4 w-4 text-purple-500" />
+                  <Globe className="h-4 w-4 text-purple-500 dark:text-[#C0C0C0]" />
                   <span>Visualizar MiniSite Público</span>
                 </Button>
               </Link>
@@ -489,7 +489,7 @@ export default function AdminDashboardPage() {
 
           {/* Message Delivery Widget */}
           <Card className={data?.messageDeliveryStats?.hasFailures ? "border-amber-500/40 dark:border-amber-500/30" : ""}>
-            <CardHeader className="pb-3 p-5 border-b border-[#E5E5E5] dark:border-[#333333]">
+            <CardHeader className="pb-3 p-5 border-b border-[#E5E5E5] dark:border-[#393939]">
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-base flex items-center gap-2">
@@ -503,32 +503,32 @@ export default function AdminDashboardPage() {
                   </CardTitle>
                   <CardDescription className="text-xs mt-0.5">Últimos 7 dias</CardDescription>
                 </div>
-                <div className="h-7 w-7 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+                <div className="h-7 w-7 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] dark:bg-[#292929] dark:text-[#C0C0C0] dark:border dark:border-[#393939] flex items-center justify-center shrink-0">
                   <Mail className="h-4 w-4" />
                 </div>
               </div>
             </CardHeader>
             <CardContent className="p-5 space-y-3">
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#242424] border border-slate-200/60 dark:border-slate-800/60">
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#1B1B1B] border border-slate-200/60 dark:border-[#393939]">
                   <span className="text-[#737373] dark:text-[#A6A6A6] block text-[11px]">Tentativas</span>
                   <span className="font-heading font-bold text-base text-[#171717] dark:text-[#F5F5F5]">
                     {data?.messageDeliveryStats?.totalAttempts ?? 0}
                   </span>
                 </div>
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#242424] border border-slate-200/60 dark:border-slate-800/60">
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#1B1B1B] border border-slate-200/60 dark:border-[#393939]">
                   <span className="text-[#737373] dark:text-[#A6A6A6] block text-[11px]">Aceitos (SMTP)</span>
-                  <span className="font-heading font-bold text-base text-blue-600 dark:text-blue-400">
+                  <span className="font-heading font-bold text-base text-blue-600 dark:text-[#D0D0D0]">
                     {data?.messageDeliveryStats?.accepted ?? 0}
                   </span>
                 </div>
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#242424] border border-slate-200/60 dark:border-slate-800/60">
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#1B1B1B] border border-slate-200/60 dark:border-[#393939]">
                   <span className="text-[#737373] dark:text-[#A6A6A6] block text-[11px]">Entregues</span>
-                  <span className="font-heading font-bold text-base text-emerald-600 dark:text-emerald-400">
+                  <span className="font-heading font-bold text-base text-emerald-600 dark:text-[#D0D0D0]">
                     {data?.messageDeliveryStats?.delivered ?? 0}
                   </span>
                 </div>
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#242424] border border-slate-200/60 dark:border-slate-800/60">
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#1B1B1B] border border-slate-200/60 dark:border-[#393939]">
                   <span className="text-[#737373] dark:text-[#A6A6A6] block text-[11px]">Falhas</span>
                   <span className={`font-heading font-bold text-base ${(data?.messageDeliveryStats?.failed ?? 0) > 0 ? "text-rose-600 dark:text-rose-400" : "text-[#171717] dark:text-[#F5F5F5]"}`}>
                     {data?.messageDeliveryStats?.failed ?? 0}
@@ -543,8 +543,8 @@ export default function AdminDashboardPage() {
                 </div>
               )}
 
-              <div className="pt-2 border-t border-[#E5E5E5] dark:border-[#333333]">
-                <Link href="/admin/lembretes/registros" className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--primary)] hover:underline">
+              <div className="pt-2 border-t border-[#E5E5E5] dark:border-[#393939]">
+                <Link href="/admin/lembretes/registros" className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--primary)] dark:text-[#D0D0D0] hover:underline">
                   <span>Ver registros detalhados</span>
                   <ArrowRight className="h-3 w-3" />
                 </Link>
@@ -554,10 +554,10 @@ export default function AdminDashboardPage() {
 
           {/* Storage Widget */}
           <Card>
-            <CardHeader className="pb-3 p-5 border-b border-[#E5E5E5] dark:border-[#333333]">
+            <CardHeader className="pb-3 p-5 border-b border-[#E5E5E5] dark:border-[#393939]">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base">Armazenamento Local</CardTitle>
-                <div className="h-7 w-7 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center">
+                <div className="h-7 w-7 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] dark:bg-[#292929] dark:text-[#C0C0C0] dark:border dark:border-[#393939] flex items-center justify-center">
                   <HardDrive className="h-4 w-4" />
                 </div>
               </div>
@@ -576,7 +576,7 @@ export default function AdminDashboardPage() {
                   {((data?.storage?.totalBytes ?? 0) / (1024 * 1024)).toFixed(2)} MB
                 </span>
               </div>
-              <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] pt-2.5 border-t border-[#E5E5E5] dark:border-[#333333] leading-relaxed">
+              <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] pt-2.5 border-t border-[#E5E5E5] dark:border-[#393939] leading-relaxed">
                 Sem cotas artificiais limitantes. Armazenamento persistente no servidor local.
               </p>
             </CardContent>
@@ -584,10 +584,10 @@ export default function AdminDashboardPage() {
 
           {/* Atividades Recentes */}
           <Card>
-            <CardHeader className="pb-3 p-5 border-b border-[#E5E5E5] dark:border-[#333333]">
+            <CardHeader className="pb-3 p-5 border-b border-[#E5E5E5] dark:border-[#393939]">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base">Últimas Atividades</CardTitle>
-                <div className="h-7 w-7 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center">
+                <div className="h-7 w-7 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] dark:bg-[#292929] dark:text-[#C0C0C0] dark:border dark:border-[#393939] flex items-center justify-center">
                   <Activity className="h-4 w-4" />
                 </div>
               </div>
@@ -598,7 +598,7 @@ export default function AdminDashboardPage() {
                 <div className="space-y-3 text-xs">
                   {data.recentActivity.map((act) => (
                     <div key={act.id} className="flex items-start gap-2.5">
-                      <div className="h-2 w-2 rounded-full bg-[var(--primary)] mt-1.5 shrink-0" />
+                      <div className="h-2 w-2 rounded-full bg-[var(--primary)] dark:bg-[#C0C0C0] mt-1.5 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-[#171717] dark:text-[#F5F5F5] truncate">
                           {formatActivityAction(act.action)}

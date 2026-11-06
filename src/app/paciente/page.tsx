@@ -170,10 +170,10 @@ export default function PatientAppointmentsPage() {
 
       {/* ================= 2. NEXT APPOINTMENT HIGHLIGHT (SE HOUVER) ================= */}
       {nextAppointment && !isLoading && (
-        <Card className="border-[var(--primary)]/30 bg-gradient-to-br from-white via-white to-[var(--primary)]/5 dark:from-[#191919] dark:via-[#191919] dark:to-[var(--primary)]/10 shadow-sm">
+        <Card className="border-[var(--primary)]/30 bg-gradient-to-br from-white via-white to-[var(--primary)]/5 dark:from-[#202020] dark:via-[#202020] dark:to-[#202020] dark:border-[#393939] shadow-sm">
           <CardHeader className="p-5 sm:p-6 pb-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-heading font-semibold bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/20">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-heading font-semibold bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/20 dark:bg-[#292929] dark:text-[#F5F5F5] dark:border-[#393939]">
                 <CalendarCheck className="h-3.5 w-3.5" />
                 Seu Próximo Atendimento
               </span>
@@ -190,9 +190,9 @@ export default function PatientAppointmentsPage() {
           </CardHeader>
 
           <CardContent className="p-5 sm:p-6 pt-2 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#333333] text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#393939] text-xs">
               <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+                <div className="h-8 w-8 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] dark:bg-[#292929] dark:text-[#C0C0C0] flex items-center justify-center shrink-0">
                   <Calendar className="h-4 w-4" />
                 </div>
                 <div>
@@ -204,7 +204,7 @@ export default function PatientAppointmentsPage() {
               </div>
 
               <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+                <div className="h-8 w-8 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] dark:bg-[#292929] dark:text-[#C0C0C0] flex items-center justify-center shrink-0">
                   <Clock className="h-4 w-4" />
                 </div>
                 <div>
@@ -222,7 +222,7 @@ export default function PatientAppointmentsPage() {
                   size="sm"
                   variant="outline"
                   onClick={() => setSelectedInPersonAppt(nextAppointment)}
-                  className="gap-2 text-xs border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                  className="gap-2 text-xs border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/10 dark:border-[#393939] dark:text-[#D0D0D0] dark:hover:bg-[#292929]"
                 >
                   <Info className="h-3.5 w-3.5" />
                   <span>Informações da consulta</span>
@@ -265,14 +265,14 @@ export default function PatientAppointmentsPage() {
         </div>
 
         {isLoading ? (
-          <div className="h-36 bg-slate-200 dark:bg-[#191919] rounded-2xl animate-pulse" />
+          <div className="h-36 bg-slate-200 dark:bg-[#202020] rounded-2xl animate-pulse" />
         ) : upcomingAppointments.length > 0 ? (
           <div ref={cardsGridRef} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {upcomingAppointments.map((appt) => {
               const isPresential = appt.modality === "PRESENTIAL";
 
               return (
-                <Card key={appt.id} className="shadow-xs flex flex-col justify-between hover:border-[var(--primary)]/40 transition-all">
+                <Card key={appt.id} className="shadow-xs flex flex-col justify-between hover:border-[var(--primary)]/40 dark:hover:border-[#525252] transition-all">
                   <div>
                     <CardHeader className="flex flex-row items-start justify-between pb-2 p-5">
                       <div>
@@ -287,20 +287,20 @@ export default function PatientAppointmentsPage() {
                     </CardHeader>
 
                     <CardContent className="space-y-3 p-5 pt-0">
-                      <div className="p-3 bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#333333] rounded-xl space-y-1.5 text-xs">
+                      <div className="p-3 bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#393939] rounded-xl space-y-1.5 text-xs">
                         <div className="flex items-center gap-2 font-heading font-semibold text-[#171717] dark:text-[#F5F5F5]">
-                          <Calendar className="h-4 w-4 text-[var(--primary)]" />
+                          <Calendar className="h-4 w-4 text-[var(--primary)] dark:text-[#C0C0C0]" />
                           <span>{formatDate(appt.startAt)}</span>
                         </div>
                         <div className="flex items-center gap-2 font-mono text-[#525252] dark:text-[#A6A6A6]">
-                          <Clock className="h-4 w-4 text-[var(--primary)]" />
+                          <Clock className="h-4 w-4 text-[var(--primary)] dark:text-[#C0C0C0]" />
                           <span>
                             {formatTime(appt.startAt)} às {formatTime(appt.endAt)}
                           </span>
                         </div>
                         {isPresential && appt.establishment?.address && (
-                          <div className="flex items-start gap-2 text-[#737373] dark:text-[#A6A6A6] pt-1.5 border-t border-[#E5E5E5] dark:border-[#333333]">
-                            <MapPin className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
+                          <div className="flex items-start gap-2 text-[#737373] dark:text-[#A6A6A6] pt-1.5 border-t border-[#E5E5E5] dark:border-[#393939]">
+                            <MapPin className="h-4 w-4 text-[#737373] dark:text-[#C0C0C0] shrink-0 mt-0.5" />
                             <span className="truncate">{appt.establishment.address}</span>
                           </div>
                         )}
@@ -310,15 +310,15 @@ export default function PatientAppointmentsPage() {
 
                   {/* Actions Bar */}
                   <div className="p-5 pt-0">
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#E5E5E5] dark:border-[#333333]">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#E5E5E5] dark:border-[#393939]">
                       {isPresential ? (
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => setSelectedInPersonAppt(appt)}
-                          className="gap-1.5 text-xs border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                          className="gap-1.5 text-xs border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/10 dark:border-[#393939] dark:text-[#D0D0D0] dark:hover:bg-[#292929]"
                         >
-                          <Info className="h-3.5 w-3.5 text-[var(--primary)]" />
+                          <Info className="h-3.5 w-3.5 text-[var(--primary)] dark:text-[#C0C0C0]" />
                           <span>Informações da consulta</span>
                         </Button>
                       ) : appt.meetingUrlSnapshot ? (
@@ -364,9 +364,9 @@ export default function PatientAppointmentsPage() {
       {/* ================= 4. ATALHOS DO PACIENTE ================= */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
         <Link href="/paciente/anamnese" className="block">
-          <Card className="p-5 hover:border-[var(--primary)]/50 hover:shadow-xs transition-all">
+          <Card className="p-5 hover:border-[var(--primary)]/50 dark:hover:border-[#525252] hover:shadow-xs transition-all">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+              <div className="h-10 w-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] dark:bg-[#292929] dark:text-[#C0C0C0] flex items-center justify-center shrink-0">
                 <FileText className="h-5 w-5" />
               </div>
               <div className="min-w-0">
@@ -382,9 +382,9 @@ export default function PatientAppointmentsPage() {
         </Link>
 
         <Link href="/paciente/documentos" className="block">
-          <Card className="p-5 hover:border-[var(--primary)]/50 hover:shadow-xs transition-all">
+          <Card className="p-5 hover:border-[var(--primary)]/50 dark:hover:border-[#525252] hover:shadow-xs transition-all">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+              <div className="h-10 w-10 rounded-xl bg-purple-500/10 text-purple-600 dark:bg-[#292929] dark:text-[#C0C0C0] flex items-center justify-center shrink-0">
                 <FolderLock className="h-5 w-5" />
               </div>
               <div className="min-w-0">
@@ -400,9 +400,9 @@ export default function PatientAppointmentsPage() {
         </Link>
 
         <Link href="/paciente/financeiro" className="block">
-          <Card className="p-5 hover:border-[var(--primary)]/50 hover:shadow-xs transition-all">
+          <Card className="p-5 hover:border-[var(--primary)]/50 dark:hover:border-[#525252] hover:shadow-xs transition-all">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:bg-[#292929] dark:text-[#C0C0C0] flex items-center justify-center shrink-0">
                 <Boxes className="h-5 w-5" />
               </div>
               <div className="min-w-0">
@@ -424,11 +424,11 @@ export default function PatientAppointmentsPage() {
           <h2 className="font-heading text-lg font-bold text-[#171717] dark:text-[#F5F5F5]">
             Histórico de Atendimentos
           </h2>
-          <div className="divide-y divide-[#E5E5E5] dark:divide-[#333333] bg-white dark:bg-[#191919] rounded-2xl border border-[#E5E5E5] dark:border-[#333333] p-4 sm:p-5">
+          <div className="divide-y divide-[#E5E5E5] dark:divide-[#393939] bg-white dark:bg-[#202020] rounded-2xl border border-[#E5E5E5] dark:border-[#393939] p-4 sm:p-5">
             {pastAppointments.map((appt) => (
               <div
                 key={appt.id}
-                className="py-3.5 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs hover:bg-[#F3F4F6]/50 dark:hover:bg-[#242424]/40 p-2 rounded-xl transition-colors"
+                className="py-3.5 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs hover:bg-[#F3F4F6]/50 dark:hover:bg-[#292929]/50 p-2 rounded-xl transition-colors"
               >
                 <div>
                   <span className="font-heading font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] block">
@@ -467,7 +467,7 @@ export default function PatientAppointmentsPage() {
         >
           <div className="space-y-5 text-xs">
             {/* Header com serviço e profissional */}
-            <div className="p-4 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 space-y-2">
+            <div className="p-4 rounded-xl bg-[var(--primary)]/10 dark:bg-[#292929] border border-[var(--primary)]/20 dark:border-[#393939] space-y-2">
               <div className="flex items-center justify-between">
                 <span className="font-heading font-bold text-sm text-[#171717] dark:text-[#F5F5F5]">
                   {selectedInPersonAppt.service.name}
@@ -475,41 +475,41 @@ export default function PatientAppointmentsPage() {
                 <Badge variant="outline" className="text-[10px]">Presencial</Badge>
               </div>
 
-              <div className="flex items-center gap-2 text-[#525252] dark:text-[#CCCCCC]">
-                <User className="h-4 w-4 text-[var(--primary)] shrink-0" />
+              <div className="flex items-center gap-2 text-[#525252] dark:text-[#D0D0D0]">
+                <User className="h-4 w-4 text-[var(--primary)] dark:text-[#C0C0C0] shrink-0" />
                 <span>Profissional: <strong>{selectedInPersonAppt.establishment?.professionalName || "Dr(a). Profissional PSI"}</strong></span>
               </div>
             </div>
 
             {/* Data e Horário */}
-            <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#333333]">
+            <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#393939]">
               <div className="space-y-1">
                 <span className="text-[#737373] dark:text-[#A6A6A6] block text-[11px]">Data da Sessão</span>
                 <span className="font-heading font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5 text-[var(--primary)]" />
+                  <Calendar className="h-3.5 w-3.5 text-[var(--primary)] dark:text-[#C0C0C0]" />
                   {formatDate(selectedInPersonAppt.startAt)}
                 </span>
               </div>
               <div className="space-y-1">
                 <span className="text-[#737373] dark:text-[#A6A6A6] block text-[11px]">Horário e Duração</span>
                 <span className="font-mono font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5 text-[var(--primary)]" />
+                  <Clock className="h-3.5 w-3.5 text-[var(--primary)] dark:text-[#C0C0C0]" />
                   {formatTime(selectedInPersonAppt.startAt)} ({selectedInPersonAppt.service.durationMinutes} min)
                 </span>
               </div>
             </div>
 
             {/* Estabelecimento e Endereço */}
-            <div className="space-y-2 p-4 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919]">
+            <div className="space-y-2 p-4 rounded-xl border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#202020]">
               <div className="flex items-center gap-2 font-heading font-semibold text-sm text-[#171717] dark:text-[#F5F5F5]">
-                <Building2 className="h-4 w-4 text-[var(--primary)]" />
+                <Building2 className="h-4 w-4 text-[var(--primary)] dark:text-[#C0C0C0]" />
                 <span>{selectedInPersonAppt.establishment?.name || "Consultório"}</span>
               </div>
 
               {selectedInPersonAppt.establishment?.address ? (
                 <div className="space-y-3 pt-2">
-                  <div className="flex items-start gap-2 text-[#525252] dark:text-[#CCCCCC]">
-                    <MapPin className="h-4 w-4 text-[var(--primary)] shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-2 text-[#525252] dark:text-[#D0D0D0]">
+                    <MapPin className="h-4 w-4 text-[var(--primary)] dark:text-[#C0C0C0] shrink-0 mt-0.5" />
                     <p className="leading-relaxed">{selectedInPersonAppt.establishment.address}</p>
                   </div>
 
@@ -572,7 +572,7 @@ export default function PatientAppointmentsPage() {
               </label>
               <textarea
                 rows={3}
-                className="w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] p-3 text-sm text-[#171717] dark:text-[#F5F5F5] placeholder:text-[#9CA3AF] dark:placeholder:text-[#71717A] outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 transition-all"
+                className="w-full rounded-xl border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#1B1B1B] p-3 text-sm text-[#171717] dark:text-[#F5F5F5] placeholder:text-[#9CA3AF] dark:placeholder:text-[#737373] outline-none focus:ring-2 focus:ring-[#525252]/40 focus:border-[#525252] transition-all"
                 placeholder="Informe o motivo do imprevisto se desejar..."
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
