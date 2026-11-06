@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { MessageCircle, ArrowUp } from "lucide-react";
+import { ArrowUp } from "lucide-react";
+import { WhatsAppIcon } from "@/components/ui/whatsapp-icon";
 
 export interface MiniSiteFloatingControlsProps {
   whatsappUrl?: string | null;
@@ -57,7 +58,7 @@ export function MiniSiteFloatingControls({
             aria-label="Fale conosco no WhatsApp"
             className="w-[52px] h-[52px] rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-4 focus:ring-[#25D366]/40 motion-reduce:transition-none motion-reduce:hover:scale-100 group"
           >
-            <MessageCircle className="h-6 w-6 transition-transform group-hover:scale-105 motion-reduce:transform-none" />
+            <WhatsAppIcon className="h-7 w-7 text-white transition-transform group-hover:scale-110 motion-reduce:transform-none" variant="white" />
           </a>
         </aside>
       )}

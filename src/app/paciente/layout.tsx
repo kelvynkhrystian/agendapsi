@@ -22,6 +22,7 @@ import {
   HeartHandshake,
   MessageCircle,
 } from "lucide-react";
+import { WhatsAppIcon } from "@/components/ui/whatsapp-icon";
 
 const patientNavItems = [
   { href: "/paciente", label: "Painel & Consultas", icon: LayoutDashboard },
@@ -154,7 +155,7 @@ export default function PatientLayout({
                 className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-heading font-medium text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 group"
                 aria-label="Abrir suporte pelo WhatsApp"
               >
-                <MessageCircle className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400 group-hover:scale-105 transition-transform" />
+                <WhatsAppIcon className="h-4.5 w-4.5 shrink-0 group-hover:scale-105 transition-transform" variant="original" />
                 <span className="truncate">Suporte</span>
               </a>
             </div>

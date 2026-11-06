@@ -19,6 +19,7 @@ import {
   getGoogleMapsEmbedSrc,
   buildWhatsAppChatUrl,
 } from "@/lib/minisite-helpers";
+import { WhatsAppIcon } from "@/components/ui/whatsapp-icon";
 import {
   Calendar,
   Clock,
@@ -318,7 +319,7 @@ export default async function HomePage() {
                 rel="noopener noreferrer"
                 className="w-full py-3.5 px-6 rounded-2xl font-heading font-semibold text-xs sm:text-sm text-white bg-[#221B16] hover:bg-[#181310] shadow-sm hover:shadow-md hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
-                <MessageCircle className="h-4 w-4 text-emerald-400" />
+                <WhatsAppIcon className="h-4.5 w-4.5 shrink-0" variant="original" />
                 <span>Chamar no WhatsApp</span>
               </a>
             )}
@@ -729,7 +730,7 @@ export default async function HomePage() {
 
                   <div className="flex items-start gap-3.5">
                     <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
-                      <Phone className="h-5 w-5" />
+                      <WhatsAppIcon className="h-5 w-5" variant="original" />
                     </div>
                     <div>
                       <h4 className="font-heading font-bold text-xs sm:text-sm text-slate-900">
@@ -857,7 +858,7 @@ export default async function HomePage() {
                   rel="noopener noreferrer"
                   className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-[#221B16]/90 hover:bg-[#221B16] text-white font-heading font-semibold text-xs tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-[0.98]"
                 >
-                  <MessageCircle className="h-4 w-4 text-emerald-400" />
+                  <WhatsAppIcon className="h-4.5 w-4.5 shrink-0" variant="original" />
                   <span>WhatsApp</span>
                 </a>
               )}
