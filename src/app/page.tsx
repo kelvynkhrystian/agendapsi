@@ -260,7 +260,7 @@ export default async function HomePage() {
             </div>
 
             {/* Container Responsivo de Mídia (Slot 1: Herói - Compatível com Imagens, ZIP Frames e Vídeos) */}
-            <div id="hero-media-container" className="w-60 h-68 sm:w-72 sm:h-80 md:w-80 md:h-92 rounded-full flex items-center justify-center overflow-hidden transition-all duration-300 shadow-md">
+            <div id="hero-media-container" className="w-auto h-[380px] sm:h-[440px] md:h-[500px] aspect-[9/16] max-w-full rounded-2xl sm:rounded-3xl flex items-center justify-center overflow-hidden transition-all duration-300 shadow-md">
               <MiniSiteMediaPlayer
                 slot="hero"
                 mediaType={heroMediaType}
@@ -272,9 +272,9 @@ export default async function HomePage() {
                 autoplay={site?.heroAutoplay ?? true}
                 playbackMode={site?.heroPlaybackMode || "AUTOMATIC"}
                 playbackDirection={site?.heroPlaybackDirection || "FORWARD"}
-                positioning={site?.heroPositioning || "center"}
+                positioning={site?.heroPositioning || "contain"}
                 altText={professionalName}
-                className="rounded-full"
+                className="w-full h-full rounded-2xl sm:rounded-3xl"
               />
             </div>
           </div>
