@@ -42,6 +42,23 @@ const navItems = [
   { href: "/admin/configuracoes", label: "Configurações Gerais", icon: Settings },
 ];
 
+function getAdminBreadcrumbLabel(pathname: string): string {
+  if (pathname.startsWith("/admin/notificacoes")) return "Notificações";
+  if (pathname.startsWith("/admin/lembretes/registros")) return "Registros de Lembretes";
+  if (pathname.startsWith("/admin/pacientes/")) return "Detalhes do Paciente";
+  if (pathname.startsWith("/admin/prontuarios")) return "Prontuários";
+
+  const direct = navItems.find((n) => n.href === pathname);
+  if (direct) return direct.label;
+
+  const parent = navItems
+    .filter((n) => n.href !== "/admin")
+    .find((n) => pathname.startsWith(n.href));
+  if (parent) return parent.label;
+
+  return "Painel Geral";
+}
+
 export default function AdminLayout({
   children,
 }: {
@@ -153,7 +170,7 @@ export default function AdminLayout({
               <span>Admin</span>
               <ChevronRight className="h-3.5 w-3.5 text-[#9CA3AF] dark:text-[#71717A]" />
               <span className="font-heading font-semibold text-[#111827] dark:text-[#F5F5F5]">
-                {navItems.find((n) => n.href === pathname)?.label || "Módulo"}
+                {getAdminBreadcrumbLabel(pathname)}
               </span>
             </div>
           </div>

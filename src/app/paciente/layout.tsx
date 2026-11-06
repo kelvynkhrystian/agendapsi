@@ -193,7 +193,8 @@ export default function PatientLayout({
               <span>Paciente</span>
               <ChevronRight className="h-3.5 w-3.5 text-[#9CA3AF] dark:text-[#71717A]" />
               <span className="font-heading font-semibold text-[#111827] dark:text-[#F5F5F5]">
-                {patientNavItems.find((n) => n.href === pathname)?.label || "Painel"}
+                {patientNavItems.find((n) => n.href === pathname)?.label ||
+                  (pathname.startsWith("/paciente/notificacoes") ? "Notificações" : "Painel")}
               </span>
             </div>
           </div>

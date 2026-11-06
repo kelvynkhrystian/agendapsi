@@ -167,7 +167,7 @@ export function NotificationHistoryView({
                   : "bg-white dark:bg-slate-900"
               }`}
             >
-              <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <CardContent className="p-5 pt-5 sm:p-5 sm:pt-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="space-y-1.5 flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     {!n.isRead && (
@@ -240,7 +240,7 @@ export function NotificationHistoryView({
         </div>
       ) : (
         <Card className="py-12 text-center text-slate-500">
-          <CardContent className="space-y-2">
+          <CardContent className="p-6 pt-6 sm:p-6 sm:pt-6 space-y-2">
             <Bell className="h-8 w-8 mx-auto text-slate-400" />
             <p className="text-sm font-medium">Nenhuma notificação encontrada.</p>
             <p className="text-xs text-slate-400">
