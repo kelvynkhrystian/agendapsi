@@ -29,7 +29,7 @@ import {
 
 const navItems = [
   { href: "/admin", label: "Painel Geral", icon: LayoutDashboard },
-  { href: "/admin/agenda", label: "Agenda & Calendário", icon: Calendar },
+  { href: "/admin/agenda", label: "Agenda", icon: Calendar },
   { href: "/admin/pacientes", label: "Pacientes", icon: Users },
   { href: "/admin/servicos", label: "Serviços & Políticas", icon: Briefcase },
   { href: "/admin/pacotes", label: "Pacotes de Sessões", icon: Boxes },
