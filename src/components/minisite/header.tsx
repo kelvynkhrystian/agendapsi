@@ -254,14 +254,14 @@ export function MiniSiteHeader({
   return (
     <header
       ref={headerRef}
-      className="fixed top-0 left-0 right-0 z-40 w-full bg-transparent border-none shadow-none pointer-events-none transition-all duration-300 py-0 md:py-3.5 lg:py-4"
+      className="fixed top-0 left-0 right-0 z-50 w-full bg-transparent border-none shadow-none pointer-events-none transition-all duration-300 py-0 md:py-3.5 lg:py-4"
     >
       {/* ================= 1. CABEÇALHO MOBILE (< 768px: FLOATING ROUNDED PILL) ================= */}
-      <div className="flex md:hidden w-full px-3 pt-2.5 sm:px-4 sm:pt-3 pointer-events-none">
+      <div className="flex md:hidden w-full px-3 pt-2.5 sm:px-4 sm:pt-3 pointer-events-none relative z-50">
         <div
-          className={`flex items-center justify-between w-full h-14 px-4 rounded-full pointer-events-auto transition-all duration-300 ${
+          className={`flex items-center justify-between w-full h-14 px-4 rounded-full pointer-events-auto transition-all duration-300 relative z-50 ${
             isScrolled || isMenuOpen
-              ? "bg-white/95 backdrop-blur-lg border border-slate-200/70 shadow-[0_6px_24px_rgba(0,0,0,0.08)]"
+              ? "bg-white border border-slate-200/80 shadow-[0_6px_24px_rgba(0,0,0,0.12)]"
               : "bg-white/40 backdrop-blur-md border border-white/40 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:bg-white/60"
           }`}
           style={{ marginTop: "env(safe-area-inset-top, 0px)" }}
@@ -485,9 +485,9 @@ export function MiniSiteHeader({
       {/* ================= 3. MENU MÓVEL EXPANSÍVEL (DRAWER OVERLAY) ================= */}
       {isMenuOpen && (
         <>
-          {/* Fundo Escurecido com Fechamento ao Tocar */}
+          {/* Fundo Escurecido com Fechamento ao Tocar (abaixo do header flutuante z-30) */}
           <div
-            className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-40 md:hidden animate-backdrop-fade pointer-events-auto cursor-pointer"
+            className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-30 md:hidden animate-backdrop-fade pointer-events-auto cursor-pointer"
             onClick={() => {
               setIsMenuOpen(false);
               document.body.style.overflow = "";
@@ -495,11 +495,14 @@ export function MiniSiteHeader({
             aria-hidden="true"
           />
 
-          {/* Painel de Navegação Móvel com cantos arredondados harmonizados */}
+          {/* Painel de Navegação Móvel posicionado imediatamente abaixo do header */}
           <div
             id="mobile-navigation-menu"
-            className="fixed top-[70px] sm:top-[76px] left-3 right-3 sm:left-4 sm:right-4 max-h-[calc(100vh-5.5rem)] bg-white/98 backdrop-blur-xl rounded-2xl border border-slate-200/90 shadow-2xl z-50 md:hidden animate-menu-drawer flex flex-col overflow-y-auto pointer-events-auto"
-            style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom, 0px))" }}
+            className="fixed left-3 right-3 sm:left-4 sm:right-4 max-h-[calc(100vh-5.5rem)] bg-white backdrop-blur-xl rounded-2xl border border-slate-200/90 shadow-2xl z-40 md:hidden animate-menu-drawer flex flex-col overflow-y-auto pointer-events-auto"
+            style={{
+              top: "calc(68px + env(safe-area-inset-top, 0px))",
+              paddingBottom: "max(1.5rem, env(safe-area-inset-bottom, 0px))",
+            }}
           >
             <div className="px-5 py-5 space-y-4">
               {/* Lista de Seções com Animação em Blocos Sequenciais */}
