@@ -31,6 +31,7 @@ import {
   Info,
   CheckCircle2,
   Compass,
+  ArrowRight,
 } from "lucide-react";
 
 export default function AdminMiniSitePage() {
@@ -223,16 +224,9 @@ export default function AdminMiniSitePage() {
           googleMapsUrl,
           googleMapsEmbedUrl,
           showLocation,
-          phone,
-          whatsappNumber,
           whatsappDefaultMessage,
           showFloatingWhatsApp,
-          email,
-          instagram,
           benefits,
-          professionalName,
-          professionalTitle,
-          crpCrm,
           bio,
         }),
       });
@@ -710,28 +704,21 @@ export default function AdminMiniSitePage() {
           </CardHeader>
 
           <CardContent className="pt-6 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Input
-                  label="Número de WhatsApp do Consultório (com DDD) *"
-                  value={whatsappNumber}
-                  onChange={(e) => setWhatsappNumber(e.target.value)}
-                  placeholder="Ex: 5511999999999"
-                  required
-                />
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Insira apenas números. O código DDI 55 será ajustado automaticamente.
-                </p>
+            {/* Aviso informativo de centralização do número */}
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                <Info className="h-4 w-4 text-[var(--primary)] shrink-0" />
+                <span>
+                  O número de WhatsApp e telefone do consultório são centralizados em <strong>Configurações Gerais → Perfil</strong>.
+                </span>
               </div>
-
-              <div>
-                <Input
-                  label="Telefone Fixo / Comercial Adicional"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="(11) 3333-3333"
-                />
-              </div>
+              <Link
+                href="/admin/configuracoes?tab=profile"
+                className="inline-flex items-center gap-1 font-semibold text-[var(--primary)] hover:underline shrink-0 text-xs"
+              >
+                <span>Editar dados de contato em Configurações → Perfil</span>
+                <ArrowRight className="h-3 w-3" />
+              </Link>
             </div>
 
             <div className="space-y-1.5">
@@ -779,62 +766,65 @@ export default function AdminMiniSitePage() {
         {/* ================= 5. PERFIL PROFISSIONAL RESPONSÁVEL ================= */}
         <Card className="border-slate-200 dark:border-slate-800">
           <CardHeader>
-            <CardTitle className="text-base">Perfil do Profissional Responsável</CardTitle>
+            <CardTitle className="text-base">Biografia & Abordagem no MiniSite</CardTitle>
             <CardDescription>
-              Dados exibidos no crachá superior do Hero e na assinatura do rodapé
+              Texto descritivo de apresentação profissional exibido na seção "Sobre Mim" da página pública
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Input
-                label="Nome Completo *"
-                value={professionalName}
-                onChange={(e) => setProfessionalName(e.target.value)}
-                required
-              />
-              <Input
-                label="Título / Especialidade"
-                value={professionalTitle}
-                onChange={(e) => setProfessionalTitle(e.target.value)}
-              />
-              <Input
-                label="Registro (CRP / CRM)"
-                value={crpCrm}
-                onChange={(e) => setCrpCrm(e.target.value)}
-              />
+            {/* Aviso informativo de centralização do profissional */}
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                <Info className="h-4 w-4 text-[var(--primary)] shrink-0" />
+                <span>
+                  O nome completo, especialidade e registro (CRP/CRM) são centralizados em <strong>Configurações Gerais → Perfil</strong>.
+                </span>
+              </div>
+              <Link
+                href="/admin/configuracoes?tab=profile"
+                className="inline-flex items-center gap-1 font-semibold text-[var(--primary)] hover:underline shrink-0 text-xs"
+              >
+                <span>Editar dados do profissional em Configurações → Perfil</span>
+                <ArrowRight className="h-3 w-3" />
+              </Link>
             </div>
 
             <div className="space-y-1.5">
               <label className="block text-sm font-medium">Biografia / Abordagem Terapêutica</label>
               <textarea
-                rows={3}
+                rows={4}
                 className="flex w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm"
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
+                placeholder="Descreva sua trajetória, linha terapêutica e metodologia de acolhimento clínico..."
               />
             </div>
           </CardContent>
         </Card>
 
-        {/* ================= 6. REDES SOCIAIS E OUTROS CONTATOS ================= */}
+        {/* ================= 6. REDES SOCIAIS E CANAIS DE APOIO ================= */}
         <Card className="border-slate-200 dark:border-slate-800">
           <CardHeader>
             <CardTitle className="text-base">Redes Sociais & Canais de Apoio</CardTitle>
+            <CardDescription>
+              Canais institucionais de contato exibidos publicamente no rodapé e cabeçalho do MiniSite
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input
-                label="E-mail de Contato Público"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="contato@consultorio.com.br"
-              />
-              <Input
-                label="Instagram (@seuperfil)"
-                value={instagram}
-                onChange={(e) => setInstagram(e.target.value)}
-                placeholder="@dra.helenamartins"
-              />
+          <CardContent>
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                <Info className="h-4 w-4 text-[var(--primary)] shrink-0" />
+                <span>
+                  O e-mail público de contato e o perfil do Instagram são centralizados em <strong>Configurações Gerais → Perfil</strong>.
+                </span>
+              </div>
+              <Link
+                href="/admin/configuracoes?tab=profile"
+                className="inline-flex items-center gap-1 font-semibold text-[var(--primary)] hover:underline shrink-0 text-xs"
+              >
+                <span>Editar dados de contato em Configurações → Perfil</span>
+                <ArrowRight className="h-3 w-3" />
+              </Link>
             </div>
           </CardContent>
         </Card>

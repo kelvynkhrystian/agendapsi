@@ -20,6 +20,7 @@ import {
   ChevronRight,
   Bell,
   HeartHandshake,
+  MessageCircle,
 } from "lucide-react";
 
 const patientNavItems = [
@@ -40,6 +41,7 @@ export default function PatientLayout({
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [patientName, setPatientName] = useState("Paciente");
+  const [supportUrl, setSupportUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -47,6 +49,15 @@ export default function PatientLayout({
       .then((d) => {
         if (d.authenticated && d.user) {
           setPatientName(d.user.name || d.user.fullName || "Paciente");
+        }
+      })
+      .catch(() => {});
+
+    fetch("/api/patient/support")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.supportUrl) {
+          setSupportUrl(d.supportUrl);
         }
       })
       .catch(() => {});
@@ -131,6 +142,23 @@ export default function PatientLayout({
               </Link>
             );
           })}
+
+          {/* Ação de Suporte via WhatsApp */}
+          {supportUrl && (
+            <div className="pt-2 mt-2 border-t border-[#E2E4E8] dark:border-[#303034]">
+              <a
+                href={supportUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setSidebarOpen(false)}
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-heading font-medium text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 group"
+                aria-label="Abrir suporte pelo WhatsApp"
+              >
+                <MessageCircle className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400 group-hover:scale-105 transition-transform" />
+                <span className="truncate">Suporte</span>
+              </a>
+            </div>
+          )}
         </nav>
 
         {/* Logout Button */}

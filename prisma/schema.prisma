@@ -556,13 +556,14 @@ model SiteSettings {
 }
 
 model ProfessionalProfile {
-  id        String   @id @default("default")
-  fullName  String   @default("Dr(a). Profissional PSI")
-  title     String   @default("Psicólogo(a) Clínico(a)")
-  crpCrm    String   @default("CRP 06/123456")
-  bio       String   @db.Text
-  avatarUrl String?
-  updatedAt DateTime @updatedAt
+  id          String   @id @default("default")
+  fullName    String   @default("Dr(a). Profissional PSI")
+  displayName String?
+  title       String   @default("Psicólogo(a) Clínico(a)")
+  crpCrm      String   @default("CRP 06/123456")
+  bio         String   @db.Text
+  avatarUrl   String?
+  updatedAt   DateTime @updatedAt
 }
 
 model LegalPage {

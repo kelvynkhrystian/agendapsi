@@ -43,6 +43,13 @@ import {
   Play,
   Folder,
   Images,
+  UserCircle,
+  User,
+  Building2,
+  Lock,
+  MessageCircle,
+  Mail,
+  Phone,
 } from "lucide-react";
 
 interface VideoProviderItem {
@@ -57,8 +64,25 @@ interface VideoProviderItem {
 
 export default function AdminSettingsPage() {
   const [activeTab, setActiveTab] = useState<
-    "appearance" | "video" | "general" | "security"
-  >("appearance");
+    "profile" | "appearance" | "video" | "general" | "security"
+  >("profile");
+
+  // Profile State (Perfil Centralizado)
+  const [clinicName, setClinicName] = useState("");
+  const [tagline, setTagline] = useState("");
+  const [appVersion, setAppVersion] = useState("1.0.0");
+  const [fullName, setFullName] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [crpCrm, setCrpCrm] = useState("");
+  const [title, setTitle] = useState("");
+  const [adminEmail, setAdminEmail] = useState("");
+  const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [instagram, setInstagram] = useState("");
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileFeedback, setProfileFeedback] = useState<string | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
   // Appearance State (Task 8 & Phase 1/5)
   const [themeName, setThemeName] = useState<string>("VERDE");
@@ -154,15 +178,52 @@ export default function AdminSettingsPage() {
 
   const [isLoading, setIsLoading] = useState(true);
 
+  // Monitora parâmetro ?tab= na URL para navegação direta entre abas
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (
+        tabParam &&
+        ["profile", "appearance", "video", "general", "security"].includes(tabParam)
+      ) {
+        setActiveTab(tabParam as any);
+      }
+    }
+  }, []);
+
   // Carrega dados das APIs
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [appRes, vidRes, mediaRes] = await Promise.all([
+      const [appRes, vidRes, mediaRes, profRes] = await Promise.all([
         fetch("/api/admin/appearance"),
         fetch("/api/admin/video-providers"),
         fetch("/api/admin/minisite/media/settings"),
+        fetch("/api/admin/profile"),
       ]);
+
+      if (profRes && profRes.ok) {
+        const profData = await profRes.json();
+        if (profData.application) {
+          setClinicName(profData.application.clinicName || "");
+          setTagline(profData.application.tagline || "");
+          setAppVersion(profData.application.appVersion || "1.0.0");
+        }
+        if (profData.professional) {
+          setFullName(profData.professional.fullName || "");
+          setDisplayName(profData.professional.displayName || "");
+          setCrpCrm(profData.professional.crpCrm || "");
+          setTitle(profData.professional.title || "");
+          setAdminEmail(profData.professional.adminEmail || "");
+        }
+        if (profData.contact) {
+          setWhatsappNumber(profData.contact.whatsappNumber || "");
+          setPhone(profData.contact.phone || "");
+          setEmail(profData.contact.email || "");
+          setInstagram(profData.contact.instagram || "");
+        }
+      }
 
       if (appRes.ok) {
         const appData = await appRes.json();
@@ -312,6 +373,48 @@ export default function AdminSettingsPage() {
     if (field === "button") setButtonColor(value);
     if (field === "background") setBackgroundColor(value);
     if (field === "text") setTextColor(value);
+  };
+
+  // Salva Perfil Centralizado (Seções A, B e C)
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingProfile(true);
+    setProfileFeedback(null);
+    setProfileError(null);
+
+    try {
+      const res = await fetch("/api/admin/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clinicName,
+          tagline,
+          fullName,
+          displayName,
+          crpCrm,
+          title,
+          whatsappNumber,
+          phone,
+          email,
+          instagram,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setProfileError(data.error || "Erro ao salvar alterações do perfil.");
+        return;
+      }
+
+      setProfileFeedback("Configurações de perfil e dados de contato atualizados com sucesso!");
+      if (data.contact?.whatsappNumber) {
+        setWhatsappNumber(data.contact.whatsappNumber);
+      }
+    } catch {
+      setProfileError("Erro de comunicação com o servidor ao salvar perfil.");
+    } finally {
+      setIsSavingProfile(false);
+    }
   };
 
   // Salva Aparência (Phase 1/5)
@@ -732,6 +835,18 @@ export default function AdminSettingsPage() {
       {/* Tabs Principais */}
       <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3 overflow-x-auto text-xs font-medium">
         <button
+          onClick={() => setActiveTab("profile")}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-colors shrink-0 ${
+            activeTab === "profile"
+              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs"
+              : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+          }`}
+        >
+          <UserCircle className="h-4 w-4" />
+          <span>Perfil</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab("appearance")}
           className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-colors shrink-0 ${
             activeTab === "appearance"
@@ -779,6 +894,222 @@ export default function AdminSettingsPage() {
           <span>Segurança & Monitoramento</span>
         </button>
       </div>
+
+      {/* ================= ABA 0: PERFIL & IDENTIDADE CENTRALIZADA ================= */}
+      {activeTab === "profile" && (
+        <form onSubmit={handleSaveProfile} className="space-y-6">
+          <div className="p-4 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 space-y-1">
+            <p className="font-bold flex items-center gap-1.5 text-[#111827] dark:text-[#F5F5F5]">
+              <UserCircle className="h-4 w-4 text-[var(--primary)]" />
+              <span>Fonte Centralizada de Perfil e Contato</span>
+            </p>
+            <p>
+              As informações abaixo alimentam a identidade institucional, o MiniSite público e o canal de suporte aos pacientes em uma única fonte da verdade.
+            </p>
+          </div>
+
+          {profileFeedback && <Alert variant="success">{profileFeedback}</Alert>}
+          {profileError && <Alert variant="destructive">{profileError}</Alert>}
+
+          {/* SEÇÃO A — DADOS DA APLICAÇÃO */}
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-[var(--primary)]" />
+                <span>Seção A — Dados da Aplicação</span>
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Identificação do consultório/aplicação e metadados de versão da plataforma.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input
+                  label="Nome da Aplicação / Consultório *"
+                  value={clinicName}
+                  onChange={(e) => setClinicName(e.target.value)}
+                  placeholder="Ex: Consultório de Psicologia & Psiquiatria"
+                  required
+                />
+                <Input
+                  label="Descrição Curta da Aplicação"
+                  value={tagline}
+                  onChange={(e) => setTagline(e.target.value)}
+                  placeholder="Ex: Atendimento ético, acolhedor e humanizado."
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                <div>
+                  <label className="font-semibold block text-slate-800 dark:text-slate-200 mb-1">
+                    Versão da Aplicação
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={`v${appVersion}`}
+                      disabled
+                      className="bg-slate-100 dark:bg-slate-800 font-mono text-xs cursor-not-allowed"
+                    />
+                    <Badge variant="outline" className="shrink-0 text-[11px] py-1 border-slate-300 dark:border-slate-700">
+                      <Lock className="h-3 w-3 mr-1 text-slate-400" />
+                      Metadado do Projeto
+                    </Badge>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Versão oficial recuperada diretamente dos metadados da instalação standalone.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* SEÇÃO B — DADOS DO ADMINISTRADOR / PROFISSIONAL */}
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base flex items-center gap-2">
+                <User className="h-5 w-5 text-[var(--primary)]" />
+                <span>Seção B — Dados do Administrador / Profissional</span>
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Titularidade e habilitação profissional perante os conselhos de classe.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input
+                  label="Nome Completo do Profissional *"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Ex: Helena de Souza Martins"
+                  required
+                />
+                <div>
+                  <Input
+                    label="Nome de Exibição Público"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="Ex: Dra. Helena Martins"
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Nome social ou profissional exibido no MiniSite público e crachás. Se vazio, utiliza o nome completo.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input
+                  label="Registro Profissional (CRP / CRM) *"
+                  value={crpCrm}
+                  onChange={(e) => setCrpCrm(e.target.value)}
+                  placeholder="Ex: CRP 06/184920"
+                  required
+                />
+                <Input
+                  label="Especialidade / Título Profissional"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Ex: Psicóloga Clínica - Especialista em TCC"
+                />
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                <div className="max-w-md">
+                  <label className="font-semibold block text-slate-800 dark:text-slate-200 mb-1">
+                    E-mail Administrativo de Acesso
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={adminEmail}
+                      disabled
+                      className="bg-slate-100 dark:bg-slate-800 font-mono text-xs cursor-not-allowed"
+                    />
+                    <Badge variant="outline" className="shrink-0 text-[11px] py-1 border-slate-300 dark:border-slate-700">
+                      <Lock className="h-3 w-3 mr-1 text-slate-400" />
+                      Autenticação Segura
+                    </Badge>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Utilizado exclusivamente para login do profissional titular. A alteração de credenciais deve seguir o fluxo seguro de autenticação.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* SEÇÃO C — CONTATOS E REDES SOCIAIS */}
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base flex items-center gap-2">
+                <MessageCircle className="h-5 w-5 text-emerald-600" />
+                <span>Seção C — Contatos e Redes Sociais</span>
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Canais de contato compartilhados para agendamento, botões do MiniSite e suporte ao paciente.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Input
+                    label="Telefone / WhatsApp de Contato (com DDD) *"
+                    value={whatsappNumber}
+                    onChange={(e) => setWhatsappNumber(e.target.value)}
+                    placeholder="Ex: (11) 99123-4567 ou 5511991234567"
+                    required
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Normalizado automaticamente no formato internacional com DDI 55 para links diretos de WhatsApp.
+                  </p>
+                </div>
+                <Input
+                  label="Telefone Comercial Alternativo"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Ex: (11) 3214-5678"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Input
+                    label="E-mail Público de Contato"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="contato@consultorio.com.br"
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    E-mail público exibido no rodapé do MiniSite (separado do e-mail de acesso administrativo).
+                  </p>
+                </div>
+                <div>
+                  <Input
+                    label="Instagram"
+                    value={instagram}
+                    onChange={(e) => setInstagram(e.target.value)}
+                    placeholder="@dra.helenamartins"
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Perfil oficial para links de redes sociais na página pública do consultório.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* BOTÃO DE SALVAR PERFIL */}
+          <div className="flex justify-end pt-2">
+            <Button
+              type="submit"
+              size="lg"
+              disabled={isSavingProfile}
+              className="gap-2 bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white"
+            >
+              <Save className="h-4 w-4" />
+              <span>{isSavingProfile ? "Salvando Perfil..." : "Salvar Configurações de Perfil"}</span>
+            </Button>
+          </div>
+        </form>
+      )}
 
       {/* ================= ABA 1: APARÊNCIA & CORES (PHASE 1/5) ================= */}
       {activeTab === "appearance" && (

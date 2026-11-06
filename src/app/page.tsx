@@ -71,7 +71,7 @@ export default async function HomePage() {
     : null;
 
   const clinicName = site?.clinicName || "Consultório de Psicologia & Psiquiatria";
-  const professionalName = profile?.fullName || "Dra. Helena Martins";
+  const professionalName = profile?.displayName || profile?.fullName || "Dra. Helena Martins";
   const professionalTitle = profile?.title || "PSICÓLOGA CLÍNICA";
   const crpCrm = profile?.crpCrm || "CRP 06/184920";
   const heroSubtitle =

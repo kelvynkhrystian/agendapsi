@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 
 const siteSettingsSchema = z.object({
-  clinicName: z.string().min(2),
+  clinicName: z.string().min(2).optional(),
   tagline: z.string().optional(),
   heroTitle: z.string().min(2),
   heroSubtitle: z.string().optional(),
@@ -73,8 +73,8 @@ export async function PUT(req: NextRequest) {
       prisma.siteSettings.upsert({
         where: { id: "default" },
         update: {
-          clinicName: data.clinicName,
-          tagline: data.tagline,
+          ...(data.clinicName ? { clinicName: data.clinicName } : {}),
+          ...(data.tagline !== undefined ? { tagline: data.tagline } : {}),
           heroTitle: data.heroTitle,
           heroSubtitle: data.heroSubtitle,
           aboutText: data.aboutText,
@@ -89,12 +89,12 @@ export async function PUT(req: NextRequest) {
           googleMapsUrl: data.googleMapsUrl,
           googleMapsEmbedUrl: data.googleMapsEmbedUrl,
           showLocation: data.showLocation ?? true,
-          phone: data.phone,
-          whatsappNumber: data.whatsappNumber,
+          ...(data.phone !== undefined ? { phone: data.phone } : {}),
+          ...(data.whatsappNumber !== undefined ? { whatsappNumber: data.whatsappNumber } : {}),
           whatsappDefaultMessage: data.whatsappDefaultMessage,
           showFloatingWhatsApp: data.showFloatingWhatsApp ?? true,
-          email: data.email,
-          instagram: data.instagram,
+          ...(data.email !== undefined ? { email: data.email } : {}),
+          ...(data.instagram !== undefined ? { instagram: data.instagram } : {}),
           ...(computedBenefitsJson !== undefined ? { benefitsJson: computedBenefitsJson } : {}),
         },
         create: {
@@ -128,9 +128,9 @@ export async function PUT(req: NextRequest) {
       prisma.professionalProfile.upsert({
         where: { id: "default" },
         update: {
-          fullName: data.professionalName || "Profissional PSI",
-          title: data.professionalTitle || "Psicólogo(a)",
-          crpCrm: data.crpCrm || "",
+          ...(data.professionalName ? { fullName: data.professionalName } : {}),
+          ...(data.professionalTitle !== undefined ? { title: data.professionalTitle } : {}),
+          ...(data.crpCrm !== undefined ? { crpCrm: data.crpCrm } : {}),
           bio: data.bio || "",
         },
         create: {

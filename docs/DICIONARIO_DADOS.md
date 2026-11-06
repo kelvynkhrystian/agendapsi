@@ -1130,7 +1130,8 @@ erDiagram
 | Campo | Tipo | Obrigatório? | Padrão | Significado | Exemplo |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `id` | `String` | Sim | `"default"` | Chave primária singleton fixada | `"default"` |
-| `fullName` | `String` | Sim | `"Dr(a)..."` | Nome de exibição pública do profissional | `"Dra. Helena Martins"` |
+| `fullName` | `String` | Sim | `"Dr(a)..."` | Nome completo oficial do profissional responsável | `"Helena de Souza Martins"` |
+| `displayName` | `String?` | Não | `null` | Nome social ou nome de exibição público preferencial | `"Dra. Helena Martins"` |
 | `title` | `String` | Sim | `"Psicólogo(a)..."`| Título profissional (ex: Especialista em TCC) | `"Psicóloga Clínica - Especialista em TCC"` |
 | `crpCrm` | `String` | Sim | `"CRP..."` | Registro no conselho de psicologia ou medicina | `"CRP 06/123456"` |
 | `bio` | `String` (Text) | Sim | Nenhum | Biografia descritiva sobre formação e métodos | `"Graduada pela USP, mestre em Psicologia Clínica..."` |
