@@ -44,6 +44,8 @@ Este documento relaciona todas as páginas e rotas de API disponíveis no sistem
 | `/admin/arquivos` | Monitor de uso de disco e rotina de geração de backup com checksum SHA-256 |
 | `/admin/integracoes` | Central independente de integrações: E-mail (SMTP) e WhatsApp com testes de conexão |
 | `/admin/lembretes` | Gerenciamento de templates e canais de disparo de lembretes e mensagens do consultório |
+| `/admin/lembretes/registros` | Central de histórico e monitoramento de entregas de mensagens (e-mail SMTP e WhatsApp) com filtros, busca e métricas |
+| `/admin/lembretes/registros/[id]` | Visualização detalhada de entrega de mensagem com timeline técnica, status do provedor, dados higienizados e reenvio seguro |
 | `/admin/notificacoes` | Central administrativa de notificações internas e histórico (acessível via sino no cabeçalho) |
 | `/admin/configuracoes` | Parâmetros do consultório, identidade visual, teleconsulta, agenda e segurança |
 
@@ -130,6 +132,10 @@ Este documento relaciona todas as páginas e rotas de API disponíveis no sistem
 | `GET` | `/api/admin/notification-templates` | Admin | Listagem de templates compartilhados e canais de entrega |
 | `PUT` | `/api/admin/notification-templates/[eventType]` | Admin | Atualização de template compartilhado por evento com preview |
 | `POST` | `/api/admin/notification-templates/restore-default` | Admin | Restauração do template original padrão do evento |
+| `GET` | `/api/admin/message-logs` | Admin | Listagem paginada e filtrada de registros de entrega de mensagens com métricas dos últimos 7 dias |
+| `GET` | `/api/admin/message-logs/[id]` | Admin | Detalhamento técnico de registro individual de mensagem e dados do agendamento vinculado |
+| `POST` | `/api/admin/message-logs/[id]/resend` | Admin | Reenvio seguro de mensagem com travas de segurança e auditoria |
+| `POST` | `/api/webhooks/messages` | Webhook | Endpoint para recepção de status de entrega de mensagens por provedores externos (e-mail/WhatsApp) |
 
 ### 4.6 Integrações e Customização Visual
 | Método | Endpoint | Permissão | Descrição |

@@ -114,9 +114,29 @@ Este documento detalha as políticas de funcionamento, transições de estado e 
 
 ---
 
-## 7. Mensageria e Notificações
+## 7. Mensageria, Notificações e Histórico de Entregas
 
-- O disparador de lembretes (`/api/notifications/run-reminders`) é idempotente: verifica registros já existentes em `NotificationDelivery` antes de realizar novos disparos.
+### 7.1 Idempotência e Disparo de Lembretes
+- O disparador de lembretes (`/api/notifications/run-reminders`) é idempotente: verifica registros já existentes em `NotificationDelivery` antes de realizar novos disparos para evitar mensagens repetidas a pacientes.
+
+### 7.2 Fidelidade e Ciclo de Vida de Status de Entrega
+O sistema rejeita estados falsos ou presumidos de entrega, registrando apenas evidências comprovadas:
+- **`QUEUED` / `PROCESSING`:** Mensagem aguardando envio na fila ou em processamento pelo serviço local.
+- **`ACCEPTED` (Aceito pelo Servidor):** O servidor SMTP local/remoto aceitou a transação e o handshake de envio. Não equivale a entrega na caixa de entrada do destinatário.
+- **`DELIVERED` (Entregue Comprovado):** Status atribuído exclusivamente quando há confirmação formal de entrega recebida via webhook ou recibo de leitura/entrega do provedor de mensageria.
+- **`FAILED` (Falha de Envio):** O servidor SMTP, API ou gateway recusou o envio (código de erro e mensagem técnica higienizada são gravados em `errorCode` e `sanitizedErrorMessage`).
+- **`SIMULATED` (Simulação):** Quando integrações de mensageria estão desativadas ou em ambiente de desenvolvimento, o envio é simulado para garantir integridade e testes sem impacto externo.
+- **`WHATSAPP_OPENED`:** Abertura ou redirecionamento para o link de conversa (`wa.me`). Não comprova que a mensagem foi efetivamente enviada ou lida pelo contato.
+
+### 7.3 Privacidade, LGPD e Mascaramento de Destinatários
+- Em todas as telas administrativas e respostas de API de logs (`/admin/lembretes/registros`), os contatos dos destinatários são exibidos com mascaramento protetivo (ex.: `j***@gmail.com` ou `(11) 98***-**12`).
+- Dados clínicos sigilosos, senhas ou tokens brutos de autorização **nunca** são persistidos no assunto, categoria ou metadados de entrega da notificação.
+
+### 7.4 Travas de Segurança para Reenvio Manual
+A ação de reenvio de mensagens (`POST /api/admin/message-logs/[id]/resend`) possui regras estritas de proteção:
+- **Agendamentos Inativos:** É estritamente vedado reenviar lembretes ou confirmações associadas a consultas com status `COMPLETED`, `CANCELLED`, `LATE_CANCELLED` ou `NO_SHOW`.
+- **Tokens de Senha Expirados:** Notificações de recuperação de senha com tokens já utilizados ou expirados não podem ser reenviadas; o usuário deve iniciar uma nova solicitação.
+- **Auditoria Obrigatória:** Todo reenvio manual incrementa `attemptCount`, atualiza `attemptedAt` e gera um registro detalhado em `AuditLog`.
 
 ---
 

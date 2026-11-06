@@ -988,6 +988,23 @@ erDiagram
 | `errorDetails` | `String?` | Não | `null` | Detalhes do erro caso status seja `FAILED` | `null` |
 | `idempotencyKey`| `String?` | Não | `null` | Chave única anti-duplicação (`@unique`) | `"notif_rem_24h_cly78a10"` |
 | `sentAt` | `DateTime` | Sim | `now()` | Timestamp UTC do disparo | `2026-11-04T12:00:00.000Z` |
+| `messageType` | `String?` | Não | `null` | Tipo do evento disparado em formato string flexível | `"APPOINTMENT_REMINDER"` |
+| `recipientReference` | `String?` | Não | `null` | ID do paciente ou usuário destinatário | `"cly78a10w000108l0h7y1z11"` |
+| `maskedRecipient` | `String?` | Não | `null` | Destinatário ofuscado para proteção LGPD | `"ma***a@email.com"` |
+| `subjectOrCategory` | `String?` | Não | `null` | Assunto ou categoria do disparo | `"Lembrete de consulta de amanhã"` |
+| `provider` | `String?` | Não | `"SYSTEM"` | Provedor de mensageria: SMTP, WHATSAPP_API, WA_ME ou SYSTEM | `"SMTP"` |
+| `providerMessageId` | `String?` | Não | `null` | Identificador do envio retornado pelo provedor externo | `"<1730761234.msg@smtp.mail>"` |
+| `attemptCount` | `Int` | Sim | `1` | Quantidade total de tentativas de envio executadas | `1` |
+| `attemptedAt` | `DateTime?` | Não | `null` | Timestamp da última tentativa de envio | `2026-11-04T12:00:00.000Z` |
+| `acceptedAt` | `DateTime?` | Não | `null` | Timestamp de aceitação pelo servidor/provedor | `2026-11-04T12:00:01.000Z` |
+| `deliveredAt` | `DateTime?` | Não | `null` | Timestamp de entrega confirmada via webhook | `2026-11-04T12:00:05.000Z` |
+| `failedAt` | `DateTime?` | Não | `null` | Timestamp em que ocorreu a falha no envio | `null` |
+| `errorCode` | `String?` | Não | `null` | Código técnico de erro retornado | `"SMTP_AUTH_ERROR"` |
+| `sanitizedErrorMessage` | `String?` (Text) | Não | `null` | Mensagem de erro higienizada sem dados sensíveis | `"Servidor recusou a conexão na porta 587"` |
+| `relatedAppointmentId` | `String?` | Não | `null` | ID da consulta vinculada ao disparo se houver | `"cly78a20w001208l0h8x1y23"` |
+| `metadataJson` | `String?` (Text) | Não | `null` | Metadados serializados em JSON para reenvio e diagnóstico | `'{"templateType":"APPOINTMENT_REMINDER"}'` |
+| `createdAt` | `DateTime` | Sim | `now()` | Timestamp de registro inicial | `2026-11-04T12:00:00.000Z` |
+| `updatedAt` | `DateTime` | Sim | `now()` / Auto | Timestamp da última atualização | `2026-11-04T12:00:00.000Z` |
 
 ---
 

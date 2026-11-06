@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Alert } from "@/components/ui/alert";
-import { Sparkles, Eye, Save, RotateCcw, BellRing } from "lucide-react";
+import { Sparkles, Eye, Save, RotateCcw, BellRing, History } from "lucide-react";
 
 interface NotificationTemplate {
   id: string;
@@ -166,6 +167,24 @@ export default function AdminRemindersPage() {
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
           Configure os templates de mensagens, lembretes de consultas e regras de disparo (Aplicativo, E-mail e WhatsApp).
         </p>
+      </div>
+
+      {/* Subnavegação de Lembretes & Registros */}
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3 text-xs font-medium">
+        <Link
+          href="/admin/lembretes"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs"
+        >
+          <BellRing className="h-4 w-4" />
+          <span>Configurações de Lembretes</span>
+        </Link>
+        <Link
+          href="/admin/lembretes/registros"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        >
+          <History className="h-4 w-4" />
+          <span>Registros de Mensagens</span>
+        </Link>
       </div>
 
       <div className="p-4 rounded-xl bg-teal-50/50 dark:bg-teal-950/20 border border-teal-200/60 dark:border-teal-900/40 text-xs text-teal-800 dark:text-teal-300 space-y-1">

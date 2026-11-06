@@ -478,15 +478,40 @@ model NotificationTemplate {
 }
 
 model NotificationDelivery {
-  id             String              @id @default(cuid())
-  recipient      String
-  channel        NotificationChannel
-  templateType   NotificationType
-  status         String              // DELIVERED, SIMULATED, FAILED
-  simulated      Boolean             @default(true)
-  errorDetails   String?
-  idempotencyKey String?             @unique
-  sentAt         DateTime            @default(now())
+  id                    String              @id @default(cuid())
+  recipient             String
+  channel               NotificationChannel
+  templateType          NotificationType
+  status                String              // DELIVERED, ACCEPTED, FAILED, SIMULATED, QUEUED, PROCESSING, WHATSAPP_OPENED, UNKNOWN
+  simulated             Boolean             @default(true)
+  errorDetails          String?             @db.Text
+  idempotencyKey        String?             @unique
+  sentAt                DateTime            @default(now())
+
+  // Metadados estendidos de auditoria e monitoramento (Phase 2/2)
+  messageType           String?             // APPOINTMENT_REMINDER, APPOINTMENT_CONFIRMED, PASSWORD_RESET, etc.
+  recipientReference    String?             // ID do paciente ou usuário
+  maskedRecipient       String?             // Destinatário ofuscado para LGPD (ex: c***@email.com)
+  subjectOrCategory     String?             // Assunto ou categoria da mensagem
+  provider              String?             @default("SYSTEM") // SMTP, WHATSAPP_API, WA_ME, SYSTEM
+  providerMessageId     String?             // Message-ID retornado pelo provedor para correlação
+  attemptCount          Int                 @default(1)
+  attemptedAt           DateTime?           // Data/hora da última tentativa
+  acceptedAt            DateTime?           // Data/hora da aceitação pelo servidor/provedor
+  deliveredAt           DateTime?           // Data/hora da confirmação de entrega via webhook
+  failedAt              DateTime?           // Data/hora da falha
+  errorCode             String?             // Código técnico do erro
+  sanitizedErrorMessage String?             @db.Text // Detalhe higienizado do erro (sem senhas/tokens)
+  relatedAppointmentId  String?             // ID da consulta relacionada, se aplicável
+  metadataJson          String?             @db.Text // Carga serializada para reenvio e diagnóstico
+
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @default(now()) @updatedAt
+
+  @@index([channel, status])
+  @@index([createdAt])
+  @@index([sentAt])
+  @@index([relatedAppointmentId])
 }
 
 model SiteSettings {

@@ -40,6 +40,8 @@ import {
   UserCheck,
   FolderLock,
   Globe,
+  Mail,
+  AlertTriangle,
 } from "lucide-react";
 
 interface DashboardData {
@@ -81,6 +83,15 @@ interface DashboardData {
     resource: string;
     createdAt: string;
   }>;
+  messageDeliveryStats?: {
+    totalAttempts: number;
+    accepted: number;
+    delivered: number;
+    failed: number;
+    pending: number;
+    simulated: number;
+    hasFailures: boolean;
+  };
 }
 
 export default function AdminDashboardPage() {
@@ -473,6 +484,71 @@ export default function AdminDashboardPage() {
                   <span>Visualizar MiniSite Público</span>
                 </Button>
               </Link>
+            </CardContent>
+          </Card>
+
+          {/* Message Delivery Widget */}
+          <Card className={data?.messageDeliveryStats?.hasFailures ? "border-amber-500/40 dark:border-amber-500/30" : ""}>
+            <CardHeader className="pb-3 p-5 border-b border-[#E2E4E8] dark:border-[#303034]">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <span>Envios de Mensagens</span>
+                    {data?.messageDeliveryStats?.hasFailures && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                        <AlertTriangle className="h-3 w-3" />
+                        {data.messageDeliveryStats.failed} falha(s)
+                      </span>
+                    )}
+                  </CardTitle>
+                  <CardDescription className="text-xs mt-0.5">Últimos 7 dias</CardDescription>
+                </div>
+                <div className="h-7 w-7 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
+                  <Mail className="h-4 w-4" />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-5 space-y-3">
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#1E1E22] border border-slate-200/60 dark:border-slate-800/60">
+                  <span className="text-[#6B7280] dark:text-[#A3A3AD] block text-[11px]">Tentativas</span>
+                  <span className="font-heading font-bold text-base text-[#111827] dark:text-[#F5F5F5]">
+                    {data?.messageDeliveryStats?.totalAttempts ?? 0}
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#1E1E22] border border-slate-200/60 dark:border-slate-800/60">
+                  <span className="text-[#6B7280] dark:text-[#A3A3AD] block text-[11px]">Aceitos (SMTP)</span>
+                  <span className="font-heading font-bold text-base text-blue-600 dark:text-blue-400">
+                    {data?.messageDeliveryStats?.accepted ?? 0}
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#1E1E22] border border-slate-200/60 dark:border-slate-800/60">
+                  <span className="text-[#6B7280] dark:text-[#A3A3AD] block text-[11px]">Entregues</span>
+                  <span className="font-heading font-bold text-base text-emerald-600 dark:text-emerald-400">
+                    {data?.messageDeliveryStats?.delivered ?? 0}
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#1E1E22] border border-slate-200/60 dark:border-slate-800/60">
+                  <span className="text-[#6B7280] dark:text-[#A3A3AD] block text-[11px]">Falhas</span>
+                  <span className={`font-heading font-bold text-base ${(data?.messageDeliveryStats?.failed ?? 0) > 0 ? "text-rose-600 dark:text-rose-400" : "text-[#111827] dark:text-[#F5F5F5]"}`}>
+                    {data?.messageDeliveryStats?.failed ?? 0}
+                  </span>
+                </div>
+              </div>
+
+              {(data?.messageDeliveryStats?.pending ?? 0) > 0 && (
+                <div className="flex justify-between text-xs pt-1">
+                  <span className="text-[#6B7280] dark:text-[#A3A3AD]">Em fila / processamento:</span>
+                  <span className="font-medium text-amber-600 dark:text-amber-400">{data?.messageDeliveryStats?.pending}</span>
+                </div>
+              )}
+
+              <div className="pt-2 border-t border-[#E2E4E8] dark:border-[#303034]">
+                <Link href="/admin/lembretes/registros" className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--primary)] hover:underline">
+                  <span>Ver registros detalhados</span>
+                  <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
             </CardContent>
           </Card>
 

@@ -227,6 +227,43 @@ export interface DispatchNotificationParams {
 }
 
 /**
+ * Mascara destinatário (e-mail ou telefone) para exibição segura sem violar LGPD.
+ */
+export function maskRecipient(recipient: string, channel?: string): string {
+  if (!recipient) return "***";
+
+  // Se for e-mail
+  if (recipient.includes("@")) {
+    const [user, domain] = recipient.split("@");
+    if (!domain) return recipient;
+    if (user.length <= 2) {
+      return `${user.charAt(0)}***@${domain}`;
+    }
+    return `${user.slice(0, 2)}***${user.slice(-1)}@${domain}`;
+  }
+
+  // Se for número de telefone
+  const digits = recipient.replace(/\D/g, "");
+  if (digits.length >= 10) {
+    const national = digits.length > 11 && digits.startsWith("55") ? digits.slice(2) : digits;
+    if (national.length === 11) {
+      return `(${national.slice(0, 2)}) ${national.slice(2, 3)}****-${national.slice(-4)}`;
+    }
+    if (national.length === 10) {
+      return `(${national.slice(0, 2)}) ****-${national.slice(-4)}`;
+    }
+    return `${digits.slice(0, 4)}****${digits.slice(-4)}`;
+  }
+
+  // Se for ID longo (ex: cuid)
+  if (recipient.length > 6) {
+    return `${recipient.slice(0, 3)}...${recipient.slice(-3)}`;
+  }
+
+  return "***";
+}
+
+/**
  * Disparador unificado de notificações com suporte a in-app, email e whatsapp
  */
 export async function dispatchNotification(params: DispatchNotificationParams) {
@@ -271,15 +308,47 @@ export async function dispatchNotification(params: DispatchNotificationParams) {
         const sys = await prisma.systemSettings.findFirst();
         const emailConfigured = !!(sys?.smtpEnabled && sys?.smtpHost && sys?.smtpUser);
 
+        // Busca e-mail real do paciente caso recipientId seja um ID
+        let recipientEmail = params.recipientId;
+        if (!recipientEmail.includes("@")) {
+          const patient = await prisma.patient.findUnique({
+            where: { id: params.recipientId },
+            select: { email: true },
+          });
+          if (patient?.email) recipientEmail = patient.email;
+        }
+
+        const masked = maskRecipient(recipientEmail, "EMAIL");
+        const status = emailConfigured ? "ACCEPTED" : "SIMULATED";
+        const now = new Date();
+
         await prisma.notificationDelivery.create({
           data: {
-            recipient: params.recipientId,
+            recipient: recipientEmail,
+            maskedRecipient: masked,
             channel: "EMAIL",
             templateType: "APPOINTMENT_CONFIRMED",
-            status: emailConfigured ? "DELIVERED" : "SIMULATED",
+            messageType: params.eventType,
+            subjectOrCategory: title,
+            recipientReference: params.recipientId,
+            relatedAppointmentId:
+              params.relatedEntityType === "Appointment" ? params.relatedEntityId : undefined,
+            status,
             simulated: !emailConfigured,
-            errorDetails: emailConfigured ? null : "Servidor SMTP não configurado; entrega simulada no aplicativo.",
+            provider: emailConfigured ? "SMTP" : "SIMULATED",
+            attemptedAt: now,
+            acceptedAt: emailConfigured ? now : undefined,
+            attemptCount: 1,
+            errorDetails: emailConfigured
+              ? null
+              : "Servidor SMTP não configurado; entrega simulada no aplicativo.",
             idempotencyKey: params.idempotencyKey ? `email-${params.idempotencyKey}` : undefined,
+            metadataJson: JSON.stringify({
+              title,
+              message,
+              eventType: params.eventType,
+              vars: params.vars,
+            }),
           },
         });
       } catch (e) {
@@ -293,15 +362,47 @@ export async function dispatchNotification(params: DispatchNotificationParams) {
         const sys = await prisma.systemSettings.findFirst();
         const waConfigured = !!(sys?.whatsappEnabled && sys?.whatsappApiUrl);
 
+        // Busca telefone real do paciente caso recipientId seja um ID
+        let recipientPhone = params.recipientId;
+        if (recipientPhone.includes("@") || recipientPhone.length < 8) {
+          const patient = await prisma.patient.findUnique({
+            where: { id: params.recipientId },
+            select: { phone: true },
+          });
+          if (patient?.phone) recipientPhone = patient.phone;
+        }
+
+        const masked = maskRecipient(recipientPhone, "WHATSAPP");
+        const status = waConfigured ? "ACCEPTED" : "SIMULATED";
+        const now = new Date();
+
         await prisma.notificationDelivery.create({
           data: {
-            recipient: params.recipientId,
+            recipient: recipientPhone,
+            maskedRecipient: masked,
             channel: "WHATSAPP",
             templateType: "APPOINTMENT_CONFIRMED",
-            status: waConfigured ? "DELIVERED" : "SIMULATED",
+            messageType: params.eventType,
+            subjectOrCategory: title,
+            recipientReference: params.recipientId,
+            relatedAppointmentId:
+              params.relatedEntityType === "Appointment" ? params.relatedEntityId : undefined,
+            status,
             simulated: !waConfigured,
-            errorDetails: waConfigured ? null : "API de WhatsApp não configurada; entrega simulada no aplicativo.",
+            provider: waConfigured ? sys?.whatsappProvider || "WHATSAPP_API" : "SIMULATED",
+            attemptedAt: now,
+            acceptedAt: waConfigured ? now : undefined,
+            attemptCount: 1,
+            errorDetails: waConfigured
+              ? null
+              : "API de WhatsApp não configurada; entrega simulada no aplicativo.",
             idempotencyKey: params.idempotencyKey ? `wa-${params.idempotencyKey}` : undefined,
+            metadataJson: JSON.stringify({
+              title,
+              message,
+              eventType: params.eventType,
+              vars: params.vars,
+            }),
           },
         });
       } catch (e) {
@@ -349,14 +450,25 @@ export async function sendNotification({
       ? !!(sys?.smtpEnabled && sys?.smtpHost && sys?.smtpUser)
       : !!(sys?.whatsappEnabled && sys?.whatsappApiUrl);
 
+  const status = isReal ? "ACCEPTED" : "SIMULATED";
+  const now = new Date();
+
   const record = await prisma.notificationDelivery.create({
     data: {
       recipient,
+      maskedRecipient: maskRecipient(recipient, channel),
       channel,
       templateType,
-      status: isReal ? "DELIVERED" : "SIMULATED",
+      messageType: templateType.toString(),
+      subjectOrCategory: subject || `Notificação ${templateType}`,
+      status,
       simulated: !isReal,
+      provider: isReal ? (channel === "EMAIL" ? "SMTP" : "WHATSAPP_API") : "SIMULATED",
+      attemptedAt: now,
+      acceptedAt: isReal ? now : undefined,
+      attemptCount: 1,
       idempotencyKey,
+      metadataJson: JSON.stringify({ subject, variables }),
     },
   });
 
@@ -364,5 +476,6 @@ export async function sendNotification({
     success: true,
     deliveryId: record.id,
     simulated: !isReal,
+    status: record.status,
   };
 }

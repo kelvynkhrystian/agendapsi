@@ -10,6 +10,7 @@ export async function GET() {
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
     const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
     const [
       todayAppointments,
@@ -21,6 +22,7 @@ export async function GET() {
       recentActivity,
       fileCount,
       totalFileBytes,
+      recentNotifications,
     ] = await Promise.all([
       // Consultas de hoje
       prisma.appointment.findMany({
@@ -85,6 +87,12 @@ export async function GET() {
       prisma.storedFile.aggregate({
         _sum: { sizeBytes: true },
       }),
+
+      // Registros de entrega de mensagens (últimos 7 dias)
+      prisma.notificationDelivery.findMany({
+        where: { createdAt: { gte: sevenDaysAgo } },
+        select: { status: true },
+      }),
     ]);
 
     // Separação rigorosa entre receita real e receita simulada
@@ -104,6 +112,37 @@ export async function GET() {
       pendingBalanceCents += p.amountCents;
     }
 
+    // Métricas de entrega de mensagens
+    let msgDelivered = 0;
+    let msgAccepted = 0;
+    let msgFailed = 0;
+    let msgSimulated = 0;
+    let msgPending = 0;
+
+    for (const n of recentNotifications) {
+      if (n.status === "DELIVERED") {
+        msgDelivered++;
+      } else if (n.status === "ACCEPTED") {
+        msgAccepted++;
+      } else if (n.status === "FAILED") {
+        msgFailed++;
+      } else if (n.status === "SIMULATED") {
+        msgSimulated++;
+      } else if (n.status === "QUEUED" || n.status === "PROCESSING") {
+        msgPending++;
+      }
+    }
+
+    const messageDeliveryStats = {
+      totalAttempts: recentNotifications.length,
+      accepted: msgAccepted,
+      delivered: msgDelivered,
+      failed: msgFailed,
+      pending: msgPending,
+      simulated: msgSimulated,
+      hasFailures: msgFailed > 0,
+    };
+
     return NextResponse.json({
       todayAppointments,
       nextAppointments,
@@ -121,6 +160,7 @@ export async function GET() {
         totalBytes: totalFileBytes._sum.sizeBytes || 0,
       },
       recentActivity,
+      messageDeliveryStats,
     });
   } catch (error: unknown) {
     if (error instanceof Error && (error.message === "UNAUTHORIZED" || error.message === "FORBIDDEN")) {
