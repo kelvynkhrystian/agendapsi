@@ -250,10 +250,10 @@ export function MiniSiteHeader({
       {/* ================= 1. CABEÇALHO MOBILE (< 768px: FLOATING ROUNDED PILL) ================= */}
       <div className="flex md:hidden w-full px-3 pt-2.5 sm:px-4 sm:pt-3 pointer-events-none">
         <div
-          className={`flex items-center justify-between w-full h-14 px-4 rounded-full pointer-events-auto transition-all duration-300 border ${
+          className={`flex items-center justify-between w-full h-14 px-4 rounded-full pointer-events-auto transition-all duration-300 border-0 ${
             isScrolled
-              ? "bg-white/95 backdrop-blur-lg border-[#E2DDD5] shadow-[0_6px_24px_rgba(0,0,0,0.08)]"
-              : "bg-white/85 backdrop-blur-md border-[#E7E2DA]/90 shadow-[0_4px_16px_rgba(0,0,0,0.04)]"
+              ? "bg-white/95 backdrop-blur-lg shadow-[0_6px_24px_rgba(0,0,0,0.08)]"
+              : "bg-white/90 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.05)]"
           }`}
           style={{ marginTop: "env(safe-area-inset-top, 0px)" }}
         >

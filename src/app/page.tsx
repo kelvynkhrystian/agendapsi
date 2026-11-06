@@ -260,7 +260,7 @@ export default async function HomePage() {
             </div>
 
             {/* Container Responsivo de Mídia (Slot 1: Herói - Compatível com Imagens, ZIP Frames e Vídeos) */}
-            <div id="hero-media-container" className="w-60 h-68 sm:w-72 sm:h-80 md:w-80 md:h-92 rounded-full p-2.5 bg-gradient-to-b from-white via-white to-[var(--primary)]/10 border-2 border-[var(--primary)]/20 shadow-lg flex items-center justify-center overflow-hidden transition-all duration-300">
+            <div id="hero-media-container" className="w-60 h-68 sm:w-72 sm:h-80 md:w-80 md:h-92 rounded-full flex items-center justify-center overflow-hidden transition-all duration-300 shadow-md">
               <MiniSiteMediaPlayer
                 slot="hero"
                 mediaType={heroMediaType}
