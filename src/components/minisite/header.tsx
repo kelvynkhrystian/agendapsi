@@ -203,7 +203,7 @@ export function MiniSiteHeader({
 
     const el = document.getElementById(id);
     if (el) {
-      const headerOffset = 68;
+      const headerOffset = 76;
       const elementPosition = el.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
       window.scrollTo({
@@ -247,57 +247,59 @@ export function MiniSiteHeader({
       ref={headerRef}
       className="fixed top-0 left-0 right-0 z-40 w-full bg-transparent border-none shadow-none pointer-events-none transition-all duration-300 py-0 md:py-3.5 lg:py-4"
     >
-      {/* ================= 1. CABEÇALHO MOBILE (< 768px) ================= */}
-      <div
-        className={`flex md:hidden items-center justify-between w-full h-16 px-4 pointer-events-auto transition-all duration-300 ${
-          isScrolled
-            ? "bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs"
-            : "bg-white/90 backdrop-blur-sm border-b border-slate-200/40"
-        }`}
-        style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
-      >
-        {/* LADO ESQUERDO: Logo Horizontal Oficial Sem Rótulo "PSI" */}
-        <Link
-          href="/"
-          onClick={handleLinkClick}
-          className="flex items-center focus:outline-none cursor-pointer"
-          aria-label="Página inicial"
+      {/* ================= 1. CABEÇALHO MOBILE (< 768px: FLOATING ROUNDED PILL) ================= */}
+      <div className="flex md:hidden w-full px-3 pt-2.5 sm:px-4 sm:pt-3 pointer-events-none">
+        <div
+          className={`flex items-center justify-between w-full h-14 px-4 rounded-full pointer-events-auto transition-all duration-300 border ${
+            isScrolled
+              ? "bg-white/95 backdrop-blur-lg border-[#E2DDD5] shadow-[0_6px_24px_rgba(0,0,0,0.08)]"
+              : "bg-white/85 backdrop-blur-md border-[#E7E2DA]/90 shadow-[0_4px_16px_rgba(0,0,0,0.04)]"
+          }`}
+          style={{ marginTop: "env(safe-area-inset-top, 0px)" }}
         >
-          {logoHorizontalUrl ? (
-            <img
-              src={logoHorizontalUrl}
-              alt={neutralFallbackName}
-              className="h-8 w-auto max-w-[190px] sm:max-w-[220px] object-contain transition-transform active:scale-98"
-            />
-          ) : logoUrl ? (
-            <img
-              src={logoUrl}
-              alt={neutralFallbackName}
-              className="h-8 w-auto max-w-[140px] object-contain rounded-sm"
-            />
-          ) : (
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-serif font-black text-lg">
-                Ψ
+          {/* LADO ESQUERDO: Logo Horizontal Oficial Sem Rótulo "PSI" */}
+          <Link
+            href="/"
+            onClick={handleLinkClick}
+            className="flex items-center focus:outline-none cursor-pointer"
+            aria-label="Página inicial"
+          >
+            {logoHorizontalUrl ? (
+              <img
+                src={logoHorizontalUrl}
+                alt={neutralFallbackName}
+                className="h-7 sm:h-8 w-auto max-w-[170px] sm:max-w-[210px] object-contain transition-transform active:scale-98"
+              />
+            ) : logoUrl ? (
+              <img
+                src={logoUrl}
+                alt={neutralFallbackName}
+                className="h-7 sm:h-8 w-auto max-w-[130px] object-contain rounded-sm"
+              />
+            ) : (
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-serif font-black text-base sm:text-lg">
+                  Ψ
+                </div>
+                <span className="text-xs sm:text-sm font-semibold tracking-tight text-slate-900">
+                  {neutralFallbackName}
+                </span>
               </div>
-              <span className="text-sm font-semibold tracking-tight text-slate-900">
-                {neutralFallbackName}
-              </span>
-            </div>
-          )}
-        </Link>
+            )}
+          </Link>
 
-        {/* LADO DIREITO: Botão Hamburguer */}
-        <button
-          type="button"
-          onClick={() => setIsMenuOpen((prev) => !prev)}
-          aria-label={isMenuOpen ? "Fechar menu de navegação" : "Abrir menu de navegação"}
-          aria-expanded={isMenuOpen}
-          aria-controls="mobile-navigation-menu"
-          className="p-2 -mr-1 rounded-xl text-slate-700 hover:text-slate-950 hover:bg-slate-100 active:bg-slate-200 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 cursor-pointer"
-        >
-          {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+          {/* LADO DIREITO: Botão Hamburguer */}
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+            aria-label={isMenuOpen ? "Fechar menu de navegação" : "Abrir menu de navegação"}
+            aria-expanded={isMenuOpen}
+            aria-controls="mobile-navigation-menu"
+            className="p-2 rounded-full text-slate-700 hover:text-slate-950 hover:bg-slate-100 active:bg-slate-200 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 cursor-pointer"
+          >
+            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       {/* ================= 2. CABEÇALHO DESKTOP (>= 768px: PREMIUM PILL NAVIGATION) ================= */}
@@ -476,7 +478,7 @@ export function MiniSiteHeader({
         <>
           {/* Fundo Escurecido com Fechamento ao Tocar */}
           <div
-            className="fixed inset-0 top-16 bg-slate-950/40 backdrop-blur-xs z-40 md:hidden animate-in fade-in duration-200 pointer-events-auto cursor-pointer"
+            className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-40 md:hidden animate-in fade-in duration-200 pointer-events-auto cursor-pointer"
             onClick={() => {
               setIsMenuOpen(false);
               document.body.style.overflow = "";
@@ -484,10 +486,10 @@ export function MiniSiteHeader({
             aria-hidden="true"
           />
 
-          {/* Painel de Navegação Móvel Perfeitamente Ancorado */}
+          {/* Painel de Navegação Móvel com cantos arredondados harmonizados */}
           <div
             id="mobile-navigation-menu"
-            className="fixed top-16 left-0 right-0 w-full max-h-[calc(100vh-4rem)] bg-white border-b border-slate-200/90 shadow-2xl z-50 md:hidden animate-in slide-in-from-top-2 duration-200 ease-out flex flex-col overflow-y-auto pointer-events-auto"
+            className="fixed top-[70px] sm:top-[76px] left-3 right-3 sm:left-4 sm:right-4 max-h-[calc(100vh-5.5rem)] bg-white/98 backdrop-blur-xl rounded-2xl border border-slate-200/90 shadow-2xl z-50 md:hidden animate-in slide-in-from-top-2 duration-200 ease-out flex flex-col overflow-y-auto pointer-events-auto"
             style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom, 0px))" }}
           >
             <div className="px-5 py-5 space-y-4">
