@@ -185,3 +185,55 @@
     cursor: pointer;
   }
 }
+
+/* Animações Sequenciais do Menu Mobile e Header Flutuante */
+@keyframes menuDrawerFadeDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes blockSlideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-menu-drawer {
+  animation: menuDrawerFadeDown 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-block-stagger {
+  animation: blockSlideDown 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-backdrop-fade {
+  animation: backdropFadeIn 0.2s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-menu-drawer,
+  .animate-block-stagger,
+  .animate-backdrop-fade {
+    animation: none !important;
+  }
+}

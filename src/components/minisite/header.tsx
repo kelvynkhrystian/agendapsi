@@ -242,6 +242,15 @@ export function MiniSiteHeader({
 
   const dashboardUrl = user?.role === "ADMIN" ? "/admin" : "/paciente";
 
+  const mobileNavItems = [
+    { id: "inicio", label: "Início", icon: Home },
+    { id: "atendimentos", label: "Atendimentos", icon: Brain },
+    { id: "sobre", label: "Sobre Mim", icon: Heart },
+    { id: "diferenciais", label: "Diferenciais", icon: Sparkles },
+    { id: "como-funciona", label: "Como Funciona", icon: HelpCircle },
+    ...(shouldShowLocation ? [{ id: "localizacao", label: "Localização", icon: MapPin }] : []),
+  ];
+
   return (
     <header
       ref={headerRef}
@@ -250,10 +259,10 @@ export function MiniSiteHeader({
       {/* ================= 1. CABEÇALHO MOBILE (< 768px: FLOATING ROUNDED PILL) ================= */}
       <div className="flex md:hidden w-full px-3 pt-2.5 sm:px-4 sm:pt-3 pointer-events-none">
         <div
-          className={`flex items-center justify-between w-full h-14 px-4 rounded-full pointer-events-auto transition-all duration-300 border-0 ${
-            isScrolled
-              ? "bg-white/95 backdrop-blur-lg shadow-[0_6px_24px_rgba(0,0,0,0.08)]"
-              : "bg-white/90 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.05)]"
+          className={`flex items-center justify-between w-full h-14 px-4 rounded-full pointer-events-auto transition-all duration-300 ${
+            isScrolled || isMenuOpen
+              ? "bg-white/95 backdrop-blur-lg border border-slate-200/70 shadow-[0_6px_24px_rgba(0,0,0,0.08)]"
+              : "bg-white/40 backdrop-blur-md border border-white/40 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:bg-white/60"
           }`}
           style={{ marginTop: "env(safe-area-inset-top, 0px)" }}
         >
@@ -478,7 +487,7 @@ export function MiniSiteHeader({
         <>
           {/* Fundo Escurecido com Fechamento ao Tocar */}
           <div
-            className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-40 md:hidden animate-in fade-in duration-200 pointer-events-auto cursor-pointer"
+            className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-40 md:hidden animate-backdrop-fade pointer-events-auto cursor-pointer"
             onClick={() => {
               setIsMenuOpen(false);
               document.body.style.overflow = "";
@@ -489,92 +498,48 @@ export function MiniSiteHeader({
           {/* Painel de Navegação Móvel com cantos arredondados harmonizados */}
           <div
             id="mobile-navigation-menu"
-            className="fixed top-[70px] sm:top-[76px] left-3 right-3 sm:left-4 sm:right-4 max-h-[calc(100vh-5.5rem)] bg-white/98 backdrop-blur-xl rounded-2xl border border-slate-200/90 shadow-2xl z-50 md:hidden animate-in slide-in-from-top-2 duration-200 ease-out flex flex-col overflow-y-auto pointer-events-auto"
+            className="fixed top-[70px] sm:top-[76px] left-3 right-3 sm:left-4 sm:right-4 max-h-[calc(100vh-5.5rem)] bg-white/98 backdrop-blur-xl rounded-2xl border border-slate-200/90 shadow-2xl z-50 md:hidden animate-menu-drawer flex flex-col overflow-y-auto pointer-events-auto"
             style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom, 0px))" }}
           >
             <div className="px-5 py-5 space-y-4">
-              {/* Lista de Seções */}
-              <div className="flex flex-col space-y-1">
-                <a
-                  href="#inicio"
-                  onClick={(e) => handleMobileNavClick(e, "inicio")}
-                  className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-800 hover:bg-slate-100/80 active:bg-slate-200/70 hover:text-[var(--primary)] transition-colors cursor-pointer"
-                >
-                  <span className="flex items-center gap-3">
-                    <Home className="h-4 w-4 text-[var(--primary)]" />
-                    <span>Início</span>
-                  </span>
-                  <ChevronRight className="h-4 w-4 text-slate-400" />
-                </a>
-
-                <a
-                  href="#atendimentos"
-                  onClick={(e) => handleMobileNavClick(e, "atendimentos")}
-                  className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-800 hover:bg-slate-100/80 active:bg-slate-200/70 hover:text-[var(--primary)] transition-colors cursor-pointer"
-                >
-                  <span className="flex items-center gap-3">
-                    <Brain className="h-4 w-4 text-[var(--primary)]" />
-                    <span>Atendimentos</span>
-                  </span>
-                  <ChevronRight className="h-4 w-4 text-slate-400" />
-                </a>
-
-                <a
-                  href="#sobre"
-                  onClick={(e) => handleMobileNavClick(e, "sobre")}
-                  className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-800 hover:bg-slate-100/80 active:bg-slate-200/70 hover:text-[var(--primary)] transition-colors cursor-pointer"
-                >
-                  <span className="flex items-center gap-3">
-                    <Heart className="h-4 w-4 text-[var(--primary)]" />
-                    <span>Sobre Mim</span>
-                  </span>
-                  <ChevronRight className="h-4 w-4 text-slate-400" />
-                </a>
-
-                <a
-                  href="#diferenciais"
-                  onClick={(e) => handleMobileNavClick(e, "diferenciais")}
-                  className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-800 hover:bg-slate-100/80 active:bg-slate-200/70 hover:text-[var(--primary)] transition-colors cursor-pointer"
-                >
-                  <span className="flex items-center gap-3">
-                    <Sparkles className="h-4 w-4 text-[var(--primary)]" />
-                    <span>Diferenciais</span>
-                  </span>
-                  <ChevronRight className="h-4 w-4 text-slate-400" />
-                </a>
-
-                <a
-                  href="#como-funciona"
-                  onClick={(e) => handleMobileNavClick(e, "como-funciona")}
-                  className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-800 hover:bg-slate-100/80 active:bg-slate-200/70 hover:text-[var(--primary)] transition-colors cursor-pointer"
-                >
-                  <span className="flex items-center gap-3">
-                    <HelpCircle className="h-4 w-4 text-[var(--primary)]" />
-                    <span>Como Funciona</span>
-                  </span>
-                  <ChevronRight className="h-4 w-4 text-slate-400" />
-                </a>
-
-                {shouldShowLocation && (
-                  <a
-                    href="#localizacao"
-                    onClick={(e) => handleMobileNavClick(e, "localizacao")}
-                    className="flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold text-slate-800 hover:bg-slate-100/80 active:bg-slate-200/70 hover:text-[var(--primary)] transition-colors cursor-pointer"
-                  >
-                    <span className="flex items-center gap-3">
-                      <MapPin className="h-4 w-4 text-[var(--primary)]" />
-                      <span>Localização</span>
-                    </span>
-                    <ChevronRight className="h-4 w-4 text-slate-400" />
-                  </a>
-                )}
+              {/* Lista de Seções com Animação em Blocos Sequenciais */}
+              <div className="flex flex-col space-y-1.5">
+                {mobileNavItems.map((item, index) => {
+                  const Icon = item.icon;
+                  const isActive = activeSection === item.id;
+                  return (
+                    <a
+                      key={item.id}
+                      href={`#${item.id}`}
+                      onClick={(e) => handleMobileNavClick(e, item.id)}
+                      className={`animate-block-stagger flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold transition-colors cursor-pointer ${
+                        isActive
+                          ? "bg-[var(--primary)]/10 text-[var(--primary)] font-bold shadow-xs"
+                          : "text-slate-800 hover:bg-slate-100/80 active:bg-slate-200/70 hover:text-[var(--primary)]"
+                      }`}
+                      style={{ animationDelay: `${index * 55 + 40}ms` }}
+                    >
+                      <span className="flex items-center gap-3">
+                        <Icon className="h-4 w-4 text-[var(--primary)]" />
+                        <span>{item.label}</span>
+                      </span>
+                      <ChevronRight className={`h-4 w-4 ${isActive ? "text-[var(--primary)]" : "text-slate-400"}`} />
+                    </a>
+                  );
+                })}
               </div>
 
-              {/* Divisor */}
-              <div className="pt-2 border-t border-slate-100" />
+              {/* Divisor com fade */}
+              <div
+                className="pt-2 border-t border-slate-100 animate-block-stagger"
+                style={{ animationDelay: `${mobileNavItems.length * 55 + 60}ms` }}
+              />
 
-              {/* Autenticação no Mobile (Sem botão de Agendamento) */}
-              <div className="pt-1 pb-2">
+              {/* Autenticação no Mobile (Bloco Sequencial Final) */}
+              <div
+                className="pt-1 pb-2 animate-block-stagger"
+                style={{ animationDelay: `${mobileNavItems.length * 55 + 90}ms` }}
+              >
                 {isLoadingAuth ? (
                   <div className="w-full h-12 rounded-xl bg-slate-100 animate-pulse" />
                 ) : user ? (
