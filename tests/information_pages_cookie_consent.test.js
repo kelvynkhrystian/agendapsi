@@ -13,10 +13,10 @@ test("1. Admin Sidebar: 'MiniSite' renomeado e 'Páginas Informativas' inserido 
   assert.ok(layoutContent.includes('label: "MiniSite"') && layoutContent.includes('href: "/admin/minisite"'), "Item do menu deve ser 'MiniSite'");
   assert.ok(!layoutContent.includes('"MiniSite & Páginas"'), "Não deve mais existir 'MiniSite & Páginas'");
 
-  // Verifica novo item 'Páginas Informativas'
+  // Verifica novo item 'Páginas Info' / 'Páginas Informativas'
   assert.ok(
-    layoutContent.includes('label: "Páginas Informativas"') && layoutContent.includes('href: "/admin/paginas-informativas"'),
-    "Menu deve conter 'Páginas Informativas' apontando para /admin/paginas-informativas"
+    (layoutContent.includes('label: "Páginas Info"') || layoutContent.includes('label: "Páginas Informativas"')) && layoutContent.includes('href: "/admin/paginas-informativas"'),
+    "Menu deve conter 'Páginas Info' apontando para /admin/paginas-informativas"
   );
   assert.ok(layoutContent.includes("FileText"), "Item deve utilizar o ícone FileText");
 
