@@ -31,7 +31,7 @@ const navItems = [
   { href: "/admin", label: "Painel Geral", icon: LayoutDashboard },
   { href: "/admin/agenda", label: "Agenda", icon: Calendar },
   { href: "/admin/pacientes", label: "Pacientes", icon: Users },
-  { href: "/admin/servicos", label: "Serviços & Políticas", icon: Briefcase },
+  { href: "/admin/servicos", label: "Serviços", icon: Briefcase },
   { href: "/admin/pacotes", label: "Pacotes de Sessões", icon: Boxes },
   { href: "/admin/financeiro", label: "Financeiro", icon: DollarSign },
   { href: "/admin/minisite", label: "MiniSite", icon: Globe },
