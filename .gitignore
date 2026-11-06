@@ -40,3 +40,11 @@ yarn-error.log*
 # OS
 .DS_Store
 Thumbs.db
+
+# Agent metadata
+.agent/
+.agents/
+.claude/
+.codex/
+.gemini/
+*.tsbuildinfo

@@ -15,10 +15,11 @@ Este documento relaciona todas as páginas e rotas de API disponíveis no sistem
 | `/cadastro` | Formulário público de autocadastro para novos pacientes | Público |
 | `/recuperar-senha` | Solicitação de redefinição de senha com token de expiração | Público |
 | `/consulta-virtual/[token]` | Sala de espera e entrada para teleconsulta | Autenticado (Gated) |
-| `/privacidade` | Política de Privacidade do consultório | Público |
-| `/termos` | Termos e Condições de Uso | Público |
-| `/cookies` | Política de Cookies | Público |
-| `/lgpd` | Informações sobre a Lei Geral de Proteção de Dados Pessoais | Público |
+| `/politica-de-privacidade` | Política de Privacidade do consultório e gestão de cookies (alias: `/privacidade`) | Público |
+| `/termos-de-uso` | Termos e Condições de Uso e regras de agendamento (alias: `/termos`) | Público |
+| `/protecao-de-dados` | Informações sobre a LGPD e direitos do titular (alias: `/lgpd`) | Público |
+| `/etica-profissional` | Código de Ética Profissional (CFP) e compromisso de sigilo clínico | Público |
+| `/cookies` | Redirecionamento permanente para `/politica-de-privacidade` | Público |
 
 ---
 
@@ -38,6 +39,8 @@ Este documento relaciona todas as páginas e rotas de API disponíveis no sistem
 | `/admin/financeiro` | Balanço financeiro, confirmação de pagamentos manuais e estornos |
 | `/admin/pacotes` | Criação e monitoramento de propostas de pacotes de sessões |
 | `/admin/minisite` | Editor de conteúdo do MiniSite (biografia, endereço, cores, redes sociais) |
+| `/admin/paginas-informativas` | Central de gestão das páginas informativas independentes (Termos de Uso, Política de Privacidade, LGPD e Ética Profissional) |
+| `/admin/paginas-informativas/[id]` | Editor full-page de página informativa com preview ao vivo, split-view, versionamento e restauração de padrão |
 | `/admin/arquivos` | Monitor de uso de disco e rotina de geração de backup com checksum SHA-256 |
 | `/admin/integracoes` | Central independente de integrações: E-mail (SMTP) e WhatsApp com testes de conexão |
 | `/admin/lembretes` | Gerenciamento de templates e canais de disparo de lembretes e mensagens do consultório |
@@ -208,3 +211,12 @@ Endpoint de leitura (PULL) para monitoramento da saúde e métricas agregadas da
 | `GET` | `/api/admin/minisite/media/settings` | Admin | Consulta detalhada das configurações dos slots de mídia (Hero e Sobre Mim) |
 | `PUT` | `/api/admin/minisite/media/settings` | Admin | Persistência dos parâmetros de reprodução, velocidade, loop e enquadramento de mídia |
 | `POST` | `/api/admin/minisite/icons/upload` | Admin | Upload e sanitização de ícones customizados (PNG e SVG sanitizado) |
+
+### 4.7 Páginas Informativas e Conteúdo Legal
+| Método | Endpoint | Permissão | Descrição |
+| :--- | :--- | :--- | :--- |
+| `GET`  | `/api/admin/information-pages` | Admin | Listagem das 4 páginas informativas (termos, privacidade, lgpd, ética) com auto-inicialização |
+| `GET`  | `/api/admin/information-pages/[id]` | Admin | Consulta detalhada do conteúdo e metadados de uma página informativa |
+| `PUT`  | `/api/admin/information-pages/[id]` | Admin | Atualização com validação Zod, sanitização HTML e registro em `AuditLog` |
+| `POST` | `/api/admin/information-pages/[id]/publish` | Admin | Alternância atômica do status de publicação (`isPublished`) com auditoria |
+| `POST` | `/api/admin/information-pages/[id]/restore-default` | Admin | Restauração dos templates padrão recomendados pelo PSI com auditoria |

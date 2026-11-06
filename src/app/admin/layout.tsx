@@ -24,6 +24,7 @@ import {
   ChevronRight,
   BellRing,
   Share2,
+  FileText,
 } from "lucide-react";
 
 const navItems = [
@@ -33,7 +34,8 @@ const navItems = [
   { href: "/admin/servicos", label: "Serviços & Políticas", icon: Briefcase },
   { href: "/admin/pacotes", label: "Pacotes de Sessões", icon: Boxes },
   { href: "/admin/financeiro", label: "Financeiro", icon: DollarSign },
-  { href: "/admin/minisite", label: "MiniSite & Páginas", icon: Globe },
+  { href: "/admin/minisite", label: "MiniSite", icon: Globe },
+  { href: "/admin/paginas-informativas", label: "Páginas Informativas", icon: FileText },
   { href: "/admin/lembretes", label: "Lembretes", icon: BellRing },
   { href: "/admin/integracoes", label: "Integrações", icon: Share2 },
   { href: "/admin/arquivos", label: "Armazenamento & Backup", icon: HardDrive },

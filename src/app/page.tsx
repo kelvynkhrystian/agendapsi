@@ -8,6 +8,8 @@ import { MiniSiteMediaPlayer } from "@/components/minisite/media-player";
 import { MiniSiteHeader } from "@/components/minisite/header";
 import { MiniSiteFloatingControls } from "@/components/minisite/floating-controls";
 import { ThemeIcon } from "@/components/minisite/theme-icon";
+import { CookieBanner } from "@/components/cookie-consent/cookie-banner";
+import { CookiePreferencesTrigger } from "@/components/cookie-consent/cookie-preferences-trigger";
 import { DEFAULT_HERO_BENEFITS, HeroBenefitItem } from "@/lib/minisite-icons";
 import { detectExistingFrames } from "@/lib/minisite-media";
 import {
@@ -44,7 +46,7 @@ import {
 } from "lucide-react";
 
 export default async function HomePage() {
-  const [site, profile, services, session] = await Promise.all([
+  const [site, profile, services, session, publishedLegalPages] = await Promise.all([
     prisma.siteSettings.findUnique({ where: { id: "default" } }),
     prisma.professionalProfile.findUnique({ where: { id: "default" } }),
     prisma.service.findMany({
@@ -52,7 +54,13 @@ export default async function HomePage() {
       orderBy: { priceCents: "asc" },
     }),
     getSession(),
+    prisma.legalPage.findMany({
+      where: { isPublished: true },
+      select: { id: true, title: true },
+    }),
   ]);
+
+  const publishedPageIds = new Set(publishedLegalPages.map((p) => p.id));
 
   const currentUser = session
     ? {
@@ -898,19 +906,28 @@ export default async function HomePage() {
               </p>
             </div>
 
-            <div className="flex flex-wrap justify-center sm:justify-end gap-4 text-xs font-medium">
-              <Link href="/privacidade" className="hover:text-[var(--primary)] hover:underline">
-                Privacidade
-              </Link>
-              <Link href="/termos" className="hover:text-[var(--primary)] hover:underline">
-                Termos
-              </Link>
-              <Link href="/cookies" className="hover:text-[var(--primary)] hover:underline">
-                Cookies
-              </Link>
-              <Link href="/lgpd" className="hover:text-[var(--primary)] hover:underline">
-                LGPD
-              </Link>
+            <div className="flex flex-wrap justify-center sm:justify-end items-center gap-4 text-xs font-medium">
+              {publishedPageIds.has("privacy") && (
+                <Link href="/politica-de-privacidade" className="hover:text-[var(--primary)] hover:underline">
+                  Privacidade
+                </Link>
+              )}
+              {publishedPageIds.has("terms") && (
+                <Link href="/termos-de-uso" className="hover:text-[var(--primary)] hover:underline">
+                  Termos de Uso
+                </Link>
+              )}
+              {publishedPageIds.has("lgpd") && (
+                <Link href="/protecao-de-dados" className="hover:text-[var(--primary)] hover:underline">
+                  LGPD
+                </Link>
+              )}
+              {publishedPageIds.has("ethics") && (
+                <Link href="/etica-profissional" className="hover:text-[var(--primary)] hover:underline">
+                  Ética Profissional
+                </Link>
+              )}
+              <CookiePreferencesTrigger />
             </div>
           </div>
 
@@ -925,6 +942,9 @@ export default async function HomePage() {
         whatsappUrl={whatsappUrl}
         showFloatingWhatsApp={Boolean(site?.showFloatingWhatsApp !== false && whatsappUrl)}
       />
+
+      {/* ================= BANNER DE CONSENTIMENTO DE COOKIES ================= */}
+      <CookieBanner />
     </div>
   );
 }

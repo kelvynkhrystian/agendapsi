@@ -1,5 +1,5 @@
-import { LegalPageView } from "@/components/legal-page-view";
+import { redirect } from "next/navigation";
 
 export default function CookiesPage() {
-  return <LegalPageView slug="cookies" defaultTitle="Política de Cookies" />;
+  redirect("/politica-de-privacidade");
 }

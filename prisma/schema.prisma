@@ -566,11 +566,14 @@ model ProfessionalProfile {
 }
 
 model LegalPage {
-  id          String   @id // "privacy", "terms", "cookies", "lgpd"
+  id          String    @id // "privacy", "terms", "cookies", "lgpd", "ethics"
   title       String
-  contentHtml String   @db.MediumText
-  version     String   @default("1.0")
-  updatedAt   DateTime @updatedAt
+  description String?   @db.Text
+  contentHtml String    @db.MediumText
+  version     String    @default("1.0")
+  isPublished Boolean   @default(true)
+  publishedAt DateTime?
+  updatedAt   DateTime  @updatedAt
 }
 
 model SystemSettings {

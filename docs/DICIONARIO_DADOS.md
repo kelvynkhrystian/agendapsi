@@ -1152,10 +1152,13 @@ erDiagram
 
 | Campo | Tipo | Obrigatório? | Padrão | Significado | Exemplo |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `id` | `String` | Sim | Nenhum | Identificador fixo: `"privacy"`, `"terms"`, `"cookies"`, `"lgpd"` | `"privacy"` |
+| `id` | `String` | Sim | Nenhum | Identificador fixo: `"privacy"`, `"terms"`, `"cookies"`, `"lgpd"`, `"ethics"` | `"privacy"` |
 | `title` | `String` | Sim | Nenhum | Título da página legal | `"Política de Privacidade e Proteção de Dados"` |
+| `description` | `String?` (Text) | Não | `null` | Descrição sucinta ou resumo da página informativa | `"Diretrizes de privacidade e tratamento de dados"` |
 | `contentHtml` | `String` (MediumText)| Sim | Nenhum | Conteúdo formatado da página jurídica | `"<p>Este documento regula o tratamento de dados...</p>"` |
 | `version` | `String` | Sim | `"1.0"` | Versão do texto jurídico para controle do termo | `"1.0"` |
+| `isPublished` | `Boolean` | Sim | `true` | Status de publicação da página (publicada ou rascunho) | `true` |
+| `publishedAt` | `DateTime?` | Não | `null` | Data e hora em que a página foi publicada oficialmente | `2026-11-04T00:00:00.000Z` |
 | `updatedAt` | `DateTime` | Sim | Auto | Data da última revisão legal | `2026-11-04T00:00:00.000Z` |
 
 ---
