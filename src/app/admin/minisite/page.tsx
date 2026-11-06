@@ -43,7 +43,6 @@ export default function AdminMiniSitePage() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [instagram, setInstagram] = useState("");
-  const [customHtml, setCustomHtml] = useState("");
 
   // Perfil Profissional
   const [professionalName, setProfessionalName] = useState("");
@@ -95,7 +94,6 @@ export default function AdminMiniSitePage() {
           setWhatsappNumber(data.site.whatsappNumber || "");
           setEmail(data.site.email || "");
           setInstagram(data.site.instagram || "");
-          setCustomHtml(data.site.customHtml || "");
 
           // Localização
           setAddress(data.site.address || "");
@@ -231,7 +229,6 @@ export default function AdminMiniSitePage() {
           showFloatingWhatsApp,
           email,
           instagram,
-          customHtml,
           benefits,
           professionalName,
           professionalTitle,
@@ -839,25 +836,6 @@ export default function AdminMiniSitePage() {
                 placeholder="@dra.helenamartins"
               />
             </div>
-          </CardContent>
-        </Card>
-
-        {/* ================= 7. HTML CUSTOMIZADO SANITIZADO ================= */}
-        <Card className="border-slate-200 dark:border-slate-800">
-          <CardHeader>
-            <CardTitle className="text-base">Bloco HTML Personalizado (Opcional)</CardTitle>
-            <CardDescription>
-              Insira avisos, selos ou texto adicional (scripts são sanitizados automaticamente pelo servidor)
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <textarea
-              rows={3}
-              className="font-mono text-xs flex w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2"
-              placeholder="<p>Informações complementares sobre convênios...</p>"
-              value={customHtml}
-              onChange={(e) => setCustomHtml(e.target.value)}
-            />
           </CardContent>
         </Card>
 

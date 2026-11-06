@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
-import { sanitizeCustomHtml } from "@/lib/sanitize";
 
 const siteSettingsSchema = z.object({
   clinicName: z.string().min(2),
@@ -16,7 +15,6 @@ const siteSettingsSchema = z.object({
   whatsappNumber: z.string().optional(),
   email: z.string().optional(),
   instagram: z.string().optional(),
-  customHtml: z.string().optional(),
   // Minisite Phase 4/5: Icons, Location & WhatsApp
   benefits: z
     .array(
@@ -65,9 +63,6 @@ export async function PUT(req: NextRequest) {
 
     const data = result.data;
 
-    // Sanitização de HTML customizado
-    const sanitizedHtml = sanitizeCustomHtml(data.customHtml);
-
     const computedBenefitsJson = data.benefits
       ? JSON.stringify(data.benefits)
       : data.benefitsJson !== undefined
@@ -100,7 +95,6 @@ export async function PUT(req: NextRequest) {
           showFloatingWhatsApp: data.showFloatingWhatsApp ?? true,
           email: data.email,
           instagram: data.instagram,
-          customHtml: sanitizedHtml,
           ...(computedBenefitsJson !== undefined ? { benefitsJson: computedBenefitsJson } : {}),
         },
         create: {
@@ -127,7 +121,6 @@ export async function PUT(req: NextRequest) {
           showFloatingWhatsApp: data.showFloatingWhatsApp ?? true,
           email: data.email,
           instagram: data.instagram,
-          customHtml: sanitizedHtml,
           benefitsJson: computedBenefitsJson || null,
         },
       }),

@@ -1077,7 +1077,7 @@ erDiagram
 | `whatsappNumber`| `String?` | Não | `null` | WhatsApp para dúvidas com DDD (sem formatação) | `"5511991234567"` |
 | `email` | `String?` | Não | `null` | E-mail público de contato | `"contato@espacoequilibrio.com.br"` |
 | `instagram` | `String?` | Não | `null` | Usuário ou link do perfil no Instagram | `"@dra.helenamartins"` |
-| `customHtml` | `String?` (Text) | Não | `null` | Bloco HTML customizado (sanitizado contra XSS) | `null` |
+| `customHtml` | `String?` (Text) | Não | `null` | [DEPRECATED / INATIVO] Bloco HTML customizado legado mantido no banco para migração segura sem perda de dados; funcionalidade descontinuada do Admin e da API | `null` |
 | `heroMediaType` | `String` | Sim | `"IMAGE"` | Tipo de mídia do Slot 1 (Hero): IMAGE, FRAME_ANIMATION, VIDEO | `"FRAME_ANIMATION"` |
 | `heroMediaUrl` | `String?` (Text) | Não | `null` | URL da imagem, vídeo ou pasta de frames do Hero | `"/uploads/minisite-frames/hero-123"` |
 | `heroPosterUrl` | `String?` (Text) | Não | `null` | URL do pôster ou frame inicial do Hero | `"/uploads/minisite-frames/hero-123/frame-001.png"` |

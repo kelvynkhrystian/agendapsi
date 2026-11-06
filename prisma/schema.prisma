@@ -511,7 +511,7 @@ model SiteSettings {
   whatsappNumber String?
   email          String?
   instagram      String?
-  customHtml     String?  @db.Text
+  customHtml     String?  @db.Text // [DEPRECATED] Mantido no banco para migração segura sem perda de dados legados; funcionalidade descontinuada
 
   // Minisite Media Slots (Phase 3/5)
   heroMediaType          String   @default("IMAGE") // IMAGE, FRAME_ANIMATION, VIDEO
