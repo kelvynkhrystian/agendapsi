@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import Link from "next/link";
+import { animateTabContent } from "@/lib/animation/gsap";
 import { formatTime, formatDate, getDayOfWeekName, formatAppointmentStatus } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -131,6 +132,11 @@ export default function AdminAgendaPage() {
   const [viewMode, setViewMode] = useState<"week" | "day" | "list">("week");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [isLoading, setIsLoading] = useState(true);
+  const calendarContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    animateTabContent(calendarContainerRef.current);
+  }, [viewMode]);
 
   // Modal Novo Agendamento
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -482,7 +488,7 @@ export default function AdminAgendaPage() {
       {/* ================= 2. WORKSPACE LAYOUT: MAIN CALENDAR + SIDEBAR ================= */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
         {/* ================= COLUNA PRINCIPAL: AGENDA (3 COLUNAS) ================= */}
-        <div className="lg:col-span-3 space-y-4">
+        <div ref={calendarContainerRef} className="lg:col-span-3 space-y-4">
           {/* VISUALIZAÇÃO: SEMANA (WEEK VIEW) */}
           {viewMode === "week" && (
             <div className="rounded-2xl border border-[#E2E4E8] dark:border-[#303034] bg-white dark:bg-[#19191C] shadow-xs overflow-hidden">

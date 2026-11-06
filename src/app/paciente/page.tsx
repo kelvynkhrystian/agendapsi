@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import { animatePageEnter, animateKpiEntrance } from "@/lib/animation/gsap";
 import { formatDate, formatTime, formatAppointmentStatus } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -65,6 +66,8 @@ export default function PatientAppointmentsPage() {
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
+  const cardsGridRef = useRef<HTMLDivElement>(null);
 
   const fetchAppointments = () => {
     setIsLoading(true);
@@ -83,6 +86,15 @@ export default function PatientAppointmentsPage() {
   useEffect(() => {
     fetchAppointments();
   }, []);
+
+  useEffect(() => {
+    if (!isLoading) {
+      animatePageEnter(pageRef.current);
+      if (cardsGridRef.current) {
+        animateKpiEntrance(cardsGridRef.current.children);
+      }
+    }
+  }, [isLoading]);
 
   const now = new Date();
   const upcomingAppointments = appointments.filter(
@@ -134,7 +146,7 @@ export default function PatientAppointmentsPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div ref={pageRef} className="space-y-8">
       {/* ================= 1. WELCOME HEADER ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E2E4E8] dark:border-[#303034]">
         <div className="space-y-1">
@@ -255,7 +267,7 @@ export default function PatientAppointmentsPage() {
         {isLoading ? (
           <div className="h-36 bg-slate-200 dark:bg-[#19191C] rounded-2xl animate-pulse" />
         ) : upcomingAppointments.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div ref={cardsGridRef} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {upcomingAppointments.map((appt) => {
               const isPresential = appt.modality === "PRESENTIAL";
 

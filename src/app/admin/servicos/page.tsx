@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { animateTabContent } from "@/lib/animation/gsap";
 import { formatBRL, formatModality, formatConfirmationPolicy } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -50,6 +51,11 @@ interface GeneralSettings {
 
 export default function AdminServicesPage() {
   const [activeTab, setActiveTab] = useState<"services" | "general">("services");
+  const tabContentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    animateTabContent(tabContentRef.current);
+  }, [activeTab]);
 
   // ================= ABA 1: SERVIÇOS STATE =================
   const [services, setServices] = useState<Service[]>([]);
@@ -302,8 +308,10 @@ export default function AdminServicesPage() {
         </button>
       </div>
 
-      {/* ================= ABA 1: CATÁLOGO DE SERVIÇOS ================= */}
-      {activeTab === "services" && (
+      {/* ================= CONTEÚDO DAS ABAS COM TRANSIÇÃO ================= */}
+      <div ref={tabContentRef}>
+        {/* ================= ABA 1: CATÁLOGO DE SERVIÇOS ================= */}
+        {activeTab === "services" && (
         <div className="space-y-4">
           {isLoadingServices ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -714,6 +722,7 @@ export default function AdminServicesPage() {
           </div>
         </form>
       )}
+      </div>
     </div>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import { animatePageEnter, animateKpiEntrance } from "@/lib/animation/gsap";
 import {
   formatBRL,
   formatTime,
@@ -85,6 +86,17 @@ interface DashboardData {
 export default function AdminDashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const pageRef = useRef<HTMLDivElement>(null);
+  const kpiGridRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isLoading && data) {
+      animatePageEnter(pageRef.current);
+      if (kpiGridRef.current) {
+        animateKpiEntrance(kpiGridRef.current.children);
+      }
+    }
+  }, [isLoading, data]);
 
   useEffect(() => {
     fetch("/api/admin/dashboard-stats")
@@ -147,7 +159,7 @@ export default function AdminDashboardPage() {
   const todayCount = data?.todayAppointments?.length ?? 0;
 
   return (
-    <div className="space-y-8">
+    <div ref={pageRef} className="space-y-8">
       {/* ================= 1. PAGE HEADER & QUICK ACTIONS ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E2E4E8] dark:border-[#303034]">
         <div className="space-y-1">
@@ -182,7 +194,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* ================= 2. KPI STATS CARDS ================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div ref={kpiGridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Atendimentos Hoje */}
         <Card className="hover:border-[var(--primary)]/50 transition-all duration-200">
           <CardHeader className="flex flex-row items-center justify-between pb-2 p-5">

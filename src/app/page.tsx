@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MiniSiteMediaPlayer } from "@/components/minisite/media-player";
 import { MiniSiteHeader } from "@/components/minisite/header";
 import { MiniSiteFloatingControls } from "@/components/minisite/floating-controls";
+import { MiniSiteMotionController } from "@/components/minisite/motion-controller";
 import { ThemeIcon } from "@/components/minisite/theme-icon";
 import { CookieBanner } from "@/components/cookie-consent/cookie-banner";
 import { CookiePreferencesTrigger } from "@/components/cookie-consent/cookie-preferences-trigger";
@@ -204,14 +205,14 @@ export default async function HomePage() {
 
         <div className="max-w-3xl mx-auto relative z-10 flex flex-col items-center text-center space-y-6">
           {/* Badge CRP / CRM Superior */}
-          <div className="inline-block px-5 py-1.5 rounded-full bg-[var(--button-bg,var(--primary))] text-white font-heading font-semibold text-xs uppercase tracking-wider shadow-xs">
+          <div id="hero-badge" className="inline-block px-5 py-1.5 rounded-full bg-[var(--button-bg,var(--primary))] text-white font-heading font-semibold text-xs uppercase tracking-wider shadow-xs">
             {crpCrm}
           </div>
 
           {/* MEDIA SLOT 1: Retrato Profissional / Foto Principal */}
           <div className="relative my-2">
             {/* Decoração Orgânica de Ramos / Folhagem ao Fundo */}
-            <div className="absolute -inset-8 -z-10 flex items-center justify-center opacity-30 text-[var(--primary)] pointer-events-none" aria-hidden="true">
+            <div id="hero-bg-leaves" className="absolute -inset-8 -z-10 flex items-center justify-center opacity-30 text-[var(--primary)] pointer-events-none" aria-hidden="true">
               <svg width="360" height="360" viewBox="0 0 200 200" fill="none">
                 <path
                   d="M100 20 C110 50, 150 60, 160 100 C170 140, 130 170, 100 180 C70 170, 30 140, 40 100 C50 60, 90 50, 100 20 Z"
@@ -234,7 +235,7 @@ export default async function HomePage() {
             </div>
 
             {/* Container Responsivo de Mídia (Slot 1: Herói - Compatível com Imagens, ZIP Frames e Vídeos) */}
-            <div className="w-60 h-68 sm:w-72 sm:h-80 md:w-80 md:h-92 rounded-full p-2.5 bg-gradient-to-b from-white via-white to-[var(--primary)]/10 border-2 border-[var(--primary)]/20 shadow-lg flex items-center justify-center overflow-hidden transition-all duration-300">
+            <div id="hero-media-container" className="w-60 h-68 sm:w-72 sm:h-80 md:w-80 md:h-92 rounded-full p-2.5 bg-gradient-to-b from-white via-white to-[var(--primary)]/10 border-2 border-[var(--primary)]/20 shadow-lg flex items-center justify-center overflow-hidden transition-all duration-300">
               <MiniSiteMediaPlayer
                 slot="hero"
                 mediaType={heroMediaType}
@@ -254,25 +255,26 @@ export default async function HomePage() {
           </div>
 
           {/* Nome e Especialidade com Tipografia Elegante */}
-          <div className="space-y-1.5 pt-1">
+          <div id="hero-title-group" className="space-y-1.5 pt-1">
             <h1
+              id="hero-name"
               className="text-4xl sm:text-5xl lg:text-6xl font-display italic text-[var(--primary)] font-medium tracking-tight drop-shadow-2xs leading-tight"
               style={{ fontFamily: "var(--font-display, Georgia, 'Times New Roman', serif)" }}
             >
               {professionalName}
             </h1>
-            <p className="text-xs sm:text-sm font-heading font-bold tracking-[0.2em] text-slate-800 uppercase">
+            <p id="hero-title" className="text-xs sm:text-sm font-heading font-bold tracking-[0.2em] text-slate-800 uppercase">
               {professionalTitle}
             </p>
           </div>
 
           {/* Subtítulo / Frase de Acolhimento */}
-          <p className="text-sm sm:text-base text-slate-600 max-w-lg mx-auto leading-relaxed">
+          <p id="hero-subtitle" className="text-sm sm:text-base text-slate-600 max-w-lg mx-auto leading-relaxed">
             {heroSubtitle}
           </p>
 
           {/* Botões de Ação Hero */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 w-full max-w-md pt-2">
+          <div id="hero-cta" className="flex flex-col sm:flex-row items-center justify-center gap-3.5 w-full max-w-md pt-2">
             <Link href="/agendar" className="w-full">
               <button
                 type="button"
@@ -300,6 +302,7 @@ export default async function HomePage() {
           {/* Indicadores de Benefício Configuráveis (Fase 4/5) */}
           {activeBenefits.length > 0 && (
             <div
+              id="hero-benefits"
               className={`grid gap-3 sm:gap-6 pt-8 w-full max-w-xl border-t border-slate-200/60 mt-6 ${
                 activeBenefits.length === 1
                   ? "grid-cols-1 max-w-xs"
@@ -309,7 +312,7 @@ export default async function HomePage() {
               }`}
             >
               {activeBenefits.map((item) => (
-                <div key={item.id} className="group flex flex-col items-center text-center space-y-2 p-2 rounded-xl transition-all">
+                <div key={item.id} className="hero-benefit-item group flex flex-col items-center text-center space-y-2 p-2 rounded-xl transition-all">
                   <div className="w-11 h-11 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center transition-transform group-hover:scale-105 shadow-2xs">
                     <ThemeIcon
                       iconName={item.icon}
@@ -343,7 +346,7 @@ export default async function HomePage() {
       {/* ================= 2. PRINCIPAIS DEMANDAS & ATENDIMENTOS ================= */}
       <section id="atendimentos" className="py-16 px-4 bg-white scroll-mt-20">
         <div className="max-w-4xl mx-auto space-y-10">
-          <div className="text-center space-y-2.5">
+          <div id="atendimentos-header" className="text-center space-y-2.5">
             <span className="text-xs font-heading font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
               — Atendimentos —
             </span>
@@ -356,7 +359,7 @@ export default async function HomePage() {
           </div>
 
           {/* Cards de Demandas e Serviços Reais do PSI */}
-          <div className="space-y-3.5">
+          <div id="services-list" className="space-y-3.5">
             {services.map((service, index) => {
               // Ícones temáticos para cada serviço com base na modalidade ou posição
               const icons = [Brain, Heart, Compass, Sparkles, User];
@@ -426,7 +429,7 @@ export default async function HomePage() {
         <div className="max-w-4xl mx-auto">
           <div className="p-6 sm:p-10 rounded-3xl bg-white border border-[#EFE9DF] shadow-xs flex flex-col md:flex-row items-center gap-8 lg:gap-10">
             {/* MEDIA SLOT 2: Ambiente do Consultório / Segundo Retrato Independente */}
-            <div className="w-full md:w-5/12 shrink-0">
+            <div id="sobre-media" className="w-full md:w-5/12 shrink-0">
               <div className="w-full aspect-4/3 rounded-2xl border border-[#EFE9DF] overflow-hidden relative shadow-inner bg-gradient-to-tr from-[#EBE3D5] to-[#F5EFEB]">
                 <MiniSiteMediaPlayer
                   slot="about"
@@ -447,7 +450,7 @@ export default async function HomePage() {
             </div>
 
             {/* Conteúdo Biográfico */}
-            <div className="w-full md:w-7/12 space-y-4">
+            <div id="sobre-content" className="w-full md:w-7/12 space-y-4">
               <div className="space-y-1">
                 <span className="text-xs font-heading font-bold uppercase tracking-[0.2em] text-[var(--primary)]">
                   Trajetória Profissional
@@ -477,7 +480,7 @@ export default async function HomePage() {
       {/* ================= 4. DIFERENCIAIS (Referência Visual) ================= */}
       <section id="diferenciais" className="py-16 px-4 bg-white scroll-mt-20">
         <div className="max-w-4xl mx-auto space-y-10">
-          <div className="text-center space-y-2.5">
+          <div id="diferenciais-header" className="text-center space-y-2.5">
             <span className="text-xs font-heading font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
               — Diferenciais —
             </span>
@@ -486,7 +489,7 @@ export default async function HomePage() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div id="diferenciais-grid" className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {/* Card 1 */}
             <div className="p-5 sm:p-6 rounded-2xl bg-[#FCFAF6] border border-[#EFE9DF] hover:border-[var(--primary)]/50 hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-start gap-4">
               <div className="w-11 h-11 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 shadow-2xs">
@@ -554,7 +557,7 @@ export default async function HomePage() {
       <section id="como-funciona" className="py-16 px-4 bg-[#F8F5EE] scroll-mt-20">
         <div className="max-w-4xl mx-auto">
           <div className="p-6 sm:p-10 rounded-3xl bg-white border border-[#EFE9DF] shadow-xs space-y-8">
-            <div className="text-center space-y-2">
+            <div id="como-funciona-header" className="text-center space-y-2">
               <span className="text-xs font-heading font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
                 — Passo a Passo —
               </span>
@@ -567,7 +570,7 @@ export default async function HomePage() {
             </div>
 
             {/* 3 Passos Conectados */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+            <div id="como-funciona-steps" className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
               {/* Passo 1 */}
               <div className="flex flex-col items-center text-center space-y-2.5 p-3 rounded-2xl hover:bg-[#FAF8F5] transition-colors">
                 <div className="w-13 h-13 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold shadow-2xs">
@@ -621,7 +624,7 @@ export default async function HomePage() {
       </section>
 
       {/* ================= 6. DEPOIMENTOS (Referência Visual & Ética) ================= */}
-      <section className="py-16 sm:py-20 px-4 bg-white">
+      <section id="depoimentos" className="py-16 sm:py-20 px-4 bg-white">
         <div className="max-w-2xl mx-auto space-y-8 text-center">
           <div className="space-y-2">
             <span className="text-xs font-heading font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
@@ -633,7 +636,7 @@ export default async function HomePage() {
           </div>
 
           {/* Card de Depoimento Autorizado & Conformidade Ética CFP */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-[#FCFAF6] border border-[#EFE9DF] shadow-xs space-y-4 text-left relative overflow-hidden">
+          <div id="depoimento-card" className="p-6 sm:p-8 rounded-3xl bg-[#FCFAF6] border border-[#EFE9DF] shadow-xs space-y-4 text-left relative overflow-hidden">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/15 text-[var(--primary)] font-heading font-bold flex items-center justify-center text-base shrink-0 shadow-2xs">
                 A
@@ -683,7 +686,7 @@ export default async function HomePage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
               {/* Informações de Endereço e Contato */}
-              <div className="p-6 rounded-3xl bg-white border border-[#EFE9DF] shadow-xs flex flex-col justify-between space-y-4">
+              <div id="localizacao-info" className="p-6 rounded-3xl bg-white border border-[#EFE9DF] shadow-xs flex flex-col justify-between space-y-4">
                 <div className="space-y-4">
                   <div className="flex items-start gap-3.5">
                     <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0">
@@ -742,7 +745,7 @@ export default async function HomePage() {
               </div>
 
               {/* Container de Mapa Interativo (Embed Seguro ou Card Informativo) */}
-              <div className="p-2 sm:p-3 rounded-3xl bg-white border border-[#EFE9DF] shadow-xs flex flex-col items-center justify-center text-center overflow-hidden min-h-[280px]">
+              <div id="localizacao-map" className="p-2 sm:p-3 rounded-3xl bg-white border border-[#EFE9DF] shadow-xs flex flex-col items-center justify-center text-center overflow-hidden min-h-[280px]">
                 {mapsEmbedSrc ? (
                   <iframe
                     src={mapsEmbedSrc}
@@ -787,9 +790,10 @@ export default async function HomePage() {
       )}
 
       {/* ================= 8. FINAL CTA (Referência Visual: Banner Destaque) ================= */}
-      <section className="py-14 sm:py-16 px-4 bg-white">
+      <section id="cta-final" className="py-14 sm:py-16 px-4 bg-white">
         <div className="max-w-4xl mx-auto">
           <div
+            id="cta-final-box"
             className="p-8 sm:p-10 rounded-3xl text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden"
             style={{ backgroundColor: site?.buttonColor || "var(--primary)" }}
           >
@@ -945,6 +949,9 @@ export default async function HomePage() {
 
       {/* ================= BANNER DE CONSENTIMENTO DE COOKIES ================= */}
       <CookieBanner />
+
+      {/* ================= CONTROLADOR DE ANIMAÇÃO GSAP (MINISITE) ================= */}
+      <MiniSiteMotionController />
     </div>
   );
 }
