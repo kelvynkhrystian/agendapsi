@@ -457,10 +457,10 @@ export function MiniSiteHeader({
                 onClick={handleLogout}
                 title="Sair da conta"
                 aria-label="Sair da conta"
-                className={`p-1.5 md:p-2 lg:p-2 rounded-full border transition-colors cursor-pointer ${
+                className={`p-1.5 md:p-2 lg:p-2 rounded-full border transition-all duration-200 cursor-pointer ${
                   isScrolled
-                    ? "bg-white/95 backdrop-blur-lg border-[#E2DDD5] text-slate-400 hover:text-red-600 hover:bg-red-50"
-                    : "bg-white/80 backdrop-blur-md border-[#E7E2DA]/90 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                    ? "bg-white/95 backdrop-blur-lg border-[var(--primary)]/50 text-[var(--primary)] hover:border-[var(--primary)] hover:bg-[var(--primary)]/10"
+                    : "bg-white/80 backdrop-blur-md border-[var(--primary)]/40 text-[var(--primary)] hover:border-[var(--primary)] hover:bg-[var(--primary)]/10"
                 }`}
               >
                 <LogOut className="h-4 w-4 md:h-4.5 md:w-4.5" />
@@ -566,9 +566,9 @@ export function MiniSiteHeader({
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-semibold text-slate-500 hover:text-red-600 transition-colors cursor-pointer"
+                      className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-semibold border border-[var(--primary)]/50 hover:border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)]/8 active:bg-[var(--primary)]/15 transition-all duration-200 cursor-pointer shadow-xs"
                     >
-                      <LogOut className="h-4 w-4" />
+                      <LogOut className="h-4 w-4 text-[var(--primary)]" />
                       <span>Sair da conta</span>
                     </button>
                   </div>
