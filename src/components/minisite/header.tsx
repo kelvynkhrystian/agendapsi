@@ -442,15 +442,18 @@ export function MiniSiteHeader({
             <div className="flex items-center gap-1.5">
               <Link
                 href={dashboardUrl}
-                className={`inline-flex items-center gap-2 px-3.5 py-1.5 md:px-4 md:py-2 lg:px-4.5 lg:py-2 rounded-full border transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 group text-xs md:text-sm lg:text-[16px] font-heading font-semibold ${
+                className={`inline-flex items-center gap-2 px-3.5 py-1.5 md:px-4 md:py-2 lg:px-4.5 lg:py-2 rounded-full border transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 group text-xs md:text-sm lg:text-[15px] font-heading font-semibold ${
                   isScrolled
                     ? "bg-white/95 backdrop-blur-lg border-[#E2DDD5] text-slate-800 hover:text-[var(--primary)] hover:border-[var(--primary)]/50 shadow-[0_6px_20px_rgba(0,0,0,0.06)]"
                     : "bg-white/80 backdrop-blur-md border-[#E7E2DA]/90 text-slate-700 hover:text-[var(--primary)] hover:border-[var(--primary)]/40 shadow-[0_2px_12px_rgba(0,0,0,0.03)]"
                 }`}
                 aria-label={`Acessar painel (${user.name})`}
               >
-                <UserCheck className="h-4 w-4 md:h-4.5 md:w-4.5 text-[var(--primary)] group-hover:scale-105 transition-transform" />
-                <span className="max-w-[120px] lg:max-w-[150px] truncate">{user.name}</span>
+                <UserCheck className="h-4 w-4 md:h-4.5 md:w-4.5 text-[var(--primary)] group-hover:scale-105 transition-transform shrink-0" />
+                <span className="max-w-[110px] lg:max-w-[140px] truncate">{user.name}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-[var(--primary)] text-white px-2 py-0.5 rounded-full shrink-0">
+                  {user.role === "ADMIN" ? "Admin" : "Paciente"}
+                </span>
               </Link>
               <button
                 type="button"
