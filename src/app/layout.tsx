@@ -20,6 +20,8 @@ const sansFont = Inter({
   weight: ["400", "500", "600", "700"],
 });
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   try {
     const site = await prisma.siteSettings.findUnique({ where: { id: "default" } });
@@ -51,20 +53,21 @@ export default async function RootLayout({
     // Fail gracefully if DB connection is unavailable during build
   }
 
-  const primary = site?.primaryColor || "#0d9488";
-  const secondary = site?.secondaryColor || "#f2f2f2";
-  const accent = site?.accentColor || "#f0fdfa";
+  const primary = site?.primaryColor || site?.buttonColor || "#16A34A";
   const buttonBg = site?.buttonColor || primary;
-  const bgColor = site?.backgroundColor || "#f8f8f8";
+  const secondary = site?.secondaryColor || "#DCFCE7";
+  const accent = site?.accentColor || "#86EFAC";
+  const bgColor = site?.backgroundColor || "#FDFCFB";
   const textColor = site?.textColor || "#171717";
 
-  // Cálculo automático de contraste acessível para o texto do botão primário (evita dark blue-gray)
+  // Cálculo automático de contraste acessível (WCAG AA >= 4.5:1)
+  const primaryForeground = calculateContrastRatio("#ffffff", primary) >= 4.5 ? "#ffffff" : "#111111";
   const buttonForeground = calculateContrastRatio("#ffffff", buttonBg) >= 4.5 ? "#ffffff" : "#111111";
 
   const dynamicCss = `
     :root {
       --primary: ${primary};
-      --primary-foreground: ${buttonForeground};
+      --primary-foreground: ${primaryForeground};
       --secondary: ${secondary};
       --accent: ${accent};
       --button-bg: ${buttonBg};

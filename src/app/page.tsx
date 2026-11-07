@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
@@ -259,7 +261,7 @@ export default async function HomePage() {
         <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:max-w-none lg:mx-0 lg:pl-[7vw] xl:pl-[8vw] lg:pr-8 relative z-10 order-1 flex flex-col items-center lg:items-start text-center lg:text-left mb-3 lg:mb-4">
           <div
             id="hero-badge"
-            className="inline-block px-5 py-1.5 rounded-full bg-[var(--button-bg,var(--primary))] text-white font-heading font-semibold text-xs uppercase tracking-wider shadow-xs"
+            className="inline-block px-5 py-1.5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] font-heading font-semibold text-xs uppercase tracking-wider shadow-xs"
           >
             {crpCrm}
           </div>
@@ -324,8 +326,7 @@ export default async function HomePage() {
               <Link href="/agendar" className="w-full sm:w-auto">
                 <button
                   type="button"
-                  className="w-full sm:w-auto py-3.5 px-7 rounded-2xl font-heading font-semibold text-xs sm:text-sm uppercase tracking-wider text-white shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
-                  style={{ backgroundColor: site?.buttonColor || "var(--primary)" }}
+                  className="w-full sm:w-auto py-3.5 px-7 rounded-2xl font-heading font-semibold text-xs sm:text-sm uppercase tracking-wider shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)]"
                 >
                   <Calendar className="h-4 w-4" />
                   <span>Agende sua consulta</span>
@@ -859,8 +860,7 @@ export default async function HomePage() {
         <div className="max-w-4xl mx-auto">
           <div
             id="cta-final-box"
-            className="p-8 sm:p-10 rounded-3xl text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden bg-[var(--primary)]"
-            style={{ backgroundColor: site?.buttonColor || "var(--primary)" }}
+            className="p-8 sm:p-10 rounded-3xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)]"
           >
             {/* Brilho decorativo sutil */}
             <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-white/10 blur-xl pointer-events-none" aria-hidden="true" />

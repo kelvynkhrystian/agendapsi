@@ -9,7 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import {
   Calendar,
   Clock,
@@ -42,6 +41,8 @@ interface Slot {
   available: boolean;
   reason?: string;
 }
+
+export const dynamic = "force-dynamic";
 
 export default function BookingPage() {
   const router = useRouter();
@@ -268,9 +269,9 @@ export default function BookingPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+    <div data-theme="light" className="min-h-screen flex flex-col justify-between bg-slate-50 text-slate-900 selection:bg-[var(--primary)] selection:text-white">
       {/* Header */}
-      <header className="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-40">
+      <header className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-bold text-[var(--primary)]">
             <Stethoscope className="h-6 w-6" />
@@ -281,7 +282,6 @@ export default function BookingPage() {
             <Link href="/" className="text-xs text-slate-500 hover:text-[var(--primary)]">
               Voltar ao Início
             </Link>
-            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -290,23 +290,23 @@ export default function BookingPage() {
       <main className="max-w-4xl mx-auto w-full p-4 sm:p-6 lg:p-8 flex-1">
         {/* Progress Bar 3 Passos */}
         <div className="mb-10 sm:mb-12">
-          <div className="flex items-center justify-between max-w-md mx-auto text-xs font-semibold text-[#737373] dark:text-[#A6A6A6]">
+          <div className="flex items-center justify-between max-w-md mx-auto text-xs font-semibold text-[#737373]">
             <div className={`flex items-center gap-2 ${step >= 1 ? "text-[var(--primary)] font-bold" : ""}`}>
-              <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 1 ? "bg-[var(--primary)] text-white shadow-xs" : "bg-[#E5E5E5] dark:bg-[#333333]"}`}>
+              <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 1 ? "bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] shadow-xs" : "bg-[#E5E5E5] text-slate-500"}`}>
                 1
               </span>
               <span>Serviço</span>
             </div>
-            <div className={`h-0.5 flex-1 mx-3 ${step >= 2 ? "bg-[var(--primary)]" : "bg-[#E5E5E5] dark:bg-[#333333]"}`} />
+            <div className={`h-0.5 flex-1 mx-3 ${step >= 2 ? "bg-[var(--primary)]" : "bg-[#E5E5E5]"}`} />
             <div className={`flex items-center gap-2 ${step >= 2 ? "text-[var(--primary)] font-bold" : ""}`}>
-              <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 2 ? "bg-[var(--primary)] text-white shadow-xs" : "bg-[#E5E5E5] dark:bg-[#333333]"}`}>
+              <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 2 ? "bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] shadow-xs" : "bg-[#E5E5E5] text-slate-500"}`}>
                 2
               </span>
               <span>Data e Horário</span>
             </div>
-            <div className={`h-0.5 flex-1 mx-3 ${step >= 3 ? "bg-[var(--primary)]" : "bg-[#E5E5E5] dark:bg-[#333333]"}`} />
+            <div className={`h-0.5 flex-1 mx-3 ${step >= 3 ? "bg-[var(--primary)]" : "bg-[#E5E5E5]"}`} />
             <div className={`flex items-center gap-2 ${step >= 3 ? "text-[var(--primary)] font-bold" : ""}`}>
-              <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 3 ? "bg-[var(--primary)] text-white shadow-xs" : "bg-[#E5E5E5] dark:bg-[#333333]"}`}>
+              <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 3 ? "bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] shadow-xs" : "bg-[#E5E5E5] text-slate-500"}`}>
                 3
               </span>
               <span>Identificação</span>
@@ -331,7 +331,7 @@ export default function BookingPage() {
                 <Card
                   key={service.id}
                   onClick={() => handleSelectService(service)}
-                  className="hover:border-[var(--primary)] hover:shadow-md transition-all cursor-pointer border-slate-200 dark:border-slate-800"
+                  className="hover:border-[var(--primary)] hover:shadow-md transition-all cursor-pointer border-slate-200 bg-white"
                 >
                   <CardHeader className="flex flex-row items-start justify-between pb-2">
                     <div>
@@ -378,7 +378,7 @@ export default function BookingPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Seletor de Data e Modalidade */}
-              <Card>
+              <Card className="border-slate-200 bg-white">
                 <CardHeader>
                   <CardTitle className="text-base">1. Selecione a Data</CardTitle>
                 </CardHeader>
@@ -401,7 +401,7 @@ export default function BookingPage() {
                           className={`p-3 rounded-lg border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
                             selectedModality === "ONLINE"
                               ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
-                              : "border-slate-200 dark:border-slate-800"
+                              : "border-slate-200"
                           }`}
                         >
                           <Video className="h-4 w-4" />
@@ -413,7 +413,7 @@ export default function BookingPage() {
                           className={`p-3 rounded-lg border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
                             selectedModality === "PRESENTIAL"
                               ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
-                              : "border-slate-200 dark:border-slate-800"
+                              : "border-slate-200"
                           }`}
                         >
                           <MapPin className="h-4 w-4" />
@@ -426,7 +426,7 @@ export default function BookingPage() {
               </Card>
 
               {/* Lista de Horários Disponíveis */}
-              <Card>
+              <Card className="border-slate-200 bg-white">
                 <CardHeader>
                   <CardTitle className="text-base">2. Horários Livres</CardTitle>
                   <CardDescription className="text-xs">
@@ -447,10 +447,10 @@ export default function BookingPage() {
                           onClick={() => setSelectedSlot(slot)}
                           className={`py-2 px-3 rounded-lg text-xs font-mono font-semibold transition-all ${
                             !slot.available
-                              ? "opacity-30 bg-slate-100 dark:bg-slate-800 cursor-not-allowed text-slate-400"
+                              ? "opacity-30 bg-slate-100 cursor-not-allowed text-slate-400"
                               : selectedSlot?.startAt === slot.startAt
-                              ? "bg-[var(--primary)] text-white shadow-xs"
-                              : "border border-slate-200 dark:border-slate-800 hover:border-[var(--primary)] bg-white dark:bg-slate-900"
+                              ? "bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] shadow-xs"
+                              : "border border-slate-200 hover:border-[var(--primary)] bg-white"
                           }`}
                         >
                           {slot.formattedTime}
@@ -466,7 +466,7 @@ export default function BookingPage() {
                   )}
 
                   {selectedSlot && (
-                    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                    <div className="mt-4 pt-4 border-t border-slate-100 flex justify-end">
                       <Button onClick={handleProceedToStep3} isLoading={isLoading} className="gap-1.5 text-xs">
                         <span>Avançar para Identificação</span>
                         <ArrowRight className="h-3.5 w-3.5" />
@@ -478,12 +478,12 @@ export default function BookingPage() {
             </div>
 
             {/* Opção Alternativa: Solicitação WhatsApp */}
-            <div className="p-5 sm:p-6 rounded-2xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
+            <div className="p-5 sm:p-6 rounded-2xl bg-amber-50/70 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
               <div className="space-y-1">
-                <span className="font-semibold text-amber-800 dark:text-amber-300">
+                <span className="font-semibold text-amber-900">
                   Prefere tirar dúvidas antes de reservar?
                 </span>
-                <p className="text-amber-700 dark:text-amber-400 leading-relaxed">
+                <p className="text-amber-800 leading-relaxed">
                   Envie uma mensagem direta pelo WhatsApp para esclarecimentos. Atenção: a mensagem é apenas uma solicitação inicial e não bloqueia a agenda.
                 </p>
               </div>
@@ -492,7 +492,7 @@ export default function BookingPage() {
                 size="sm"
                 onClick={handleWhatsAppInquiry}
                 disabled={!selectedSlot}
-                className="shrink-0 gap-2 text-xs border-amber-300 text-amber-800 dark:text-amber-300 h-9 min-h-[36px]"
+                className="shrink-0 gap-2 text-xs border-amber-300 text-amber-900 bg-white hover:bg-amber-100/50 h-9 min-h-[36px]"
               >
                 <MessageSquare className="h-4 w-4" />
                 <span>Solicitar via WhatsApp</span>
@@ -519,7 +519,7 @@ export default function BookingPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Identificação do Paciente */}
-              <Card>
+              <Card className="border-slate-200 bg-white">
                 <CardHeader>
                   <CardTitle className="text-base">1. Dados do Paciente</CardTitle>
                 </CardHeader>
@@ -535,18 +535,18 @@ export default function BookingPage() {
                     </div>
                   ) : (
                     <div className="space-y-4 text-xs">
-                      <div className="flex gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                      <div className="flex gap-2 p-1 bg-slate-100 rounded-lg">
                         <button
                           type="button"
                           onClick={() => setAuthMode("login")}
-                          className={`flex-1 py-1.5 rounded-md font-semibold ${authMode === "login" ? "bg-white dark:bg-slate-900 shadow-xs" : ""}`}
+                          className={`flex-1 py-1.5 rounded-md font-semibold ${authMode === "login" ? "bg-white shadow-xs" : ""}`}
                         >
                           Já sou paciente
                         </button>
                         <button
                           type="button"
                           onClick={() => setAuthMode("register")}
-                          className={`flex-1 py-1.5 rounded-md font-semibold ${authMode === "register" ? "bg-white dark:bg-slate-900 shadow-xs" : ""}`}
+                          className={`flex-1 py-1.5 rounded-md font-semibold ${authMode === "register" ? "bg-white shadow-xs" : ""}`}
                         >
                           Novo paciente
                         </button>
@@ -596,12 +596,12 @@ export default function BookingPage() {
               </Card>
 
               {/* Pagamento e Confirmação */}
-              <Card>
+              <Card className="border-slate-200 bg-white">
                 <CardHeader>
                   <CardTitle className="text-base">2. Pagamento e Conclusão</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 text-xs">
-                  <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-1.5">
+                  <div className="p-3 bg-slate-50 rounded-xl space-y-1.5">
                     <div className="flex justify-between">
                       <span className="text-slate-500">Valor da Sessão:</span>
                       <span className="font-bold text-sm text-[var(--primary)]">
@@ -618,7 +618,7 @@ export default function BookingPage() {
                     <div className="space-y-2">
                       <label className="block font-semibold">Forma de Pagamento:</label>
                       <div className="space-y-2">
-                        <label className="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 cursor-pointer">
+                        <label className="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50/80">
                           <input
                             type="radio"
                             name="paymentMethod"
@@ -634,7 +634,7 @@ export default function BookingPage() {
                           </div>
                         </label>
 
-                        <label className="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 cursor-pointer">
+                        <label className="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50/80">
                           <input
                             type="radio"
                             name="paymentMethod"
@@ -669,7 +669,7 @@ export default function BookingPage() {
         )}
       </main>
 
-      <footer className="border-t border-slate-200 dark:border-slate-800 py-6 text-center text-xs text-slate-400">
+      <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-400">
         &copy; {new Date().getFullYear()} PSI — Sistema de Gestão de Consultórios.
       </footer>
     </div>

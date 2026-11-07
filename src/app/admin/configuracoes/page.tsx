@@ -382,7 +382,10 @@ export default function AdminSettingsPage() {
     value: string
   ) => {
     setThemeName("PERSONALIZADO");
-    if (field === "primary") setPrimaryColor(value);
+    if (field === "primary") {
+      setPrimaryColor(value);
+      setButtonColor(value);
+    }
     if (field === "secondary") setSecondaryColor(value);
     if (field === "accent") setAccentColor(value);
     if (field === "button") setButtonColor(value);
@@ -460,9 +463,11 @@ export default function AdminSettingsPage() {
         // Atualiza dinamicamente as variáveis de tema no DOM sem necessidade de recarregar
         if (typeof document !== "undefined") {
           document.documentElement.style.setProperty("--primary", primaryColor);
+          document.documentElement.style.setProperty("--primary-foreground", "#ffffff");
           document.documentElement.style.setProperty("--secondary", secondaryColor);
           document.documentElement.style.setProperty("--accent", accentColor);
           document.documentElement.style.setProperty("--button-bg", buttonColor);
+          document.documentElement.style.setProperty("--button-fg", "#ffffff");
           document.documentElement.style.setProperty("--ring", primaryColor);
           document.documentElement.style.setProperty("--theme-bg", backgroundColor);
           document.documentElement.style.setProperty("--theme-text", textColor);
@@ -1739,7 +1744,7 @@ export default function AdminSettingsPage() {
                   className="gap-2 text-xs"
                 >
                   <Save className="h-4 w-4" />
-                  <span>{isSavingAppearance ? "Salvando..." : "Salvar Alterações"}</span>
+                  <span>{isSavingAppearance ? "Salvando..." : "Salvar e Aplicar Tema"}</span>
                 </Button>
               </div>
             </CardContent>

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
+import { THEME_PRESETS } from "@/lib/theme-presets";
 
 const updateAppearanceSchema = z.object({
   logoUrl: z.string().nullable().optional(),
@@ -29,12 +31,12 @@ export async function GET() {
       logoHorizontalUrl: site?.logoHorizontalUrl || null,
       faviconUrl: site?.faviconUrl || null,
       themeName: site?.themeName || "VERDE",
-      primaryColor: site?.primaryColor || "#0d9488",
-      secondaryColor: site?.secondaryColor || "#0f766e",
-      accentColor: site?.accentColor || "#f59e0b",
-      buttonColor: site?.buttonColor || "#0d9488",
-      backgroundColor: site?.backgroundColor || "#f8f8f8",
-      textColor: site?.textColor || "#171717",
+      primaryColor: site?.primaryColor || "#16A34A",
+      secondaryColor: site?.secondaryColor || "#DCFCE7",
+      accentColor: site?.accentColor || "#86EFAC",
+      buttonColor: site?.buttonColor || site?.primaryColor || "#16A34A",
+      backgroundColor: site?.backgroundColor || "#F0FDF4",
+      textColor: site?.textColor || "#14532D",
     });
   } catch (error: unknown) {
     if (error instanceof Error && error.message === "FORBIDDEN") {
@@ -71,6 +73,26 @@ export async function PUT(req: NextRequest) {
       textColor,
     } = result.data;
 
+    let finalPrimary = primaryColor;
+    let finalButton = buttonColor;
+    let finalSecondary = secondaryColor;
+    let finalAccent = accentColor;
+    let finalBg = backgroundColor;
+    let finalTxt = textColor;
+
+    // Se o tema for um preset pré-definido, sincroniza os tokens oficiais autoritativos
+    if (themeName && themeName !== "PERSONALIZADO" && THEME_PRESETS[themeName]) {
+      const preset = THEME_PRESETS[themeName];
+      finalPrimary = preset.primaryColor;
+      finalButton = preset.buttonColor;
+      finalSecondary = preset.secondaryColor;
+      finalAccent = preset.accentColor;
+      finalBg = preset.backgroundColor;
+      finalTxt = preset.textColor;
+    } else if (themeName === "PERSONALIZADO" && (!buttonColor || buttonColor === primaryColor)) {
+      finalButton = finalPrimary;
+    }
+
     const updated = await prisma.siteSettings.upsert({
       where: { id: "default" },
       update: {
@@ -78,12 +100,12 @@ export async function PUT(req: NextRequest) {
         logoHorizontalUrl: logoHorizontalUrl || null,
         faviconUrl: faviconUrl || null,
         themeName,
-        primaryColor,
-        secondaryColor,
-        accentColor,
-        buttonColor,
-        backgroundColor,
-        textColor,
+        primaryColor: finalPrimary,
+        secondaryColor: finalSecondary,
+        accentColor: finalAccent,
+        buttonColor: finalButton,
+        backgroundColor: finalBg,
+        textColor: finalTxt,
       },
       create: {
         id: "default",
@@ -92,14 +114,23 @@ export async function PUT(req: NextRequest) {
         logoHorizontalUrl: logoHorizontalUrl || null,
         faviconUrl: faviconUrl || null,
         themeName,
-        primaryColor,
-        secondaryColor,
-        accentColor,
-        buttonColor,
-        backgroundColor,
-        textColor,
+        primaryColor: finalPrimary,
+        secondaryColor: finalSecondary,
+        accentColor: finalAccent,
+        buttonColor: finalButton,
+        backgroundColor: finalBg,
+        textColor: finalTxt,
       },
     });
+
+    // Invalida o cache das páginas públicas para propagar as cores instantaneamente
+    try {
+      revalidatePath("/", "layout");
+      revalidatePath("/");
+      revalidatePath("/agendar");
+    } catch (revalErr) {
+      console.warn("Aviso ao revalidar caminhos de cache:", revalErr);
+    }
 
     return NextResponse.json({ success: true, appearance: updated });
   } catch (error: unknown) {

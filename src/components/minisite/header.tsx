@@ -362,10 +362,10 @@ export function MiniSiteHeader({
               onClick={(e) => scrollToSection(e, "inicio")}
               className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                 activeSection === "inicio"
-                  ? "text-white shadow-xs font-semibold"
+                  ? "shadow-xs font-semibold"
                   : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]"
               }`}
-              style={activeSection === "inicio" ? { backgroundColor: "var(--primary)" } : undefined}
+              style={activeSection === "inicio" ? { backgroundColor: "var(--primary)", color: "var(--primary-foreground, #ffffff)" } : undefined}
             >
               Início
             </a>
@@ -374,10 +374,10 @@ export function MiniSiteHeader({
               onClick={(e) => scrollToSection(e, "atendimentos")}
               className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                 activeSection === "atendimentos"
-                  ? "text-white shadow-xs font-semibold"
+                  ? "shadow-xs font-semibold"
                   : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]"
               }`}
-              style={activeSection === "atendimentos" ? { backgroundColor: "var(--primary)" } : undefined}
+              style={activeSection === "atendimentos" ? { backgroundColor: "var(--primary)", color: "var(--primary-foreground, #ffffff)" } : undefined}
             >
               Atendimentos
             </a>
@@ -386,10 +386,10 @@ export function MiniSiteHeader({
               onClick={(e) => scrollToSection(e, "sobre")}
               className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                 activeSection === "sobre"
-                  ? "text-white shadow-xs font-semibold"
+                  ? "shadow-xs font-semibold"
                   : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]"
               }`}
-              style={activeSection === "sobre" ? { backgroundColor: "var(--primary)" } : undefined}
+              style={activeSection === "sobre" ? { backgroundColor: "var(--primary)", color: "var(--primary-foreground, #ffffff)" } : undefined}
             >
               Sobre Mim
             </a>
@@ -398,10 +398,10 @@ export function MiniSiteHeader({
               onClick={(e) => scrollToSection(e, "diferenciais")}
               className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                 activeSection === "diferenciais"
-                  ? "text-white shadow-xs font-semibold"
+                  ? "shadow-xs font-semibold"
                   : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]"
               }`}
-              style={activeSection === "diferenciais" ? { backgroundColor: "var(--primary)" } : undefined}
+              style={activeSection === "diferenciais" ? { backgroundColor: "var(--primary)", color: "var(--primary-foreground, #ffffff)" } : undefined}
             >
               Diferenciais
             </a>
@@ -410,10 +410,10 @@ export function MiniSiteHeader({
               onClick={(e) => scrollToSection(e, "como-funciona")}
               className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                 activeSection === "como-funciona"
-                  ? "text-white shadow-xs font-semibold"
+                  ? "shadow-xs font-semibold"
                   : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]"
               }`}
-              style={activeSection === "como-funciona" ? { backgroundColor: "var(--primary)" } : undefined}
+              style={activeSection === "como-funciona" ? { backgroundColor: "var(--primary)", color: "var(--primary-foreground, #ffffff)" } : undefined}
             >
               Como Funciona
             </a>
@@ -423,10 +423,10 @@ export function MiniSiteHeader({
                 onClick={(e) => scrollToSection(e, "localizacao")}
                 className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                   activeSection === "localizacao"
-                    ? "text-white shadow-xs font-semibold"
+                    ? "shadow-xs font-semibold"
                     : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]"
                 }`}
-                style={activeSection === "localizacao" ? { backgroundColor: "var(--primary)" } : undefined}
+                style={activeSection === "localizacao" ? { backgroundColor: "var(--primary)", color: "var(--primary-foreground, #ffffff)" } : undefined}
               >
                 Localização
               </a>
