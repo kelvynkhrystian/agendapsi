@@ -31,6 +31,7 @@ const navItems = [
   { href: "/admin", label: "Painel Geral", icon: LayoutDashboard },
   { href: "/admin/agenda", label: "Agenda", icon: Calendar },
   { href: "/admin/pacientes", label: "Pacientes", icon: Users },
+  { href: "/admin/documentos", label: "Documentos", icon: FileText },
   { href: "/admin/servicos", label: "Serviços", icon: Briefcase },
   { href: "/admin/pacotes", label: "Pacotes", icon: Boxes },
   { href: "/admin/financeiro", label: "Financeiro", icon: DollarSign },

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, use } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   formatDate,
   formatTime,
@@ -40,6 +41,7 @@ import {
   Eye,
   Trash2,
   RotateCcw,
+  Archive,
   Clock,
   Upload,
   FileCheck2,
@@ -197,6 +199,7 @@ export default function AdminPatientDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const router = useRouter();
   const [patient, setPatient] = useState<PatientDetail | null>(null);
   const [activeTab, setActiveTab] = useState<
     "overview" | "anamnesis" | "records" | "documents" | "appointments" | "payments"
@@ -204,6 +207,29 @@ export default function AdminPatientDetailPage({
   const [isLoading, setIsLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Modal Exclusão de Documento
+  const [docToDelete, setDocToDelete] = useState<{ id: string; title?: string | null; originalName: string; sizeBytes: number } | null>(null);
+  const [isDeletingDoc, setIsDeletingDoc] = useState(false);
+
+  // Modal Exclusão / Arquivamento de Paciente
+  const [isDeletePatientModalOpen, setIsDeletePatientModalOpen] = useState(false);
+  const [deletionInfo, setDeletionInfo] = useState<{
+    dependencies: {
+      clinicalRecordsCount: number;
+      appointmentsCount: number;
+      paymentsCount: number;
+      appointmentPackagesCount: number;
+      fileSharesCount: number;
+      anamnesisCount: number;
+    };
+    hasProtectedRecords: boolean;
+    canPermanentlyDelete: boolean;
+    explanation: string;
+  } | null>(null);
+  const [isLoadingCheck, setIsLoadingCheck] = useState(false);
+  const [isProcessingPatient, setIsProcessingPatient] = useState(false);
+  const [confirmationInput, setConfirmationInput] = useState("");
 
   // Modal Novo Prontuário
   const [isNewRecordModalOpen, setIsNewRecordModalOpen] = useState(false);
@@ -307,6 +333,122 @@ export default function AdminPatientDetailPage({
       }
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  // Exclusão de Documento Compartilhado
+  const confirmDeleteDocument = async () => {
+    if (!docToDelete) return;
+    setIsDeletingDoc(true);
+    setStatusMessage(null);
+    setErrorMessage(null);
+
+    try {
+      const res = await fetch(`/api/files/${docToDelete.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setStatusMessage(data.message || "Documento excluído com sucesso.");
+        setPatient((prev) =>
+          prev
+            ? {
+                ...prev,
+                fileShares: prev.fileShares.filter((s) => s.file.id !== docToDelete.id),
+              }
+            : null
+        );
+        setDocToDelete(null);
+      } else {
+        setErrorMessage(data.error || "Não foi possível excluir o documento.");
+      }
+    } catch {
+      setErrorMessage("Erro de comunicação ao excluir documento.");
+    } finally {
+      setIsDeletingDoc(false);
+    }
+  };
+
+  // Abre modal de exclusão/arquivamento do paciente
+  const handleOpenDeletePatientModal = async () => {
+    if (!patient) return;
+    setDeletionInfo(null);
+    setConfirmationInput("");
+    setIsDeletePatientModalOpen(true);
+    setIsLoadingCheck(true);
+
+    try {
+      const res = await fetch(`/api/patients/${id}/deletion-check`);
+      if (res.ok) {
+        const data = await res.json();
+        setDeletionInfo(data);
+      }
+    } catch (err) {
+      console.error("Erro ao verificar dependências:", err);
+    } finally {
+      setIsLoadingCheck(false);
+    }
+  };
+
+  // Confirma exclusão ou arquivamento do paciente
+  const handleConfirmDeleteOrArchivePatient = async (actionMode: "ARCHIVE" | "PERMANENT") => {
+    if (!patient) return;
+    setIsProcessingPatient(true);
+    setStatusMessage(null);
+    setErrorMessage(null);
+
+    try {
+      const res = await fetch(`/api/patients/${id}?action=${actionMode}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: actionMode }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        if (actionMode === "PERMANENT") {
+          setIsDeletePatientModalOpen(false);
+          router.push("/admin/pacientes");
+          return;
+        }
+
+        setStatusMessage(data.message || "Paciente arquivado com sucesso.");
+        setPatient((prev) => (prev ? { ...prev, isActive: false } : null));
+        setIsDeletePatientModalOpen(false);
+      } else {
+        setErrorMessage(data.error || "Não foi possível processar a exclusão.");
+      }
+    } catch {
+      setErrorMessage("Erro de comunicação ao processar a ação.");
+    } finally {
+      setIsProcessingPatient(false);
+    }
+  };
+
+  // Reativar paciente arquivado
+  const handleRestorePatient = async () => {
+    if (!patient) return;
+    setIsLoading(true);
+    setStatusMessage(null);
+    setErrorMessage(null);
+
+    try {
+      const res = await fetch(`/api/patients/${id}?action=RESTORE`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setStatusMessage(data.message || "Paciente reativado com sucesso.");
+        setPatient((prev) => (prev ? { ...prev, isActive: true } : null));
+      } else {
+        setErrorMessage(data.error || "Erro ao reativar paciente.");
+      }
+    } catch {
+      setErrorMessage("Erro de comunicação ao reativar paciente.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -580,12 +722,26 @@ export default function AdminPatientDetailPage({
             </Button>
           </Link>
 
+          {!patient.isActive && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-[var(--primary)] border-[var(--primary)]/30 hover:bg-[var(--primary)]/10"
+              onClick={handleRestorePatient}
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              <span>Reativar Cadastro</span>
+            </Button>
+          )}
+
           <Button
-            variant={patient.isActive ? "destructive" : "outline"}
+            variant="destructive"
             size="sm"
-            onClick={handleToggleActive}
+            className="gap-1.5"
+            onClick={handleOpenDeletePatientModal}
           >
-            {patient.isActive ? "Desativar Paciente" : "Reativar Cadastro"}
+            <Trash2 className="h-3.5 w-3.5" />
+            <span>Excluir / Arquivar</span>
           </Button>
         </div>
       </div>
@@ -1150,6 +1306,17 @@ export default function AdminPatientDetailPage({
                             Reativar (+30d)
                           </Button>
                         )}
+
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="h-7 text-xs gap-1 cursor-pointer"
+                          onClick={() => setDocToDelete(share.file)}
+                          title="Excluir documento"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          <span>Excluir</span>
+                        </Button>
                       </div>
                     </div>
                   );
@@ -1750,6 +1917,191 @@ export default function AdminPatientDetailPage({
               {isResettingAnamnesis ? "Solicitando..." : "Confirmar Solicitação"}
             </Button>
           </div>
+        </div>
+      </Modal>
+
+      {/* Modal de Exclusão de Documento */}
+      <Modal
+        isOpen={!!docToDelete}
+        onClose={() => !isDeletingDoc && setDocToDelete(null)}
+        title="Excluir Documento"
+      >
+        <div className="space-y-4 pt-1">
+          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+            Tem certeza que deseja excluir este documento? Esta ação poderá ser irreversível.
+          </p>
+
+          {docToDelete && (
+            <div className="p-3.5 bg-slate-100 dark:bg-[#1B1B1B] border border-slate-200 dark:border-[#393939] rounded-xl space-y-1">
+              <div className="text-xs font-bold text-slate-900 dark:text-[#F5F5F5]">
+                {docToDelete.title || docToDelete.originalName}
+              </div>
+              <div className="text-[11px] text-slate-500 font-mono">
+                {docToDelete.originalName} • {(docToDelete.sizeBytes / 1024).toFixed(1)} KB
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-[#393939]">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isDeletingDoc}
+              onClick={() => setDocToDelete(null)}
+            >
+              Cancelar
+            </Button>
+
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              isLoading={isDeletingDoc}
+              onClick={confirmDeleteDocument}
+              className="gap-1.5"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              <span>Excluir documento</span>
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal de Exclusão / Arquivamento do Paciente */}
+      <Modal
+        isOpen={isDeletePatientModalOpen}
+        onClose={() => !isProcessingPatient && setIsDeletePatientModalOpen(false)}
+        title={deletionInfo?.hasProtectedRecords ? "Arquivar Paciente (Retenção Legal)" : "Excluir Paciente"}
+      >
+        <div className="space-y-4 pt-1">
+          {isLoadingCheck ? (
+            <div className="py-8 text-center text-xs text-slate-500">
+              Verificando histórico clínico e dependências do paciente...
+            </div>
+          ) : deletionInfo ? (
+            <>
+              <div className="p-3 bg-slate-50 dark:bg-[#1B1B1B] border border-slate-200 dark:border-[#393939] rounded-xl space-y-1">
+                <div className="font-bold text-sm text-slate-900 dark:text-[#F5F5F5]">
+                  {patient.fullName}
+                </div>
+                <div className="text-xs text-slate-500">{patient.email}</div>
+              </div>
+
+              {/* Resumo de Dependências */}
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="p-2.5 rounded-lg border border-slate-200 dark:border-[#393939] bg-white dark:bg-[#202020]">
+                  <div className="text-slate-500 text-[11px] flex items-center gap-1">
+                    <FileText className="h-3 w-3" />
+                    <span>Prontuários</span>
+                  </div>
+                  <div className="font-bold text-sm mt-0.5">{deletionInfo.dependencies.clinicalRecordsCount}</div>
+                </div>
+
+                <div className="p-2.5 rounded-lg border border-slate-200 dark:border-[#393939] bg-white dark:bg-[#202020]">
+                  <div className="text-slate-500 text-[11px] flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    <span>Consultas</span>
+                  </div>
+                  <div className="font-bold text-sm mt-0.5">{deletionInfo.dependencies.appointmentsCount}</div>
+                </div>
+
+                <div className="p-2.5 rounded-lg border border-slate-200 dark:border-[#393939] bg-white dark:bg-[#202020]">
+                  <div className="text-slate-500 text-[11px] flex items-center gap-1">
+                    <DollarSign className="h-3 w-3" />
+                    <span>Pagamentos</span>
+                  </div>
+                  <div className="font-bold text-sm mt-0.5">{deletionInfo.dependencies.paymentsCount}</div>
+                </div>
+              </div>
+
+              {deletionInfo.hasProtectedRecords ? (
+                <div className="space-y-3">
+                  <div className="p-3.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl space-y-1.5 text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
+                    <div className="font-bold flex items-center gap-1.5">
+                      <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                      <span>Retenção Legal Obrigatória (CFP / CFM)</span>
+                    </div>
+                    <p>{deletionInfo.explanation}</p>
+                    <p className="text-[11px] text-amber-800 dark:text-amber-300 pt-1 border-t border-amber-200/60 dark:border-amber-800/60">
+                      O arquivamento desativa o acesso do paciente, revoga sessões ativas e o remove da listagem ativa, mantendo o histórico clínico e fiscal legalmente seguro.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-[#393939]">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={isProcessingPatient}
+                      onClick={() => setIsDeletePatientModalOpen(false)}
+                    >
+                      Cancelar
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      isLoading={isProcessingPatient}
+                      onClick={() => handleConfirmDeleteOrArchivePatient("ARCHIVE")}
+                      className="gap-1.5"
+                    >
+                      <Archive className="h-3.5 w-3.5" />
+                      <span>Arquivar Paciente</span>
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    {deletionInfo.explanation}
+                  </p>
+
+                  <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl space-y-2 text-xs">
+                    <p className="text-red-800 dark:text-red-300 font-semibold">
+                      Ação irreversível. Para confirmar a exclusão permanente deste paciente, digite <strong>EXCLUIR</strong> abaixo:
+                    </p>
+                    <Input
+                      placeholder='Digite "EXCLUIR"'
+                      value={confirmationInput}
+                      onChange={(e) => setConfirmationInput(e.target.value)}
+                      className="bg-white dark:bg-[#141414]"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-[#393939]">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={isProcessingPatient}
+                      onClick={() => setIsDeletePatientModalOpen(false)}
+                    >
+                      Cancelar
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      isLoading={isProcessingPatient}
+                      disabled={confirmationInput.trim() !== "EXCLUIR"}
+                      onClick={() => handleConfirmDeleteOrArchivePatient("PERMANENT")}
+                      className="gap-1.5"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      <span>Excluir permanentemente</span>
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="py-4 text-center text-xs text-red-500">
+              Não foi possível carregar as informações do paciente.
+            </div>
+          )}
         </div>
       </Modal>
     </div>

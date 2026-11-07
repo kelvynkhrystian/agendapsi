@@ -24,18 +24,34 @@ export async function GET(req: NextRequest) {
   try {
     await requireAdmin();
     const { searchParams } = new URL(req.url);
-    const search = searchParams.get("search") || "";
+    const search = searchParams.get("search")?.trim() || "";
+    const statusParam = searchParams.get("status")?.toUpperCase();
+
+    let activeFilter: boolean | undefined = undefined;
+    if (statusParam === "ACTIVE") {
+      activeFilter = true;
+    } else if (statusParam === "ARCHIVED") {
+      activeFilter = false;
+    } else if (statusParam === "ALL") {
+      activeFilter = undefined;
+    } else {
+      // Padrão: remove arquivados da listagem padrão ativa
+      activeFilter = true;
+    }
 
     const patients = await prisma.patient.findMany({
-      where: search
-        ? {
-            OR: [
-              { fullName: { contains: search } },
-              { email: { contains: search } },
-              { phone: { contains: search } },
-            ],
-          }
-        : undefined,
+      where: {
+        ...(typeof activeFilter === "boolean" ? { isActive: activeFilter } : {}),
+        ...(search
+          ? {
+              OR: [
+                { fullName: { contains: search } },
+                { email: { contains: search } },
+                { phone: { contains: search } },
+              ],
+            }
+          : {}),
+      },
       include: {
         guardians: true,
         _count: {
