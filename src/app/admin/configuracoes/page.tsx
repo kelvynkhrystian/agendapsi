@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   Save,
   RotateCcw,
+  RefreshCw,
   Upload,
   Eye,
   Check,
@@ -61,6 +62,8 @@ interface VideoProviderItem {
   isActive: boolean;
   config: Record<string, any>;
 }
+
+const isValidHex = (hex: string) => /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(hex);
 
 export default function AdminSettingsPage() {
   const [activeTab, setActiveTab] = useState<
@@ -111,6 +114,13 @@ export default function AdminSettingsPage() {
   const [heroPositioning, setHeroPositioning] = useState<string>("center");
   const [heroFrameCount, setHeroFrameCount] = useState<number>(0);
   const [heroFrames, setHeroFrames] = useState<string[]>([]);
+  const [heroBgMode, setHeroBgMode] = useState<"AUTO" | "MANUAL">("AUTO");
+  const [heroBgDetectedColor, setHeroBgDetectedColor] = useState<string | null>(null);
+  const [heroBgCustomColor, setHeroBgCustomColor] = useState<string>("#FAF7F2");
+  const [heroBgStatus, setHeroBgStatus] = useState<string>("IDLE");
+  const [heroBgMediaRef, setHeroBgMediaRef] = useState<string | null>(null);
+  const [isAnalyzingHeroColor, setIsAnalyzingHeroColor] = useState<boolean>(false);
+  const [heroColorFeedback, setHeroColorFeedback] = useState<string | null>(null);
 
   const [aboutMediaType, setAboutMediaType] = useState<string>("IMAGE");
   const [aboutMediaUrl, setAboutMediaUrl] = useState<string | null>(null);
@@ -253,6 +263,11 @@ export default function AdminSettingsPage() {
           setHeroPositioning(mediaData.hero.positioning || "center");
           setHeroFrameCount(mediaData.hero.frameCount ?? 0);
           setHeroFrames(mediaData.hero.frames || []);
+          setHeroBgMode(mediaData.hero.bgMode === "MANUAL" ? "MANUAL" : "AUTO");
+          setHeroBgDetectedColor(mediaData.hero.bgDetectedColor || null);
+          setHeroBgCustomColor(mediaData.hero.bgCustomColor || "#FAF7F2");
+          setHeroBgStatus(mediaData.hero.bgStatus || "IDLE");
+          setHeroBgMediaRef(mediaData.hero.bgMediaRef || null);
         }
         if (mediaData.about) {
           setAboutMediaType(mediaData.about.mediaType || "IMAGE");
@@ -464,6 +479,111 @@ export default function AdminSettingsPage() {
     }
   };
 
+  // Extrai frame de vídeo no navegador para análise de cor
+  const extractAndAnalyzeVideoFrame = async (videoUrl: string) => {
+    if (typeof window === "undefined") return;
+    setIsAnalyzingHeroColor(true);
+    setHeroColorFeedback("Analisando quadro do vídeo para identificação de cor...");
+    try {
+      const video = document.createElement("video");
+      video.crossOrigin = "anonymous";
+      video.src = videoUrl;
+      video.muted = true;
+      video.playsInline = true;
+
+      await new Promise<void>((resolve) => {
+        const timeout = setTimeout(() => {
+          video.onloadeddata = null;
+          video.onseeked = null;
+          video.onerror = null;
+          resolve();
+        }, 6000);
+
+        video.onloadeddata = () => {
+          try {
+            video.currentTime = Math.min(0.2, (video.duration || 1) / 2);
+          } catch {
+            clearTimeout(timeout);
+            resolve();
+          }
+        };
+
+        video.onseeked = () => {
+          clearTimeout(timeout);
+          resolve();
+        };
+
+        video.onerror = () => {
+          clearTimeout(timeout);
+          resolve();
+        };
+      });
+
+      const canvas = document.createElement("canvas");
+      canvas.width = 120;
+      canvas.height = 120;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      try {
+        ctx.drawImage(video, 0, 0, 120, 120);
+        const frameBase64 = canvas.toDataURL("image/jpeg", 0.85);
+
+        const res = await fetch("/api/admin/minisite/hero-color", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "analyze-frame", frameBase64 }),
+        });
+
+        const resData = await res.json();
+        if (res.ok && resData.detectedColor) {
+          setHeroBgDetectedColor(resData.detectedColor);
+          setHeroBgStatus(resData.status || "DETECTED");
+          setHeroBgMediaRef(videoUrl);
+          setHeroColorFeedback(`Cor detectada com sucesso do vídeo: ${resData.detectedColor}`);
+        }
+      } catch (drawErr) {
+        console.warn("Could not extract canvas frame from video:", drawErr);
+      }
+    } catch (e) {
+      console.error("Erro ao analisar frame de vídeo:", e);
+    } finally {
+      setIsAnalyzingHeroColor(false);
+    }
+  };
+
+  // Reanalisa cor de fundo da mídia Hero atual
+  const handleReanalyzeHeroColor = async () => {
+    setIsAnalyzingHeroColor(true);
+    setHeroColorFeedback(null);
+    try {
+      if (heroMediaType === "VIDEO" && heroMediaUrl) {
+        await extractAndAnalyzeVideoFrame(heroMediaUrl);
+        return;
+      }
+
+      const res = await fetch("/api/admin/minisite/hero-color", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "analyze-current" }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.detectedColor) {
+        setHeroBgDetectedColor(data.detectedColor);
+        setHeroBgStatus(data.status || "DETECTED");
+        if (data.mediaRef) setHeroBgMediaRef(data.mediaRef);
+        setHeroColorFeedback(`Cor detectada com sucesso: ${data.detectedColor}`);
+      } else {
+        setHeroColorFeedback(data.error || "Não foi possível analisar a cor da mídia atual.");
+      }
+    } catch {
+      setHeroColorFeedback("Erro de conexão ao reanalisar a cor.");
+    } finally {
+      setIsAnalyzingHeroColor(false);
+    }
+  };
+
   // Restaura Aparência Padrão (Verde Institucional PSI)
   const handleRestoreAppearanceDefaults = () => {
     const p = THEME_PRESETS.VERDE;
@@ -515,12 +635,24 @@ export default function AdminSettingsPage() {
 
       if (slot === "hero") {
         setHeroMediaType(mediaType);
+        if (data.detectedBgColor) {
+          setHeroBgDetectedColor(data.detectedBgColor);
+          setHeroBgStatus(data.detectionStatus || "DETECTED");
+          setHeroBgMediaRef(data.url || data.frames?.[0] || null);
+        }
         if (mediaType === "FRAME_ANIMATION") {
           setHeroFrameCount(data.frameCount || 0);
           setHeroFrames(data.frames || []);
           setHeroPosterUrl(data.posterUrl || null);
           setHeroMediaUrl(data.frames?.[0] || null);
           setMediaFeedback(`Animação do Hero processada com sucesso! ${data.frameCount} frames ordenados e validados.`);
+        } else if (mediaType === "VIDEO") {
+          setHeroMediaUrl(data.url);
+          setHeroPosterUrl(data.url);
+          setMediaFeedback("Vídeo da Foto Principal (Hero) enviado! Analisando cor de fundo...");
+          if (data.url) {
+            extractAndAnalyzeVideoFrame(data.url);
+          }
         } else {
           setHeroMediaUrl(data.url);
           setHeroPosterUrl(data.url);
@@ -570,6 +702,9 @@ export default function AdminSettingsPage() {
         setHeroFrames(data.frames || []);
         setHeroPosterUrl(data.posterUrl || null);
         setHeroMediaUrl(data.frames?.[0] || null);
+        setTimeout(() => {
+          handleReanalyzeHeroColor();
+        }, 150);
       } else {
         setAboutMediaType("FRAME_ANIMATION");
         setAboutFrameCount(data.frameCount || 0);
@@ -607,6 +742,11 @@ export default function AdminSettingsPage() {
             positioning: heroPositioning,
             frameCount: heroFrameCount,
             frames: heroFrames,
+            bgMode: heroBgMode,
+            bgDetectedColor: heroBgDetectedColor,
+            bgCustomColor: heroBgCustomColor,
+            bgStatus: heroBgStatus,
+            bgMediaRef: heroBgMediaRef,
           },
           about: {
             mediaType: aboutMediaType,
@@ -1974,6 +2114,156 @@ export default function AdminSettingsPage() {
                         <option value="cover">Preencher todo o quadro (Cover)</option>
                         <option value="contain">Conter imagem inteira (Contain)</option>
                       </select>
+                    </div>
+
+                    {/* Cor de Fundo do Hero (Detecção Automática ou Personalizada) */}
+                    <div className="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="font-semibold text-xs text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                            <Palette className="h-3.5 w-3.5 text-[var(--primary)]" />
+                            <span>Cor de Fundo do Hero</span>
+                          </label>
+                          <p className="text-[11px] text-slate-400">
+                            Harmoniza a seção inteira do Hero com a mídia principal sem cortes ou bordas visíveis.
+                          </p>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className={`text-[10px] font-medium ${
+                            heroBgMode === "MANUAL"
+                              ? "border-amber-400/40 text-amber-600 dark:text-amber-400 bg-amber-500/10"
+                              : heroBgStatus === "DETECTED"
+                              ? "border-emerald-500/40 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10"
+                              : heroBgStatus === "FALLBACK"
+                              ? "border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10"
+                              : "border-slate-400/40 text-slate-500 bg-slate-500/10"
+                          }`}
+                        >
+                          {heroBgMode === "MANUAL"
+                            ? "Personalizada"
+                            : heroBgStatus === "DETECTED"
+                            ? "Detectada com sucesso"
+                            : heroBgStatus === "FALLBACK"
+                            ? "Fallback (Padrão)"
+                            : "Aguardando mídia"}
+                        </Badge>
+                      </div>
+
+                      {/* Alternador de Modo: Automática vs Personalizada */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setHeroBgMode("AUTO")}
+                          className={`p-2 rounded-xl border text-xs font-medium flex items-center justify-center gap-1.5 transition-all ${
+                            heroBgMode === "AUTO"
+                              ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs"
+                              : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
+                          }`}
+                        >
+                          <Sparkles className="h-3.5 w-3.5" />
+                          <span>Automática</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setHeroBgMode("MANUAL")}
+                          className={`p-2 rounded-xl border text-xs font-medium flex items-center justify-center gap-1.5 transition-all ${
+                            heroBgMode === "MANUAL"
+                              ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs"
+                              : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
+                          }`}
+                        >
+                          <Palette className="h-3.5 w-3.5" />
+                          <span>Personalizada</span>
+                        </button>
+                      </div>
+
+                      {/* Modo Automático */}
+                      {heroBgMode === "AUTO" && (
+                        <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100/50 dark:bg-slate-800/40 space-y-2.5">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2.5">
+                              <div
+                                className="w-8 h-8 rounded-lg border border-black/10 dark:border-white/10 shadow-xs flex-shrink-0"
+                                style={{ backgroundColor: heroBgDetectedColor || "#FAF7F2" }}
+                                title={`Cor detectada: ${heroBgDetectedColor || "#FAF7F2"}`}
+                              />
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-mono font-bold text-xs text-slate-800 dark:text-slate-100">
+                                    {heroBgDetectedColor || "#FAF7F2"}
+                                  </span>
+                                  <span className="text-[10px] text-slate-400">
+                                    {heroBgStatus === "DETECTED" ? "Cor dominante das bordas" : "Cor neutra padrão"}
+                                  </span>
+                                </div>
+                                <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                                  Aplicada dinamicamente ao fundo do Hero e nos gradientes laterais e inferiores.
+                                </p>
+                              </div>
+                            </div>
+
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={handleReanalyzeHeroColor}
+                              disabled={isAnalyzingHeroColor}
+                              className="text-xs gap-1.5 h-8 px-2.5"
+                            >
+                              <RefreshCw className={`h-3.5 w-3.5 ${isAnalyzingHeroColor ? "animate-spin" : ""}`} />
+                              <span>{isAnalyzingHeroColor ? "Analisando..." : "Analisar novamente"}</span>
+                            </Button>
+                          </div>
+
+                          {heroColorFeedback && (
+                            <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                              {heroColorFeedback}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Modo Manual */}
+                      {heroBgMode === "MANUAL" && (
+                        <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100/50 dark:bg-slate-800/40 space-y-2.5">
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="color"
+                              value={isValidHex(heroBgCustomColor) ? heroBgCustomColor : "#FAF7F2"}
+                              onChange={(e) => setHeroBgCustomColor(e.target.value.toUpperCase())}
+                              className="h-9 w-10 rounded-lg cursor-pointer border border-slate-300 dark:border-slate-700 p-0.5 bg-transparent"
+                            />
+                            <div className="flex-1">
+                              <Input
+                                value={heroBgCustomColor}
+                                onChange={(e) => {
+                                  const val = e.target.value.trim();
+                                  setHeroBgCustomColor(val);
+                                }}
+                                placeholder="#FAF7F2"
+                                maxLength={7}
+                                className="font-mono text-xs uppercase"
+                              />
+                            </div>
+                            {heroBgDetectedColor && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setHeroBgCustomColor(heroBgDetectedColor)}
+                                title="Copiar cor detectada para o campo personalizado"
+                                className="text-[11px] h-8 px-2 text-slate-600 dark:text-slate-300 hover:text-[var(--primary)]"
+                              >
+                                Usar detectada ({heroBgDetectedColor})
+                              </Button>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-slate-400">
+                            Insira um código hexadecimal válido (ex: #FAF7F2 ou #1A202C). A cor personalizada sobrepõe a detecção automática no MiniSite.
+                          </p>
+                        </div>
+                      )}
                     </div>
 
                     {/* Ação de Remoção / Limpeza do Hero */}

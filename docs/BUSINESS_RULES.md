@@ -197,3 +197,11 @@ A ação de reenvio de mensagens (`POST /api/admin/message-logs/[id]/resend`) po
 - O número de WhatsApp é sanitizado com inclusão automática do código de país (+55).
 - A mensagem inicial é personalizável e codificada com segurança na URL.
 - Nenhuma informação clínica, prontuário, anotação ou diagnóstico de paciente trafega nos parâmetros de contato do WhatsApp.
+
+### 10.8 Integração e Detecção Automática da Cor de Fundo do Hero
+- O Hero do MiniSite analisa as bordas e cantos da mídia enviada (imagem, vídeo ou animação ZIP) para identificar a cor de fundo mais representativa via algoritmo de quantização e amostragem de bordas (`heroBgDetectedColor`, `heroBgStatus`, `heroBgMediaRef`).
+- A cor detectada ou customizada é injetada exclusivamente na seção Hero via variável CSS escopada `--hero-background-color`, sem alterar a paleta global do sistema.
+- O administrador pode alternar entre os modos `AUTO` (detecção automática por amostragem) e `MANUAL` (código HEX personalizado com color picker via `heroBgMode` e `heroBgCustomColor`).
+- No mobile, a cor de fundo preenche integralmente a seção acima e abaixo da mídia, criando continuidade visual perfeita sem faixas ou cortes artificiais.
+- No desktop, a cor de fundo serve como base para a mídia de fundo e alimenta suavemente a sobreposição gradiente de legibilidade.
+

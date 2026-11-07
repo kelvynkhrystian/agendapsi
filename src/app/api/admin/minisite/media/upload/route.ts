@@ -10,6 +10,10 @@ import {
   ALLOWED_IMAGE_EXTENSIONS,
   ALLOWED_VIDEO_EXTENSIONS,
 } from "@/lib/minisite-media";
+import {
+  detectImageBackgroundColor,
+  detectZipBackgroundColor,
+} from "@/lib/hero-color-detector";
 
 export async function POST(req: NextRequest) {
   try {
@@ -80,6 +84,19 @@ export async function POST(req: NextRequest) {
 
       const result = await processZipBuffer(buffer, slot);
 
+      let detectedBgColor: string | null = null;
+      let detectionStatus: string = "IDLE";
+      if (slot === "hero") {
+        try {
+          const colorResult = await detectZipBackgroundColor(buffer);
+          detectedBgColor = colorResult.hex;
+          detectionStatus = colorResult.status;
+        } catch (colorErr) {
+          console.warn("[Upload] Falha ao detectar cor do ZIP:", colorErr);
+          detectionStatus = "FAILED";
+        }
+      }
+
       return NextResponse.json({
         success: true,
         slot,
@@ -87,6 +104,8 @@ export async function POST(req: NextRequest) {
         frameCount: result.frameCount,
         frames: result.frames,
         posterUrl: result.posterUrl,
+        detectedBgColor,
+        detectionStatus,
         message: `Animação ZIP com ${result.frameCount} frames descompactada e persistida com sucesso!`,
       });
     }
@@ -110,12 +129,27 @@ export async function POST(req: NextRequest) {
 
       const publicUrl = await saveStaticMediaFile(file.name, buffer, slot, "image");
 
+      let detectedBgColor: string | null = null;
+      let detectionStatus: string = "IDLE";
+      if (slot === "hero") {
+        try {
+          const colorResult = await detectImageBackgroundColor(buffer);
+          detectedBgColor = colorResult.hex;
+          detectionStatus = colorResult.status;
+        } catch (colorErr) {
+          console.warn("[Upload] Falha ao detectar cor da imagem:", colorErr);
+          detectionStatus = "FAILED";
+        }
+      }
+
       return NextResponse.json({
         success: true,
         slot,
         mediaType: "IMAGE",
         url: publicUrl,
         posterUrl: publicUrl,
+        detectedBgColor,
+        detectionStatus,
         message: "Imagem estática salva com sucesso!",
       });
     }

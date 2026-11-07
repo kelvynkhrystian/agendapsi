@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
+import { isValidHexColor, normalizeHexColor } from "@/lib/hero-color-detector";
 
 export async function GET() {
   try {
@@ -20,6 +21,11 @@ export async function GET() {
         heroPositioning: true,
         heroFrameCount: true,
         heroFramesJson: true,
+        heroBgMode: true,
+        heroBgDetectedColor: true,
+        heroBgCustomColor: true,
+        heroBgStatus: true,
+        heroBgMediaRef: true,
 
         aboutMediaType: true,
         aboutMediaUrl: true,
@@ -62,6 +68,11 @@ export async function GET() {
         positioning: site?.heroPositioning || "center",
         frameCount: site?.heroFrameCount ?? 0,
         frames: heroFrames,
+        bgMode: site?.heroBgMode || "AUTO",
+        bgDetectedColor: site?.heroBgDetectedColor || null,
+        bgCustomColor: site?.heroBgCustomColor || null,
+        bgStatus: site?.heroBgStatus || "IDLE",
+        bgMediaRef: site?.heroBgMediaRef || null,
       },
       about: {
         mediaType: site?.aboutMediaType || "IMAGE",
@@ -107,6 +118,29 @@ export async function PUT(req: NextRequest) {
       if (h.frameCount !== undefined) updateData.heroFrameCount = Number(h.frameCount) || 0;
       if (h.frames !== undefined) {
         updateData.heroFramesJson = Array.isArray(h.frames) ? JSON.stringify(h.frames) : null;
+      }
+
+      // Background color mode & values
+      if (h.bgMode !== undefined) {
+        updateData.heroBgMode = h.bgMode === "MANUAL" ? "MANUAL" : "AUTO";
+      }
+      if (h.bgDetectedColor !== undefined) {
+        updateData.heroBgDetectedColor =
+          h.bgDetectedColor && isValidHexColor(h.bgDetectedColor)
+            ? normalizeHexColor(h.bgDetectedColor)
+            : null;
+      }
+      if (h.bgCustomColor !== undefined) {
+        updateData.heroBgCustomColor =
+          h.bgCustomColor && isValidHexColor(h.bgCustomColor)
+            ? normalizeHexColor(h.bgCustomColor)
+            : null;
+      }
+      if (h.bgStatus !== undefined) {
+        updateData.heroBgStatus = h.bgStatus;
+      }
+      if (h.bgMediaRef !== undefined) {
+        updateData.heroBgMediaRef = h.bgMediaRef;
       }
     }
 

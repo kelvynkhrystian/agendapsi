@@ -123,6 +123,7 @@ Na tabela **`SiteSettings`** (modelo Prisma `SiteSettings`, linha fixa `id = "de
   - `secondaryColor` (cor secundária)
   - `accentColor` (cor de destaque)
   - `buttonColor` (cor dos botões)
+  - `heroBgMode`, `heroBgDetectedColor`, `heroBgCustomColor`, `heroBgStatus`, `heroBgMediaRef` (integração, status e detecção de cor de fundo do Hero)
 - **Arquivo de referência:** `src/app/admin/configuracoes/page.tsx` (aba "Identidade Visual").
 
 ### 16. Como uma alteração no banco afeta o frontend?

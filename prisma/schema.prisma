@@ -550,6 +550,11 @@ model SiteSettings {
   heroPositioning        String   @default("center") // center, cover, contain, top, bottom
   heroFrameCount         Int      @default(0)
   heroFramesJson         String?  @db.MediumText
+  heroBgMode             String   @default("AUTO") // AUTO, MANUAL
+  heroBgDetectedColor    String?
+  heroBgCustomColor      String?
+  heroBgStatus           String   @default("IDLE") // IDLE, SUCCESS, FAILED, FALLBACK
+  heroBgMediaRef         String?  @db.Text
 
   aboutMediaType         String   @default("IMAGE") // IMAGE, FRAME_ANIMATION, VIDEO
   aboutMediaUrl          String?  @db.Text
