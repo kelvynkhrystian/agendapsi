@@ -201,7 +201,7 @@ export default async function HomePage() {
       {/* ================= 1. HERO SECTION (Referência Visual) ================= */}
       <section
         id="inicio"
-        className="relative pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-16 px-0 overflow-hidden bg-gradient-to-b from-[#F9F6F0] via-[#FAF7F2] to-[#FDFCFB] scroll-mt-24"
+        className="relative min-h-[auto] lg:min-h-screen flex flex-col justify-center px-0 overflow-hidden bg-[#FAF7F2] pt-20 sm:pt-24 lg:pt-28 pb-12 lg:pb-16 scroll-mt-24"
       >
         {/* Padrão orgânico ondulado de fundo (Curvas suaves) */}
         <div className="absolute inset-0 pointer-events-none opacity-30 overflow-hidden" aria-hidden="true">
@@ -229,121 +229,141 @@ export default async function HomePage() {
           </svg>
         </div>
 
-        {/* Topo do Hero: Badge com limitação horizontal */}
-        <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 relative z-10 flex flex-col items-center text-center mb-3">
-          <div id="hero-badge" className="inline-block px-5 py-1.5 rounded-full bg-[var(--button-bg,var(--primary))] text-white font-heading font-semibold text-xs uppercase tracking-wider shadow-xs">
+        {/* ================= SOBREPOSIÇÃO DE LEGIBILIDADE NO DESKTOP (WCAG AA) ================= */}
+        {/* Gradiente sutil da esquerda para a direita cobrindo a área de texto sem criar caixa rígida */}
+        <div
+          className="hidden lg:block absolute inset-0 z-[1] pointer-events-none bg-gradient-to-r from-[#FAF7F2] via-[#FAF7F2]/90 via-45% to-transparent"
+          aria-hidden="true"
+        />
+        {/* Suave fusão inferior para transição harmoniosa com a próxima seção */}
+        <div
+          className="hidden lg:block absolute inset-x-0 bottom-0 h-32 z-[1] pointer-events-none bg-gradient-to-t from-[#FDFCFB] via-[#FDFCFB]/70 to-transparent"
+          aria-hidden="true"
+        />
+
+        {/* Topo do Hero: Badge com limitação horizontal (No mobile acima da mídia; no desktop alinhado à esquerda) */}
+        <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:max-w-none lg:mx-0 lg:pl-[7vw] xl:pl-[8vw] lg:pr-8 relative z-10 order-1 flex flex-col items-center lg:items-start text-center lg:text-left mb-3 lg:mb-4">
+          <div
+            id="hero-badge"
+            className="inline-block px-5 py-1.5 rounded-full bg-[var(--button-bg,var(--primary))] text-white font-heading font-semibold text-xs uppercase tracking-wider shadow-xs"
+          >
             {crpCrm}
           </div>
         </div>
 
-        {/* MEDIA SLOT 1: Imagem/Vídeo/Frames Principal em 100% da Largura da Tela (Sem Molduras ou Padding) */}
-        <div className="relative w-full z-10 flex items-center justify-center my-0 p-0">
+        {/* MEDIA SLOT 1: Imagem/Vídeo/Frames Principal (Mobile: 100% largura em fluxo; Desktop: background absoluto cobrindo a seção) */}
+        <div
+          id="hero-media-container"
+          className="order-2 relative w-full z-10 lg:absolute lg:inset-0 lg:w-full lg:h-full lg:z-0 lg:overflow-hidden flex items-center justify-center p-0 m-0 border-0 shadow-none rounded-none pointer-events-none"
+        >
           <div id="hero-bg-leaves" className="hidden" aria-hidden="true" />
 
-          {/* Container Responsivo de Mídia em 100% de Largura com Proporção Natural */}
-          <div
-            id="hero-media-container"
-            className="w-full flex items-center justify-center transition-opacity duration-300 bg-transparent p-0 m-0 border-0 shadow-none rounded-none"
-          >
-            <MiniSiteMediaPlayer
-              slot="hero"
-              mediaType={heroMediaType}
-              mediaUrl={heroMediaUrl}
-              posterUrl={heroPosterUrl}
-              frames={heroFrames}
-              fps={site?.heroFps ?? 24}
-              loop={site?.heroLoop ?? true}
-              autoplay={site?.heroAutoplay ?? true}
-              playbackMode={site?.heroPlaybackMode || "AUTOMATIC"}
-              playbackDirection={site?.heroPlaybackDirection || "FORWARD"}
-              positioning={site?.heroPositioning || "contain"}
-              altText={professionalName}
-              className="w-full h-auto p-0 m-0 border-0 shadow-none rounded-none bg-transparent"
-            />
-          </div>
+          {/* Container Responsivo de Mídia em 100% de Largura (Proporção Natural no Mobile, Cover no Desktop) */}
+          <MiniSiteMediaPlayer
+            slot="hero"
+            mediaType={heroMediaType}
+            mediaUrl={heroMediaUrl}
+            posterUrl={heroPosterUrl}
+            frames={heroFrames}
+            fps={site?.heroFps ?? 24}
+            loop={site?.heroLoop ?? true}
+            autoplay={site?.heroAutoplay ?? true}
+            playbackMode={site?.heroPlaybackMode || "AUTOMATIC"}
+            playbackDirection={site?.heroPlaybackDirection || "FORWARD"}
+            positioning={site?.heroPositioning || "center"}
+            altText={professionalName}
+            className="w-full h-auto lg:h-full lg:w-full p-0 m-0 border-0 shadow-none rounded-none bg-transparent"
+          />
         </div>
 
-        {/* Conteúdo Textual e Ações do Hero: com limitação horizontal para todos os outros elementos */}
-        <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 relative z-10 flex flex-col items-center text-center space-y-6 mt-4">
-          {/* Nome e Especialidade com Tipografia Elegante */}
-          <div id="hero-title-group" className="space-y-1.5 pt-1">
-            <h1
-              id="hero-name"
-              className="text-4xl sm:text-5xl lg:text-6xl font-display italic text-[var(--primary)] font-medium tracking-tight drop-shadow-2xs leading-tight"
-              style={{ fontFamily: "var(--font-display, Georgia, 'Times New Roman', serif)" }}
-            >
-              {professionalName}
-            </h1>
-            <p id="hero-title" className="text-xs sm:text-sm font-heading font-bold tracking-[0.2em] text-slate-800 uppercase">
-              {professionalTitle}
+        {/* Conteúdo Textual e Ações do Hero: Mobile centralizado; Desktop alinhado à esquerda sobre a mídia */}
+        <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:max-w-none lg:mx-0 lg:pl-[7vw] xl:pl-[8vw] lg:pr-8 relative z-10 order-3 lg:order-2 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6 mt-4 lg:mt-0">
+          <div className="w-full lg:max-w-xl xl:max-w-2xl flex flex-col items-center lg:items-start text-center lg:text-left space-y-6">
+            {/* Nome e Especialidade com Tipografia Elegante */}
+            <div id="hero-title-group" className="space-y-1.5 pt-1 flex flex-col items-center lg:items-start text-center lg:text-left">
+              <h1
+                id="hero-name"
+                className="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-display italic text-[var(--primary)] font-medium tracking-tight drop-shadow-2xs leading-tight"
+                style={{ fontFamily: "var(--font-display, Georgia, 'Times New Roman', serif)" }}
+              >
+                {professionalName}
+              </h1>
+              <p id="hero-title" className="text-xs sm:text-sm font-heading font-bold tracking-[0.2em] text-slate-800 uppercase">
+                {professionalTitle}
+              </p>
+            </div>
+
+            {/* Subtítulo / Frase de Acolhimento */}
+            <p id="hero-subtitle" className="text-sm sm:text-base text-slate-600 max-w-lg mx-auto lg:mx-0 lg:text-left leading-relaxed">
+              {heroSubtitle}
             </p>
-          </div>
 
-          {/* Subtítulo / Frase de Acolhimento */}
-          <p id="hero-subtitle" className="text-sm sm:text-base text-slate-600 max-w-lg mx-auto leading-relaxed">
-            {heroSubtitle}
-          </p>
+            {/* Botões de Ação Hero */}
+            <div id="hero-cta" className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 w-full max-w-md pt-2">
+              <Link href="/agendar" className="w-full sm:w-auto">
+                <button
+                  type="button"
+                  className="w-full sm:w-auto py-3.5 px-7 rounded-2xl font-heading font-semibold text-xs sm:text-sm uppercase tracking-wider text-white shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  style={{ backgroundColor: site?.buttonColor || "var(--primary)" }}
+                >
+                  <Calendar className="h-4 w-4" />
+                  <span>Agende sua consulta</span>
+                </button>
+              </Link>
 
-          {/* Botões de Ação Hero */}
-          <div id="hero-cta" className="flex flex-col sm:flex-row items-center justify-center gap-3.5 w-full max-w-md pt-2">
-            <Link href="/agendar" className="w-full">
-              <button
-                type="button"
-                className="w-full py-3.5 px-6 rounded-2xl font-heading font-semibold text-xs sm:text-sm uppercase tracking-wider text-white shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
-                style={{ backgroundColor: site?.buttonColor || "var(--primary)" }}
+              {whatsappUrl && (
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto py-3.5 px-7 rounded-2xl font-heading font-semibold text-xs sm:text-sm text-white bg-[#221B16] hover:bg-[#181310] shadow-sm hover:shadow-md hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <WhatsAppIcon className="h-4.5 w-4.5 shrink-0" variant="original" />
+                  <span>Chamar no WhatsApp</span>
+                </a>
+              )}
+            </div>
+
+            {/* Indicadores de Benefício Configuráveis (Fase 4/5) - Abaixo dos botões no mobile e desktop */}
+            {activeBenefits.length > 0 && (
+              <div
+                id="hero-benefits"
+                className={`w-full max-w-xl border-t border-slate-200/70 pt-6 mt-6 ${
+                  activeBenefits.length === 1
+                    ? "grid grid-cols-1 max-w-xs lg:flex lg:flex-row lg:items-start lg:justify-start"
+                    : activeBenefits.length === 2
+                    ? "grid grid-cols-2 max-w-sm lg:flex lg:flex-row lg:items-start lg:justify-start lg:gap-8"
+                    : "grid grid-cols-3 lg:flex lg:flex-row lg:items-start lg:justify-start lg:gap-6"
+                } gap-3 sm:gap-6`}
               >
-                <Calendar className="h-4 w-4" />
-                <span>Agende sua consulta</span>
-              </button>
-            </Link>
-
-            {whatsappUrl && (
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full py-3.5 px-6 rounded-2xl font-heading font-semibold text-xs sm:text-sm text-white bg-[#221B16] hover:bg-[#181310] shadow-sm hover:shadow-md hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <WhatsAppIcon className="h-4.5 w-4.5 shrink-0" variant="original" />
-                <span>Chamar no WhatsApp</span>
-              </a>
+                {activeBenefits.map((item) => (
+                  <div
+                    key={item.id}
+                    className="hero-benefit-item group flex flex-col items-center text-center space-y-2 p-2 lg:p-0 lg:flex-row lg:items-center lg:text-left lg:space-y-0 lg:gap-3 rounded-xl transition-all"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center transition-transform group-hover:scale-105 shadow-2xs shrink-0">
+                      <ThemeIcon
+                        iconName={item.icon}
+                        customIconUrl={item.customIconUrl}
+                        className="h-5 w-5 text-[var(--primary)]"
+                        alt={item.title}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[11px] sm:text-xs font-heading font-bold uppercase tracking-tight text-slate-800 leading-tight">
+                        {item.title}
+                      </span>
+                      {item.subtitle && (
+                        <span className="text-[10px] sm:text-[11px] text-slate-500 font-normal leading-relaxed line-clamp-1 lg:line-clamp-2">
+                          {item.subtitle}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
-
-          {/* Indicadores de Benefício Configuráveis (Fase 4/5) */}
-          {activeBenefits.length > 0 && (
-            <div
-              id="hero-benefits"
-              className={`grid gap-3 sm:gap-6 pt-8 w-full max-w-xl border-t border-slate-200/60 mt-6 ${
-                activeBenefits.length === 1
-                  ? "grid-cols-1 max-w-xs"
-                  : activeBenefits.length === 2
-                  ? "grid-cols-2 max-w-sm"
-                  : "grid-cols-3"
-              }`}
-            >
-              {activeBenefits.map((item) => (
-                <div key={item.id} className="hero-benefit-item group flex flex-col items-center text-center space-y-2 p-2 rounded-xl transition-all">
-                  <div className="w-11 h-11 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center transition-transform group-hover:scale-105 shadow-2xs">
-                    <ThemeIcon
-                      iconName={item.icon}
-                      customIconUrl={item.customIconUrl}
-                      className="h-5 w-5 text-[var(--primary)]"
-                      alt={item.title}
-                    />
-                  </div>
-                  <span className="text-[11px] sm:text-xs font-heading font-bold uppercase tracking-tight text-slate-800 leading-tight">
-                    {item.title}
-                  </span>
-                  {item.subtitle && (
-                    <span className="text-[10px] sm:text-[11px] text-slate-500 font-normal leading-relaxed line-clamp-2">
-                      {item.subtitle}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </section>
 

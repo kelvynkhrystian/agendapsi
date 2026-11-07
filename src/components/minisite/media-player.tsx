@@ -284,7 +284,7 @@ export function MiniSiteMediaPlayer({
       ref={containerRef}
       className={
         isHero
-          ? `relative w-full h-auto flex items-center justify-center bg-transparent ${className}`
+          ? `relative w-full h-auto lg:h-full lg:w-full lg:absolute lg:inset-0 flex items-center justify-center bg-transparent ${className}`
           : `relative w-full h-full flex items-center justify-center overflow-hidden ${className}`
       }
     >
@@ -301,13 +301,14 @@ export function MiniSiteMediaPlayer({
           onLoadedMetadata={handleVideoMetadata}
           className={
             isHero
-              ? "w-full h-auto block max-w-full bg-transparent object-contain"
+              ? `w-full h-auto lg:h-full lg:w-full block max-w-full bg-transparent object-contain lg:object-cover ${
+                  positioning === "top"
+                    ? "lg:object-top"
+                    : positioning === "bottom"
+                    ? "lg:object-bottom"
+                    : "lg:object-center"
+                }`
               : `w-full h-full ${getObjectFitClass()}`
-          }
-          style={
-            isHero && videoAspectRatio
-              ? { aspectRatio: `${videoAspectRatio}` }
-              : undefined
           }
         />
       ) : null}
@@ -317,13 +318,8 @@ export function MiniSiteMediaPlayer({
         <div
           className={
             isHero
-              ? "w-full h-auto relative flex items-center justify-center bg-transparent"
+              ? "w-full h-auto lg:h-full lg:w-full lg:absolute lg:inset-0 relative flex items-center justify-center bg-transparent"
               : "w-full h-full relative flex items-center justify-center"
-          }
-          style={
-            isHero && frameAspectRatio
-              ? { aspectRatio: `${frameAspectRatio}` }
-              : undefined
           }
         >
           {/* Se movimento reduzido estiver ativado, exibe o pôster / primeiro frame estático */}
@@ -333,13 +329,14 @@ export function MiniSiteMediaPlayer({
               alt={actualAlt}
               className={
                 isHero
-                  ? "w-full h-auto block max-w-full bg-transparent object-contain"
+                  ? `w-full h-auto lg:h-full lg:w-full block max-w-full bg-transparent object-contain lg:object-cover ${
+                      positioning === "top"
+                        ? "lg:object-top"
+                        : positioning === "bottom"
+                        ? "lg:object-bottom"
+                        : "lg:object-center"
+                    }`
                   : `w-full h-full ${getObjectFitClass()}`
-              }
-              style={
-                isHero && frameAspectRatio
-                  ? { aspectRatio: `${frameAspectRatio}` }
-                  : undefined
               }
             />
           ) : (
@@ -347,19 +344,16 @@ export function MiniSiteMediaPlayer({
               ref={canvasRef}
               className={
                 isHero
-                  ? "w-full h-auto block max-w-full bg-transparent"
+                  ? `w-full h-auto lg:h-full lg:w-full block max-w-full bg-transparent object-contain lg:object-cover ${
+                      positioning === "top"
+                        ? "lg:object-top"
+                        : positioning === "bottom"
+                        ? "lg:object-bottom"
+                        : "lg:object-center"
+                    }`
                   : `w-full h-full ${getObjectFitClass()}`
               }
-              style={
-                isHero
-                  ? {
-                      width: "100%",
-                      height: "auto",
-                      aspectRatio: frameAspectRatio ? `${frameAspectRatio}` : undefined,
-                      display: "block",
-                    }
-                  : { display: "block" }
-              }
+              style={{ display: "block" }}
             />
           )}
         </div>
@@ -372,7 +366,13 @@ export function MiniSiteMediaPlayer({
           alt={actualAlt}
           className={
             isHero
-              ? "w-full h-auto block max-w-full bg-transparent object-contain"
+              ? `w-full h-auto lg:h-full lg:w-full block max-w-full bg-transparent object-contain lg:object-cover ${
+                  positioning === "top"
+                    ? "lg:object-top"
+                    : positioning === "bottom"
+                    ? "lg:object-bottom"
+                    : "lg:object-center"
+                }`
               : `w-full h-full ${getObjectFitClass()}`
           }
         />
@@ -381,7 +381,7 @@ export function MiniSiteMediaPlayer({
       {/* 4. PLACEHOLDER NEUTRO DE ALTA QUALIDADE QUANDO SEM MÍDIA CONFIGURADA */}
       {(!mediaUrl && (!frames || frames.length === 0)) ? (
         isHero ? (
-          <div className="w-full max-w-sm py-8 px-4 flex flex-col items-center justify-center text-center space-y-2 bg-transparent">
+          <div className="w-full max-w-sm py-8 px-4 flex flex-col items-center justify-center text-center space-y-2 bg-transparent lg:hidden">
             <div className="w-12 h-12 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] text-2xl font-serif shadow-2xs">
               Ψ
             </div>

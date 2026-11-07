@@ -118,3 +118,58 @@ test("Hero Media: GSAP e layout fluido sem overflow horizontal", () => {
     "Seção Hero deve conter overflow-hidden para prevenir barras de rolagem"
   );
 });
+
+test("Hero Desktop Redesign: Mídia como background absoluto, sobreposição gradiente e alinhamento à esquerda", () => {
+  const pagePath = path.join(process.cwd(), "src", "app", "page.tsx");
+  const pageContent = fs.readFileSync(pagePath, "utf-8");
+  const playerPath = path.join(process.cwd(), "src", "components", "minisite", "media-player.tsx");
+  const playerContent = fs.readFileSync(playerPath, "utf-8");
+
+  // 1. #hero-media-container como background absoluto no desktop (lg:absolute lg:inset-0 lg:w-full lg:h-full)
+  assert.ok(
+    pageContent.includes("lg:absolute lg:inset-0 lg:w-full lg:h-full lg:z-0 lg:overflow-hidden"),
+    "#hero-media-container deve expandir como background absoluto no desktop"
+  );
+
+  // 2. Sobreposição de legibilidade WCAG AA no desktop com gradiente suave
+  assert.ok(
+    pageContent.includes("hidden lg:block absolute inset-0 z-[1] pointer-events-none bg-gradient-to-r from-[#FAF7F2]"),
+    "Deve conter sobreposição gradiente da esquerda para a direita no desktop"
+  );
+  assert.ok(
+    pageContent.includes("hidden lg:block absolute inset-x-0 bottom-0 h-32 z-[1] pointer-events-none bg-gradient-to-t"),
+    "Deve conter fusão suave na base da seção hero para transição natural"
+  );
+
+  // 3. Alinhamento à esquerda no desktop com margem de 7-8vw e largura máxima de 500-650px
+  assert.ok(
+    pageContent.includes("lg:pl-[7vw] xl:pl-[8vw]"),
+    "Conteúdo e badge do Hero devem alinhar à esquerda com 7-8vw de recuo no desktop"
+  );
+  assert.ok(
+    pageContent.includes("lg:max-w-xl xl:max-w-2xl"),
+    "Coluna de conteúdo deve ter largura máxima controlada no desktop"
+  );
+  assert.ok(
+    pageContent.includes("lg:items-start") && pageContent.includes("lg:text-left"),
+    "Conteúdo deve estar alinhado estritamente à esquerda no desktop"
+  );
+
+  // 4. Benefícios organizados abaixo dos botões e horizontalmente no desktop
+  assert.ok(
+    pageContent.includes("lg:flex lg:flex-row lg:items-start lg:justify-start lg:gap-6") ||
+    pageContent.includes("lg:flex lg:flex-row lg:items-start lg:justify-start"),
+    "Benefícios devem formar linha horizontal alinhada à esquerda no desktop"
+  );
+
+  // 5. MiniSiteMediaPlayer adaptado para cover absoluto no desktop sem duplicar DOM
+  assert.ok(
+    playerContent.includes("lg:object-cover"),
+    "MiniSiteMediaPlayer deve aplicar object-cover no desktop"
+  );
+  assert.ok(
+    playerContent.includes("lg:h-full lg:w-full lg:absolute lg:inset-0"),
+    "MiniSiteMediaPlayer deve preencher 100% da área como background absoluto no desktop"
+  );
+});
+
