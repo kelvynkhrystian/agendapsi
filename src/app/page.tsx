@@ -183,6 +183,18 @@ export default async function HomePage() {
   const mapsEmbedSrc = getGoogleMapsEmbedSrc(site);
   const shouldShowLocation = site?.showLocation !== false && !!(formattedAddress || mapsDestinationUrl);
 
+  // Detecção e Resolução da Cor de Fundo do Hero (Fase 5+)
+  const heroBgMode = site?.heroBgMode || "AUTO";
+  const heroBgDetected = site?.heroBgDetectedColor;
+  const heroBgCustom = site?.heroBgCustomColor;
+
+  const effectiveHeroBgColor =
+    heroBgMode === "MANUAL" && heroBgCustom && /^#[0-9A-Fa-f]{6}$/i.test(heroBgCustom)
+      ? heroBgCustom
+      : heroBgDetected && /^#[0-9A-Fa-f]{6}$/i.test(heroBgDetected)
+      ? heroBgDetected
+      : "#FAF7F2";
+
   return (
     <div
       data-theme="light"
@@ -201,10 +213,16 @@ export default async function HomePage() {
       {/* ================= 1. HERO SECTION (Referência Visual) ================= */}
       <section
         id="inicio"
-        className="relative min-h-[auto] lg:min-h-screen flex flex-col justify-center px-0 overflow-hidden bg-[#FAF7F2] pt-20 sm:pt-24 lg:pt-28 pb-12 lg:pb-16 scroll-mt-24"
+        style={
+          {
+            backgroundColor: effectiveHeroBgColor,
+            "--hero-background-color": effectiveHeroBgColor,
+          } as React.CSSProperties
+        }
+        className="relative min-h-[auto] lg:min-h-screen flex flex-col justify-center px-0 overflow-hidden bg-[#FAF7F2] pt-20 sm:pt-24 lg:pt-28 pb-12 lg:pb-16 scroll-mt-24 transition-colors duration-300"
       >
         {/* Padrão orgânico ondulado de fundo (Curvas suaves) */}
-        <div className="absolute inset-0 pointer-events-none opacity-30 overflow-hidden" aria-hidden="true">
+        <div className="absolute inset-0 pointer-events-none opacity-30 overflow-hidden lg:hidden" aria-hidden="true">
           <svg
             className="w-full h-full text-[var(--primary)]"
             viewBox="0 0 1000 1000"
@@ -229,15 +247,11 @@ export default async function HomePage() {
           </svg>
         </div>
 
-        {/* ================= SOBREPOSIÇÃO DE LEGIBILIDADE NO DESKTOP (WCAG AA) ================= */}
-        {/* Gradiente sutil da esquerda para a direita cobrindo a área de texto sem criar caixa rígida */}
+        {/* Camada de fundo sólido no desktop (abaixo da mídia) para garantir que o lado direito nunca fique transparente.
+            Nenhuma sobreposição, gradiente ou filtro é aplicado SOBRE a mídia: ela é exibida com cores, brilho e opacidade originais. */}
         <div
-          className="hidden lg:block absolute inset-0 z-[1] pointer-events-none bg-gradient-to-r from-[#FAF7F2] via-[#FAF7F2]/90 via-45% to-transparent"
-          aria-hidden="true"
-        />
-        {/* Suave fusão inferior para transição harmoniosa com a próxima seção */}
-        <div
-          className="hidden lg:block absolute inset-x-0 bottom-0 h-32 z-[1] pointer-events-none bg-gradient-to-t from-[#FDFCFB] via-[#FDFCFB]/70 to-transparent"
+          className="hidden lg:block absolute inset-0 z-0 pointer-events-none transition-colors duration-300"
+          style={{ backgroundColor: effectiveHeroBgColor }}
           aria-hidden="true"
         />
 
@@ -251,14 +265,15 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* MEDIA SLOT 1: Imagem/Vídeo/Frames Principal (Mobile: 100% largura em fluxo; Desktop: background absoluto cobrindo a seção) */}
+        {/* MEDIA SLOT 1: Imagem/Vídeo/Frames Principal (Mobile: 100% largura em fluxo; Desktop: background absoluto cobrindo a seção com fundo sólido) */}
         <div
           id="hero-media-container"
-          className="order-2 relative w-full z-10 lg:absolute lg:inset-0 lg:w-full lg:h-full lg:z-0 lg:overflow-hidden flex items-center justify-center p-0 m-0 border-0 shadow-none rounded-none pointer-events-none"
+          style={{ backgroundColor: effectiveHeroBgColor }}
+          className="order-2 relative w-full z-10 lg:absolute lg:inset-0 lg:w-full lg:h-full lg:z-0 lg:overflow-hidden flex items-center justify-center p-0 m-0 border-0 shadow-none rounded-none pointer-events-none transition-colors duration-300"
         >
           <div id="hero-bg-leaves" className="hidden" aria-hidden="true" />
 
-          {/* Container Responsivo de Mídia em 100% de Largura (Proporção Natural no Mobile, Cover no Desktop) */}
+          {/* Container Responsivo de Mídia em 100% de Largura (Proporção Natural no Mobile, Cover no Desktop com Fundo Sólido) */}
           <MiniSiteMediaPlayer
             slot="hero"
             mediaType={heroMediaType}
@@ -272,13 +287,13 @@ export default async function HomePage() {
             playbackDirection={site?.heroPlaybackDirection || "FORWARD"}
             positioning={site?.heroPositioning || "center"}
             altText={professionalName}
-            className="w-full h-auto lg:h-full lg:w-full p-0 m-0 border-0 shadow-none rounded-none bg-transparent"
+            className="w-full h-auto lg:h-full lg:w-full p-0 m-0 border-0 shadow-none rounded-none"
           />
         </div>
 
         {/* Conteúdo Textual e Ações do Hero: Mobile centralizado; Desktop alinhado à esquerda sobre a mídia */}
         <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:max-w-none lg:mx-0 lg:pl-[7vw] xl:pl-[8vw] lg:pr-8 relative z-10 order-3 lg:order-2 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6 mt-4 lg:mt-0">
-          <div className="w-full lg:max-w-xl xl:max-w-2xl flex flex-col items-center lg:items-start text-center lg:text-left space-y-6">
+          <div className="w-full lg:max-w-xl xl:max-w-2xl flex flex-col items-center lg:items-start text-center lg:text-left space-y-6 lg:[text-shadow:0_1px_3px_rgba(255,255,255,0.6)]">
             {/* Nome e Especialidade com Tipografia Elegante */}
             <div id="hero-title-group" className="space-y-1.5 pt-1 flex flex-col items-center lg:items-start text-center lg:text-left">
               <h1

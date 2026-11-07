@@ -104,8 +104,8 @@ test("Hero Media: GSAP e layout fluido sem overflow horizontal", () => {
     "GSAP deve animar #hero-media-container"
   );
   assert.ok(
-    controllerContent.includes('clearProps: "all"'),
-    "GSAP deve limpar propriedades inline após entrada"
+    controllerContent.includes('clearProps: "transform,opacity"'),
+    "GSAP deve limpar transform/opacity da mídia do Hero após a entrada (opacidade final = 1)"
   );
 
   // Proteção contra overflow horizontal
@@ -131,14 +131,18 @@ test("Hero Desktop Redesign: Mídia como background absoluto, sobreposição gra
     "#hero-media-container deve expandir como background absoluto no desktop"
   );
 
-  // 2. Sobreposição de legibilidade WCAG AA no desktop com gradiente suave
+  // 2. Mídia exibida sem sobreposições: nenhum gradiente, véu ou filtro cobre a mídia no desktop
   assert.ok(
-    pageContent.includes("hidden lg:block absolute inset-0 z-[1] pointer-events-none bg-gradient-to-r from-[#FAF7F2]"),
-    "Deve conter sobreposição gradiente da esquerda para a direita no desktop"
+    !pageContent.includes("hidden lg:block absolute inset-0 z-[1] pointer-events-none"),
+    "Não deve existir sobreposição gradiente sobre a mídia do Hero no desktop"
   );
   assert.ok(
-    pageContent.includes("hidden lg:block absolute inset-x-0 bottom-0 h-32 z-[1] pointer-events-none bg-gradient-to-t"),
-    "Deve conter fusão suave na base da seção hero para transição natural"
+    !pageContent.includes("hidden lg:block absolute inset-x-0 bottom-0 h-32 z-[1] pointer-events-none bg-gradient-to-t"),
+    "Não deve existir fusão gradiente branca sobre a base da mídia do Hero"
+  );
+  assert.ok(
+    !pageContent.includes("linear-gradient(to right, ${effectiveHeroBgColor}"),
+    "Não deve existir gradiente lateral com a cor do Hero sobre a mídia"
   );
 
   // 3. Alinhamento à esquerda no desktop com margem de 7-8vw e largura máxima de 500-650px

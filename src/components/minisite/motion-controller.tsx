@@ -53,7 +53,8 @@ export function MiniSiteMotionController() {
         y: 15,
         duration: 0.85,
         ease: EASINGS.expressive,
-        clearProps: "all",
+        // Limpa apenas transform/opacity: preserva o backgroundColor inline e garante opacidade final = 1
+        clearProps: "transform,opacity",
       }, 0.2);
     }
 
@@ -326,6 +327,7 @@ export function MiniSiteMotionController() {
     const failSafeTimer = setTimeout(() => {
       ScrollTrigger.refresh();
       const selectors = [
+        "#hero-media-container",
         "#services-list > a",
         "#diferenciais-grid > div",
         "#como-funciona-steps > div",
