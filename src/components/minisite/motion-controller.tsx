@@ -105,6 +105,26 @@ export function MiniSiteMotionController() {
     }
 
     // ============================================================================
+    // 1.8 TRANSIÇÃO PARALLAX DO HERO NO DESKTOP (GSAP ScrollTrigger)
+    // ============================================================================
+    // Deslocamento suave de ~12% da camada de mídia em relação à rolagem,
+    // criando profundidade contínua enquanto a próxima seção sobe com a fusão do gradiente inferior.
+    const isHeroDesktop = typeof window !== "undefined" && window.innerWidth >= 1024;
+    if (isHeroDesktop && document.querySelector("#hero-parallax-layer") && document.querySelector("#inicio")) {
+      gsap.to("#hero-parallax-layer", {
+        scrollTrigger: {
+          trigger: "#inicio",
+          start: "top top",
+          end: "bottom top",
+          scrub: 0.6,
+          invalidateOnRefresh: true,
+        },
+        yPercent: 12,
+        ease: "none",
+      });
+    }
+
+    // ============================================================================
     // 2. PRINCIPAIS DEMANDAS & ATENDIMENTOS (Transição Horizontal da Esquerda no Desktop)
     // ============================================================================
     if (document.querySelector("#atendimentos")) {

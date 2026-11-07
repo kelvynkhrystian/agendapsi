@@ -273,22 +273,28 @@ export default async function HomePage() {
         >
           <div id="hero-bg-leaves" className="hidden" aria-hidden="true" />
 
-          {/* Container Responsivo de Mídia em 100% de Largura (Proporção Natural no Mobile, Cover no Desktop com Fundo Sólido) */}
-          <MiniSiteMediaPlayer
-            slot="hero"
-            mediaType={heroMediaType}
-            mediaUrl={heroMediaUrl}
-            posterUrl={heroPosterUrl}
-            frames={heroFrames}
-            fps={site?.heroFps ?? 24}
-            loop={site?.heroLoop ?? true}
-            autoplay={site?.heroAutoplay ?? true}
-            playbackMode={site?.heroPlaybackMode || "AUTOMATIC"}
-            playbackDirection={site?.heroPlaybackDirection || "FORWARD"}
-            positioning={site?.heroPositioning || "center"}
-            altText={professionalName}
-            className="w-full h-auto lg:h-full lg:w-full p-0 m-0 border-0 shadow-none rounded-none"
-          />
+          {/* Camada Parallax Responsiva: Altura expandida (115%) no Desktop para absorver deslocamento sem frestas */}
+          <div
+            id="hero-parallax-layer"
+            className="w-full h-auto lg:h-[115%] lg:w-full lg:absolute lg:-top-[5%] lg:left-0 flex items-center justify-center p-0 m-0 pointer-events-none will-change-transform"
+          >
+            {/* Container Responsivo de Mídia em 100% de Largura (Proporção Natural no Mobile, Cover no Desktop com Fundo Sólido) */}
+            <MiniSiteMediaPlayer
+              slot="hero"
+              mediaType={heroMediaType}
+              mediaUrl={heroMediaUrl}
+              posterUrl={heroPosterUrl}
+              frames={heroFrames}
+              fps={site?.heroFps ?? 24}
+              loop={site?.heroLoop ?? true}
+              autoplay={site?.heroAutoplay ?? true}
+              playbackMode={site?.heroPlaybackMode || "AUTOMATIC"}
+              playbackDirection={site?.heroPlaybackDirection || "FORWARD"}
+              positioning={site?.heroPositioning || "center"}
+              altText={professionalName}
+              className="w-full h-auto lg:h-full lg:w-full p-0 m-0 border-0 shadow-none rounded-none"
+            />
+          </div>
         </div>
 
         {/* Conteúdo Textual e Ações do Hero: Mobile centralizado; Desktop alinhado à esquerda sobre a mídia */}
@@ -380,11 +386,24 @@ export default async function HomePage() {
             )}
           </div>
         </div>
+
+        {/* ================= TRANSIÇÃO GRADIENTE INFERIOR NO DESKTOP ================= */}
+        {/* Suave fusão vertical na base (inferior 15-25%) conectando o Hero à seção seguinte (#atendimentos, bg-white).
+            Preserva o lado direito e topo da mídia 100% visíveis, sem véu ou gradientes horizontais. */}
+        <div
+          id="hero-bottom-gradient"
+          className="hidden lg:block absolute inset-x-0 bottom-0 h-32 sm:h-40 xl:h-48 z-[2] pointer-events-none bg-gradient-to-t from-white via-white/50 to-transparent transition-opacity duration-300"
+          aria-hidden="true"
+        />
       </section>
 
-      {/* Divisor Ondulado Orgânico 1 */}
-      <div className="w-full overflow-hidden leading-none text-[#FAF7F2] -mt-1" aria-hidden="true">
-        <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-8 text-[#FAF7F2] fill-current">
+      {/* Divisor Ondulado Orgânico 1 (Exibido no Mobile; no Desktop a fusão ocorre via gradiente vertical suave para white) */}
+      <div
+        className="w-full overflow-hidden leading-none -mt-1 lg:hidden"
+        style={{ color: effectiveHeroBgColor }}
+        aria-hidden="true"
+      >
+        <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-8 fill-current">
           <path d="M0,0 C300,90 900,-30 1200,60 L1200,120 L0,120 Z" />
         </svg>
       </div>

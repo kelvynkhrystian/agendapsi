@@ -131,18 +131,34 @@ test("Hero Desktop Redesign: Mídia como background absoluto, sobreposição gra
     "#hero-media-container deve expandir como background absoluto no desktop"
   );
 
-  // 2. Mídia exibida sem sobreposições: nenhum gradiente, véu ou filtro cobre a mídia no desktop
+  // 2. Mídia sem sobreposição lateral na direita, com gradiente vertical sutil apenas na base (inferior 15-25%)
   assert.ok(
     !pageContent.includes("hidden lg:block absolute inset-0 z-[1] pointer-events-none"),
-    "Não deve existir sobreposição gradiente sobre a mídia do Hero no desktop"
+    "Não deve existir sobreposição gradiente cobrindo o corpo ou lado direito da mídia no desktop"
   );
   assert.ok(
-    !pageContent.includes("hidden lg:block absolute inset-x-0 bottom-0 h-32 z-[1] pointer-events-none bg-gradient-to-t"),
-    "Não deve existir fusão gradiente branca sobre a base da mídia do Hero"
+    !pageContent.includes("linear-gradient(to right") && !pageContent.includes("bg-gradient-to-r"),
+    "Não deve existir gradiente horizontal desbotando a mídia para a direita"
   );
   assert.ok(
-    !pageContent.includes("linear-gradient(to right, ${effectiveHeroBgColor}"),
-    "Não deve existir gradiente lateral com a cor do Hero sobre a mídia"
+    pageContent.includes("id=\"hero-bottom-gradient\""),
+    "Deve conter elemento de gradiente inferior para conexão suave com a próxima seção"
+  );
+  assert.ok(
+    pageContent.includes("bg-gradient-to-t from-white"),
+    "Gradiente inferior deve transicionar suavemente em direção ao fundo da seção seguinte (white)"
+  );
+
+  // 3. Camada Parallax dedicada e integração GSAP ScrollTrigger
+  assert.ok(
+    pageContent.includes("id=\"hero-parallax-layer\""),
+    "Deve conter #hero-parallax-layer com bleed vertical para movimento sem frestas"
+  );
+  const controllerPath = path.join(process.cwd(), "src", "components", "minisite", "motion-controller.tsx");
+  const controllerContent = fs.readFileSync(controllerPath, "utf-8");
+  assert.ok(
+    controllerContent.includes("#hero-parallax-layer") && controllerContent.includes("yPercent: 12"),
+    "GSAP Motion Controller deve aplicar parallax de ~12% com ScrollTrigger em #hero-parallax-layer"
   );
 
   // 3. Alinhamento à esquerda no desktop com margem de 7-8vw e largura máxima de 500-650px
