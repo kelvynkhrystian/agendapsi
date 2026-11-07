@@ -201,7 +201,7 @@ export default async function HomePage() {
       {/* ================= 1. HERO SECTION (Referência Visual) ================= */}
       <section
         id="inicio"
-        className="relative pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-16 px-4 overflow-hidden bg-gradient-to-b from-[#F9F6F0] via-[#FAF7F2] to-[#FDFCFB] scroll-mt-24"
+        className="relative pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-16 px-0 overflow-hidden bg-gradient-to-b from-[#F9F6F0] via-[#FAF7F2] to-[#FDFCFB] scroll-mt-24"
       >
         {/* Padrão orgânico ondulado de fundo (Curvas suaves) */}
         <div className="absolute inset-0 pointer-events-none opacity-30 overflow-hidden" aria-hidden="true">
@@ -229,57 +229,42 @@ export default async function HomePage() {
           </svg>
         </div>
 
-        <div className="max-w-3xl mx-auto relative z-10 flex flex-col items-center text-center space-y-6">
-          {/* Badge CRP / CRM Superior */}
+        {/* Topo do Hero: Badge com limitação horizontal */}
+        <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 relative z-10 flex flex-col items-center text-center mb-3">
           <div id="hero-badge" className="inline-block px-5 py-1.5 rounded-full bg-[var(--button-bg,var(--primary))] text-white font-heading font-semibold text-xs uppercase tracking-wider shadow-xs">
             {crpCrm}
           </div>
+        </div>
 
-          {/* MEDIA SLOT 1: Retrato Profissional / Foto Principal */}
-          <div className="relative my-2">
-            {/* Decoração Orgânica de Ramos / Folhagem ao Fundo */}
-            <div id="hero-bg-leaves" className="absolute -inset-8 -z-10 flex items-center justify-center opacity-30 text-[var(--primary)] pointer-events-none" aria-hidden="true">
-              <svg width="360" height="360" viewBox="0 0 200 200" fill="none">
-                <path
-                  d="M100 20 C110 50, 150 60, 160 100 C170 140, 130 170, 100 180 C70 170, 30 140, 40 100 C50 60, 90 50, 100 20 Z"
-                  fill="currentColor"
-                  fillOpacity="0.12"
-                />
-                <circle cx="100" cy="100" r="78" stroke="currentColor" strokeWidth="1" strokeDasharray="3 3" />
-                {/* Ramos e Folhas Estilizadas */}
-                <path
-                  d="M50 100 C40 80, 50 50, 70 40 C60 60, 65 80, 50 100 Z"
-                  fill="currentColor"
-                  fillOpacity="0.35"
-                />
-                <path
-                  d="M150 100 C160 80, 150 50, 130 40 C140 60, 135 80, 150 100 Z"
-                  fill="currentColor"
-                  fillOpacity="0.35"
-                />
-              </svg>
-            </div>
+        {/* MEDIA SLOT 1: Imagem/Vídeo/Frames Principal em 100% da Largura da Tela (Sem Molduras ou Padding) */}
+        <div className="relative w-full z-10 flex items-center justify-center my-0 p-0">
+          <div id="hero-bg-leaves" className="hidden" aria-hidden="true" />
 
-            {/* Container Responsivo de Mídia (Slot 1: Herói - Compatível com Imagens, ZIP Frames e Vídeos) */}
-            <div id="hero-media-container" className="w-auto h-[380px] sm:h-[440px] md:h-[500px] aspect-[9/16] max-w-full rounded-2xl sm:rounded-3xl flex items-center justify-center overflow-hidden transition-all duration-300 shadow-md">
-              <MiniSiteMediaPlayer
-                slot="hero"
-                mediaType={heroMediaType}
-                mediaUrl={heroMediaUrl}
-                posterUrl={heroPosterUrl}
-                frames={heroFrames}
-                fps={site?.heroFps ?? 24}
-                loop={site?.heroLoop ?? true}
-                autoplay={site?.heroAutoplay ?? true}
-                playbackMode={site?.heroPlaybackMode || "AUTOMATIC"}
-                playbackDirection={site?.heroPlaybackDirection || "FORWARD"}
-                positioning={site?.heroPositioning || "contain"}
-                altText={professionalName}
-                className="w-full h-full rounded-2xl sm:rounded-3xl"
-              />
-            </div>
+          {/* Container Responsivo de Mídia em 100% de Largura com Proporção Natural */}
+          <div
+            id="hero-media-container"
+            className="w-full flex items-center justify-center transition-opacity duration-300 bg-transparent p-0 m-0 border-0 shadow-none rounded-none"
+          >
+            <MiniSiteMediaPlayer
+              slot="hero"
+              mediaType={heroMediaType}
+              mediaUrl={heroMediaUrl}
+              posterUrl={heroPosterUrl}
+              frames={heroFrames}
+              fps={site?.heroFps ?? 24}
+              loop={site?.heroLoop ?? true}
+              autoplay={site?.heroAutoplay ?? true}
+              playbackMode={site?.heroPlaybackMode || "AUTOMATIC"}
+              playbackDirection={site?.heroPlaybackDirection || "FORWARD"}
+              positioning={site?.heroPositioning || "contain"}
+              altText={professionalName}
+              className="w-full h-auto p-0 m-0 border-0 shadow-none rounded-none bg-transparent"
+            />
           </div>
+        </div>
 
+        {/* Conteúdo Textual e Ações do Hero: com limitação horizontal para todos os outros elementos */}
+        <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 relative z-10 flex flex-col items-center text-center space-y-6 mt-4">
           {/* Nome e Especialidade com Tipografia Elegante */}
           <div id="hero-title-group" className="space-y-1.5 pt-1">
             <h1

@@ -46,6 +46,8 @@ export function MiniSiteMediaPlayer({
   const [imagesLoaded, setImagesLoaded] = useState<boolean>(false);
   const [reducedMotion, setReducedMotion] = useState<boolean>(false);
   const [isVisible, setIsVisible] = useState<boolean>(true);
+  const [videoAspectRatio, setVideoAspectRatio] = useState<number | null>(null);
+  const [frameAspectRatio, setFrameAspectRatio] = useState<number | null>(null);
 
   const loadedImagesRef = useRef<HTMLImageElement[]>([]);
   const animationFrameRef = useRef<number | null>(null);
@@ -106,12 +108,18 @@ export function MiniSiteMediaPlayer({
       const onDone = () => {
         if (isCancelled) return;
         loadedCount++;
+        if (i === 0 && img.naturalWidth && img.naturalHeight) {
+          setFrameAspectRatio(img.naturalWidth / img.naturalHeight);
+        }
         if (loadedCount >= initialBatchSize) {
           setImagesLoaded(true);
         }
       };
 
       if (img.complete && img.naturalWidth > 0) {
+        if (i === 0) {
+          setFrameAspectRatio(img.naturalWidth / img.naturalHeight);
+        }
         onDone();
       } else {
         img.onload = onDone;
@@ -225,14 +233,40 @@ export function MiniSiteMediaPlayer({
 
     const img = loadedImagesRef.current[currentFrameIndex] || loadedImagesRef.current[0];
     if (img && img.complete && img.naturalWidth > 0) {
-      if (canvas.width !== img.naturalWidth || canvas.height !== img.naturalHeight) {
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
+      if (slot === "hero") {
+        const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+        const displayWidth = img.naturalWidth;
+        const displayHeight = img.naturalHeight;
+        const targetWidth = Math.round(displayWidth * dpr);
+        const targetHeight = Math.round(displayHeight * dpr);
+
+        if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.save();
+        ctx.scale(dpr, dpr);
+        ctx.drawImage(img, 0, 0);
+        ctx.restore();
+      } else {
+        if (canvas.width !== img.naturalWidth || canvas.height !== img.naturalHeight) {
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
       }
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0);
     }
-  }, [mediaType, currentFrameIndex, imagesLoaded]);
+  }, [mediaType, currentFrameIndex, imagesLoaded, slot]);
+
+  const handleVideoMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const v = e.currentTarget;
+    if (v.videoWidth && v.videoHeight) {
+      setVideoAspectRatio(v.videoWidth / v.videoHeight);
+    }
+  };
 
   // Enquadramento de objeto
   const getObjectFitClass = () => {
@@ -240,13 +274,19 @@ export function MiniSiteMediaPlayer({
     if (positioning === "cover") return "object-cover";
     if (positioning === "top") return "object-cover object-top";
     if (positioning === "bottom") return "object-cover object-bottom";
-    return "object-cover object-center";
+    return slot === "hero" ? "object-contain" : "object-cover object-center";
   };
+
+  const isHero = slot === "hero";
 
   return (
     <div
       ref={containerRef}
-      className={`relative w-full h-full flex items-center justify-center overflow-hidden ${className}`}
+      className={
+        isHero
+          ? `relative w-full h-auto flex items-center justify-center bg-transparent ${className}`
+          : `relative w-full h-full flex items-center justify-center overflow-hidden ${className}`
+      }
     >
       {/* 1. MODO: VÍDEO (MP4 / WebM) */}
       {mediaType === "VIDEO" && mediaUrl ? (
@@ -258,25 +298,68 @@ export function MiniSiteMediaPlayer({
           muted
           playsInline
           loop={loop}
-          className={`w-full h-full ${getObjectFitClass()}`}
+          onLoadedMetadata={handleVideoMetadata}
+          className={
+            isHero
+              ? "w-full h-auto block max-w-full bg-transparent object-contain"
+              : `w-full h-full ${getObjectFitClass()}`
+          }
+          style={
+            isHero && videoAspectRatio
+              ? { aspectRatio: `${videoAspectRatio}` }
+              : undefined
+          }
         />
       ) : null}
 
       {/* 2. MODO: FRAME ANIMATION (Canvas / Imagem Sequencial) */}
       {mediaType === "FRAME_ANIMATION" && frames && frames.length > 0 ? (
-        <div className="w-full h-full relative flex items-center justify-center">
+        <div
+          className={
+            isHero
+              ? "w-full h-auto relative flex items-center justify-center bg-transparent"
+              : "w-full h-full relative flex items-center justify-center"
+          }
+          style={
+            isHero && frameAspectRatio
+              ? { aspectRatio: `${frameAspectRatio}` }
+              : undefined
+          }
+        >
           {/* Se movimento reduzido estiver ativado, exibe o pôster / primeiro frame estático */}
           {reducedMotion || !imagesLoaded ? (
             <img
               src={posterUrl || frames[0]}
               alt={actualAlt}
-              className={`w-full h-full ${getObjectFitClass()}`}
+              className={
+                isHero
+                  ? "w-full h-auto block max-w-full bg-transparent object-contain"
+                  : `w-full h-full ${getObjectFitClass()}`
+              }
+              style={
+                isHero && frameAspectRatio
+                  ? { aspectRatio: `${frameAspectRatio}` }
+                  : undefined
+              }
             />
           ) : (
             <canvas
               ref={canvasRef}
-              className={`w-full h-full ${getObjectFitClass()}`}
-              style={{ display: "block" }}
+              className={
+                isHero
+                  ? "w-full h-auto block max-w-full bg-transparent"
+                  : `w-full h-full ${getObjectFitClass()}`
+              }
+              style={
+                isHero
+                  ? {
+                      width: "100%",
+                      height: "auto",
+                      aspectRatio: frameAspectRatio ? `${frameAspectRatio}` : undefined,
+                      display: "block",
+                    }
+                  : { display: "block" }
+              }
             />
           )}
         </div>
@@ -287,18 +370,22 @@ export function MiniSiteMediaPlayer({
         <img
           src={mediaUrl}
           alt={actualAlt}
-          className={`w-full h-full ${getObjectFitClass()}`}
+          className={
+            isHero
+              ? "w-full h-auto block max-w-full bg-transparent object-contain"
+              : `w-full h-full ${getObjectFitClass()}`
+          }
         />
       ) : null}
 
       {/* 4. PLACEHOLDER NEUTRO DE ALTA QUALIDADE QUANDO SEM MÍDIA CONFIGURADA */}
       {(!mediaUrl && (!frames || frames.length === 0)) ? (
-        slot === "hero" ? (
-          <div className="w-full h-full rounded-full bg-gradient-to-b from-white to-[#F5EFEB] flex flex-col items-center justify-center p-6 text-center space-y-2">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] text-3xl sm:text-4xl font-serif">
+        isHero ? (
+          <div className="w-full max-w-sm py-8 px-4 flex flex-col items-center justify-center text-center space-y-2 bg-transparent">
+            <div className="w-12 h-12 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] text-2xl font-serif shadow-2xs">
               Ψ
             </div>
-            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400">
               Espaço Terapêutico
             </span>
           </div>
