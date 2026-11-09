@@ -73,19 +73,25 @@ test("3. Detecção Automática de Seção e Rolagem Suave com Compensação de 
   assert.strictEqual(content.includes('behavior: "smooth"'), true, "Deve realizar scroll suave");
 });
 
-test("4. Micro-animações GSAP: Entrada fluida de logo, cápsula e autenticação com suporte a reduced-motion", () => {
+test("4. Micro-animações GSAP: Entrada fluida coordenada de logo, cápsula e autenticação com suporte a reduced-motion", () => {
   const headerPath = path.join(process.cwd(), "src", "components", "minisite", "header.tsx");
-  const content = fs.readFileSync(headerPath, "utf-8");
+  const controllerPath = path.join(process.cwd(), "src", "components", "minisite", "motion-controller.tsx");
+  const headerContent = fs.readFileSync(headerPath, "utf-8");
+  const controllerContent = fs.readFileSync(controllerPath, "utf-8");
 
-  // Integração com GSAP
-  assert.strictEqual(content.includes("gsap.context"), true, "Deve utilizar contexto seguro do GSAP");
-  assert.strictEqual(content.includes("ctx.revert()"), true, "Deve limpar as animações na desmontagem");
-  assert.strictEqual(content.includes("isReducedMotion()"), true, "Deve respeitar prefers-reduced-motion");
+  // IDs semânticos no cabeçalho para entrada coordenada na timeline única do Hero
+  assert.strictEqual(headerContent.includes('id="hero-header-logo"'), true, "Deve marcar área esquerda (Logo) com id estável");
+  assert.strictEqual(headerContent.includes('id="hero-header-pill"'), true, "Deve marcar cápsula central com id estável");
+  assert.strictEqual(headerContent.includes('id="hero-header-auth"'), true, "Deve marcar área direita (Auth) com id estável");
+  assert.strictEqual(headerContent.includes('id="hero-header-mobile-logo"'), true, "Deve marcar logo mobile com id estável");
+  assert.strictEqual(headerContent.includes('id="hero-header-mobile-toggle"'), true, "Deve marcar botão menu mobile com id estável");
 
-  // Animação de entrada dos 3 elementos
-  assert.strictEqual(content.includes("gsap.from(logoRef.current"), true, "Deve animar entrada suave da logo");
-  assert.strictEqual(content.includes("gsap.from(pillRef.current"), true, "Deve animar revelação da cápsula de navegação");
-  assert.strictEqual(content.includes("gsap.from(authRef.current"), true, "Deve animar entrada do botão de autenticação");
+  // Integração com timeline única GSAP e accessibility reduced-motion no MotionController
+  assert.strictEqual(controllerContent.includes("useGSAP"), true, "Deve utilizar hook seguro useGSAP com cleanup automático");
+  assert.strictEqual(controllerContent.includes("isReducedMotion()"), true, "Deve respeitar prefers-reduced-motion");
+  assert.strictEqual(controllerContent.includes("#hero-header-logo"), true, "Timeline deve animar entrada da logo de baixo para cima");
+  assert.strictEqual(controllerContent.includes("#hero-header-pill"), true, "Timeline deve animar revelação da cápsula de navegação de baixo para cima");
+  assert.strictEqual(controllerContent.includes("#hero-header-auth"), true, "Timeline deve animar entrada do botão de autenticação de baixo para cima");
 });
 
 test("5. Responsividade: Mobile mantém drawer e desktop recebe o novo visual de pill flutuante", () => {

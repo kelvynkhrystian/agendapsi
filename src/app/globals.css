@@ -286,3 +286,22 @@
     animation: none !important;
   }
 }
+
+/* Previne flash de hidratação apenas no conteúdo/header do Hero antes da timeline GSAP iniciar
+   (a mídia do Hero nunca é ocultada nem escalada e inicia imediatamente em tamanho e opacidade finais) */
+@media (prefers-reduced-motion: no-preference) {
+  html.hero-anim-pending #hero-header-logo,
+  html.hero-anim-pending #hero-header-pill,
+  html.hero-anim-pending #hero-header-auth,
+  html.hero-anim-pending #hero-header-mobile-logo,
+  html.hero-anim-pending #hero-header-mobile-toggle,
+  html.hero-anim-pending #hero-badge,
+  html.hero-anim-pending #hero-name,
+  html.hero-anim-pending #hero-title,
+  html.hero-anim-pending #hero-subtitle,
+  html.hero-anim-pending #hero-cta .hero-cta-item,
+  html.hero-anim-pending #hero-benefits .hero-benefit-item,
+  html.hero-anim-pending #hero-scroll-indicator {
+    opacity: 0;
+  }
+}

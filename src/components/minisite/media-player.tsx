@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 export interface MediaPlayerProps {
   slot: "hero" | "about";
@@ -15,6 +15,8 @@ export interface MediaPlayerProps {
   playbackMode?: "AUTOMATIC" | "SCROLL" | string;
   playbackDirection?: "FORWARD" | "ALTERNATE" | string;
   positioning?: "center" | "cover" | "contain" | "top" | "bottom" | string;
+  intrinsicWidth?: number | null;
+  intrinsicHeight?: number | null;
   className?: string;
   altText?: string;
   alt?: string;
@@ -33,6 +35,8 @@ export function MiniSiteMediaPlayer({
   playbackMode = "AUTOMATIC",
   playbackDirection = "FORWARD",
   positioning = "center",
+  intrinsicWidth,
+  intrinsicHeight,
   className = "",
   altText = "Mídia Institucional",
   alt,
@@ -223,8 +227,8 @@ export function MiniSiteMediaPlayer({
     return () => window.removeEventListener("scroll", handleScroll);
   }, [mediaType, playbackMode, frames, reducedMotion]);
 
-  // Desenho dos frames no Canvas quando atualizados
-  useEffect(() => {
+  // Desenho síncrono dos frames no Canvas antes da pintura para evitar flash branco na troca img -> canvas
+  useLayoutEffect(() => {
     if (mediaType !== "FRAME_ANIMATION" || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
@@ -278,6 +282,19 @@ export function MiniSiteMediaPlayer({
   };
 
   const isHero = slot === "hero";
+  const hasIntrinsicDims = Boolean(intrinsicWidth && intrinsicWidth > 0 && intrinsicHeight && intrinsicHeight > 0);
+  const resolvedAspectRatio = hasIntrinsicDims
+    ? `${intrinsicWidth} / ${intrinsicHeight}`
+    : videoAspectRatio
+    ? `${videoAspectRatio}`
+    : frameAspectRatio
+    ? `${frameAspectRatio}`
+    : undefined;
+  const heroAspectStyle: React.CSSProperties | undefined =
+    isHero && resolvedAspectRatio ? { aspectRatio: resolvedAspectRatio } : undefined;
+  const isImagePoster =
+    Boolean(posterUrl) && !/\.(mp4|webm|mov|avi)(\?|#|$)/i.test(posterUrl || "");
+  const effectiveVideoPoster = isImagePoster ? posterUrl || undefined : undefined;
 
   return (
     <div
@@ -293,12 +310,16 @@ export function MiniSiteMediaPlayer({
         <video
           ref={videoRef}
           src={mediaUrl}
-          poster={posterUrl || undefined}
+          poster={effectiveVideoPoster}
+          width={intrinsicWidth || undefined}
+          height={intrinsicHeight || undefined}
           autoPlay={autoplay}
           muted
           playsInline
           loop={loop}
+          preload="auto"
           onLoadedMetadata={handleVideoMetadata}
+          style={heroAspectStyle}
           className={
             isHero
               ? `w-full h-auto lg:h-full lg:w-full block max-w-full bg-[var(--hero-background-color,#FAF7F2)] object-contain lg:object-cover ${
@@ -327,6 +348,9 @@ export function MiniSiteMediaPlayer({
             <img
               src={posterUrl || frames[0]}
               alt={actualAlt}
+              width={intrinsicWidth || undefined}
+              height={intrinsicHeight || undefined}
+              style={heroAspectStyle}
               className={
                 isHero
                   ? `w-full h-auto lg:h-full lg:w-full block max-w-full bg-[var(--hero-background-color,#FAF7F2)] object-contain lg:object-cover ${
@@ -353,7 +377,7 @@ export function MiniSiteMediaPlayer({
                     }`
                   : `w-full h-full ${getObjectFitClass()}`
               }
-              style={{ display: "block" }}
+              style={{ display: "block", ...(heroAspectStyle || {}) }}
             />
           )}
         </div>
@@ -364,6 +388,9 @@ export function MiniSiteMediaPlayer({
         <img
           src={mediaUrl}
           alt={actualAlt}
+          width={intrinsicWidth || undefined}
+          height={intrinsicHeight || undefined}
+          style={heroAspectStyle}
           className={
             isHero
               ? `w-full h-auto lg:h-full lg:w-full block max-w-full bg-[var(--hero-background-color,#FAF7F2)] object-contain lg:object-cover ${

@@ -54,28 +54,32 @@ export function HeroScrollIndicator({
   return (
     <div
       id="hero-scroll-indicator"
-      className={`hidden lg:block select-none transition-opacity duration-300 ease-out will-change-transform ${className}`}
-      style={{
-        opacity,
-        pointerEvents: opacity <= 0.05 ? "none" : "auto",
-      }}
+      className={`hidden lg:block select-none will-change-transform ${className}`}
       aria-hidden={opacity <= 0.05}
     >
-      <button
-        type="button"
-        onClick={handleScrollDown}
-        aria-label="Rolar para a próxima seção"
-        className="group relative flex flex-col items-center justify-center p-0 m-0 bg-transparent border-0 shadow-none cursor-pointer outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 rounded-full transition-transform hover:scale-105 active:scale-95"
+      <div
+        className="transition-opacity duration-300 ease-out"
+        style={{
+          opacity,
+          pointerEvents: opacity <= 0.05 ? "none" : "auto",
+        }}
       >
-        <img
-          src="/minisite/scroll-down.svg"
-          alt=""
-          width={42}
-          height={107}
-          className="w-[36px] lg:w-[42px] xl:w-[46px] h-auto pointer-events-none select-none drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]"
-          loading="eager"
-        />
-      </button>
+        <button
+          type="button"
+          onClick={handleScrollDown}
+          aria-label="Rolar para a próxima seção"
+          className="group relative flex flex-col items-center justify-center p-0 m-0 bg-transparent border-0 shadow-none cursor-pointer outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 rounded-full transition-transform hover:scale-105 active:scale-95"
+        >
+          <img
+            src="/minisite/scroll-down.svg"
+            alt=""
+            width={42}
+            height={107}
+            className="w-[36px] lg:w-[42px] xl:w-[46px] h-auto pointer-events-none select-none drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]"
+            loading="eager"
+          />
+        </button>
+      </div>
     </div>
   );
 }

@@ -15,7 +15,7 @@ import { HeroScrollIndicator } from "@/components/minisite/hero-scroll-indicator
 import { CookieBanner } from "@/components/cookie-consent/cookie-banner";
 import { CookiePreferencesTrigger } from "@/components/cookie-consent/cookie-preferences-trigger";
 import { DEFAULT_HERO_BENEFITS, HeroBenefitItem } from "@/lib/minisite-icons";
-import { detectExistingFrames } from "@/lib/minisite-media";
+import { detectExistingFrames, getLocalMediaDimensions } from "@/lib/minisite-media";
 import {
   formatFullAddress,
   getGoogleMapsDestinationUrl,
@@ -153,6 +153,14 @@ export default async function HomePage() {
       aboutPosterUrl = aboutPosterUrl || detectedAbout.posterUrl;
     }
   }
+
+  const heroDimensionsSource =
+    heroMediaType === "FRAME_ANIMATION" && heroFrames.length > 0
+      ? heroPosterUrl && !/\.(mp4|webm|mov|avi)(\?|#|$)/i.test(heroPosterUrl)
+        ? heroPosterUrl
+        : heroFrames[0]
+      : heroMediaUrl;
+  const heroDimensions = await getLocalMediaDimensions(heroDimensionsSource);
 
   // Indicadores de Benefício do Hero (Fase 4/5)
   let benefits: HeroBenefitItem[] = DEFAULT_HERO_BENEFITS;
@@ -294,6 +302,8 @@ export default async function HomePage() {
               playbackMode={site?.heroPlaybackMode || "AUTOMATIC"}
               playbackDirection={site?.heroPlaybackDirection || "FORWARD"}
               positioning={site?.heroPositioning || "center"}
+              intrinsicWidth={heroDimensions?.width}
+              intrinsicHeight={heroDimensions?.height}
               altText={professionalName}
               className="w-full h-auto lg:h-full lg:w-full p-0 m-0 border-0 shadow-none rounded-none"
             />
@@ -327,26 +337,30 @@ export default async function HomePage() {
               id="hero-cta"
               className="flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-3.5 w-full max-w-md lg:max-w-none pt-2"
             >
-              <Link href="/agendar" className="w-full lg:w-auto shrink-0">
-                <button
-                  type="button"
-                  className="w-full lg:w-auto inline-flex items-center justify-center gap-2 h-12 py-3.5 px-6 sm:px-7 rounded-2xl font-heading font-semibold text-xs sm:text-sm uppercase tracking-wider shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] transition-all cursor-pointer bg-[var(--primary)] text-white whitespace-nowrap"
-                >
-                  <Calendar className="h-4 w-4 text-white shrink-0" />
-                  <span className="text-white whitespace-nowrap">Agende sua consulta</span>
-                </button>
-              </Link>
+              <div className="hero-cta-item w-full lg:w-auto shrink-0">
+                <Link href="/agendar" className="block w-full lg:w-auto">
+                  <button
+                    type="button"
+                    className="w-full lg:w-auto inline-flex items-center justify-center gap-2 h-12 py-3.5 px-6 sm:px-7 rounded-2xl font-heading font-semibold text-xs sm:text-sm uppercase tracking-wider shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] transition-all cursor-pointer bg-[var(--primary)] text-white whitespace-nowrap"
+                  >
+                    <Calendar className="h-4 w-4 text-white shrink-0" />
+                    <span className="text-white whitespace-nowrap">Agende sua consulta</span>
+                  </button>
+                </Link>
+              </div>
 
               {whatsappUrl && (
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full lg:w-auto inline-flex items-center justify-center gap-2 h-12 py-3.5 px-6 sm:px-7 rounded-2xl font-heading font-semibold text-xs sm:text-sm text-white bg-[#221B16] hover:bg-[#181310] shadow-sm hover:shadow-md hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap shrink-0"
-                >
-                  <WhatsAppIcon className="h-4.5 w-4.5 text-white shrink-0" variant="white" />
-                  <span className="text-white whitespace-nowrap">Chamar no WhatsApp</span>
-                </a>
+                <div className="hero-cta-item w-full lg:w-auto shrink-0">
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full lg:w-auto inline-flex items-center justify-center gap-2 h-12 py-3.5 px-6 sm:px-7 rounded-2xl font-heading font-semibold text-xs sm:text-sm text-white bg-[#221B16] hover:bg-[#181310] shadow-sm hover:shadow-md hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap shrink-0"
+                  >
+                    <WhatsAppIcon className="h-4.5 w-4.5 text-white shrink-0" variant="white" />
+                    <span className="text-white whitespace-nowrap">Chamar no WhatsApp</span>
+                  </a>
+                </div>
               )}
             </div>
 
@@ -365,7 +379,7 @@ export default async function HomePage() {
                 {activeBenefits.map((item) => (
                   <div
                     key={item.id}
-                    className="hero-benefit-item group flex flex-col items-center text-center space-y-2 p-2 lg:p-0 lg:flex-row lg:items-center lg:text-left lg:space-y-0 lg:gap-3.5 rounded-2xl transition-all"
+                    className="hero-benefit-item group flex flex-col items-center text-center space-y-2 p-2 lg:p-0 lg:flex-row lg:items-center lg:text-left lg:space-y-0 lg:gap-3.5 rounded-2xl transition-colors"
                   >
                     <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-14 lg:h-14 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center transition-transform group-hover:scale-105 shadow-2xs shrink-0">
                       <ThemeIcon

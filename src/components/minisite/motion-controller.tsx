@@ -1,139 +1,278 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap, ScrollTrigger, isReducedMotion, EASINGS } from "@/lib/animation/gsap";
 
-export function MiniSiteMotionController() {
-  const isMounted = useRef(false);
+declare global {
+  interface Window {
+    __psiHeroPendingTimer?: ReturnType<typeof setTimeout>;
+  }
+}
 
+export function MiniSiteMotionController() {
   useGSAP(() => {
-    // Se o usuário prefere redução de movimento, não aplica animações espaciais
+    if (typeof window !== "undefined" && window.__psiHeroPendingTimer) {
+      clearTimeout(window.__psiHeroPendingTimer);
+      window.__psiHeroPendingTimer = undefined;
+    }
+
+    const rootEl = typeof document !== "undefined" ? document.documentElement : null;
+
+    // Se o usuário prefere redução de movimento, garante visibilidade imediata e cancela movimentos espaciais
+    if (isReducedMotion()) rootEl?.classList.remove("hero-anim-pending");
     if (isReducedMotion()) return;
 
     const isDesktop = typeof window !== "undefined" && window.innerWidth >= 768;
+    const isHeroDesktop = typeof window !== "undefined" && window.innerWidth >= 1024;
+    const viewportHeight = typeof window !== "undefined" ? window.innerHeight : 900;
 
-    // Recalcula posições após carregamento de fontes e imagens
-    ScrollTrigger.refresh();
+    // No mobile, elementos do Hero estritamente abaixo da dobra inicial entram via ScrollTrigger único
+    const isHeroElementBelowMobileFold = (el: Element | null) => {
+      if (isHeroDesktop || !el || typeof window === "undefined") return false;
+      if (window.scrollY > 40) return false;
+      const rect = el.getBoundingClientRect();
+      return rect.top >= viewportHeight * 0.94;
+    };
 
     // ============================================================================
-    // 1. HERO ENTRANCE SEQUENCE (Timeline autoral e cinematográfica)
+    // 1. HERO CONTENT ENTRANCE SEQUENCE (Timeline única coordenada — BAIXO -> CIMA)
     // ============================================================================
+    // REGRA ESTRITA: A mídia do Hero (#hero-media-container, video, canvas, img) NUNCA é animada
+    // ou escalada na entrada. Ela é renderizada em 100% do tamanho e opacidade desde o 1º frame.
     const heroTl = gsap.timeline({
-      defaults: { ease: EASINGS.expressive },
+      defaults: { ease: EASINGS.smooth },
     });
 
-    // 1.1 Folhagem/Ramos orgânicos decorativos ao fundo do retrato
-    if (document.querySelector("#hero-bg-leaves")) {
-      heroTl.from("#hero-bg-leaves", {
-        scale: 0.8,
-        opacity: 0,
-        duration: 1.1,
-        ease: "power2.out",
-        clearProps: "scale,opacity",
-      }, 0);
+    // 1 — HEADER (primeiro elemento a entrar, de baixo para cima, sem deslocar o <header> fixo)
+    const desktopHeaderTargets = isDesktop
+      ? [
+          document.querySelector("#hero-header-logo"),
+          document.querySelector("#hero-header-pill"),
+          document.querySelector("#hero-header-auth"),
+        ].filter((el): el is Element => Boolean(el))
+      : [];
+    const mobileHeaderTargets = !isDesktop
+      ? [
+          document.querySelector("#hero-header-mobile-logo"),
+          document.querySelector("#hero-header-mobile-toggle"),
+        ].filter((el): el is Element => Boolean(el))
+      : [];
+
+    if (desktopHeaderTargets.length > 0) {
+      heroTl.fromTo(
+        desktopHeaderTargets,
+        { y: 22, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.55,
+          stagger: 0.05,
+          ease: "power3.out",
+          clearProps: "transform,opacity",
+        },
+        0
+      );
+    } else if (mobileHeaderTargets.length > 0) {
+      heroTl.fromTo(
+        mobileHeaderTargets,
+        { y: 18, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.5,
+          stagger: 0.06,
+          ease: "power3.out",
+          clearProps: "transform,opacity",
+        },
+        0
+      );
     }
 
-    // 1.2 Badge CRP/CRM do profissional
+    // 2 — BADGE CRP/CRM DO PROFISSIONAL
     if (document.querySelector("#hero-badge")) {
-      heroTl.from("#hero-badge", {
-        y: -16,
-        opacity: 0,
-        duration: 0.6,
-        ease: "power2.out",
-        clearProps: "all",
-      }, 0.1);
+      heroTl.fromTo(
+        "#hero-badge",
+        { y: 24, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.52,
+          ease: "power3.out",
+          clearProps: "transform,opacity",
+        },
+        desktopHeaderTargets.length > 0 || mobileHeaderTargets.length > 0 ? "-=0.36" : 0
+      );
     }
 
-    // 1.3 Container de mídia (Retrato / Frames ZIP / Vídeo)
-    if (document.querySelector("#hero-media-container")) {
-      heroTl.from("#hero-media-container", {
-        scale: 0.92,
-        opacity: 0,
-        y: 15,
-        duration: 0.85,
-        ease: EASINGS.expressive,
-        // Limpa apenas transform/opacity: preserva o backgroundColor inline e garante opacidade final = 1
-        clearProps: "transform,opacity",
-      }, 0.2);
-    }
-
-    // 1.4 Nome do profissional com tipografia de destaque
+    // 3 — NOME DO PROFISSIONAL
     if (document.querySelector("#hero-name")) {
-      heroTl.from("#hero-name", {
-        y: 20,
-        opacity: 0,
-        duration: 0.7,
-        ease: EASINGS.smooth,
-        clearProps: "all",
-      }, 0.35);
+      heroTl.fromTo(
+        "#hero-name",
+        { y: 28, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.6,
+          ease: "power3.out",
+          clearProps: "transform,opacity",
+        },
+        "-=0.38"
+      );
     }
 
-    // 1.5 Título profissional e subtítulo de acolhimento
-    if (document.querySelector("#hero-title-group")) {
-      heroTl.from("#hero-title-group", {
-        y: 16,
-        opacity: 0,
-        duration: 0.6,
-        ease: "power2.out",
-        clearProps: "all",
-      }, 0.45);
+    // 4 — ESPECIALIDADE (ex: PSICÓLOGO CLÍNICO E ESCOLAR)
+    if (document.querySelector("#hero-title")) {
+      heroTl.fromTo(
+        "#hero-title",
+        { y: 24, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.55,
+          ease: "power3.out",
+          clearProps: "transform,opacity",
+        },
+        "-=0.42"
+      );
     }
 
-    // 1.6 Botões de ação (Agendar Consulta e WhatsApp)
-    if (document.querySelector("#hero-cta")) {
-      heroTl.from("#hero-cta", {
-        y: 18,
-        opacity: 0,
-        duration: 0.6,
-        ease: "power2.out",
-        clearProps: "all",
-      }, 0.55);
+    // 5 — DESCRIÇÃO / SUBTÍTULO DE ACOLHIMENTO (bloco coerente, logo após especialidade)
+    if (document.querySelector("#hero-subtitle")) {
+      heroTl.fromTo(
+        "#hero-subtitle",
+        { y: 24, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.55,
+          ease: "power3.out",
+          clearProps: "transform,opacity",
+        },
+        "-=0.38"
+      );
     }
 
-    // 1.7 Pílulas de benefícios (stagger suave)
+    // 6 — BOTÕES DE AÇÃO HERO ("Agende sua consulta" e "Chamar no WhatsApp")
+    const ctaContainer = document.querySelector("#hero-cta");
+    const ctaItems = document.querySelectorAll("#hero-cta .hero-cta-item");
+    if (ctaItems.length > 0) {
+      if (isHeroElementBelowMobileFold(ctaContainer)) {
+        gsap.fromTo(
+          ctaItems,
+          { y: 24, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.55,
+            stagger: 0.08,
+            ease: "power3.out",
+            immediateRender: true,
+            clearProps: "transform,opacity",
+            scrollTrigger: {
+              trigger: "#hero-cta",
+              start: "top 95%",
+              once: true,
+            },
+          }
+        );
+      } else {
+        heroTl.fromTo(
+          ctaItems,
+          { y: 24, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.55,
+            stagger: 0.08,
+            ease: "power3.out",
+            clearProps: "transform,opacity",
+          },
+          "-=0.36"
+        );
+      }
+    }
+
+    // 7 — ITENS DE BENEFÍCIO (Acolhimento, Saúde, Bem-estar) - últimos da sequência com stagger esquerda -> direita
+    const benefitsContainer = document.querySelector("#hero-benefits");
     const benefitItems = document.querySelectorAll("#hero-benefits .hero-benefit-item");
     if (benefitItems.length > 0) {
-      heroTl.from(benefitItems, {
-        y: 14,
-        opacity: 0,
-        duration: 0.5,
-        stagger: 0.08,
-        ease: "power2.out",
-        clearProps: "all",
-      }, 0.65);
+      if (isHeroElementBelowMobileFold(benefitsContainer)) {
+        gsap.fromTo(
+          benefitItems,
+          { y: 22, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.5,
+            stagger: 0.09,
+            ease: "power3.out",
+            immediateRender: true,
+            clearProps: "transform,opacity",
+            scrollTrigger: {
+              trigger: "#hero-benefits",
+              start: "top 95%",
+              once: true,
+            },
+          }
+        );
+      } else {
+        heroTl.fromTo(
+          benefitItems,
+          { y: 22, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.5,
+            stagger: 0.09,
+            ease: "power3.out",
+            clearProps: "transform,opacity",
+          },
+          "-=0.32"
+        );
+      }
     }
 
-    // 1.8 Indicador de scroll animado no Hero desktop (aparição suave inicial)
-    if (document.querySelector("#hero-scroll-indicator")) {
-      heroTl.from("#hero-scroll-indicator", {
-        opacity: 0,
-        y: 12,
-        duration: 0.6,
-        ease: "power2.out",
-        clearProps: "all",
-      }, 0.75);
+    // Indicador de scroll animado no Hero desktop (revelação suave ao final da sequência)
+    if (isHeroDesktop && document.querySelector("#hero-scroll-indicator")) {
+      heroTl.fromTo(
+        "#hero-scroll-indicator",
+        { y: 20, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.55,
+          ease: "power3.out",
+          clearProps: "transform,opacity",
+        },
+        "-=0.3"
+      );
     }
+
+    // Todos os tweens iniciais do Hero já aplicaram inline opacity:0/y — libera classe anti-flash do HTML
+    rootEl?.classList.remove("hero-anim-pending");
 
     // ============================================================================
-    // 1.8 TRANSIÇÃO PARALLAX DO HERO NO DESKTOP (GSAP ScrollTrigger)
+    // 1.8 TRANSIÇÃO PARALLAX DO HERO NO DESKTOP (GSAP ScrollTrigger independente)
     // ============================================================================
     // Deslocamento suave de ~12% da camada de mídia em relação à rolagem,
-    // criando profundidade contínua enquanto a próxima seção sobe com a fusão do gradiente inferior.
-    const isHeroDesktop = typeof window !== "undefined" && window.innerWidth >= 1024;
-    if (isHeroDesktop && document.querySelector("#hero-parallax-layer") && document.querySelector("#inicio")) {
-      gsap.to("#hero-parallax-layer", {
-        scrollTrigger: {
-          trigger: "#inicio",
-          start: "top top",
-          end: "bottom top",
-          scrub: 0.6,
-          invalidateOnRefresh: true,
-        },
-        yPercent: 12,
-        ease: "none",
-      });
-    }
+    // separado da timeline de entrada e ativo exclusivamente no desktop (>= 1024px).
+    const mm = gsap.matchMedia();
+    mm.add("(min-width: 1024px)", () => {
+      if (document.querySelector("#hero-parallax-layer") && document.querySelector("#inicio")) {
+        gsap.to("#hero-parallax-layer", {
+          scrollTrigger: {
+            trigger: "#inicio",
+            start: "top top",
+            end: "bottom top",
+            scrub: 0.6,
+            invalidateOnRefresh: true,
+          },
+          yPercent: 12,
+          ease: "none",
+        });
+      }
+    });
 
     // ============================================================================
     // 2. PRINCIPAIS DEMANDAS & ATENDIMENTOS (Transição Horizontal da Esquerda no Desktop)
@@ -354,11 +493,27 @@ export function MiniSiteMotionController() {
       });
     }
 
-    // Failsafe de visibilidade: garante que NENHUM elemento fique invisível com espaços vazios
+    // Recalcula ScrollTriggers após registro completo de todas as seções
+    ScrollTrigger.refresh();
+
+    // Failsafe de visibilidade: garante que NENHUM elemento visível na viewport fique preso invisível
     const failSafeTimer = setTimeout(() => {
+      rootEl?.classList.remove("hero-anim-pending");
       ScrollTrigger.refresh();
-      const selectors = [
-        "#hero-media-container",
+      const vhNow = typeof window !== "undefined" ? window.innerHeight : 900;
+      const heroAndSectionSelectors = [
+        "#hero-header-logo",
+        "#hero-header-pill",
+        "#hero-header-auth",
+        "#hero-header-mobile-logo",
+        "#hero-header-mobile-toggle",
+        "#hero-badge",
+        "#hero-name",
+        "#hero-title",
+        "#hero-subtitle",
+        "#hero-cta .hero-cta-item",
+        "#hero-benefits .hero-benefit-item",
+        "#hero-scroll-indicator",
         "#services-list > a",
         "#diferenciais-grid > div",
         "#como-funciona-steps > div",
@@ -369,17 +524,23 @@ export function MiniSiteMotionController() {
         "#localizacao-map",
         "#cta-final-box",
       ];
-      selectors.forEach((sel) => {
+      heroAndSectionSelectors.forEach((sel) => {
         document.querySelectorAll(sel).forEach((node) => {
           const el = node as HTMLElement;
-          if (el && el.style.opacity === "0") {
+          if (!el) return;
+          const rect = el.getBoundingClientRect();
+          if (rect.top < vhNow && el.style.opacity === "0") {
             gsap.to(el, { opacity: 1, x: 0, y: 0, duration: 0.3, clearProps: "transform,opacity" });
           }
         });
       });
-    }, 1000);
+    }, 1500);
 
-    return () => clearTimeout(failSafeTimer);
+    return () => {
+      clearTimeout(failSafeTimer);
+      mm.revert();
+      rootEl?.classList.remove("hero-anim-pending");
+    };
   }, []);
 
   // Recálculo ao carregar fontes ou imagens tardias

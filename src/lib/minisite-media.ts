@@ -299,3 +299,185 @@ export async function detectExistingFrames(slot: MediaSlot): Promise<FrameProces
     return null;
   }
 }
+
+export interface MediaDimensions {
+  width: number;
+  height: number;
+}
+
+function parsePngDimensions(buf: Buffer): MediaDimensions | null {
+  if (buf.length < 24) return null;
+  if (buf.readUInt32BE(0) !== 0x89504e47 || buf.toString("ascii", 12, 16) !== "IHDR") return null;
+  const width = buf.readUInt32BE(16);
+  const height = buf.readUInt32BE(20);
+  return width > 0 && height > 0 ? { width, height } : null;
+}
+
+function parseJpegDimensions(buf: Buffer): MediaDimensions | null {
+  if (buf.length < 4 || buf[0] !== 0xff || buf[1] !== 0xd8) return null;
+  let pos = 2;
+  while (pos + 4 <= buf.length) {
+    if (buf[pos] !== 0xff) {
+      pos++;
+      continue;
+    }
+    const marker = buf[pos + 1];
+    if (marker === 0xff) {
+      pos++;
+      continue;
+    }
+    if (marker === 0xd8 || marker === 0xd9 || (marker >= 0xd0 && marker <= 0xd7)) {
+      pos += 2;
+      continue;
+    }
+    if (pos + 4 > buf.length) break;
+    const segLen = buf.readUInt16BE(pos + 2);
+    if (segLen < 2 || pos + 2 + segLen > buf.length) break;
+    const isSof =
+      (marker >= 0xc0 && marker <= 0xc3) ||
+      (marker >= 0xc5 && marker <= 0xc7) ||
+      (marker >= 0xc9 && marker <= 0xcb) ||
+      (marker >= 0xcd && marker <= 0xcf);
+    if (isSof && segLen >= 7) {
+      const height = buf.readUInt16BE(pos + 5);
+      const width = buf.readUInt16BE(pos + 7);
+      if (width > 0 && height > 0) return { width, height };
+    }
+    pos += 2 + segLen;
+  }
+  return null;
+}
+
+function parseWebpDimensions(buf: Buffer): MediaDimensions | null {
+  if (buf.length < 30) return null;
+  if (buf.toString("ascii", 0, 4) !== "RIFF" || buf.toString("ascii", 8, 12) !== "WEBP") return null;
+  const chunkType = buf.toString("ascii", 12, 16);
+  if (chunkType === "VP8X") {
+    const width = 1 + (buf[24] | (buf[25] << 8) | (buf[26] << 16));
+    const height = 1 + (buf[27] | (buf[28] << 8) | (buf[29] << 16));
+    return width > 0 && height > 0 ? { width, height } : null;
+  }
+  if (chunkType === "VP8 " && buf[23] === 0x9d && buf[24] === 0x01 && buf[25] === 0x2a) {
+    const width = buf.readUInt16LE(26) & 0x3fff;
+    const height = buf.readUInt16LE(28) & 0x3fff;
+    return width > 0 && height > 0 ? { width, height } : null;
+  }
+  if (chunkType === "VP8L" && buf[20] === 0x2f) {
+    const b1 = buf[21];
+    const b2 = buf[22];
+    const b3 = buf[23];
+    const b4 = buf[24];
+    const width = 1 + (((b2 & 0x3f) << 8) | b1);
+    const height = 1 + (((b4 & 0x0f) << 10) | (b3 << 2) | ((b2 & 0xc0) >> 6));
+    return width > 0 && height > 0 ? { width, height } : null;
+  }
+  return null;
+}
+
+function parseMp4Dimensions(buf: Buffer): MediaDimensions | null {
+  function walk(start: number, end: number): MediaDimensions | null {
+    let pos = start;
+    while (pos + 8 <= end) {
+      let size = buf.readUInt32BE(pos);
+      const type = buf.toString("ascii", pos + 4, pos + 8);
+      let headerSize = 8;
+      if (size === 1 && pos + 16 <= end) {
+        size = Number(buf.readBigUInt64BE(pos + 8));
+        headerSize = 16;
+      } else if (size === 0) {
+        size = end - pos;
+      }
+      if (size < headerSize || pos + size > end) break;
+
+      if (type === "moov" || type === "trak") {
+        const res = walk(pos + headerSize, pos + size);
+        if (res) return res;
+      } else if (type === "tkhd" && pos + headerSize + 4 <= pos + size) {
+        const version = buf[pos + headerSize];
+        const dimOffset = version === 1 ? pos + headerSize + 88 : pos + headerSize + 76;
+        const matrixOffset = version === 1 ? pos + headerSize + 52 : pos + headerSize + 40;
+        if (dimOffset + 8 <= pos + size) {
+          let w = buf.readUInt32BE(dimOffset) >>> 16;
+          let h = buf.readUInt32BE(dimOffset + 4) >>> 16;
+          if (w > 0 && h > 0) {
+            if (matrixOffset + 24 <= pos + size) {
+              const a = buf.readInt32BE(matrixOffset);
+              const b = buf.readInt32BE(matrixOffset + 4);
+              const c = buf.readInt32BE(matrixOffset + 12);
+              const d = buf.readInt32BE(matrixOffset + 16);
+              if (a === 0 && d === 0 && b !== 0 && c !== 0) {
+                const tmp = w;
+                w = h;
+                h = tmp;
+              }
+            }
+            return { width: w, height: h };
+          }
+        }
+      }
+      pos += size;
+    }
+    return null;
+  }
+  return walk(0, buf.length);
+}
+
+/**
+ * Lê dimensões intrínsecas de imagem ou vídeo local para evitar saltos de layout no carregamento inicial (mobile/desktop)
+ */
+export async function getLocalMediaDimensions(publicUrl?: string | null): Promise<MediaDimensions | null> {
+  if (!publicUrl || typeof publicUrl !== "string") return null;
+  const cleanUrl = publicUrl.split("?")[0].split("#")[0];
+  let resolvedPath: string | null = null;
+
+  if (cleanUrl.startsWith("/api/minisite/media/")) {
+    const relSegments = cleanUrl.replace("/api/minisite/media/", "").split("/").filter(Boolean);
+    if (relSegments.some((s) => s.includes(".."))) return null;
+    const baseDir = path.resolve(process.cwd(), "storage", "minisite");
+    const candidate = path.resolve(baseDir, ...relSegments);
+    if (candidate.startsWith(baseDir)) resolvedPath = candidate;
+  } else if (cleanUrl.startsWith("/uploads/")) {
+    const relSegments = cleanUrl.replace(/^\//, "").split("/").filter(Boolean);
+    if (relSegments.some((s) => s.includes(".."))) return null;
+    const baseDir = path.resolve(process.cwd(), "public");
+    const candidate = path.resolve(baseDir, ...relSegments);
+    if (candidate.startsWith(baseDir)) resolvedPath = candidate;
+  }
+
+  if (!resolvedPath) return null;
+
+  try {
+    const ext = path.extname(resolvedPath).toLowerCase();
+    if (ext === ".png") {
+      const fh = await fs.open(resolvedPath, "r");
+      try {
+        const buf = Buffer.alloc(32);
+        const { bytesRead } = await fh.read(buf, 0, 32, 0);
+        return parsePngDimensions(buf.subarray(0, bytesRead));
+      } finally {
+        await fh.close();
+      }
+    }
+    if (ext === ".webp") {
+      const fh = await fs.open(resolvedPath, "r");
+      try {
+        const buf = Buffer.alloc(64);
+        const { bytesRead } = await fh.read(buf, 0, 64, 0);
+        return parseWebpDimensions(buf.subarray(0, bytesRead));
+      } finally {
+        await fh.close();
+      }
+    }
+    if (ext === ".jpg" || ext === ".jpeg") {
+      const buf = await fs.readFile(resolvedPath);
+      return parseJpegDimensions(buf);
+    }
+    if (ext === ".mp4") {
+      const buf = await fs.readFile(resolvedPath);
+      return parseMp4Dimensions(buf);
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}

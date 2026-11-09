@@ -98,14 +98,15 @@ test("Hero Media: GSAP e layout fluido sem overflow horizontal", () => {
   const controllerPath = path.join(process.cwd(), "src", "components", "minisite", "motion-controller.tsx");
   const controllerContent = fs.readFileSync(controllerPath, "utf-8");
 
-  // GSAP Controller anima #hero-media-container
+  // Mídia do Hero não deve sofrer scale/zoom na timeline de entrada; apenas parallax independente no ScrollTrigger desktop
   assert.ok(
-    controllerContent.includes("#hero-media-container"),
-    "GSAP deve animar #hero-media-container"
+    !controllerContent.includes('heroTl.from("#hero-media-container"') &&
+      !controllerContent.includes('heroTl.fromTo("#hero-media-container"'),
+    "GSAP não deve escalar ou animar #hero-media-container durante a entrada da página"
   );
   assert.ok(
     controllerContent.includes('clearProps: "transform,opacity"'),
-    "GSAP deve limpar transform/opacity da mídia do Hero após a entrada (opacidade final = 1)"
+    "GSAP deve limpar transform/opacity do conteúdo animado após a entrada (opacidade final = 1)"
   );
 
   // Proteção contra overflow horizontal

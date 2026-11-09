@@ -30,13 +30,21 @@ test("2. MiniSite: Controlador de movimento GSAP integrado com sequência Hero a
 
   const controllerSrc = fs.readFileSync(controllerPath, "utf8");
 
-  // Timeline e sequência Hero
+  // Timeline e sequência Hero (ordem coordenada de baixo para cima: header -> badge -> nome -> especialidade -> descrição -> CTAs -> benefícios; sem escalar mídia)
   assert.ok(controllerSrc.includes("heroTl = gsap.timeline"), "Deve criar timeline dedicada para o Hero");
+  assert.ok(controllerSrc.includes("#hero-header-pill"), "Deve incluir header desktop no início da timeline coordenada do Hero");
+  assert.ok(controllerSrc.includes("#hero-header-mobile-logo"), "Deve incluir conteúdo do header mobile na timeline sem deslocar a barra fixa");
   assert.ok(controllerSrc.includes("#hero-badge"), "Deve animar badge de registro do profissional");
-  assert.ok(controllerSrc.includes("#hero-media-container"), "Deve animar container de mídia do herói");
   assert.ok(controllerSrc.includes("#hero-name"), "Deve animar nome do profissional");
+  assert.ok(controllerSrc.includes("#hero-title"), "Deve animar especialidade do profissional");
+  assert.ok(controllerSrc.includes("#hero-subtitle"), "Deve animar descrição do herói");
   assert.ok(controllerSrc.includes("#hero-cta"), "Deve animar botões de ação do herói");
   assert.ok(controllerSrc.includes("#hero-benefits"), "Deve animar indicadores de benefícios com stagger");
+  assert.ok(
+    !controllerSrc.includes('heroTl.from("#hero-media-container"') &&
+      !controllerSrc.includes('heroTl.fromTo("#hero-media-container"'),
+    "Não deve animar ou escalar o container de mídia do Hero na entrada"
+  );
 
   // Verificação de acessibilidade
   assert.ok(controllerSrc.includes("if (isReducedMotion()) return;"), "Deve cancelar animações espaciais caso o usuário solicite redução de movimento");

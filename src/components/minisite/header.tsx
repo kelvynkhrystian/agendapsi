@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { gsap, isReducedMotion } from "@/lib/animation/gsap";
 import {
   Menu,
   X,
@@ -115,43 +114,6 @@ export function MiniSiteHeader({
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, [shouldShowLocation]);
-
-  // Micro-animação de entrada inicial via GSAP
-  useEffect(() => {
-    if (isReducedMotion()) return;
-
-    const ctx = gsap.context(() => {
-      if (logoRef.current) {
-        gsap.from(logoRef.current, {
-          opacity: 0,
-          x: -14,
-          duration: 0.55,
-          ease: "power2.out",
-        });
-      }
-      if (pillRef.current) {
-        gsap.from(pillRef.current, {
-          opacity: 0,
-          y: -10,
-          scale: 0.96,
-          duration: 0.65,
-          delay: 0.08,
-          ease: "power3.out",
-        });
-      }
-      if (authRef.current) {
-        gsap.from(authRef.current, {
-          opacity: 0,
-          x: 14,
-          duration: 0.55,
-          delay: 0.12,
-          ease: "power2.out",
-        });
-      }
-    }, headerRef);
-
-    return () => ctx.revert();
-  }, []);
 
   // Fecha o menu móvel ao redimensionar para telas desktop
   useEffect(() => {
@@ -270,6 +232,7 @@ export function MiniSiteHeader({
         >
           {/* LADO ESQUERDO: Logo Horizontal Oficial Sem Rótulo "PSI" */}
           <Link
+            id="hero-header-mobile-logo"
             href="/"
             onClick={handleLinkClick}
             className="flex items-center focus:outline-none cursor-pointer"
@@ -301,6 +264,7 @@ export function MiniSiteHeader({
 
           {/* LADO DIREITO: Botão Hamburguer */}
           <button
+            id="hero-header-mobile-toggle"
             type="button"
             onClick={() => setIsMenuOpen((prev) => !prev)}
             aria-label={isMenuOpen ? "Fechar menu de navegação" : "Abrir menu de navegação"}
@@ -316,7 +280,7 @@ export function MiniSiteHeader({
       {/* ================= 2. CABEÇALHO DESKTOP (>= 768px: PREMIUM PILL NAVIGATION) ================= */}
       <div className="hidden md:grid grid-cols-[1fr_auto_1fr] items-center w-full max-w-6xl xl:max-w-7xl mx-auto px-4 lg:px-6 pointer-events-none">
         {/* LADO ESQUERDO: Logo Horizontal Oficial Sem Rótulo "PSI" */}
-        <div ref={logoRef} className="flex items-center justify-start pointer-events-auto">
+        <div id="hero-header-logo" ref={logoRef} className="flex items-center justify-start pointer-events-auto">
           <Link
             href="/"
             className="flex items-center gap-2.5 font-bold text-[var(--primary)] group shrink-0 focus:outline-none"
@@ -348,7 +312,7 @@ export function MiniSiteHeader({
         </div>
 
         {/* CENTRO: Cápsula de Navegação Flutuante Centralizada (Floating Pill Navigation) */}
-        <div ref={pillRef} className="flex items-center justify-center pointer-events-auto">
+        <div id="hero-header-pill" ref={pillRef} className="flex items-center justify-center pointer-events-auto">
           <nav
             aria-label="Navegação principal"
             className={`inline-flex items-center gap-0.5 lg:gap-1 p-1 md:p-1.5 lg:p-1.5 rounded-full border transition-all duration-300 ${
@@ -411,7 +375,7 @@ export function MiniSiteHeader({
         </div>
 
         {/* LADO DIREITO: Autenticação (Pill arredondado de Login ou Usuário) */}
-        <div ref={authRef} className="flex items-center justify-end gap-2.5 shrink-0 pointer-events-auto">
+        <div id="hero-header-auth" ref={authRef} className="flex items-center justify-end gap-2.5 shrink-0 pointer-events-auto">
           {isLoadingAuth ? (
             <div className="w-24 h-10 rounded-full bg-slate-100/80 animate-pulse" />
           ) : user ? (

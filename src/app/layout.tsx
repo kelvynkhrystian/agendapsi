@@ -116,6 +116,23 @@ export default async function RootLayout({
       <head>
         {site?.faviconUrl && <link rel="icon" href={site.faviconUrl} />}
         <style id="psi-theme-vars" dangerouslySetInnerHTML={{ __html: dynamicCss }} />
+        <script
+          id="psi-hero-anim-prep"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  if (window.location.pathname === '/' && (!window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+                    document.documentElement.classList.add('hero-anim-pending');
+                    window.__psiHeroPendingTimer = setTimeout(function() {
+                      document.documentElement.classList.remove('hero-anim-pending');
+                    }, 1500);
+                  }
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
       </head>
       <body className="min-h-screen bg-[#F8F8F8] dark:bg-[#0C0C0C] text-[#171717] dark:text-[#F5F5F5] antialiased selection:bg-[var(--primary)] selection:text-white">
         <Script
