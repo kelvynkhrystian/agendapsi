@@ -242,51 +242,53 @@ export function MiniSiteHeader({
       ref={headerRef}
       className="fixed top-0 left-0 right-0 z-50 w-full bg-transparent border-none shadow-none pointer-events-none transition-all duration-300 py-0 md:py-3.5 lg:py-4"
     >
-      {/* ================= 1. CABEÇALHO MOBILE (< 768px: FLOATING ROUNDED PILL) ================= */}
-      <div className="flex md:hidden w-full px-3 pt-3 sm:px-4 pointer-events-none relative z-50">
+      {/* ================= 1. CABEÇALHO MOBILE (< 768px: TOTALMENTE TRANSPARENTE QUANDO FECHADO) ================= */}
+      <div
+        id="hero-header-mobile"
+        className="flex md:hidden w-full px-3 sm:px-4 pointer-events-none relative z-50"
+        style={{ paddingTop: "calc(0.5rem + env(safe-area-inset-top, 0px))" }}
+      >
         <div
-          className={`flex items-center justify-between w-full h-14 px-4 pointer-events-auto transition-all duration-200 relative z-50 ${
+          id="hero-header-mobile-bar"
+          className={`flex items-center justify-between w-full pointer-events-auto transition-all duration-200 relative z-50 ${
             isMenuOpen
-              ? "bg-white rounded-t-2xl rounded-b-none border border-slate-200/90 border-b-slate-100 shadow-none"
-              : isScrolled
-              ? "bg-white/95 backdrop-blur-lg rounded-full border border-slate-200/70 shadow-[0_6px_24px_rgba(0,0,0,0.08)]"
-              : "bg-white/40 backdrop-blur-md rounded-full border border-white/40 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:bg-white/60"
+              ? "h-12 px-4 bg-white rounded-t-2xl rounded-b-none border border-slate-200/90 border-b-slate-100 shadow-none"
+              : "h-8 px-1 bg-transparent border-0 rounded-none shadow-none backdrop-blur-none outline-none"
           }`}
-          style={{ marginTop: "env(safe-area-inset-top, 0px)" }}
         >
-          {/* LADO ESQUERDO: Logo Horizontal Oficial Sem Rótulo "PSI" */}
+          {/* LADO ESQUERDO: Logo Horizontal Oficial reduzida em 50% no mobile (sem alterar desktop) */}
           <Link
             id="hero-header-mobile-logo"
             href="/"
             onClick={handleLinkClick}
-            className="flex items-center focus:outline-none cursor-pointer"
+            className="flex items-center focus:outline-none cursor-pointer shrink-0"
             aria-label="Página inicial"
           >
             {logoHorizontalUrl ? (
               <img
                 src={logoHorizontalUrl}
                 alt={neutralFallbackName}
-                className="h-7 sm:h-8 w-auto max-w-[170px] sm:max-w-[210px] object-contain transition-transform active:scale-98"
+                className="h-3.5 sm:h-4 w-auto max-w-[85px] sm:max-w-[105px] object-contain transition-transform active:scale-98"
               />
             ) : logoUrl ? (
               <img
                 src={logoUrl}
                 alt={neutralFallbackName}
-                className="h-7 sm:h-8 w-auto max-w-[130px] object-contain rounded-sm"
+                className="h-3.5 sm:h-4 w-auto max-w-[65px] object-contain rounded-sm"
               />
             ) : (
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-serif font-black text-base sm:text-lg">
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-4 rounded bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-serif font-black text-[10px]">
                   Ψ
                 </div>
-                <span className="text-xs sm:text-sm font-semibold tracking-tight text-slate-900">
+                <span className="text-[11px] font-semibold tracking-tight text-slate-900">
                   {neutralFallbackName}
                 </span>
               </div>
             )}
           </Link>
 
-          {/* LADO DIREITO: Botão Hamburguer */}
+          {/* LADO DIREITO: Botão Hamburguer visível e clicável diretamente sobre a mídia */}
           <button
             id="hero-header-mobile-toggle"
             type="button"
@@ -294,7 +296,7 @@ export function MiniSiteHeader({
             aria-label={isMenuOpen ? "Fechar menu de navegação" : "Abrir menu de navegação"}
             aria-expanded={isMenuOpen}
             aria-controls="mobile-navigation-menu"
-            className="p-2 rounded-full text-slate-700 hover:text-slate-950 hover:bg-slate-100 active:bg-slate-200 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 cursor-pointer"
+            className="w-8 h-8 inline-flex items-center justify-center rounded-full bg-transparent text-slate-800 hover:text-slate-950 hover:bg-black/5 active:bg-black/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 cursor-pointer shrink-0"
           >
             {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -473,7 +475,7 @@ export function MiniSiteHeader({
             id="mobile-navigation-menu"
             className="fixed left-3 right-3 sm:left-4 sm:right-4 max-h-[calc(100vh-5.5rem)] bg-white rounded-b-2xl rounded-t-none border border-t-0 border-slate-200/90 shadow-2xl z-40 md:hidden animate-menu-drawer flex flex-col overflow-y-auto pointer-events-auto"
             style={{
-              top: "calc(68px + env(safe-area-inset-top, 0px))",
+              top: "calc(56px + env(safe-area-inset-top, 0px))",
               paddingBottom: "max(1.5rem, env(safe-area-inset-bottom, 0px))",
             }}
           >

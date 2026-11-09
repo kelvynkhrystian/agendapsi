@@ -264,7 +264,7 @@ export default async function HomePage() {
             "--hero-background-color": effectiveHeroBgColor,
           } as React.CSSProperties
         }
-        className="relative min-h-[auto] lg:min-h-screen flex flex-col justify-center px-0 overflow-hidden bg-[var(--hero-bg-mobile)] lg:bg-[var(--hero-bg-desktop)] pt-20 sm:pt-24 lg:pt-28 pb-12 lg:pb-16 scroll-mt-24 transition-colors duration-300"
+        className="relative min-h-[auto] lg:min-h-screen flex flex-col justify-center px-0 overflow-hidden bg-[var(--hero-bg-mobile)] lg:bg-[var(--hero-bg-desktop)] pt-0 md:pt-24 lg:pt-28 pb-12 lg:pb-16 scroll-mt-24 transition-colors duration-300"
       >
         {/* Padrão orgânico ondulado de fundo (Curvas suaves) */}
         <div className="absolute inset-0 pointer-events-none opacity-30 overflow-hidden lg:hidden" aria-hidden="true">
@@ -300,11 +300,15 @@ export default async function HomePage() {
           aria-hidden="true"
         />
 
-        {/* Topo do Hero: Badge com limitação horizontal (No mobile acima da mídia; no desktop alinhado à esquerda) */}
-        <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:max-w-none lg:mx-0 lg:pl-[7vw] xl:pl-[8vw] lg:pr-8 relative z-10 order-1 flex flex-col items-center lg:items-start text-center lg:text-left mb-3 lg:mb-4">
+        {/* Topo do Hero: No mobile (< md) posicionado sobre a mídia logo abaixo do cabeçalho transparente (~4px);
+            no tablet (md..lg) acima da mídia; no desktop (lg+) alinhado à esquerda acima do nome */}
+        <div
+          id="hero-badge-wrapper"
+          className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:max-w-none lg:mx-0 lg:pl-[7vw] xl:pl-[8vw] lg:pr-8 z-20 lg:z-10 order-1 flex flex-col items-center lg:items-start text-center lg:text-left pointer-events-none max-md:absolute max-md:inset-x-0 max-md:top-[calc(2.5rem+4px+env(safe-area-inset-top,0px))] md:relative md:mb-3 lg:mb-4"
+        >
           <div
             id="hero-badge"
-            className="inline-block px-5 py-1.5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] text-white font-heading font-semibold text-xs uppercase tracking-wider shadow-xs"
+            className="inline-block pointer-events-auto px-5 py-1.5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] text-white font-heading font-semibold text-xs uppercase tracking-wider shadow-xs"
           >
             {crpCrm}
           </div>

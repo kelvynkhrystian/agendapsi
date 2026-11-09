@@ -79,8 +79,8 @@ test("3. Menu desktop simplificado e cabeçalho mobile preservados", () => {
   assert.equal(desktopNav.includes("Atendimentos"), false, "'Atendimentos' deve permanecer fora do menu desktop");
   assert.equal(desktopNav.includes("Diferenciais"), false, "'Diferenciais' deve permanecer fora do menu desktop");
 
-  // Layout mobile permanece intacto
-  assert.ok(src.includes("bg-white/40 backdrop-blur-md rounded-full"), "Barra mobile transparente inicial deve ser preservada");
+  // Layout mobile permanece independente do cabeçalho desktop
+  assert.ok(src.includes('id="hero-header-mobile"'), "Cabeçalho mobile deve manter identificador dedicado");
   assert.ok(src.includes('id="mobile-navigation-menu"'), "Drawer mobile deve ser preservado");
 });
 
