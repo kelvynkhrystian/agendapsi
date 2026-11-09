@@ -10,21 +10,146 @@ if (typeof window !== "undefined") {
 }
 
 /**
+ * Normaliza texto preservando composição Unicode NFC e colapsando espaços extras.
+ */
+export function normalizeTypewriterText(text: string): string {
+  return text.trim().replace(/\s+/g, " ").normalize("NFC");
+}
+
+/**
+ * Conta grafemas reais (caracteres acentuados e combinações Unicode) via Intl.Segmenter.
+ */
+export function countGraphemes(text: string): number {
+  const clean = normalizeTypewriterText(text);
+  if (!clean) return 0;
+
+  if (typeof Intl !== "undefined" && "Segmenter" in Intl) {
+    const segmenter = new Intl.Segmenter("pt-BR", { granularity: "grapheme" });
+    return Array.from(segmenter.segment(clean)).length;
+  }
+
+  return Array.from(clean).length;
+}
+
+/**
  * Calcula a duração adaptada (1.3s a 1.8s) para o efeito Typewriter do nome profissional,
  * respeitando caracteres acentuados e clusters Unicode via Intl.Segmenter.
  */
 export function computeTypewriterDuration(text: string): number {
-  const clean = text.trim().replace(/\s+/g, " ").normalize("NFC");
-  let charCount = clean.length;
+  const charCount = countGraphemes(text);
+  return Number(Math.min(1.8, Math.max(1.3, 1.1 + charCount * 0.022)).toFixed(2));
+}
 
-  if (typeof Intl !== "undefined" && "Segmenter" in Intl) {
-    const segmenter = new Intl.Segmenter("pt-BR", { granularity: "grapheme" });
-    charCount = Array.from(segmenter.segment(clean)).length;
-  } else {
-    charCount = Array.from(clean).length;
+/**
+ * Calcula duração proporcional (~0.75s a 1.15s) para a digitação da especialidade no Hero mobile.
+ */
+export function computeSpecialtyTypewriterDuration(text: string): number {
+  const charCount = countGraphemes(text);
+  return Number(Math.min(1.15, Math.max(0.75, 0.45 + charCount * 0.016)).toFixed(2));
+}
+
+/**
+ * Calcula duração acelerada (~1.5s a 2.0s) para a digitação da descrição no Hero mobile.
+ */
+export function computeDescriptionTypewriterDuration(text: string): number {
+  const charCount = countGraphemes(text);
+  return Number(Math.min(2.0, Math.max(1.5, 1.25 + charCount * 0.0038)).toFixed(2));
+}
+
+export function escapeHtmlForTextPlugin(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+export type TypewriterVariant = "name" | "specialty" | "description";
+
+export interface TypewriterOptions {
+  target: HTMLElement | null;
+  variant?: TypewriterVariant;
+  duration?: number;
+  cursorHoldSeconds?: number;
+}
+
+export interface TypewriterHandle {
+  tween: gsap.core.Tween | null;
+  normalizedText: string;
+  duration: number;
+  cleanup: () => void;
+}
+
+/**
+ * Fábrica compartilhada de efeito Typewriter usando GSAP TextPlugin:
+ * - Reserva 100% da largura, altura e quebras finais antes da digitação (.hero-typewriter-primed)
+ * - Exibe cursor fino piscante durante a digitação e remove suavemente ao finalizar
+ * - Suporta caracteres Unicode acentuados e limpeza segura no unmount
+ */
+export function createTypewriterTween({
+  target,
+  variant = "name",
+  duration,
+  cursorHoldSeconds = 0.24,
+}: TypewriterOptions): TypewriterHandle {
+  const normalizedText = normalizeTypewriterText(target?.textContent || "");
+  const resolvedDuration =
+    typeof duration === "number" && duration > 0
+      ? duration
+      : variant === "description"
+      ? computeDescriptionTypewriterDuration(normalizedText)
+      : variant === "specialty"
+      ? computeSpecialtyTypewriterDuration(normalizedText)
+      : computeTypewriterDuration(normalizedText);
+
+  if (!target || !normalizedText) {
+    return {
+      tween: null,
+      normalizedText,
+      duration: 0,
+      cleanup: () => {},
+    };
   }
 
-  return Number(Math.min(1.8, Math.max(1.3, 1.1 + charCount * 0.022)).toFixed(2));
+  target.textContent = normalizedText;
+  target.classList.add("hero-typewriter-primed");
+
+  let cursorCleanupCall: gsap.core.Tween | null = null;
+  let completed = false;
+
+  const tween = gsap.to(target, {
+    duration: resolvedDuration,
+    ease: "none",
+    text: {
+      value: escapeHtmlForTextPlugin(normalizedText),
+      newClass: "hero-typewriter-revealed",
+      oldClass: "hero-typewriter-unrevealed",
+    },
+    onStart: () => {
+      target.classList.add("hero-typewriter-typing");
+      target.classList.remove("hero-typewriter-finishing");
+    },
+    onComplete: () => {
+      if (completed) return;
+      completed = true;
+      target.classList.remove("hero-typewriter-typing");
+      target.classList.add("hero-typewriter-finishing");
+      cursorCleanupCall = gsap.delayedCall(cursorHoldSeconds, () => {
+        target.classList.remove("hero-typewriter-primed", "hero-typewriter-finishing");
+        target.textContent = normalizedText;
+      });
+    },
+  });
+
+  const cleanup = () => {
+    cursorCleanupCall?.kill();
+    cursorCleanupCall = null;
+    target.classList.remove("hero-typewriter-primed", "hero-typewriter-typing", "hero-typewriter-finishing");
+    target.textContent = normalizedText;
+  };
+
+  return {
+    tween,
+    normalizedText,
+    duration: resolvedDuration,
+    cleanup,
+  };
 }
 
 /**

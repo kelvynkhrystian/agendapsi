@@ -365,6 +365,13 @@ export function MiniSiteMediaPlayer({
   const hasIntrinsicDims = Boolean(
     intrinsicWidth && intrinsicWidth > 0 && intrinsicHeight && intrinsicHeight > 0
   );
+  const numericAspectRatio = hasIntrinsicDims
+    ? intrinsicWidth! / intrinsicHeight!
+    : videoAspectRatio
+    ? videoAspectRatio
+    : frameAspectRatio
+    ? frameAspectRatio
+    : null;
   const resolvedAspectRatio = hasIntrinsicDims
     ? `${intrinsicWidth} / ${intrinsicHeight}`
     : videoAspectRatio
@@ -372,8 +379,19 @@ export function MiniSiteMediaPlayer({
     : frameAspectRatio
     ? `${frameAspectRatio}`
     : undefined;
+  const mobileEnlargedAspect =
+    isPublicHero && numericAspectRatio && numericAspectRatio > 0
+      ? String(Number((numericAspectRatio / 1.1828).toFixed(4)))
+      : undefined;
   const heroAspectStyle: React.CSSProperties | undefined =
-    isPublicHero && resolvedAspectRatio ? { aspectRatio: resolvedAspectRatio } : undefined;
+    isPublicHero && (resolvedAspectRatio || mobileEnlargedAspect)
+      ? ({
+          ...(resolvedAspectRatio ? { aspectRatio: resolvedAspectRatio } : {}),
+          ...(mobileEnlargedAspect
+            ? { "--hero-mobile-enlarged-aspect": mobileEnlargedAspect }
+            : {}),
+        } as React.CSSProperties)
+      : undefined;
   const isImagePoster =
     Boolean(posterUrl) && !/\.(mp4|webm|mov|avi)(\?|#|$)/i.test(posterUrl || "");
   const effectiveVideoPoster = isImagePoster ? posterUrl || undefined : undefined;
@@ -388,9 +406,9 @@ export function MiniSiteMediaPlayer({
   const mediaClassName = previewMode
     ? "w-full h-full object-contain"
     : isPublicHeroDesktop
-    ? `w-full h-auto lg:h-full lg:w-full block max-w-full bg-[var(--hero-background-color,#FAF7F2)] object-contain lg:object-cover ${desktopHeroObjectPos}`
+    ? `w-full h-auto lg:h-full lg:w-full block max-w-full bg-[var(--hero-background-color,#FAF7F2)] object-contain hero-mobile-enlarged-media lg:object-cover ${desktopHeroObjectPos}`
     : isPublicHeroMobile
-    ? "w-full h-auto block max-w-full bg-[var(--hero-background-color,#FAF7F2)] object-contain"
+    ? "w-full h-auto block max-w-full bg-[var(--hero-background-color,#FAF7F2)] object-contain hero-mobile-enlarged-media"
     : `w-full h-full ${getObjectFitClass()}`;
 
   return (

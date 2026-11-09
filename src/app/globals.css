@@ -294,10 +294,12 @@
   html.hero-anim-pending #hero-header-pill,
   html.hero-anim-pending #hero-header-auth,
   html.hero-anim-pending #hero-header-mobile-logo,
+  html.hero-anim-pending #hero-header-mobile-crp,
   html.hero-anim-pending #hero-header-mobile-toggle,
   html.hero-anim-pending #hero-badge,
   html.hero-anim-pending #hero-name,
   html.hero-anim-pending #hero-title,
+  html.hero-anim-pending #hero-accent-line,
   html.hero-anim-pending #hero-subtitle,
   html.hero-anim-pending #hero-cta .hero-cta-item,
   html.hero-anim-pending #hero-benefits .hero-benefit-item,
@@ -306,7 +308,7 @@
   }
 }
 
-/* Typewriter do nome no Hero: reserva 100% da largura, quebras de linha e altura finais
+/* Typewriter compartilhado no Hero: reserva 100% da largura, quebras de linha e altura finais
    mantendo os caracteres não revelados com visibility: hidden */
 @keyframes heroTypewriterCursorBlink {
   0%,
@@ -331,41 +333,72 @@
   }
 }
 
-#hero-name-text {
+#hero-name-text,
+.hero-typewriter-text {
   position: relative;
 }
 
-#hero-name-text.hero-typewriter-primed {
+.hero-typewriter-text.hero-typewriter-primed {
   visibility: hidden;
 }
 
-#hero-name-text.hero-typewriter-primed .hero-typewriter-revealed {
+.hero-typewriter-text.hero-typewriter-primed .hero-typewriter-revealed {
   visibility: visible;
 }
 
-#hero-name-text.hero-typewriter-primed .hero-typewriter-unrevealed {
+.hero-typewriter-text.hero-typewriter-primed .hero-typewriter-unrevealed {
   visibility: hidden;
 }
 
-#hero-name-text.hero-typewriter-typing .hero-typewriter-revealed::after,
-#hero-name-text.hero-typewriter-finishing .hero-typewriter-revealed::after {
+.hero-typewriter-text.hero-typewriter-typing .hero-typewriter-revealed::after,
+.hero-typewriter-text.hero-typewriter-finishing .hero-typewriter-revealed::after {
   content: "";
   position: absolute;
-  width: 2px;
-  height: 0.78em;
-  margin-left: 0.05em;
-  margin-top: 0.18em;
+  width: clamp(1.5px, 0.06em, 2.2px);
+  height: 0.85em;
+  margin-left: 0.06em;
+  margin-top: 0.14em;
   background-color: currentColor;
   border-radius: 1px;
   pointer-events: none;
 }
 
-#hero-name-text.hero-typewriter-typing .hero-typewriter-revealed::after {
+#hero-subtitle-text.hero-typewriter-typing .hero-typewriter-revealed::after,
+#hero-subtitle-text.hero-typewriter-finishing .hero-typewriter-revealed::after {
+  height: 1.05em;
+  margin-top: 0.28em;
+}
+
+.hero-typewriter-text.hero-typewriter-typing .hero-typewriter-revealed::after {
   animation: heroTypewriterCursorBlink 0.56s ease-in-out infinite;
 }
 
-#hero-name-text.hero-typewriter-finishing .hero-typewriter-revealed::after {
+.hero-typewriter-text.hero-typewriter-finishing .hero-typewriter-revealed::after {
   animation: heroTypewriterCursorFadeOut 0.28s ease-out forwards;
+}
+
+/* Tipografia refinada exclusivamente no Hero mobile (< 1024px) mantendo Desktop idêntico */
+.hero-name-font {
+  font-family: var(--font-playfair), var(--font-display), Georgia, "Times New Roman", serif;
+}
+
+@media (min-width: 1024px) {
+  .hero-name-font {
+    font-family: var(--font-display, Georgia, "Times New Roman", serif);
+  }
+}
+
+@media (max-width: 1023px) {
+  .hero-specialty-font {
+    font-family: var(--font-manrope), var(--font-heading), var(--font-sans), sans-serif;
+  }
+
+  .hero-mobile-enlarged-media {
+    aspect-ratio: var(--hero-mobile-enlarged-aspect, auto) !important;
+    max-height: 75svh;
+    object-fit: cover !important;
+    object-position: center !important;
+  }
 }
 
 .hero-subtitle-line-mask {
@@ -373,14 +406,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #hero-name-text.hero-typewriter-primed,
-  #hero-name-text.hero-typewriter-primed .hero-typewriter-revealed,
-  #hero-name-text.hero-typewriter-primed .hero-typewriter-unrevealed {
+  .hero-typewriter-text.hero-typewriter-primed,
+  .hero-typewriter-text.hero-typewriter-primed .hero-typewriter-revealed,
+  .hero-typewriter-text.hero-typewriter-primed .hero-typewriter-unrevealed {
     visibility: visible !important;
   }
 
-  #hero-name-text.hero-typewriter-typing .hero-typewriter-revealed::after,
-  #hero-name-text.hero-typewriter-finishing .hero-typewriter-revealed::after {
+  .hero-typewriter-text.hero-typewriter-typing .hero-typewriter-revealed::after,
+  .hero-typewriter-text.hero-typewriter-finishing .hero-typewriter-revealed::after {
     display: none !important;
     animation: none !important;
   }

@@ -50,6 +50,13 @@ import {
   Quote,
 } from "lucide-react";
 
+function hexToRgbTriplet(hex: string): string {
+  const match = /^#([0-9A-Fa-f]{6})$/.exec(hex.trim());
+  if (!match) return "250, 247, 242";
+  const value = parseInt(match[1], 16);
+  return `${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}`;
+}
+
 export default async function HomePage() {
   let site, profile, services, session, publishedLegalPages;
   try {
@@ -238,6 +245,7 @@ export default async function HomePage() {
       ? heroMobileBgDetected
       : "#FAF7F2"
     : effectiveHeroBgColor;
+  const mobileHeroBgRgb = hexToRgbTriplet(effectiveMobileHeroBgColor);
 
   return (
     <div
@@ -250,6 +258,7 @@ export default async function HomePage() {
         logoUrl={site?.logoUrl}
         clinicName={clinicName}
         professionalName={professionalName}
+        crpCrm={crpCrm}
         shouldShowLocation={shouldShowLocation}
         currentUser={currentUser}
       />
@@ -264,7 +273,7 @@ export default async function HomePage() {
             "--hero-background-color": effectiveHeroBgColor,
           } as React.CSSProperties
         }
-        className="relative min-h-[auto] lg:min-h-screen flex flex-col justify-center px-0 overflow-hidden bg-[var(--hero-bg-mobile)] lg:bg-[var(--hero-bg-desktop)] pt-0 md:pt-24 lg:pt-28 pb-12 lg:pb-16 scroll-mt-24 transition-colors duration-300"
+        className="relative min-h-[auto] lg:min-h-screen flex flex-col justify-center px-0 overflow-hidden bg-[var(--hero-bg-mobile)] lg:bg-[var(--hero-bg-desktop)] pt-[calc(3.25rem+4px+env(safe-area-inset-top,0px))] md:pt-24 lg:pt-28 pb-12 lg:pb-16 scroll-mt-24 transition-colors duration-300"
       >
         {/* Padrão orgânico ondulado de fundo (Curvas suaves) */}
         <div className="absolute inset-0 pointer-events-none opacity-30 overflow-hidden lg:hidden" aria-hidden="true">
@@ -300,11 +309,11 @@ export default async function HomePage() {
           aria-hidden="true"
         />
 
-        {/* Topo do Hero: No mobile (< md) posicionado sobre a mídia logo abaixo do cabeçalho transparente (~4px);
+        {/* Topo do Hero: No mobile (< md) o CRP aparece no header entre logo e menu;
             no tablet (md..lg) acima da mídia; no desktop (lg+) alinhado à esquerda acima do nome */}
         <div
           id="hero-badge-wrapper"
-          className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:max-w-none lg:mx-0 lg:pl-[7vw] xl:pl-[8vw] lg:pr-8 z-20 lg:z-10 order-1 flex flex-col items-center lg:items-start text-center lg:text-left pointer-events-none max-md:absolute max-md:inset-x-0 max-md:top-[calc(2.5rem+4px+env(safe-area-inset-top,0px))] md:relative md:mb-3 lg:mb-4"
+          className="hidden md:flex w-full max-w-3xl mx-auto px-4 sm:px-6 lg:max-w-none lg:mx-0 lg:pl-[7vw] xl:pl-[8vw] lg:pr-8 relative z-20 lg:z-10 order-1 flex-col items-center lg:items-start text-center lg:text-left pointer-events-none mb-2 md:mb-3 lg:mb-4"
         >
           <div
             id="hero-badge"
@@ -314,10 +323,10 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* MEDIA SLOT 1: Imagem/Vídeo/Frames Principal (Mobile: 100% largura em fluxo; Desktop: background absoluto cobrindo a seção com fundo sólido) */}
+        {/* MEDIA SLOT 1: Imagem/Vídeo/Frames Principal (Mobile: 100% largura em fluxo com degradê inferior suave; Desktop: background absoluto cobrindo a seção com fundo sólido) */}
         <div
           id="hero-media-container"
-          className="order-2 relative w-full z-10 lg:absolute lg:inset-0 lg:w-full lg:h-full lg:z-0 lg:overflow-hidden bg-[var(--hero-bg-mobile)] lg:bg-[var(--hero-bg-desktop)] flex items-center justify-center p-0 m-0 border-0 shadow-none rounded-none pointer-events-none transition-colors duration-300"
+          className="order-2 relative w-full z-10 overflow-hidden lg:absolute lg:inset-0 lg:w-full lg:h-full lg:z-0 lg:overflow-hidden bg-[var(--hero-bg-mobile)] lg:bg-[var(--hero-bg-desktop)] flex items-center justify-center p-0 m-0 border-0 shadow-none rounded-none pointer-events-none transition-colors duration-300"
         >
           <div id="hero-bg-leaves" className="hidden" aria-hidden="true" />
 
@@ -398,31 +407,55 @@ export default async function HomePage() {
               </>
             )}
           </div>
+
+          {/* Degradê vertical inferior exclusivamente no Mobile (funde suavemente os 15–25% inferiores da mídia à cor de fundo do Hero) */}
+          <div
+            id="hero-mobile-bottom-fade"
+            className="block lg:hidden absolute inset-x-0 -bottom-px h-[22%] z-10 pointer-events-none"
+            style={{
+              background: `linear-gradient(to bottom, rgba(${mobileHeroBgRgb}, 0) 0%, rgba(${mobileHeroBgRgb}, 0.14) 32%, rgba(${mobileHeroBgRgb}, 0.45) 62%, rgba(${mobileHeroBgRgb}, 0.84) 84%, rgba(${mobileHeroBgRgb}, 1) 100%)`,
+            }}
+            aria-hidden="true"
+          />
         </div>
 
-        {/* Conteúdo Textual e Ações do Hero: Mobile centralizado; Desktop alinhado à esquerda sobre a mídia */}
-        <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:max-w-none lg:mx-0 lg:pl-[7vw] xl:pl-[8vw] lg:pr-8 relative z-10 order-3 lg:order-2 flex flex-col items-center lg:items-start text-center lg:text-left mt-4 lg:mt-0">
+        {/* Conteúdo Textual e Ações do Hero: Mobile centralizado e próximo à base suavizada da mídia; Desktop alinhado à esquerda sobre a mídia */}
+        <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:max-w-none lg:mx-0 lg:pl-[7vw] xl:pl-[8vw] lg:pr-8 relative z-20 lg:z-10 order-3 lg:order-2 flex flex-col items-center lg:items-start text-center lg:text-left -mt-3 sm:-mt-4 lg:mt-0">
           <div className="w-full lg:max-w-xl xl:max-w-2xl flex flex-col items-center lg:items-start text-center lg:text-left lg:[text-shadow:0_1px_3px_rgba(255,255,255,0.6)]">
-            {/* Nome e Especialidade com Tipografia Elegante */}
-            <div id="hero-title-group" className="space-y-1.5 pt-1 mb-4 sm:mb-5 flex flex-col items-center lg:items-start text-center lg:text-left">
+            {/* Nome, Especialidade e Linha Decorativa com Tipografia Elegante */}
+            <div id="hero-title-group" className="space-y-1.5 pt-0 lg:pt-1 mb-4 sm:mb-5 flex flex-col items-center lg:items-start text-center lg:text-left">
               <h1
                 id="hero-name"
-                className="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-display italic text-[var(--primary)] font-medium tracking-tight drop-shadow-2xs leading-tight"
-                style={{ fontFamily: "var(--font-display, Georgia, 'Times New Roman', serif)" }}
+                className="text-[40px] min-[375px]:text-[41px] sm:text-[54px] lg:text-5xl xl:text-6xl font-display italic text-[var(--primary)] font-semibold lg:font-bold tracking-tight lg:drop-shadow-2xs leading-[1.15] lg:leading-tight hero-name-font"
               >
                 <span className="sr-only">{professionalName}</span>
-                <span id="hero-name-text" aria-hidden="true">
+                <span id="hero-name-text" aria-hidden="true" className="hero-typewriter-text">
                   {professionalName}
                 </span>
               </h1>
-              <p id="hero-title" className="text-xs sm:text-sm font-heading font-bold tracking-[0.2em] text-slate-800 uppercase">
-                {professionalTitle}
+              <p
+                id="hero-title"
+                className="text-[13.5px] sm:text-[16px] lg:text-sm font-heading font-bold tracking-[0.18em] sm:tracking-[0.2em] lg:tracking-[0.2em] text-slate-800 uppercase hero-specialty-font"
+              >
+                <span className="sr-only">{professionalTitle}</span>
+                <span id="hero-title-text" aria-hidden="true" className="block hero-typewriter-text">
+                  {professionalTitle}
+                </span>
               </p>
+              {/* Linha decorativa horizontal abaixo da especialidade com a cor primária oficial (Mobile) */}
+              <div
+                id="hero-accent-line"
+                className="block lg:hidden w-14 h-[3px] rounded-full bg-[var(--primary)] mx-auto mt-1.5 mb-0.5"
+                aria-hidden="true"
+              />
             </div>
 
             {/* Subtítulo / Frase de Acolhimento */}
             <p id="hero-subtitle" className="text-sm sm:text-base text-slate-600 max-w-lg mx-auto lg:mx-0 lg:text-left leading-relaxed mb-5 sm:mb-6">
-              {heroSubtitle}
+              <span className="sr-only">{heroSubtitle}</span>
+              <span id="hero-subtitle-text" aria-hidden="true" className="block hero-typewriter-text">
+                {heroSubtitle}
+              </span>
             </p>
 
             {/* Botões de Ação Hero */}
@@ -434,9 +467,9 @@ export default async function HomePage() {
                 <Link href="/agendar" className="block w-full lg:w-auto">
                   <button
                     type="button"
-                    className="w-full lg:w-auto inline-flex items-center justify-center gap-2 h-12 py-3.5 px-6 sm:px-7 rounded-2xl font-heading font-semibold text-xs sm:text-sm uppercase tracking-wider shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] transition-all cursor-pointer bg-[var(--primary)] text-white whitespace-nowrap"
+                    className="w-full lg:w-auto inline-flex items-center justify-center gap-2 lg:gap-2 h-[54px] lg:h-12 py-3.5 px-3 min-[360px]:px-6 sm:px-7 rounded-2xl font-heading font-semibold text-[17px] sm:text-[18px] lg:text-sm uppercase tracking-wide min-[360px]:tracking-wider shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] transition-all cursor-pointer bg-[var(--primary)] text-white whitespace-nowrap"
                   >
-                    <Calendar className="h-4 w-4 text-white shrink-0" />
+                    <Calendar className="h-5 w-5 lg:h-4 lg:w-4 text-white shrink-0" />
                     <span className="text-white whitespace-nowrap">Agende sua consulta</span>
                   </button>
                 </Link>
@@ -448,9 +481,9 @@ export default async function HomePage() {
                     href={whatsappUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full lg:w-auto inline-flex items-center justify-center gap-2 h-12 py-3.5 px-6 sm:px-7 rounded-2xl font-heading font-semibold text-xs sm:text-sm text-white bg-[#221B16] hover:bg-[#181310] shadow-sm hover:shadow-md hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap shrink-0"
+                    className="w-full lg:w-auto inline-flex items-center justify-center gap-2 lg:gap-2 h-[54px] lg:h-12 py-3.5 px-3 min-[360px]:px-6 sm:px-7 rounded-2xl font-heading font-semibold text-[17px] sm:text-[18px] lg:text-sm text-white bg-[#221B16] hover:bg-[#181310] shadow-sm hover:shadow-md hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap shrink-0"
                   >
-                    <WhatsAppIcon className="h-4.5 w-4.5 text-white shrink-0" variant="white" />
+                    <WhatsAppIcon className="h-[22px] w-[22px] lg:h-4.5 lg:w-4.5 text-white shrink-0" variant="white" />
                     <span className="text-white whitespace-nowrap">Chamar no WhatsApp</span>
                   </a>
                 </div>

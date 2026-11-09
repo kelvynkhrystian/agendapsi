@@ -9,7 +9,8 @@ import {
   TextPlugin,
   isReducedMotion,
   EASINGS,
-  computeTypewriterDuration,
+  createTypewriterTween,
+  type TypewriterHandle,
 } from "@/lib/animation/gsap";
 
 declare global {
@@ -45,34 +46,28 @@ export function MiniSiteMotionController() {
     const heroNameEl = document.querySelector("#hero-name") as HTMLElement | null;
     const heroTextEl = document.querySelector("#hero-name-text") as HTMLElement | null;
     const heroTitleEl = document.querySelector("#hero-title") as HTMLElement | null;
+    const heroTitleTextEl = document.querySelector("#hero-title-text") as HTMLElement | null;
+    const heroAccentLineEl = document.querySelector("#hero-accent-line") as HTMLElement | null;
     const heroSubtitleEl = document.querySelector("#hero-subtitle") as HTMLElement | null;
+    const heroSubtitleTextEl = document.querySelector("#hero-subtitle-text") as HTMLElement | null;
     const ctaContainer = document.querySelector("#hero-cta") as HTMLElement | null;
     const ctaItems = document.querySelectorAll("#hero-cta .hero-cta-item");
     const benefitsContainer = document.querySelector("#hero-benefits") as HTMLElement | null;
     const benefitItems = document.querySelectorAll("#hero-benefits .hero-benefit-item");
 
-    const normalizedName = (heroTextEl?.textContent || heroNameEl?.textContent || "")
-      .trim()
-      .replace(/\s+/g, " ")
-      .normalize("NFC");
-    const typewriterDuration = normalizedName ? computeTypewriterDuration(normalizedName) : 1.4;
-
-    let cursorCleanupCall: gsap.core.Tween | null = null;
+    const typewriterEntries: Array<{ handle: TypewriterHandle; target: HTMLElement }> = [];
     let specialtySplit: SplitText | null = null;
     let subtitleSplit: SplitText | null = null;
     let subtitleDone = false;
     let subtitleTargetTl: gsap.core.Timeline | null = null;
     let subtitleInsertPos = 0;
 
-    // Reserva 100% das dimensões e quebras de linha do nome antes da remoção de hero-anim-pending
-    if (heroTextEl && normalizedName) {
-      heroTextEl.textContent = normalizedName;
-      heroTextEl.classList.add("hero-typewriter-primed");
-    }
+    // Prepara SplitText de Especialidade e Descrição APENAS no Desktop (>= 1024px) preservando animações existentes
+    const desktopTitleTarget = heroTitleTextEl || heroTitleEl;
+    const desktopSubtitleTarget = heroSubtitleTextEl || heroSubtitleEl;
 
-    // Divide a especialidade em palavras mantendo tipografia uppercase, tracking e espaçamento natural
-    if (heroTitleEl) {
-      specialtySplit = SplitText.create(heroTitleEl, {
+    if (isHeroDesktop && desktopTitleTarget) {
+      specialtySplit = SplitText.create(desktopTitleTarget, {
         type: "words",
         wordsClass: "hero-title-word",
         aria: "auto",
@@ -82,38 +77,7 @@ export function MiniSiteMotionController() {
       }
     }
 
-    const escapeHtmlForTextPlugin = (value: string) =>
-      value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
-    const createNameTypewriterTween = () => {
-      if (!heroTextEl || !normalizedName) return null;
-      let completed = false;
-      return gsap.to(heroTextEl, {
-        duration: typewriterDuration,
-        ease: "none",
-        text: {
-          value: escapeHtmlForTextPlugin(normalizedName),
-          newClass: "hero-typewriter-revealed",
-          oldClass: "hero-typewriter-unrevealed",
-        },
-        onStart: () => {
-          heroTextEl.classList.add("hero-typewriter-typing");
-          heroTextEl.classList.remove("hero-typewriter-finishing");
-        },
-        onComplete: () => {
-          if (completed) return;
-          completed = true;
-          heroTextEl.classList.remove("hero-typewriter-typing");
-          heroTextEl.classList.add("hero-typewriter-finishing");
-          cursorCleanupCall = gsap.delayedCall(0.28, () => {
-            heroTextEl.classList.remove("hero-typewriter-primed", "hero-typewriter-finishing");
-            heroTextEl.textContent = normalizedName;
-          });
-        },
-      });
-    };
-
-    const createSpecialtyWordsTween = () => {
+    const createDesktopSpecialtyWordsTween = () => {
       if (specialtySplit && specialtySplit.words.length > 0) {
         return gsap.fromTo(
           specialtySplit.words,
@@ -131,9 +95,9 @@ export function MiniSiteMotionController() {
           }
         );
       }
-      if (heroTitleEl) {
+      if (desktopTitleTarget) {
         return gsap.fromTo(
-          heroTitleEl,
+          desktopTitleTarget,
           { y: 18, opacity: 0 },
           {
             y: 0,
@@ -147,12 +111,12 @@ export function MiniSiteMotionController() {
       return null;
     };
 
-    const mountSubtitleMaskSplit = (targetTl: gsap.core.Timeline, insertAt: number) => {
-      if (!heroSubtitleEl) return;
+    const mountDesktopSubtitleMaskSplit = (targetTl: gsap.core.Timeline, insertAt: number) => {
+      if (!desktopSubtitleTarget) return;
       subtitleTargetTl = targetTl;
       subtitleInsertPos = insertAt;
 
-      subtitleSplit = SplitText.create(heroSubtitleEl, {
+      subtitleSplit = SplitText.create(desktopSubtitleTarget, {
         type: "lines",
         mask: "lines",
         linesClass: "hero-subtitle-line",
@@ -186,7 +150,7 @@ export function MiniSiteMotionController() {
       });
     };
 
-    // No mobile, verifica se os blocos de texto/ações estão confortavelmente na dobra inicial
+    // Verifica se elementos do Hero no Mobile estão inicialmente fora/abaixo da dobra visível
     const isBelowMobileFold = (el: Element | null, thresholdRatio = 0.88) => {
       if (isHeroDesktop || !el || typeof window === "undefined") return false;
       if (window.scrollY > 40) return true;
@@ -194,7 +158,6 @@ export function MiniSiteMotionController() {
       return rect.top >= viewportHeight * thresholdRatio;
     };
 
-    // Identifica helper legível para elementos abaixo da dobra no mobile
     const isHeroElementBelowMobileFold = (el: Element | null) => {
       if (isHeroDesktop || !el || typeof window === "undefined") return false;
       if (window.scrollY > 40) return false;
@@ -203,7 +166,9 @@ export function MiniSiteMotionController() {
     };
 
     // ============================================================================
-    // 1. HERO CONTENT ENTRANCE SEQUENCE (Coordenada: Header -> CRP -> Nome -> Especialidade -> Descrição -> CTAs -> Benefícios)
+    // 1. HERO CONTENT ENTRANCE SEQUENCE
+    // Desktop: Header -> CRP -> Nome (Typewriter) -> Especialidade (SplitText words) -> Descrição (SplitText lines) -> CTAs -> Benefícios
+    // Mobile:  Header -> CRP -> Nome (Typewriter) -> Especialidade (Typewriter) -> Linha decorativa -> Descrição (Typewriter) -> CTAs -> Benefícios
     // ============================================================================
     // REGRA ESTRITA: A mídia do Hero (#hero-media-container, video, canvas, img) NUNCA é animada
     // ou escalada na entrada. Ela é renderizada em 100% do tamanho e opacidade desde o 1º frame.
@@ -222,6 +187,7 @@ export function MiniSiteMotionController() {
     const mobileHeaderTargets = !isDesktop
       ? [
           document.querySelector("#hero-header-mobile-logo"),
+          document.querySelector("#hero-header-mobile-crp"),
           document.querySelector("#hero-header-mobile-toggle"),
         ].filter((el): el is Element => Boolean(el))
       : [];
@@ -256,8 +222,8 @@ export function MiniSiteMotionController() {
       );
     }
 
-    // 2 — BADGE CRP/CRM DO PROFISSIONAL (entra imediatamente após o header)
-    if (document.querySelector("#hero-badge")) {
+    // 2 — BADGE CRP/CRM DO PROFISSIONAL (no mobile já integra o cabeçalho; no tablet/desktop entra após o header)
+    if (isDesktop && document.querySelector("#hero-badge")) {
       heroTl.fromTo(
         "#hero-badge",
         { y: 22, opacity: 0 },
@@ -272,238 +238,316 @@ export function MiniSiteMotionController() {
       );
     }
 
-    // Decide entre execução imediata coordenada (Desktop / Mobile acima da dobra) ou ScrollTrigger Mobile
-    const deferHeroTextToMobileScroll = !isHeroDesktop && isBelowMobileFold(heroNameEl, 0.85);
     let mobileHeroTextTl: gsap.core.Timeline | null = null;
+    const deferHeroTextToMobileScroll = !isHeroDesktop && isBelowMobileFold(heroNameEl, 0.85);
 
-    if (deferHeroTextToMobileScroll) {
-      // Estado inicial oculto aguardando o usuário rolar para a área textual no Mobile
-      if (ctaItems.length > 0) {
-        gsap.set(ctaItems, { y: 22, opacity: 0 });
-      }
-      if (benefitItems.length > 0) {
-        gsap.set(benefitItems, { y: 20, opacity: 0 });
-      }
+    if (!isHeroDesktop) {
+      // ==========================================================================
+      // FLUXO COORDENADO DO HERO MOBILE (3x Typewriter compartilhado + Linha Decorativa)
+      // ==========================================================================
+      const nameTargetEl = heroTextEl;
+      const specialtyTargetEl = heroTitleTextEl || heroTitleEl;
+      const subtitleTargetEl = heroSubtitleTextEl || heroSubtitleEl;
 
-      let mobileCtaTween: gsap.core.Tween | null = null;
-      let mobileBenefitsTween: gsap.core.Tween | null = null;
-      let mobileCtaUnlocked = false;
-      let mobileBenefitsUnlocked = false;
-
-      mobileHeroTextTl = gsap.timeline({
-        defaults: { ease: EASINGS.smooth },
-        scrollTrigger: {
-          trigger: heroNameEl || "#hero-title-group",
-          start: "top 88%",
-          once: true,
-        },
+      const mobileNameHandle = createTypewriterTween({
+        target: nameTargetEl,
+        variant: "name",
+      });
+      const mobileSpecialtyHandle = createTypewriterTween({
+        target: specialtyTargetEl,
+        variant: "specialty",
+      });
+      const mobileSubtitleHandle = createTypewriterTween({
+        target: subtitleTargetEl,
+        variant: "description",
       });
 
-      // 3 — NOME PROFISSIONAL (Typewriter via TextPlugin)
-      const mobileNameTween = createNameTypewriterTween();
-      if (mobileNameTween) {
-        mobileHeroTextTl.add(mobileNameTween, 0);
+      if (mobileNameHandle.tween && nameTargetEl) {
+        typewriterEntries.push({ handle: mobileNameHandle, target: nameTargetEl });
+      }
+      if (mobileSpecialtyHandle.tween && specialtyTargetEl) {
+        typewriterEntries.push({ handle: mobileSpecialtyHandle, target: specialtyTargetEl });
+      }
+      if (mobileSubtitleHandle.tween && subtitleTargetEl) {
+        typewriterEntries.push({ handle: mobileSubtitleHandle, target: subtitleTargetEl });
       }
 
-      // 4 — ESPECIALIDADE (SplitText words, inicia exclusivamente após o fim da digitação)
-      const mobileSpecialtyStart = mobileNameTween ? mobileHeroTextTl.duration() : 0;
-      const mobileSpecialtyTween = createSpecialtyWordsTween();
-      if (mobileSpecialtyTween) {
-        mobileHeroTextTl.add(mobileSpecialtyTween, mobileSpecialtyStart);
-      }
-
-      // 5 — DESCRIÇÃO (SplitText line-by-line mask reveal com autoSplit)
-      const mobileSubtitleStart = mobileSpecialtyStart + (mobileSpecialtyTween ? 0.22 : 0);
-      if (heroSubtitleEl) {
-        mountSubtitleMaskSplit(mobileHeroTextTl, mobileSubtitleStart);
-      }
-
-      // 6 — BOTÕES CTA (segue após descrição; libera imediatamente se usuário rolar direto até os botões)
-      const mobileCtaStart = (heroSubtitleEl ? mobileSubtitleStart : mobileSpecialtyStart) + 0.2;
-      if (ctaItems.length > 0) {
-        mobileCtaTween = gsap.fromTo(
-          ctaItems,
-          { y: 22, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.48,
-            stagger: 0.08,
-            ease: "power3.out",
-            immediateRender: false,
-            clearProps: "transform,opacity",
-            onStart: () => {
-              mobileCtaUnlocked = true;
-            },
-          }
-        );
-        mobileHeroTextTl.add(mobileCtaTween, mobileCtaStart);
-
-        ScrollTrigger.create({
-          trigger: ctaContainer || "#hero-cta",
-          start: "top 38%",
-          once: true,
-          onEnter: () => {
-            if (!mobileCtaUnlocked) {
-              mobileCtaUnlocked = true;
-              mobileCtaTween?.kill();
-              gsap.to(ctaItems, {
-                y: 0,
-                opacity: 1,
-                duration: 0.38,
-                stagger: 0.06,
-                ease: "power3.out",
-                clearProps: "transform,opacity",
-              });
-            }
-          },
+      if (heroAccentLineEl) {
+        gsap.set(heroAccentLineEl, {
+          scaleX: 0,
+          opacity: 0,
+          transformOrigin: "center center",
         });
       }
 
-      // 7 — ITENS DE BENEFÍCIO (últimos da sequência)
-      const mobileBenefitsStart = mobileCtaStart + (ctaItems.length > 0 ? 0.14 : 0);
-      if (benefitItems.length > 0) {
-        mobileBenefitsTween = gsap.fromTo(
-          benefitItems,
-          { y: 20, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.48,
-            stagger: 0.09,
-            ease: "power3.out",
-            immediateRender: false,
-            clearProps: "transform,opacity",
-            onStart: () => {
-              mobileBenefitsUnlocked = true;
-            },
-          }
-        );
-        mobileHeroTextTl.add(mobileBenefitsTween, mobileBenefitsStart);
+      const populateMobileHeroSequence = (
+        targetTl: gsap.core.Timeline,
+        initialOffset: number,
+        allowBelowFoldTriggers: boolean
+      ) => {
+        // 3 — NOME PROFISSIONAL (Typewriter via utilitário compartilhado)
+        const nameStart = initialOffset;
+        if (mobileNameHandle.tween) {
+          targetTl.add(mobileNameHandle.tween, nameStart);
+        }
+        const nameEnd = nameStart + mobileNameHandle.duration;
 
-        ScrollTrigger.create({
-          trigger: benefitsContainer || "#hero-benefits",
-          start: "top 42%",
-          once: true,
-          onEnter: () => {
-            if (!mobileBenefitsUnlocked) {
-              mobileBenefitsUnlocked = true;
-              mobileBenefitsTween?.kill();
-              gsap.to(benefitItems, {
+        // 4 — ESPECIALIDADE (mesmo efeito Typewriter, inicia somente após concluir o nome)
+        const specialtyStart = nameEnd;
+        if (mobileSpecialtyHandle.tween) {
+          targetTl.add(mobileSpecialtyHandle.tween, specialtyStart);
+        }
+        const specialtyEnd = specialtyStart + mobileSpecialtyHandle.duration;
+
+        // 5 — LINHA DECORATIVA HORIZONTAL (cor primária oficial, aparece suavemente após especialidade)
+        const accentStart = specialtyEnd;
+        let accentDuration = 0;
+        if (heroAccentLineEl) {
+          accentDuration = 0.26;
+          targetTl.fromTo(
+            heroAccentLineEl,
+            { scaleX: 0, opacity: 0, transformOrigin: "center center" },
+            {
+              scaleX: 1,
+              opacity: 1,
+              duration: accentDuration,
+              ease: "power2.out",
+              immediateRender: false,
+              clearProps: "transform,opacity",
+            },
+            accentStart
+          );
+        }
+
+        // 6 — DESCRIÇÃO (mesmo efeito Typewriter com intervalo mais rápido após especialidade e linha)
+        const subtitleStart = accentStart + accentDuration;
+        if (mobileSubtitleHandle.tween) {
+          targetTl.add(mobileSubtitleHandle.tween, subtitleStart);
+        }
+        const subtitleEnd = subtitleStart + mobileSubtitleHandle.duration;
+
+        // 7 — BOTÕES DE AÇÃO HERO (Appointment e WhatsApp de baixo para cima)
+        const ctaStart = subtitleEnd;
+        let ctaDeferred = false;
+        let ctaUnlocked = false;
+        let mobileCtaTween: gsap.core.Tween | null = null;
+
+        if (ctaItems.length > 0) {
+          if (allowBelowFoldTriggers && isHeroElementBelowMobileFold(ctaContainer)) {
+            ctaDeferred = true;
+            gsap.fromTo(
+              ctaItems,
+              { y: 22, opacity: 0 },
+              {
                 y: 0,
                 opacity: 1,
-                duration: 0.38,
-                stagger: 0.07,
+                duration: 0.45,
+                stagger: 0.08,
                 ease: "power3.out",
+                immediateRender: true,
                 clearProps: "transform,opacity",
+                scrollTrigger: {
+                  trigger: "#hero-cta",
+                  start: "top 92%",
+                  once: true,
+                },
+              }
+            );
+          } else {
+            gsap.set(ctaItems, { y: 22, opacity: 0 });
+            mobileCtaTween = gsap.fromTo(
+              ctaItems,
+              { y: 22, opacity: 0 },
+              {
+                y: 0,
+                opacity: 1,
+                duration: 0.45,
+                stagger: 0.08,
+                ease: "power3.out",
+                immediateRender: false,
+                clearProps: "transform,opacity",
+                onStart: () => {
+                  ctaUnlocked = true;
+                },
+              }
+            );
+            targetTl.add(mobileCtaTween, ctaStart);
+
+            if (!allowBelowFoldTriggers) {
+              ScrollTrigger.create({
+                trigger: ctaContainer || "#hero-cta",
+                start: "top 42%",
+                once: true,
+                onEnter: () => {
+                  if (!ctaUnlocked) {
+                    ctaUnlocked = true;
+                    mobileCtaTween?.kill();
+                    gsap.to(ctaItems, {
+                      y: 0,
+                      opacity: 1,
+                      duration: 0.36,
+                      stagger: 0.06,
+                      ease: "power3.out",
+                      clearProps: "transform,opacity",
+                    });
+                  }
+                },
               });
             }
+          }
+        }
+
+        // 8 — ITENS DE BENEFÍCIO (Acolhimento, Saúde, Bem-estar com stagger sutil)
+        const benefitsStart = ctaStart + (ctaItems.length > 0 ? 0.14 : 0);
+        let benefitsUnlocked = false;
+        let mobileBenefitsTween: gsap.core.Tween | null = null;
+
+        if (benefitItems.length > 0) {
+          if (allowBelowFoldTriggers && (ctaDeferred || isHeroElementBelowMobileFold(benefitsContainer))) {
+            gsap.fromTo(
+              benefitItems,
+              { y: 20, opacity: 0 },
+              {
+                y: 0,
+                opacity: 1,
+                duration: 0.45,
+                stagger: 0.09,
+                ease: "power3.out",
+                immediateRender: true,
+                clearProps: "transform,opacity",
+                scrollTrigger: {
+                  trigger: "#hero-benefits",
+                  start: "top 93%",
+                  once: true,
+                },
+              }
+            );
+          } else {
+            gsap.set(benefitItems, { y: 20, opacity: 0 });
+            mobileBenefitsTween = gsap.fromTo(
+              benefitItems,
+              { y: 20, opacity: 0 },
+              {
+                y: 0,
+                opacity: 1,
+                duration: 0.45,
+                stagger: 0.09,
+                ease: "power3.out",
+                immediateRender: false,
+                clearProps: "transform,opacity",
+                onStart: () => {
+                  benefitsUnlocked = true;
+                },
+              }
+            );
+            targetTl.add(mobileBenefitsTween, benefitsStart);
+
+            if (!allowBelowFoldTriggers) {
+              ScrollTrigger.create({
+                trigger: benefitsContainer || "#hero-benefits",
+                start: "top 45%",
+                once: true,
+                onEnter: () => {
+                  if (!benefitsUnlocked) {
+                    benefitsUnlocked = true;
+                    mobileBenefitsTween?.kill();
+                    gsap.to(benefitItems, {
+                      y: 0,
+                      opacity: 1,
+                      duration: 0.36,
+                      stagger: 0.07,
+                      ease: "power3.out",
+                      clearProps: "transform,opacity",
+                    });
+                  }
+                },
+              });
+            }
+          }
+        }
+      };
+
+      if (deferHeroTextToMobileScroll) {
+        mobileHeroTextTl = gsap.timeline({
+          defaults: { ease: EASINGS.smooth },
+          scrollTrigger: {
+            trigger: heroNameEl || "#hero-title-group",
+            start: "top 88%",
+            once: true,
           },
         });
+        populateMobileHeroSequence(mobileHeroTextTl, 0, false);
+      } else {
+        populateMobileHeroSequence(heroTl, 0.2, true);
       }
     } else {
+      // ==========================================================================
+      // FLUXO PRESERVADO DO HERO DESKTOP (>= 1024px)
+      // ==========================================================================
       // 3 — NOME PROFISSIONAL (Typewriter via TextPlugin com cursor piscante e duração adaptada)
       const nameStartTime = 0.24;
-      const nameTween = createNameTypewriterTween();
-      if (nameTween) {
-        heroTl.add(nameTween, nameStartTime);
+      const desktopNameHandle = createTypewriterTween({
+        target: heroTextEl,
+        variant: "name",
+      });
+      if (desktopNameHandle.tween && heroTextEl) {
+        typewriterEntries.push({ handle: desktopNameHandle, target: heroTextEl });
+        heroTl.add(desktopNameHandle.tween, nameStartTime);
       }
 
       // 4 — ESPECIALIDADE (SplitText palavra por palavra — inicia apenas quando o Typewriter termina)
-      const specialtyStartTime = nameTween ? nameStartTime + typewriterDuration : nameStartTime;
-      const specialtyTween = createSpecialtyWordsTween();
+      const specialtyStartTime = desktopNameHandle.tween
+        ? nameStartTime + desktopNameHandle.duration
+        : nameStartTime;
+      const specialtyTween = createDesktopSpecialtyWordsTween();
       if (specialtyTween) {
         heroTl.add(specialtyTween, specialtyStartTime);
       }
 
       // 5 — DESCRIÇÃO / SUBTÍTULO DE ACOLHIMENTO (SplitText máscara linha a linha)
       const subtitleStartTime = specialtyStartTime + (specialtyTween ? 0.24 : 0);
-      if (heroSubtitleEl) {
-        mountSubtitleMaskSplit(heroTl, subtitleStartTime);
+      if (desktopSubtitleTarget) {
+        mountDesktopSubtitleMaskSplit(heroTl, subtitleStartTime);
       }
 
       // 6 — BOTÕES DE AÇÃO HERO ("Agende sua consulta" e "Chamar no WhatsApp")
-      const ctaStartTime = (heroSubtitleEl ? subtitleStartTime : specialtyStartTime) + 0.22;
-      let ctaDeferredOnMobile = false;
+      const ctaStartTime = (desktopSubtitleTarget ? subtitleStartTime : specialtyStartTime) + 0.22;
       if (ctaItems.length > 0) {
-        if (isHeroElementBelowMobileFold(ctaContainer)) {
-          ctaDeferredOnMobile = true;
-          gsap.fromTo(
-            ctaItems,
-            { y: 22, opacity: 0 },
-            {
-              y: 0,
-              opacity: 1,
-              duration: 0.5,
-              stagger: 0.08,
-              ease: "power3.out",
-              immediateRender: true,
-              clearProps: "transform,opacity",
-              scrollTrigger: {
-                trigger: "#hero-cta",
-                start: "top 92%",
-                once: true,
-              },
-            }
-          );
-        } else {
-          heroTl.fromTo(
-            ctaItems,
-            { y: 22, opacity: 0 },
-            {
-              y: 0,
-              opacity: 1,
-              duration: 0.5,
-              stagger: 0.08,
-              ease: "power3.out",
-              clearProps: "transform,opacity",
-            },
-            ctaStartTime
-          );
-        }
+        heroTl.fromTo(
+          ctaItems,
+          { y: 22, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.5,
+            stagger: 0.08,
+            ease: "power3.out",
+            clearProps: "transform,opacity",
+          },
+          ctaStartTime
+        );
       }
 
       // 7 — ITENS DE BENEFÍCIO (Acolhimento, Saúde, Bem-estar)
       const benefitsStartTime = ctaStartTime + (ctaItems.length > 0 ? 0.14 : 0);
       if (benefitItems.length > 0) {
-        if (ctaDeferredOnMobile || isHeroElementBelowMobileFold(benefitsContainer)) {
-          gsap.fromTo(
-            benefitItems,
-            { y: 20, opacity: 0 },
-            {
-              y: 0,
-              opacity: 1,
-              duration: 0.5,
-              stagger: 0.09,
-              ease: "power3.out",
-              immediateRender: true,
-              clearProps: "transform,opacity",
-              scrollTrigger: {
-                trigger: "#hero-benefits",
-                start: "top 93%",
-                once: true,
-              },
-            }
-          );
-        } else {
-          heroTl.fromTo(
-            benefitItems,
-            { y: 20, opacity: 0 },
-            {
-              y: 0,
-              opacity: 1,
-              duration: 0.5,
-              stagger: 0.09,
-              ease: "power3.out",
-              clearProps: "transform,opacity",
-            },
-            benefitsStartTime
-          );
-        }
+        heroTl.fromTo(
+          benefitItems,
+          { y: 20, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.5,
+            stagger: 0.09,
+            ease: "power3.out",
+            clearProps: "transform,opacity",
+          },
+          benefitsStartTime
+        );
       }
 
       // Indicador de scroll animado no Hero desktop (revelação suave ao final da sequência)
-      if (isHeroDesktop && document.querySelector("#hero-scroll-indicator")) {
+      if (document.querySelector("#hero-scroll-indicator")) {
         heroTl.fromTo(
           "#hero-scroll-indicator",
           { y: 18, opacity: 0 },
@@ -764,7 +808,10 @@ export function MiniSiteMotionController() {
     ScrollTrigger.refresh();
 
     // Failsafe após o término previsto da sequência principal: garante visibilidade caso alguma trigger falhe
-    const failSafeDelayMs = Math.max(4200, Math.ceil(heroTl.duration() * 1000) + 1200);
+    const failSafeDelayMs = Math.max(
+      4500,
+      Math.ceil(Math.max(heroTl.duration(), mobileHeroTextTl?.duration() ?? 0) * 1000) + 1200
+    );
     const failSafeTimer = setTimeout(() => {
       rootEl?.classList.remove("hero-anim-pending");
       ScrollTrigger.refresh();
@@ -772,24 +819,29 @@ export function MiniSiteMotionController() {
       if (heroTl.isActive() || mobileHeroTextTl?.isActive()) return;
 
       const vhNow = typeof window !== "undefined" ? window.innerHeight : 900;
-      if (heroTextEl && normalizedName) {
-        const nameRect = heroTextEl.getBoundingClientRect();
-        if (nameRect.top < vhNow * 0.9 && heroTextEl.classList.contains("hero-typewriter-primed") && !heroTextEl.classList.contains("hero-typewriter-typing")) {
-          heroTextEl.classList.remove("hero-typewriter-primed", "hero-typewriter-finishing");
-          heroTextEl.textContent = normalizedName;
+      typewriterEntries.forEach(({ handle, target }) => {
+        const rect = target.getBoundingClientRect();
+        if (
+          rect.top < vhNow * 0.92 &&
+          target.classList.contains("hero-typewriter-primed") &&
+          !target.classList.contains("hero-typewriter-typing")
+        ) {
+          handle.cleanup();
         }
-      }
+      });
 
       const heroAndSectionSelectors = [
         "#hero-header-logo",
         "#hero-header-pill",
         "#hero-header-auth",
         "#hero-header-mobile-logo",
+        "#hero-header-mobile-crp",
         "#hero-header-mobile-toggle",
         "#hero-badge",
         "#hero-name",
         "#hero-title",
         "#hero-title .hero-title-word",
+        "#hero-accent-line",
         "#hero-subtitle",
         "#hero-subtitle .hero-subtitle-line",
         "#hero-cta .hero-cta-item",
@@ -811,7 +863,7 @@ export function MiniSiteMotionController() {
           if (!el) return;
           const rect = el.getBoundingClientRect();
           if (rect.top < vhNow && el.style.opacity === "0") {
-            gsap.to(el, { opacity: 1, x: 0, y: 0, yPercent: 0, duration: 0.3, clearProps: "transform,opacity" });
+            gsap.to(el, { opacity: 1, x: 0, y: 0, scaleX: 1, yPercent: 0, duration: 0.3, clearProps: "transform,opacity" });
           }
         });
       });
@@ -819,17 +871,9 @@ export function MiniSiteMotionController() {
 
     return () => {
       clearTimeout(failSafeTimer);
-      cursorCleanupCall?.kill();
+      typewriterEntries.forEach(({ handle }) => handle.cleanup());
       specialtySplit?.revert();
       subtitleSplit?.revert();
-      if (heroTextEl && normalizedName) {
-        heroTextEl.classList.remove(
-          "hero-typewriter-primed",
-          "hero-typewriter-typing",
-          "hero-typewriter-finishing"
-        );
-        heroTextEl.textContent = normalizedName;
-      }
       mm.revert();
       rootEl?.classList.remove("hero-anim-pending");
     };

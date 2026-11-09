@@ -55,10 +55,10 @@ test("2. Ordem estrita da timeline coordenada (1 Header -> 2 CRP -> 3 Nome -> 4 
     prevIdx = idx;
   }
 
-  // Ramo desktop / mobile acima da dobra (else)
-  const afterBranch = tl.split("if (deferHeroTextToMobileScroll)")[1];
+  // Separação estrita entre sequência Mobile (< 1024px) e sequência Desktop (>= 1024px)
+  const afterBranch = tl.split("if (!isHeroDesktop)")[1];
   const [mobileBranch, desktopBranch] = afterBranch.split("\n    } else {\n");
-  assert.ok(mobileBranch && desktopBranch, "Ramos mobile e desktop devem estar claramente delimitados");
+  assert.ok(mobileBranch && desktopBranch, "Ramos mobile (!isHeroDesktop) e desktop (else) devem estar claramente delimitados");
 
   const desktopOrderedSteps = [
     "3 — NOME PROFISSIONAL",
@@ -74,20 +74,25 @@ test("2. Ordem estrita da timeline coordenada (1 Header -> 2 CRP -> 3 Nome -> 4 
     desktopPrev = idx;
   }
 
-  // Ramo mobile abaixo da dobra (ScrollTrigger)
+  // Ramo mobile (3x Typewriter compartilhado + linha decorativa, imediato e ScrollTrigger abaixo da dobra)
   const mobileOrderedSteps = [
     "3 — NOME PROFISSIONAL",
     "4 — ESPECIALIDADE",
-    "5 — DESCRIÇÃO",
-    "6 — BOTÕES CTA",
-    "7 — ITENS DE BENEFÍCIO",
+    "5 — LINHA DECORATIVA HORIZONTAL",
+    "6 — DESCRIÇÃO",
+    "7 — BOTÕES DE AÇÃO HERO",
+    "8 — ITENS DE BENEFÍCIO",
   ];
   let mobilePrev = -1;
   for (const label of mobileOrderedSteps) {
     const idx = mobileBranch.indexOf(label, mobilePrev + 1);
-    assert.ok(idx > mobilePrev, `Mobile ScrollTrigger: etapa '${label}' deve manter ordem estrita`);
+    assert.ok(idx > mobilePrev, `Mobile: etapa '${label}' deve manter ordem estrita na timeline`);
     mobilePrev = idx;
   }
+  assert.ok(
+    mobileBranch.includes("if (deferHeroTextToMobileScroll)") && mobileBranch.includes("mobileHeroTextTl = gsap.timeline"),
+    "Mobile abaixo da dobra deve iniciar sequência textual coordenada via ScrollTrigger"
+  );
 
   // Entradas espaciais do Hero vêm de baixo para cima (y > 0 ou yPercent > 0)
   const yFromMatches = [...tl.matchAll(/\{\s*y:\s*(-?\d+),\s*opacity:\s*0\s*\}/g)].map((m) => Number(m[1]));
@@ -112,34 +117,46 @@ test("3. Nome profissional (#hero-name): Typewriter GSAP TextPlugin, cursor pisc
   // HTML semântico acessível e camada visual isolada no Hero (zero hardcode de nome)
   assert.ok(pageSrc.includes('<h1\n                id="hero-name"') || pageSrc.includes('id="hero-name"'), "page.tsx deve renderizar h1#hero-name");
   assert.ok(pageSrc.includes('<span className="sr-only">{professionalName}</span>'), "Nome completo deve permanecer acessível para leitores de tela");
-  assert.ok(pageSrc.includes('<span id="hero-name-text" aria-hidden="true">'), "Camada visual animada não deve duplicar leitura para leitores de tela");
+  assert.ok(
+    pageSrc.includes('<span id="hero-name-text" aria-hidden="true"') && pageSrc.includes("hero-typewriter-text"),
+    "Camada visual animada não deve duplicar leitura para leitores de tela"
+  );
   assert.strictEqual(controllerSrc.includes("Rômulo Mafra"), false, "Controlador de movimento não deve fixar nome hardcoded");
 
-  // Uso do TextPlugin com newClass/oldClass para reservar largura e quebras finais durante a digitação
-  assert.ok(controllerSrc.includes('newClass: "hero-typewriter-revealed"'), "Deve revelar caracteres progressivamente mantendo layout reservado");
-  assert.ok(controllerSrc.includes('oldClass: "hero-typewriter-unrevealed"'), "Caracteres ainda não digitados devem ocupar espaço reservado sem saltos de linha");
+  // Uso de utilitário compartilhado TextPlugin com newClass/oldClass para reservar largura e quebras finais
+  assert.ok(gsapLib.includes("export function createTypewriterTween("), "gsap.ts deve exportar utilitário compartilhado createTypewriterTween");
+  assert.ok(gsapLib.includes('newClass: "hero-typewriter-revealed"'), "Deve revelar caracteres progressivamente mantendo layout reservado");
+  assert.ok(gsapLib.includes('oldClass: "hero-typewriter-unrevealed"'), "Caracteres ainda não digitados devem ocupar espaço reservado sem saltos de linha");
   assert.ok(cssSrc.includes("visibility: hidden;") && cssSrc.includes("visibility: visible;"), "CSS do Typewriter deve preservar dimensões finais sem saltos");
   assert.ok(cssSrc.includes("heroTypewriterCursorBlink") && cssSrc.includes("heroTypewriterCursorFadeOut"), "Cursor fino deve piscar durante digitação e desaparecer suavemente ao finalizar");
   assert.ok(
     cssSrc.includes("hero-typewriter-revealed::after") && cssSrc.includes("position: absolute;"),
-    "Cursor do Typewriter deve usar position: absolute estático para evitar quebras de linha em nomes longos"
+    "Cursor do Typewriter deve usar position: absolute estático para evitar quebras de linha em textos longos"
   );
 });
 
-test("4. Especialidade (#hero-title) e Descrição (#hero-subtitle): SplitText words + mask lines com autoSplit e limpeza", () => {
+test("4. Desktop preservado (SplitText words + mask lines) vs Mobile (Typewriter compartilhado + linha decorativa)", () => {
   const controllerSrc = fs.readFileSync(path.join(process.cwd(), "src", "components", "minisite", "motion-controller.tsx"), "utf-8");
 
-  // Especialidade palavra por palavra (~15-20px, ~0.5s) após o Typewriter
-  assert.ok(controllerSrc.includes('type: "words"'), "Especialidade deve utilizar SplitText palavra por palavra");
-  assert.ok(controllerSrc.includes("specialtySplit.words"), "Animação da especialidade deve atingir cada palavra individualmente");
-  assert.ok(controllerSrc.includes("{ y: 18, opacity: 0 }") && controllerSrc.includes("duration: 0.5"), "Palavras da especialidade devem entrar suavemente de baixo para cima em ~0.5s");
-  assert.ok(controllerSrc.includes("const specialtyStartTime = nameTween ? nameStartTime + typewriterDuration : nameStartTime"), "Especialidade só deve iniciar após a conclusão do Typewriter do nome");
+  // Desktop mantém Especialidade palavra por palavra (~15-20px, ~0.5s) e Descrição linha a linha
+  assert.ok(controllerSrc.includes('type: "words"'), "Desktop: especialidade deve manter SplitText palavra por palavra");
+  assert.ok(controllerSrc.includes("specialtySplit.words"), "Desktop: animação da especialidade deve atingir cada palavra");
+  assert.ok(controllerSrc.includes("{ y: 18, opacity: 0 }") && controllerSrc.includes("duration: 0.5"), "Desktop: palavras da especialidade devem entrar suavemente em ~0.5s");
+  assert.ok(
+    controllerSrc.includes("const specialtyStartTime = desktopNameHandle.tween") &&
+      controllerSrc.includes("desktopNameHandle.duration"),
+    "Desktop: especialidade só deve iniciar após a conclusão do Typewriter do nome"
+  );
 
-  // Descrição linha a linha mascarada com autoSplit e revert seguro
-  assert.ok(controllerSrc.includes('type: "lines"') && controllerSrc.includes('mask: "lines"'), "Descrição deve utilizar SplitText com máscara linha a linha");
-  assert.ok(controllerSrc.includes("autoSplit: true") && controllerSrc.includes("onSplit:"), "Descrição deve usar re-split responsivo autoSplit do SplitText");
-  assert.ok(controllerSrc.includes("yPercent: 105") && controllerSrc.includes("duration: 0.6"), "Linhas da descrição devem surgir suavemente de baixo para cima em ~0.6s");
+  // Desktop: Descrição linha a linha mascarada com autoSplit e revert seguro
+  assert.ok(controllerSrc.includes('type: "lines"') && controllerSrc.includes('mask: "lines"'), "Desktop: descrição deve manter SplitText com máscara linha a linha");
+  assert.ok(controllerSrc.includes("autoSplit: true") && controllerSrc.includes("onSplit:"), "Desktop: descrição deve usar re-split responsivo autoSplit do SplitText");
+  assert.ok(controllerSrc.includes("yPercent: 105") && controllerSrc.includes("duration: 0.6"), "Desktop: linhas da descrição devem surgir suavemente em ~0.6s");
   assert.ok(controllerSrc.includes("specialtySplit?.revert()") && controllerSrc.includes("subtitleSplit?.revert()"), "SplitText deve restaurar o DOM original no cleanup");
+
+  // Mobile reutiliza createTypewriterTween para Nome, Especialidade e Descrição com Linha Decorativa entre especialidade e descrição
+  assert.ok(controllerSrc.includes('variant: "name"') && controllerSrc.includes('variant: "specialty"') && controllerSrc.includes('variant: "description"'), "Mobile deve reutilizar createTypewriterTween para Nome, Especialidade e Descrição");
+  assert.ok(controllerSrc.includes("#hero-accent-line"), "Mobile deve animar a linha decorativa horizontal após a especialidade e antes da descrição");
 });
 
 test("5. Separação Desktop vs Mobile ScrollTrigger, Parallax e Reduced Motion", () => {

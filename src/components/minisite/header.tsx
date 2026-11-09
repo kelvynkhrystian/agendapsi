@@ -29,6 +29,7 @@ export interface MiniSiteHeaderProps {
   logoUrl?: string | null;
   clinicName?: string;
   professionalName?: string;
+  crpCrm?: string | null;
   shouldShowLocation?: boolean;
   currentUser?: HeaderUser | null;
 }
@@ -53,6 +54,7 @@ export function MiniSiteHeader({
   logoUrl,
   clinicName = "Consultório de Psicologia",
   professionalName,
+  crpCrm,
   shouldShowLocation = false,
   currentUser = null,
 }: MiniSiteHeaderProps) {
@@ -250,45 +252,60 @@ export function MiniSiteHeader({
       >
         <div
           id="hero-header-mobile-bar"
-          className={`flex items-center justify-between w-full pointer-events-auto transition-all duration-200 relative z-50 ${
+          className={`flex items-center justify-between gap-1.5 sm:gap-2 w-full h-11 pointer-events-auto transition-all duration-200 relative z-50 ${
             isMenuOpen
-              ? "h-12 px-4 bg-white rounded-t-2xl rounded-b-none border border-slate-200/90 border-b-slate-100 shadow-none"
-              : "h-8 px-1 bg-transparent border-0 rounded-none shadow-none backdrop-blur-none outline-none"
+              ? "px-4 bg-white rounded-t-2xl rounded-b-none border border-slate-200/90 border-b-slate-100 shadow-none"
+              : "px-1 bg-transparent border-0 rounded-none shadow-none backdrop-blur-none outline-none"
           }`}
         >
-          {/* LADO ESQUERDO: Logo Horizontal Oficial reduzida em 50% no mobile (sem alterar desktop) */}
+          {/* LADO ESQUERDO: Logo Horizontal Oficial ampliada em 1.5x no mobile com alvo tátil acessível */}
           <Link
             id="hero-header-mobile-logo"
             href="/"
             onClick={handleLinkClick}
-            className="flex items-center focus:outline-none cursor-pointer shrink-0"
+            className="min-h-[44px] min-w-[44px] flex items-center shrink-0 focus:outline-none cursor-pointer"
             aria-label="Página inicial"
           >
             {logoHorizontalUrl ? (
               <img
                 src={logoHorizontalUrl}
                 alt={neutralFallbackName}
-                className="h-3.5 sm:h-4 w-auto max-w-[85px] sm:max-w-[105px] object-contain transition-transform active:scale-98"
+                className="h-[21px] sm:h-6 w-auto max-w-[128px] sm:max-w-[158px] object-contain transition-transform active:scale-98"
               />
             ) : logoUrl ? (
               <img
                 src={logoUrl}
                 alt={neutralFallbackName}
-                className="h-3.5 sm:h-4 w-auto max-w-[65px] object-contain rounded-sm"
+                className="h-[21px] sm:h-6 w-auto max-w-[98px] object-contain rounded-sm"
               />
             ) : (
-              <div className="flex items-center gap-1.5">
-                <div className="w-4 h-4 rounded bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-serif font-black text-[10px]">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className="w-6 h-6 rounded bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-serif font-black text-[15px] shrink-0">
                   Ψ
                 </div>
-                <span className="text-[11px] font-semibold tracking-tight text-slate-900">
+                <span className="text-[15px] sm:text-[16px] font-semibold tracking-tight text-slate-900 truncate max-w-[96px] min-[375px]:max-w-[128px] sm:max-w-[190px]">
                   {neutralFallbackName}
                 </span>
               </div>
             )}
           </Link>
 
-          {/* LADO DIREITO: Botão Hamburguer visível e clicável diretamente sobre a mídia */}
+          {/* CENTRO: Selo CRP/CRM no cabeçalho mobile entre a logo e o botão do menu */}
+          {crpCrm ? (
+            <div
+              id="hero-header-mobile-crp"
+              className="flex-1 min-w-0 flex items-center justify-center px-0.5"
+            >
+              <span
+                className="inline-flex max-w-full items-center justify-center truncate rounded-full bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] text-white font-heading font-semibold uppercase tracking-wider shadow-xs whitespace-nowrap px-2.5 min-[360px]:px-3.5 py-1 text-[10px] min-[360px]:text-[11px] leading-tight"
+                title={crpCrm}
+              >
+                {crpCrm}
+              </span>
+            </div>
+          ) : null}
+
+          {/* LADO DIREITO: Botão Hamburguer com ícone reduzido em 30% (40px -> 28px) e alvo tátil acessível (>= 44x44px) */}
           <button
             id="hero-header-mobile-toggle"
             type="button"
@@ -296,9 +313,11 @@ export function MiniSiteHeader({
             aria-label={isMenuOpen ? "Fechar menu de navegação" : "Abrir menu de navegação"}
             aria-expanded={isMenuOpen}
             aria-controls="mobile-navigation-menu"
-            className="w-8 h-8 inline-flex items-center justify-center rounded-full bg-transparent text-slate-800 hover:text-slate-950 hover:bg-black/5 active:bg-black/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 cursor-pointer shrink-0"
+            className={`w-11 h-11 inline-flex items-center justify-center rounded-full bg-transparent text-slate-800 hover:text-slate-950 hover:bg-black/5 active:bg-black/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 cursor-pointer shrink-0 ${
+              isMenuOpen ? "-mr-2" : "-mr-1.5"
+            }`}
           >
-            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {isMenuOpen ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
           </button>
         </div>
       </div>
@@ -475,7 +494,7 @@ export function MiniSiteHeader({
             id="mobile-navigation-menu"
             className="fixed left-3 right-3 sm:left-4 sm:right-4 max-h-[calc(100vh-5.5rem)] bg-white rounded-b-2xl rounded-t-none border border-t-0 border-slate-200/90 shadow-2xl z-40 md:hidden animate-menu-drawer flex flex-col overflow-y-auto pointer-events-auto"
             style={{
-              top: "calc(56px + env(safe-area-inset-top, 0px))",
+              top: "calc(52px + env(safe-area-inset-top, 0px))",
               paddingBottom: "max(1.5rem, env(safe-area-inset-bottom, 0px))",
             }}
           >

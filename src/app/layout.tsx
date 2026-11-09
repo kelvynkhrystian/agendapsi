@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Plus_Jakarta_Sans, Inter } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter, Playfair_Display, Manrope } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { prisma } from "@/lib/prisma";
 import { calculateContrastRatio } from "@/lib/theme-presets";
@@ -18,6 +18,21 @@ const sansFont = Inter({
   variable: "--font-sans",
   display: "swap",
   weight: ["400", "500", "600", "700"],
+});
+
+const playfairFont = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+  display: "swap",
+  style: ["normal", "italic"],
+  weight: ["500", "600", "700"],
+});
+
+const manropeFont = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+  display: "swap",
+  weight: ["500", "600", "700"],
 });
 
 export const dynamic = "force-dynamic";
@@ -112,7 +127,11 @@ export default async function RootLayout({
   `;
 
   return (
-    <html lang="pt-BR" className={`${headingFont.variable} ${sansFont.variable}`} suppressHydrationWarning>
+    <html
+      lang="pt-BR"
+      className={`${headingFont.variable} ${sansFont.variable} ${playfairFont.variable} ${manropeFont.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         {site?.faviconUrl && <link rel="icon" href={site.faviconUrl} />}
         <style id="psi-theme-vars" dangerouslySetInnerHTML={{ __html: dynamicCss }} />
