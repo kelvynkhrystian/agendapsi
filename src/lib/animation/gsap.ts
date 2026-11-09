@@ -1,10 +1,30 @@
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { SplitText } from "gsap/SplitText";
+import { TextPlugin } from "gsap/TextPlugin";
 import { useGSAP } from "@gsap/react";
 
 // Registra os plugins do GSAP apenas no ambiente do navegador
 if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger, useGSAP);
+  gsap.registerPlugin(ScrollTrigger, SplitText, TextPlugin, useGSAP);
+}
+
+/**
+ * Calcula a duração adaptada (1.3s a 1.8s) para o efeito Typewriter do nome profissional,
+ * respeitando caracteres acentuados e clusters Unicode via Intl.Segmenter.
+ */
+export function computeTypewriterDuration(text: string): number {
+  const clean = text.trim().replace(/\s+/g, " ").normalize("NFC");
+  let charCount = clean.length;
+
+  if (typeof Intl !== "undefined" && "Segmenter" in Intl) {
+    const segmenter = new Intl.Segmenter("pt-BR", { granularity: "grapheme" });
+    charCount = Array.from(segmenter.segment(clean)).length;
+  } else {
+    charCount = Array.from(clean).length;
+  }
+
+  return Number(Math.min(1.8, Math.max(1.3, 1.1 + charCount * 0.022)).toFixed(2));
 }
 
 /**
@@ -94,4 +114,4 @@ export function animateTabContent(content: HTMLElement | null): void {
   );
 }
 
-export { gsap, ScrollTrigger, useGSAP };
+export { gsap, ScrollTrigger, SplitText, TextPlugin, useGSAP };

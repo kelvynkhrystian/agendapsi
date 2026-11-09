@@ -305,3 +305,83 @@
     opacity: 0;
   }
 }
+
+/* Typewriter do nome no Hero: reserva 100% da largura, quebras de linha e altura finais
+   mantendo os caracteres não revelados com visibility: hidden */
+@keyframes heroTypewriterCursorBlink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  55%,
+  95% {
+    opacity: 0.1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes heroTypewriterCursorFadeOut {
+  0% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+#hero-name-text {
+  position: relative;
+}
+
+#hero-name-text.hero-typewriter-primed {
+  visibility: hidden;
+}
+
+#hero-name-text.hero-typewriter-primed .hero-typewriter-revealed {
+  visibility: visible;
+}
+
+#hero-name-text.hero-typewriter-primed .hero-typewriter-unrevealed {
+  visibility: hidden;
+}
+
+#hero-name-text.hero-typewriter-typing .hero-typewriter-revealed::after,
+#hero-name-text.hero-typewriter-finishing .hero-typewriter-revealed::after {
+  content: "";
+  position: absolute;
+  width: 2px;
+  height: 0.78em;
+  margin-left: 0.05em;
+  margin-top: 0.18em;
+  background-color: currentColor;
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+#hero-name-text.hero-typewriter-typing .hero-typewriter-revealed::after {
+  animation: heroTypewriterCursorBlink 0.56s ease-in-out infinite;
+}
+
+#hero-name-text.hero-typewriter-finishing .hero-typewriter-revealed::after {
+  animation: heroTypewriterCursorFadeOut 0.28s ease-out forwards;
+}
+
+.hero-subtitle-line-mask {
+  overflow-clip-margin: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #hero-name-text.hero-typewriter-primed,
+  #hero-name-text.hero-typewriter-primed .hero-typewriter-revealed,
+  #hero-name-text.hero-typewriter-primed .hero-typewriter-unrevealed {
+    visibility: visible !important;
+  }
+
+  #hero-name-text.hero-typewriter-typing .hero-typewriter-revealed::after,
+  #hero-name-text.hero-typewriter-finishing .hero-typewriter-revealed::after {
+    display: none !important;
+    animation: none !important;
+  }
+}

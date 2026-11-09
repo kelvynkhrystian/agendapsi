@@ -410,7 +410,10 @@ export default async function HomePage() {
                 className="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-display italic text-[var(--primary)] font-medium tracking-tight drop-shadow-2xs leading-tight"
                 style={{ fontFamily: "var(--font-display, Georgia, 'Times New Roman', serif)" }}
               >
-                {professionalName}
+                <span className="sr-only">{professionalName}</span>
+                <span id="hero-name-text" aria-hidden="true">
+                  {professionalName}
+                </span>
               </h1>
               <p id="hero-title" className="text-xs sm:text-sm font-heading font-bold tracking-[0.2em] text-slate-800 uppercase">
                 {professionalTitle}
