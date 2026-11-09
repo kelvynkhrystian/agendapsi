@@ -521,9 +521,10 @@ export default async function HomePage() {
         />
       </section>
 
-      {/* Divisor Ondulado Orgânico 1 (Exibido no Mobile; no Desktop a fusão ocorre via gradiente vertical suave para white) */}
+      {/* Divisor Ondulado Orgânico 1 (Oculto no Mobile e preservado no código-fonte; no Desktop a fusão ocorre via gradiente vertical suave para white) */}
       <div
-        className="w-full overflow-hidden leading-none -mt-1 lg:hidden"
+        id="hero-mobile-divider"
+        className="hidden w-full overflow-hidden leading-none -mt-1"
         style={{ color: effectiveMobileHeroBgColor }}
         aria-hidden="true"
       >
