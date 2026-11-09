@@ -25,7 +25,7 @@ export async function GET(
     }
 
     const slot = segments[0];
-    const ALLOWED_SLOTS = ["top", "sobre"];
+    const ALLOWED_SLOTS = ["top", "top-mobile", "sobre"];
     if (!ALLOWED_SLOTS.includes(slot)) {
       return NextResponse.json({ error: "Slot de mídia não permitido." }, { status: 403 });
     }
@@ -56,6 +56,42 @@ export async function GET(
 
     const ext = path.extname(targetPath).toLowerCase();
     const contentType = MIME_MAP[ext] || "application/octet-stream";
+    const fileSize = stat.size;
+    const rangeHeader = req.headers.get("range");
+
+    if (rangeHeader && fileSize > 0) {
+      const match = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader.trim());
+      if (match) {
+        const start = match[1] ? Number.parseInt(match[1], 10) : 0;
+        const end = match[2] ? Math.min(Number.parseInt(match[2], 10), fileSize - 1) : fileSize - 1;
+
+        if (!Number.isNaN(start) && !Number.isNaN(end) && start >= 0 && start <= end && end < fileSize) {
+          const chunkSize = end - start + 1;
+          const rangeStream = fs.createReadStream(targetPath, { start, end });
+          const webStream = new ReadableStream({
+            start(controller) {
+              rangeStream.on("data", (chunk) => controller.enqueue(chunk));
+              rangeStream.on("end", () => controller.close());
+              rangeStream.on("error", (err) => controller.error(err));
+            },
+            cancel() {
+              rangeStream.destroy();
+            },
+          });
+
+          return new NextResponse(webStream, {
+            status: 206,
+            headers: {
+              "Content-Type": contentType,
+              "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+              "Accept-Ranges": "bytes",
+              "Content-Length": chunkSize.toString(),
+              "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
+            },
+          });
+        }
+      }
+    }
 
     const fileStream = fs.createReadStream(targetPath);
     const stream = new ReadableStream({
@@ -64,13 +100,17 @@ export async function GET(
         fileStream.on("end", () => controller.close());
         fileStream.on("error", (err) => controller.error(err));
       },
+      cancel() {
+        fileStream.destroy();
+      },
     });
 
     return new NextResponse(stream, {
       status: 200,
       headers: {
         "Content-Type": contentType,
-        "Content-Length": stat.size.toString(),
+        "Accept-Ranges": "bytes",
+        "Content-Length": fileSize.toString(),
         "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
       },
     });

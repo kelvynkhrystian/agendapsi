@@ -44,34 +44,38 @@ export function rgbToHex(r: number, g: number, b: number): string {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
-interface ColorBucket {
-  rSum: number;
-  gSum: number;
-  bSum: number;
+interface ColorCluster {
+  rValues: number[];
+  gValues: number[];
+  bValues: number[];
   count: number;
   weight: number;
 }
 
-/**
- * Analisa um buffer de pixels RGBA brutos focando em bordas e cantos
- * Ignora pixels transparentes e agrupa cores similares por quantização
- */
-export function analyzeRawRgbaEdgePixels(
+function medianChannel(values: number[]): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 0) {
+    return (sorted[mid - 1] + sorted[mid]) / 2;
+  }
+  return sorted[mid];
+}
+
+function accumulateRawFrameEdges(
   data: Buffer | Uint8Array | Uint8ClampedArray,
   width: number,
-  height: number
-): DetectionResult {
+  height: number,
+  clusters: Map<string, ColorCluster>
+): number {
   if (!data || data.length < width * height * 4 || width <= 0 || height <= 0) {
-    return { hex: null, status: "FAILED" };
+    return 0;
   }
 
-  // Largura da margem de borda (aproximadamente 12% da dimensão)
+  // Largura da margem de borda (~12% da dimensão)
   const marginX = Math.max(2, Math.floor(width * 0.12));
   const marginY = Math.max(2, Math.floor(height * 0.12));
-
-  // Mapa de quantização com passo de 16 para agrupar tons similares
   const STEP = 16;
-  const buckets = new Map<string, ColorBucket>();
   let validPixelCount = 0;
 
   for (let y = 0; y < height; y++) {
@@ -82,7 +86,6 @@ export function analyzeRawRgbaEdgePixels(
       const isLeftBorder = x < marginX;
       const isRightBorder = x >= width - marginX;
 
-      // Analisa prioritariamente pixels de borda e cantos
       if (!isTopBorder && !isBottomBorder && !isLeftBorder && !isRightBorder) {
         continue;
       }
@@ -93,62 +96,67 @@ export function analyzeRawRgbaEdgePixels(
       const b = data[idx + 2];
       const a = data[idx + 3];
 
-      // Ignora pixels transparentes ou semitransparentes (alpha < 128)
+      // Ignora pixels transparentes ou semitransparentes
       if (a < 128) {
         continue;
       }
 
-      // Cantos têm peso 2.0; bordas têm peso 1.0
+      // Cantos recebem peso dobrado por serem a região mais estável do plano de fundo
       const isCorner = (isTopBorder || isBottomBorder) && (isLeftBorder || isRightBorder);
       const weight = isCorner ? 2.0 : 1.0;
 
-      // Quantização simples em baldes
       const qR = Math.floor(r / STEP);
       const qG = Math.floor(g / STEP);
       const qB = Math.floor(b / STEP);
       const key = `${qR},${qG},${qB}`;
 
-      let bucket = buckets.get(key);
-      if (!bucket) {
-        bucket = { rSum: 0, gSum: 0, bSum: 0, count: 0, weight: 0 };
-        buckets.set(key, bucket);
+      let cluster = clusters.get(key);
+      if (!cluster) {
+        cluster = { rValues: [], gValues: [], bValues: [], count: 0, weight: 0 };
+        clusters.set(key, cluster);
       }
 
-      bucket.rSum += r;
-      bucket.gSum += g;
-      bucket.bSum += b;
-      bucket.count += 1;
-      bucket.weight += weight;
+      cluster.rValues.push(r);
+      cluster.gValues.push(g);
+      cluster.bValues.push(b);
+      cluster.count += 1;
+      cluster.weight += weight;
       validPixelCount++;
     }
   }
 
-  // Se não houver pixels opacos visíveis (ex: imagem 100% transparente)
-  if (validPixelCount === 0 || buckets.size === 0) {
+  return validPixelCount;
+}
+
+function finalizeClusterDetection(
+  clusters: Map<string, ColorCluster>,
+  validPixelCount: number
+): DetectionResult {
+  if (validPixelCount === 0 || clusters.size === 0) {
     return { hex: null, status: "FAILED", sampleCount: 0 };
   }
 
-  // Encontra o balde com maior peso acumulado nas bordas
-  let bestBucket: ColorBucket | null = null;
+  let bestCluster: ColorCluster | null = null;
   let maxWeight = -1;
 
-  for (const bucket of buckets.values()) {
-    if (bucket.weight > maxWeight) {
-      maxWeight = bucket.weight;
-      bestBucket = bucket;
+  for (const cluster of clusters.values()) {
+    if (cluster.weight > maxWeight) {
+      maxWeight = cluster.weight;
+      bestCluster = cluster;
     }
   }
 
-  if (!bestBucket || bestBucket.count === 0) {
+  if (!bestCluster || bestCluster.count === 0) {
     return { hex: null, status: "FAILED", sampleCount: validPixelCount };
   }
 
-  const avgR = bestBucket.rSum / bestBucket.count;
-  const avgG = bestBucket.gSum / bestBucket.count;
-  const avgB = bestBucket.bSum / bestBucket.count;
+  // Estimação robusta baseada em mediana dos canais dentro do cluster predominante
+  const medR = medianChannel(bestCluster.rValues);
+  const medG = medianChannel(bestCluster.gValues);
+  const medB = medianChannel(bestCluster.bValues);
 
-  const hex = rgbToHex(avgR, avgG, avgB);
-  const confidence = Math.min(1, bestBucket.count / validPixelCount);
+  const hex = rgbToHex(medR, medG, medB);
+  const confidence = Math.min(1, bestCluster.count / validPixelCount);
 
   return {
     hex,
@@ -156,6 +164,52 @@ export function analyzeRawRgbaEdgePixels(
     sampleCount: validPixelCount,
     confidence: Number(confidence.toFixed(2)),
   };
+}
+
+/**
+ * Analisa um buffer de pixels RGBA brutos focando em bordas e cantos,
+ * utilizando clustering quantizado + estimação por mediana robusta.
+ */
+export function analyzeRawRgbaEdgePixels(
+  data: Buffer | Uint8Array | Uint8ClampedArray,
+  width: number,
+  height: number
+): DetectionResult {
+  const clusters = new Map<string, ColorCluster>();
+  const validPixelCount = accumulateRawFrameEdges(data, width, height, clusters);
+  return finalizeClusterDetection(clusters, validPixelCount);
+}
+
+/**
+ * Analisa múltiplos quadros representativos de vídeo ou animação ZIP,
+ * acumulando clusters nas bordas e cantos para identificar a cor de fundo mais estável.
+ */
+export async function detectMultiFrameBackgroundColor(
+  frameBuffers: Buffer[]
+): Promise<DetectionResult> {
+  if (!frameBuffers || frameBuffers.length === 0) {
+    return { hex: null, status: "FAILED", sampleCount: 0 };
+  }
+
+  const SAMPLE_SIZE = 120;
+  const clusters = new Map<string, ColorCluster>();
+  let totalSamples = 0;
+
+  for (const buf of frameBuffers) {
+    try {
+      const { data, info } = await sharp(buf)
+        .resize(SAMPLE_SIZE, SAMPLE_SIZE, { fit: "fill" })
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+
+      totalSamples += accumulateRawFrameEdges(data, info.width, info.height, clusters);
+    } catch (frameErr) {
+      console.warn("[HeroColorDetector] Erro ao decodificar frame:", frameErr);
+    }
+  }
+
+  return finalizeClusterDetection(clusters, totalSamples);
 }
 
 /**
@@ -180,7 +234,7 @@ export async function detectImageBackgroundColor(buffer: Buffer): Promise<Detect
 
 /**
  * Detecta a cor de fundo representativa de uma animação ZIP de frames
- * Amostra frames representativos do início, meio e fim
+ * Amostra múltiplos frames representativos distribuídos pela animação
  */
 export async function detectZipBackgroundColor(zipBuffer: Buffer): Promise<DetectionResult> {
   try {
@@ -194,7 +248,6 @@ export async function detectZipBackgroundColor(zipBuffer: Buffer): Promise<Detec
     const entries = validation.entries;
     const count = entries.length;
 
-    // Seleciona índices representativos (início, meio e fim)
     const sampleIndices = Array.from(
       new Set([
         0,
@@ -205,101 +258,16 @@ export async function detectZipBackgroundColor(zipBuffer: Buffer): Promise<Detec
       ])
     ).filter((i) => i >= 0 && i < count);
 
-    // Amostra e acumula pixels de borda de todos os frames selecionados
-    const combinedBuckets = new Map<string, ColorBucket>();
-    let totalSamples = 0;
-    const STEP = 16;
-    const SAMPLE_SIZE = 100;
-
+    const frameBuffers: Buffer[] = [];
     for (const idx of sampleIndices) {
-      const entry = entries[idx];
-      const frameBuffer = entry.getData();
-
       try {
-        const { data, info } = await sharp(frameBuffer)
-          .resize(SAMPLE_SIZE, SAMPLE_SIZE, { fit: "fill" })
-          .ensureAlpha()
-          .raw()
-          .toBuffer({ resolveWithObject: true });
-
-        const marginX = Math.max(2, Math.floor(info.width * 0.12));
-        const marginY = Math.max(2, Math.floor(info.height * 0.12));
-
-        for (let y = 0; y < info.height; y++) {
-          const isTopBorder = y < marginY;
-          const isBottomBorder = y >= info.height - marginY;
-
-          for (let x = 0; x < info.width; x++) {
-            const isLeftBorder = x < marginX;
-            const isRightBorder = x >= info.width - marginX;
-
-            if (!isTopBorder && !isBottomBorder && !isLeftBorder && !isRightBorder) {
-              continue;
-            }
-
-            const pIdx = (y * info.width + x) * 4;
-            const r = data[pIdx];
-            const g = data[pIdx + 1];
-            const b = data[pIdx + 2];
-            const a = data[pIdx + 3];
-
-            if (a < 128) continue;
-
-            const isCorner = (isTopBorder || isBottomBorder) && (isLeftBorder || isRightBorder);
-            const weight = isCorner ? 2.0 : 1.0;
-
-            const qR = Math.floor(r / STEP);
-            const qG = Math.floor(g / STEP);
-            const qB = Math.floor(b / STEP);
-            const key = `${qR},${qG},${qB}`;
-
-            let bucket = combinedBuckets.get(key);
-            if (!bucket) {
-              bucket = { rSum: 0, gSum: 0, bSum: 0, count: 0, weight: 0 };
-              combinedBuckets.set(key, bucket);
-            }
-
-            bucket.rSum += r;
-            bucket.gSum += g;
-            bucket.bSum += b;
-            bucket.count += 1;
-            bucket.weight += weight;
-            totalSamples++;
-          }
-        }
-      } catch (frameErr) {
-        console.warn(`[HeroColorDetector] Erro no frame ${idx}:`, frameErr);
+        frameBuffers.push(entries[idx].getData());
+      } catch (err) {
+        console.warn(`[HeroColorDetector] Erro ao ler entrada ZIP #${idx}:`, err);
       }
     }
 
-    if (totalSamples === 0 || combinedBuckets.size === 0) {
-      return { hex: null, status: "FAILED", sampleCount: 0 };
-    }
-
-    let bestBucket: ColorBucket | null = null;
-    let maxWeight = -1;
-
-    for (const bucket of combinedBuckets.values()) {
-      if (bucket.weight > maxWeight) {
-        maxWeight = bucket.weight;
-        bestBucket = bucket;
-      }
-    }
-
-    if (!bestBucket || bestBucket.count === 0) {
-      return { hex: null, status: "FAILED", sampleCount: totalSamples };
-    }
-
-    const avgR = bestBucket.rSum / bestBucket.count;
-    const avgG = bestBucket.gSum / bestBucket.count;
-    const avgB = bestBucket.bSum / bestBucket.count;
-
-    return {
-      hex: rgbToHex(avgR, avgG, avgB),
-      status: "SUCCESS",
-      sampleCount: totalSamples,
-      confidence: Number((bestBucket.count / totalSamples).toFixed(2)),
-    };
+    return await detectMultiFrameBackgroundColor(frameBuffers);
   } catch (error) {
     console.error("[HeroColorDetector] Erro ao analisar animação ZIP:", error);
     return { hex: null, status: "FAILED" };
@@ -315,7 +283,7 @@ export async function detectCurrentHeroMediaColor(
   framesJson: string | null
 ): Promise<DetectionResult> {
   try {
-    // 1. Caso Frame Animation com frames existentes
+    // 1. Caso Frame Animation com frames existentes — amostra múltiplos frames combinados
     if (mediaType === "FRAME_ANIMATION" && framesJson) {
       let frames: string[] = [];
       try {
@@ -323,23 +291,31 @@ export async function detectCurrentHeroMediaColor(
       } catch {}
 
       if (frames.length > 0) {
-        // Amostra até 3 frames dos arquivos locais
-        const sampleFrames = [
-          frames[0],
-          frames[Math.floor(frames.length / 2)],
-          frames[frames.length - 1],
-        ].filter(Boolean);
+        const count = frames.length;
+        const sampleIndices = Array.from(
+          new Set([
+            0,
+            Math.floor(count * 0.25),
+            Math.floor(count * 0.5),
+            Math.floor(count * 0.75),
+            count - 1,
+          ])
+        ).filter((i) => i >= 0 && i < count);
 
-        for (const frameUrl of sampleFrames) {
-          const filePath = resolveMediaUrlToFilePath(frameUrl);
+        const frameBuffers: Buffer[] = [];
+        for (const i of sampleIndices) {
+          const filePath = resolveMediaUrlToFilePath(frames[i]);
           if (filePath) {
             try {
-              const buf = await fs.readFile(filePath);
-              const result = await detectImageBackgroundColor(buf);
-              if (result.status === "SUCCESS" && result.hex) {
-                return result;
-              }
+              frameBuffers.push(await fs.readFile(filePath));
             } catch {}
+          }
+        }
+
+        if (frameBuffers.length > 0) {
+          const result = await detectMultiFrameBackgroundColor(frameBuffers);
+          if (result.status === "SUCCESS" && result.hex) {
+            return result;
           }
         }
       }

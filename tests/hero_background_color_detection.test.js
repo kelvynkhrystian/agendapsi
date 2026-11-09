@@ -271,15 +271,20 @@ test("11. Renderização no MiniSite Público: Hero aplica cor dinâmica e escop
   );
 });
 
-test("12. Painel Admin: Interface com modos Automática e Personalizada, preview e reanálise", () => {
+test("12. Painel Admin e Motor de Cor: Detecção automática e silenciosa para Hero Desktop e Hero Mobile", () => {
   const adminConfig = fs.readFileSync(
     path.join(__dirname, "../src/app/admin/configuracoes/page.tsx"),
     "utf8"
   );
-  assert.ok(adminConfig.includes("Cor de Fundo do Hero"), "Deve renderizar o grupo Cor de Fundo do Hero");
-  assert.ok(adminConfig.includes("heroBgMode"), "Deve gerenciar o estado heroBgMode");
-  assert.ok(adminConfig.includes("heroBgDetectedColor"), "Deve gerenciar heroBgDetectedColor");
-  assert.ok(adminConfig.includes("heroBgCustomColor"), "Deve gerenciar heroBgCustomColor");
-  assert.ok(adminConfig.includes("Analisar novamente"), "Deve fornecer botão Analisar novamente");
-  assert.ok(adminConfig.includes("extractAndAnalyzeVideoFrame"), "Deve implementar extração de frame de vídeo via canvas");
+  const detectorTs = fs.readFileSync(
+    path.join(__dirname, "../src/lib/hero-color-detector.ts"),
+    "utf8"
+  );
+
+  assert.ok(!adminConfig.includes("Cor de Fundo do Hero"), "Painel manual de Cor de Fundo do Hero deve ser removido da UI simplificada");
+  assert.ok(!adminConfig.includes("Analisar novamente"), "Botão técnico Analisar novamente deve ser removido da UI");
+  assert.ok(adminConfig.includes("extractAndAnalyzeVideoFrames"), "Deve extrair múltiplos quadros de vídeo automaticamente via canvas");
+  assert.ok(adminConfig.includes("heroMobileBgDetectedColor"), "Deve armazenar cor detectada independente para Hero Mobile");
+  assert.ok(detectorTs.includes("medianChannel"), "Motor deve usar estimação robusta por mediana");
+  assert.ok(detectorTs.includes("detectMultiFrameBackgroundColor"), "Motor deve amostrar múltiplos quadros para vídeos/ZIPs");
 });

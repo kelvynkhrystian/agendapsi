@@ -3,13 +3,15 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 export interface MediaPlayerProps {
-  slot: "hero" | "about";
+  slot: "hero" | "hero_mobile" | "about";
   mediaType?: "IMAGE" | "FRAME_ANIMATION" | "VIDEO" | string;
   mediaUrl?: string | null;
   posterUrl?: string | null;
   frames?: string[];
   frameCount?: number;
   fps?: number;
+  playbackSpeed?: number;
+  previewMode?: boolean;
   loop?: boolean;
   autoplay?: boolean;
   playbackMode?: "AUTOMATIC" | "SCROLL" | string;
@@ -22,14 +24,23 @@ export interface MediaPlayerProps {
   alt?: string;
 }
 
+function resolveSpeedMultiplier(speed?: number): number {
+  const numeric = typeof speed === "number" ? speed : Number(speed);
+  if (!Number.isFinite(numeric) || numeric <= 0) return 1;
+  if (numeric < 0.75) return 0.5;
+  if (numeric >= 1.5) return 2;
+  return 1;
+}
+
 export function MiniSiteMediaPlayer({
   slot,
   mediaType = "IMAGE",
   mediaUrl,
   posterUrl,
   frames = [],
-  frameCount,
   fps = 24,
+  playbackSpeed = 1,
+  previewMode = false,
   loop = true,
   autoplay = true,
   playbackMode = "AUTOMATIC",
@@ -42,6 +53,11 @@ export function MiniSiteMediaPlayer({
   alt,
 }: MediaPlayerProps) {
   const actualAlt = alt || altText;
+  const effectiveSpeed = resolveSpeedMultiplier(playbackSpeed);
+  const effectivePlaybackMode = previewMode ? "AUTOMATIC" : playbackMode;
+  const effectiveAutoplay = previewMode ? true : autoplay;
+  const effectiveLoop = previewMode ? true : loop;
+
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -69,37 +85,71 @@ export function MiniSiteMediaPlayer({
     }
   }, []);
 
-  // IntersectionObserver para pausar quando fora da tela (otimização mobile e economia de bateria)
+  // Aplica velocidade de reprodução (0.5x, 1x, 2x) para vídeos MP4 / WebM
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v || mediaType !== "VIDEO") return;
+    v.defaultPlaybackRate = effectiveSpeed;
+    v.playbackRate = effectiveSpeed;
+  }, [effectiveSpeed, mediaType, mediaUrl]);
+
+  // IntersectionObserver + verificação de visibilidade CSS para pausar slots ocultos ou fora da tela
   useEffect(() => {
     const el = containerRef.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
 
+    const syncVisibility = (intersecting: boolean) => {
+      const visibleNow = intersecting && el.getClientRects().length > 0;
+      setIsVisible(visibleNow);
+      const v = videoRef.current;
+      if (v) {
+        if (visibleNow && effectiveAutoplay) {
+          v.defaultPlaybackRate = effectiveSpeed;
+          v.playbackRate = effectiveSpeed;
+          v.play().catch(() => {});
+        } else {
+          v.pause();
+        }
+      }
+    };
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setIsVisible(entry.isIntersecting);
-        if (videoRef.current) {
-          if (entry.isIntersecting && autoplay) {
-            videoRef.current.play().catch(() => {});
-          } else {
-            videoRef.current.pause();
-          }
-        }
+        syncVisibility(entry.isIntersecting);
       },
-      { threshold: 0.1 }
+      { threshold: 0.05 }
     );
 
     observer.observe(el);
-    return () => observer.disconnect();
-  }, [autoplay]);
+
+    const mq =
+      typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)") : null;
+    const handleMediaChange = () => {
+      syncVisibility(el.getClientRects().length > 0);
+    };
+    mq?.addEventListener("change", handleMediaChange);
+
+    return () => {
+      observer.disconnect();
+      mq?.removeEventListener("change", handleMediaChange);
+    };
+  }, [effectiveAutoplay, effectiveSpeed, mediaType, mediaUrl]);
 
   // Carregamento progressivo de frames para FRAME_ANIMATION
   useEffect(() => {
     if (mediaType !== "FRAME_ANIMATION" || !frames || frames.length === 0) {
+      loadedImagesRef.current = [];
+      setImagesLoaded(false);
+      setCurrentFrameIndex(0);
       return;
     }
 
     let isCancelled = false;
     loadedImagesRef.current = [];
+    setImagesLoaded(false);
+    setCurrentFrameIndex(0);
+    directionRef.current = 1;
+    lastFrameTimeRef.current = 0;
 
     // Pré-carrega o primeiro lote (poster e primeiros 5 frames para renderização instantânea)
     const initialBatchSize = Math.min(5, frames.length);
@@ -137,47 +187,60 @@ export function MiniSiteMediaPlayer({
     };
   }, [mediaType, frames]);
 
-  // Reprodução de FRAME_ANIMATION (Modo AUTOMATIC)
+  // Reprodução de FRAME_ANIMATION (Modo AUTOMATIC) com suporte a 0.5x / 1x / 2x mantendo FPS base
   useEffect(() => {
     if (
       mediaType !== "FRAME_ANIMATION" ||
-      playbackMode !== "AUTOMATIC" ||
+      effectivePlaybackMode !== "AUTOMATIC" ||
       !frames ||
       frames.length === 0 ||
       reducedMotion ||
       !isVisible ||
-      !autoplay
+      !effectiveAutoplay
     ) {
       return;
     }
 
-    const intervalMs = 1000 / (fps || 24);
+    lastFrameTimeRef.current = 0;
+    const effectiveFps = Math.max(1, (fps || 24) * effectiveSpeed);
+    const intervalMs = 1000 / effectiveFps;
 
     const renderLoop = (timestamp: number) => {
-      if (timestamp - lastFrameTimeRef.current >= intervalMs) {
+      if (lastFrameTimeRef.current === 0) {
         lastFrameTimeRef.current = timestamp;
+      }
+      const delta = timestamp - lastFrameTimeRef.current;
+
+      if (delta + 0.5 >= intervalMs) {
+        const steps = Math.min(3, Math.max(1, Math.floor((delta + 0.5) / intervalMs)));
+        lastFrameTimeRef.current = timestamp - (delta % intervalMs);
 
         setCurrentFrameIndex((prevIndex) => {
           const total = frames.length;
           if (total <= 1) return 0;
 
-          if (playbackDirection === "ALTERNATE") {
-            let nextIndex = prevIndex + directionRef.current;
-            if (nextIndex >= total) {
-              directionRef.current = -1;
-              nextIndex = total - 2;
-            } else if (nextIndex < 0) {
-              directionRef.current = 1;
-              nextIndex = 1;
+          let idx = prevIndex < total ? prevIndex : 0;
+          for (let s = 0; s < steps; s++) {
+            if (playbackDirection === "ALTERNATE") {
+              let nextIndex = idx + directionRef.current;
+              if (nextIndex >= total) {
+                directionRef.current = -1;
+                nextIndex = Math.max(0, total - 2);
+              } else if (nextIndex < 0) {
+                directionRef.current = 1;
+                nextIndex = Math.min(total - 1, 1);
+              }
+              idx = Math.max(0, Math.min(total - 1, nextIndex));
+            } else {
+              // FORWARD
+              if (idx + 1 >= total) {
+                idx = effectiveLoop ? 0 : idx;
+              } else {
+                idx = idx + 1;
+              }
             }
-            return Math.max(0, Math.min(total - 1, nextIndex));
-          } else {
-            // FORWARD
-            if (prevIndex + 1 >= total) {
-              return loop ? 0 : prevIndex;
-            }
-            return prevIndex + 1;
           }
+          return idx;
         });
       }
 
@@ -191,13 +254,24 @@ export function MiniSiteMediaPlayer({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [mediaType, playbackMode, frames, fps, loop, autoplay, playbackDirection, reducedMotion, isVisible]);
+  }, [
+    mediaType,
+    effectivePlaybackMode,
+    frames,
+    fps,
+    effectiveSpeed,
+    effectiveLoop,
+    effectiveAutoplay,
+    playbackDirection,
+    reducedMotion,
+    isVisible,
+  ]);
 
   // Reprodução de FRAME_ANIMATION (Modo SCROLL)
   useEffect(() => {
     if (
       mediaType !== "FRAME_ANIMATION" ||
-      playbackMode !== "SCROLL" ||
+      effectivePlaybackMode !== "SCROLL" ||
       !frames ||
       frames.length === 0 ||
       reducedMotion
@@ -225,7 +299,7 @@ export function MiniSiteMediaPlayer({
     handleScroll();
 
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [mediaType, playbackMode, frames, reducedMotion]);
+  }, [mediaType, effectivePlaybackMode, frames, reducedMotion]);
 
   // Desenho síncrono dos frames no Canvas antes da pintura para evitar flash branco na troca img -> canvas
   useLayoutEffect(() => {
@@ -237,7 +311,7 @@ export function MiniSiteMediaPlayer({
 
     const img = loadedImagesRef.current[currentFrameIndex] || loadedImagesRef.current[0];
     if (img && img.complete && img.naturalWidth > 0) {
-      if (slot === "hero") {
+      if (slot === "hero" || slot === "hero_mobile") {
         const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
         const displayWidth = img.naturalWidth;
         const displayHeight = img.naturalHeight;
@@ -267,6 +341,8 @@ export function MiniSiteMediaPlayer({
 
   const handleVideoMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     const v = e.currentTarget;
+    v.defaultPlaybackRate = effectiveSpeed;
+    v.playbackRate = effectiveSpeed;
     if (v.videoWidth && v.videoHeight) {
       setVideoAspectRatio(v.videoWidth / v.videoHeight);
     }
@@ -274,15 +350,21 @@ export function MiniSiteMediaPlayer({
 
   // Enquadramento de objeto
   const getObjectFitClass = () => {
+    if (previewMode) return "object-contain";
     if (positioning === "contain") return "object-contain";
     if (positioning === "cover") return "object-cover";
     if (positioning === "top") return "object-cover object-top";
     if (positioning === "bottom") return "object-cover object-bottom";
-    return slot === "hero" ? "object-contain" : "object-cover object-center";
+    return slot === "hero" || slot === "hero_mobile" ? "object-contain" : "object-cover object-center";
   };
 
-  const isHero = slot === "hero";
-  const hasIntrinsicDims = Boolean(intrinsicWidth && intrinsicWidth > 0 && intrinsicHeight && intrinsicHeight > 0);
+  const isPublicHeroDesktop = !previewMode && slot === "hero";
+  const isPublicHeroMobile = !previewMode && slot === "hero_mobile";
+  const isPublicHero = isPublicHeroDesktop || isPublicHeroMobile;
+
+  const hasIntrinsicDims = Boolean(
+    intrinsicWidth && intrinsicWidth > 0 && intrinsicHeight && intrinsicHeight > 0
+  );
   const resolvedAspectRatio = hasIntrinsicDims
     ? `${intrinsicWidth} / ${intrinsicHeight}`
     : videoAspectRatio
@@ -291,17 +373,34 @@ export function MiniSiteMediaPlayer({
     ? `${frameAspectRatio}`
     : undefined;
   const heroAspectStyle: React.CSSProperties | undefined =
-    isHero && resolvedAspectRatio ? { aspectRatio: resolvedAspectRatio } : undefined;
+    isPublicHero && resolvedAspectRatio ? { aspectRatio: resolvedAspectRatio } : undefined;
   const isImagePoster =
     Boolean(posterUrl) && !/\.(mp4|webm|mov|avi)(\?|#|$)/i.test(posterUrl || "");
   const effectiveVideoPoster = isImagePoster ? posterUrl || undefined : undefined;
+
+  const desktopHeroObjectPos =
+    positioning === "top"
+      ? "lg:object-top"
+      : positioning === "bottom"
+      ? "lg:object-bottom"
+      : "lg:object-center";
+
+  const mediaClassName = previewMode
+    ? "w-full h-full object-contain"
+    : isPublicHeroDesktop
+    ? `w-full h-auto lg:h-full lg:w-full block max-w-full bg-[var(--hero-background-color,#FAF7F2)] object-contain lg:object-cover ${desktopHeroObjectPos}`
+    : isPublicHeroMobile
+    ? "w-full h-auto block max-w-full bg-[var(--hero-background-color,#FAF7F2)] object-contain"
+    : `w-full h-full ${getObjectFitClass()}`;
 
   return (
     <div
       ref={containerRef}
       className={
-        isHero
+        isPublicHeroDesktop
           ? `relative w-full h-auto lg:h-full lg:w-full lg:absolute lg:inset-0 flex items-center justify-center bg-[var(--hero-background-color,#FAF7F2)] ${className}`
+          : isPublicHeroMobile
+          ? `relative w-full h-auto flex items-center justify-center bg-[var(--hero-background-color,#FAF7F2)] ${className}`
           : `relative w-full h-full flex items-center justify-center overflow-hidden ${className}`
       }
     >
@@ -313,24 +412,18 @@ export function MiniSiteMediaPlayer({
           poster={effectiveVideoPoster}
           width={intrinsicWidth || undefined}
           height={intrinsicHeight || undefined}
-          autoPlay={autoplay}
+          autoPlay={effectiveAutoplay}
           muted
           playsInline
-          loop={loop}
+          loop={effectiveLoop}
           preload="auto"
           onLoadedMetadata={handleVideoMetadata}
+          onPlay={(e) => {
+            e.currentTarget.defaultPlaybackRate = effectiveSpeed;
+            e.currentTarget.playbackRate = effectiveSpeed;
+          }}
           style={heroAspectStyle}
-          className={
-            isHero
-              ? `w-full h-auto lg:h-full lg:w-full block max-w-full bg-[var(--hero-background-color,#FAF7F2)] object-contain lg:object-cover ${
-                  positioning === "top"
-                    ? "lg:object-top"
-                    : positioning === "bottom"
-                    ? "lg:object-bottom"
-                    : "lg:object-center"
-                }`
-              : `w-full h-full ${getObjectFitClass()}`
-          }
+          className={mediaClassName}
         />
       ) : null}
 
@@ -338,8 +431,10 @@ export function MiniSiteMediaPlayer({
       {mediaType === "FRAME_ANIMATION" && frames && frames.length > 0 ? (
         <div
           className={
-            isHero
+            isPublicHeroDesktop
               ? "w-full h-auto lg:h-full lg:w-full lg:absolute lg:inset-0 relative flex items-center justify-center bg-[var(--hero-background-color,#FAF7F2)]"
+              : isPublicHeroMobile
+              ? "w-full h-auto relative flex items-center justify-center bg-[var(--hero-background-color,#FAF7F2)]"
               : "w-full h-full relative flex items-center justify-center"
           }
         >
@@ -351,32 +446,12 @@ export function MiniSiteMediaPlayer({
               width={intrinsicWidth || undefined}
               height={intrinsicHeight || undefined}
               style={heroAspectStyle}
-              className={
-                isHero
-                  ? `w-full h-auto lg:h-full lg:w-full block max-w-full bg-[var(--hero-background-color,#FAF7F2)] object-contain lg:object-cover ${
-                      positioning === "top"
-                        ? "lg:object-top"
-                        : positioning === "bottom"
-                        ? "lg:object-bottom"
-                        : "lg:object-center"
-                    }`
-                  : `w-full h-full ${getObjectFitClass()}`
-              }
+              className={mediaClassName}
             />
           ) : (
             <canvas
               ref={canvasRef}
-              className={
-                isHero
-                  ? `w-full h-auto lg:h-full lg:w-full block max-w-full bg-[var(--hero-background-color,#FAF7F2)] object-contain lg:object-cover ${
-                      positioning === "top"
-                        ? "lg:object-top"
-                        : positioning === "bottom"
-                        ? "lg:object-bottom"
-                        : "lg:object-center"
-                    }`
-                  : `w-full h-full ${getObjectFitClass()}`
-              }
+              className={mediaClassName}
               style={{ display: "block", ...(heroAspectStyle || {}) }}
             />
           )}
@@ -391,23 +466,24 @@ export function MiniSiteMediaPlayer({
           width={intrinsicWidth || undefined}
           height={intrinsicHeight || undefined}
           style={heroAspectStyle}
-          className={
-            isHero
-              ? `w-full h-auto lg:h-full lg:w-full block max-w-full bg-[var(--hero-background-color,#FAF7F2)] object-contain lg:object-cover ${
-                  positioning === "top"
-                    ? "lg:object-top"
-                    : positioning === "bottom"
-                    ? "lg:object-bottom"
-                    : "lg:object-center"
-                }`
-              : `w-full h-full ${getObjectFitClass()}`
-          }
+          className={mediaClassName}
         />
       ) : null}
 
-      {/* 4. PLACEHOLDER NEUTRO DE ALTA QUALIDADE QUANDO SEM MÍDIA CONFIGURADA */}
-      {(!mediaUrl && (!frames || frames.length === 0)) ? (
-        isHero ? (
+      {/* 4. PLACEHOLDER NEUTRO QUANDO SEM MÍDIA CONFIGURADA */}
+      {!mediaUrl && (!frames || frames.length === 0) ? (
+        previewMode ? (
+          <div className="w-full h-full flex flex-col items-center justify-center p-5 text-center space-y-2 text-slate-400">
+            <div className="w-11 h-11 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] text-xl font-serif">
+              Ψ
+            </div>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              {slot === "hero_mobile"
+                ? "Sem mídia exclusiva (usa o Hero Desktop)"
+                : "Nenhuma mídia enviada"}
+            </span>
+          </div>
+        ) : isPublicHero ? (
           <div className="w-full max-w-sm py-8 px-4 flex flex-col items-center justify-center text-center space-y-2 bg-[var(--hero-background-color,#FAF7F2)] lg:hidden">
             <div className="w-12 h-12 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] text-2xl font-serif shadow-2xs">
               Ψ

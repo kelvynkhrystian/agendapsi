@@ -1,79 +1,59 @@
 import { NextRequest, NextResponse } from "next/server";
-import path from "path";
+import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import {
   processZipBuffer,
-  processMultipleImageFiles,
   saveStaticMediaFile,
+  detectMediaTypeFromFile,
   MediaSlot,
-  MediaType,
-  ALLOWED_IMAGE_EXTENSIONS,
-  ALLOWED_VIDEO_EXTENSIONS,
 } from "@/lib/minisite-media";
 import {
   detectImageBackgroundColor,
   detectZipBackgroundColor,
 } from "@/lib/hero-color-detector";
 
+const uploadSlotSchema = z.enum(["hero", "hero_mobile", "about"]);
+
 export async function POST(req: NextRequest) {
   try {
     await requireAdmin();
 
     const formData = await req.formData();
-    const slot = formData.get("slot") as MediaSlot | null; // "hero" | "about"
-    const mediaType = formData.get("mediaType") as MediaType | null; // "IMAGE" | "FRAME_ANIMATION" | "VIDEO"
-    const isFolderOrMultiple = formData.get("isMultiple") === "true";
+    const rawSlot = formData.get("slot");
+    const parsedSlot = uploadSlotSchema.safeParse(rawSlot);
 
-    if (!slot || !mediaType) {
+    if (!parsedSlot.success) {
       return NextResponse.json(
-        { error: "Slot de mídia ou tipo não fornecido." },
+        { error: "Área de mídia inválida. Use 'hero', 'hero_mobile' ou 'about'." },
         { status: 400 }
       );
     }
 
-    if (!["hero", "about"].includes(slot)) {
-      return NextResponse.json({ error: "Slot de mídia inválido. Use 'hero' ou 'about'." }, { status: 400 });
-    }
+    const slot: MediaSlot = parsedSlot.data;
+    const isHeroSlot = slot === "hero" || slot === "hero_mobile";
 
-    // Caso A: Upload de Múltiplos Arquivos ou Pasta de Frames
-    const multiFiles = formData.getAll("files") as File[];
-    if (isFolderOrMultiple || (multiFiles && multiFiles.length > 1)) {
-      const fileBuffers: { name: string; buffer: Buffer }[] = [];
-      for (const f of multiFiles) {
-        if (f.size > 15 * 1024 * 1024) {
-          return NextResponse.json(
-            { error: `O frame ${f.name} excede o limite individual de 15MB.` },
-            { status: 400 }
-          );
-        }
-        const buf = Buffer.from(await f.arrayBuffer());
-        fileBuffers.push({ name: f.name, buffer: buf });
-      }
-
-      const result = await processMultipleImageFiles(fileBuffers, slot);
-      return NextResponse.json({
-        success: true,
-        slot,
-        mediaType: "FRAME_ANIMATION",
-        frameCount: result.frameCount,
-        frames: result.frames,
-        posterUrl: result.posterUrl,
-        message: `${result.frameCount} frames processados e salvos com sucesso!`,
-      });
-    }
-
-    // Caso B: Upload de Arquivo Único (ZIP, Imagem ou Vídeo)
-    const file = (formData.get("file") as File | null) || (multiFiles.length === 1 ? multiFiles[0] : null);
+    const file = formData.get("file") as File | null;
     if (!file) {
       return NextResponse.json({ error: "Nenhum arquivo enviado." }, { status: 400 });
     }
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const rawExt = path.extname(file.name).toLowerCase();
 
-    // 1. Frame Animation via ZIP
-    if (mediaType === "FRAME_ANIMATION" || rawExt === ".zip") {
+    // Reconhecimento automático pelo conteúdo real do arquivo (magic bytes + MIME/extensão)
+    let detected;
+    try {
+      detected = detectMediaTypeFromFile(file.name, file.type, buffer);
+    } catch (detectErr) {
+      const errMsg =
+        detectErr instanceof Error
+          ? detectErr.message
+          : "Formato de arquivo não suportado. Envie JPG, PNG, WebP, MP4, WebM ou ZIP.";
+      return NextResponse.json({ error: errMsg }, { status: 400 });
+    }
+
+    // 1. Animação por Frames em ZIP
+    if (detected.mediaType === "FRAME_ANIMATION") {
       const MAX_ZIP_SIZE = 100 * 1024 * 1024; // 100MB
       if (file.size > MAX_ZIP_SIZE) {
         return NextResponse.json(
@@ -82,11 +62,17 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const result = await processZipBuffer(buffer, slot);
+      let result;
+      try {
+        result = await processZipBuffer(buffer, slot);
+      } catch (zipErr) {
+        const msg = zipErr instanceof Error ? zipErr.message : "Arquivo ZIP inválido.";
+        return NextResponse.json({ error: msg }, { status: 400 });
+      }
 
       let detectedBgColor: string | null = null;
       let detectionStatus: string = "IDLE";
-      if (slot === "hero") {
+      if (isHeroSlot) {
         try {
           const colorResult = await detectZipBackgroundColor(buffer);
           detectedBgColor = colorResult.hex;
@@ -106,12 +92,12 @@ export async function POST(req: NextRequest) {
         posterUrl: result.posterUrl,
         detectedBgColor,
         detectionStatus,
-        message: `Animação ZIP com ${result.frameCount} frames descompactada e persistida com sucesso!`,
+        message: `Animação ZIP reconhecida (${result.frameCount} frames) e preparada com sucesso!`,
       });
     }
 
     // 2. Imagem Estática (JPG, PNG, WebP)
-    if (mediaType === "IMAGE") {
+    if (detected.mediaType === "IMAGE") {
       const MAX_IMG_SIZE = 15 * 1024 * 1024; // 15MB
       if (file.size > MAX_IMG_SIZE) {
         return NextResponse.json(
@@ -120,18 +106,17 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      if (!ALLOWED_IMAGE_EXTENSIONS.includes(rawExt)) {
-        return NextResponse.json(
-          { error: "Formato de imagem inválido. Formatos suportados: JPG, PNG e WebP." },
-          { status: 400 }
-        );
-      }
-
-      const publicUrl = await saveStaticMediaFile(file.name, buffer, slot, "image");
+      const publicUrl = await saveStaticMediaFile(
+        file.name,
+        buffer,
+        slot,
+        "image",
+        detected.extension
+      );
 
       let detectedBgColor: string | null = null;
       let detectionStatus: string = "IDLE";
-      if (slot === "hero") {
+      if (isHeroSlot) {
         try {
           const colorResult = await detectImageBackgroundColor(buffer);
           detectedBgColor = colorResult.hex;
@@ -150,12 +135,12 @@ export async function POST(req: NextRequest) {
         posterUrl: publicUrl,
         detectedBgColor,
         detectionStatus,
-        message: "Imagem estática salva com sucesso!",
+        message: "Imagem reconhecida e preparada com sucesso!",
       });
     }
 
-    // 3. Vídeo (WebM / MP4)
-    if (mediaType === "VIDEO") {
+    // 3. Vídeo (MP4 / WebM)
+    if (detected.mediaType === "VIDEO") {
       const MAX_VID_SIZE = 50 * 1024 * 1024; // 50MB
       if (file.size > MAX_VID_SIZE) {
         return NextResponse.json(
@@ -164,14 +149,13 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      if (!ALLOWED_VIDEO_EXTENSIONS.includes(rawExt)) {
-        return NextResponse.json(
-          { error: "Formato de vídeo inválido. Formatos suportados: MP4 e WebM." },
-          { status: 400 }
-        );
-      }
-
-      const publicUrl = await saveStaticMediaFile(file.name, buffer, slot, "video");
+      const publicUrl = await saveStaticMediaFile(
+        file.name,
+        buffer,
+        slot,
+        "video",
+        detected.extension
+      );
 
       return NextResponse.json({
         success: true,
@@ -179,11 +163,16 @@ export async function POST(req: NextRequest) {
         mediaType: "VIDEO",
         url: publicUrl,
         posterUrl: publicUrl,
-        message: "Vídeo salvo com sucesso!",
+        detectedBgColor: null,
+        detectionStatus: isHeroSlot ? "PENDING_CLIENT_FRAMES" : "IDLE",
+        message: "Vídeo reconhecido e preparado com sucesso!",
       });
     }
 
-    return NextResponse.json({ error: "Tipo de mídia não suportado." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Formato de arquivo não suportado." },
+      { status: 400 }
+    );
   } catch (error: unknown) {
     if (error instanceof Error && error.message === "FORBIDDEN") {
       return NextResponse.json({ error: "Acesso restrito ao administrador." }, { status: 403 });

@@ -43,14 +43,14 @@ test("2. Validação e Segurança da Rota Pública de Mídia (/api/minisite/medi
   assert.strictEqual(routeContent.includes("Cache-Control"), true, "Deve configurar cabeçalho de cache eficiente");
 });
 
-test("3. Isolamento Arquitetural em storage/minisite/{top|sobre}/{uploadId}/", () => {
+test("3. Isolamento Arquitetural em storage/minisite/{top|top-mobile|sobre}/{uploadId}/", () => {
   const libFilePath = path.join(process.cwd(), "src", "lib", "minisite-media.ts");
   const libContent = fs.readFileSync(libFilePath, "utf-8");
 
   assert.strictEqual(
-    libContent.includes("getSlotDirectory(slot: MediaSlot): \"top\" | \"sobre\""),
+    libContent.includes('getSlotDirectory(slot: MediaSlot): "top" | "top-mobile" | "sobre"'),
     true,
-    "Deve mapear slot hero->top e about->sobre"
+    "Deve mapear slot hero->top, hero_mobile->top-mobile e about->sobre"
   );
   assert.strictEqual(
     libContent.includes("const uploadId = `up_${Date.now()}_"),
@@ -64,14 +64,19 @@ test("3. Isolamento Arquitetural em storage/minisite/{top|sobre}/{uploadId}/", (
   );
 });
 
-test("4. Suporte a Múltiplos Frames e Seleção de Pastas", () => {
+test("4. Suporte a Ordenação Numérica Natural e Extração Segura de Frames ZIP", () => {
   const libFilePath = path.join(process.cwd(), "src", "lib", "minisite-media.ts");
   const libContent = fs.readFileSync(libFilePath, "utf-8");
 
   assert.strictEqual(
-    libContent.includes("processMultipleImageFiles"),
+    libContent.includes("detectMediaTypeFromFile"),
     true,
-    "Deve conter função processMultipleImageFiles para suporte a múltiplos arquivos e pastas"
+    "Deve reconhecer automaticamente JPG, PNG, WebP, MP4, WebM e ZIP via magic bytes"
+  );
+  assert.strictEqual(
+    libContent.includes("processZipBuffer"),
+    true,
+    "Deve extrair frames de arquivos ZIP de animação com segurança"
   );
   assert.strictEqual(
     libContent.includes("numeric: true, sensitivity: \"base\""),
@@ -80,32 +85,26 @@ test("4. Suporte a Múltiplos Frames e Seleção de Pastas", () => {
   );
 });
 
-test("5. Suporte no Frontend Admin: Seleção de Múltiplos Frames e Pastas", () => {
+test("5. Frontend Admin Simplificado: Três Áreas Universais sem Botões Manuais de Tipo", () => {
   const adminPagePath = path.join(process.cwd(), "src", "app", "admin", "configuracoes", "page.tsx");
   const adminContent = fs.readFileSync(adminPagePath, "utf-8");
+  const cardPath = path.join(process.cwd(), "src", "components", "admin", "minisite-media-slot-card.tsx");
+  const cardContent = fs.readFileSync(cardPath, "utf-8");
 
-  // Hero Slot
-  assert.strictEqual(adminContent.includes("Múltiplos Frames"), true, "Hero deve ter botão de Múltiplos Frames");
-  assert.strictEqual(adminContent.includes("Pasta de Frames"), true, "Hero deve ter botão de Pasta de Frames");
+  assert.strictEqual(adminContent.includes('title="Hero — Desktop"'), true, "Deve exibir Hero — Desktop");
+  assert.strictEqual(adminContent.includes('title="Hero — Mobile"'), true, "Deve exibir Hero — Mobile");
+  assert.strictEqual(adminContent.includes('title="Sobre Mim"'), true, "Deve exibir Sobre Mim");
   assert.strictEqual(
-    adminContent.includes("⚡ Importar frames existentes (storage/minisite/top)"),
-    true,
-    "Hero deve ter botão de importação rápida de storage/minisite/top"
+    adminContent.includes("Frames (ZIP)") || cardContent.includes("Frames (ZIP)"),
+    false,
+    "Botões manuais de tipo (Frames (ZIP)) devem ter sido removidos"
   );
-
-  // Sobre Mim Slot
   assert.strictEqual(
-    adminContent.includes("⚡ Importar frames existentes (storage/minisite/sobre)"),
+    cardContent.includes("Envie uma imagem, vídeo ou animação ZIP (JPG, PNG, WebP, MP4, WebM ou ZIP)."),
     true,
-    "Sobre Mim deve ter botão de importação rápida de storage/minisite/sobre"
+    "Deve exibir exatamente a mensagem de formatos aceitos"
   );
-
-  // Envio de múltiplos arquivos para o backend
-  assert.strictEqual(
-    adminContent.includes("formData.append(\"isMultiple\", \"true\")"),
-    true,
-    "Deve sinalizar upload múltiplo via FormData"
-  );
+  assert.strictEqual(cardContent.includes("Velocidade"), true, "Deve conter seletor compacto de Velocidade");
 });
 
 test("6. MiniSite Público: Hero e Sobre Mim Conectados com Fallback Automático", () => {

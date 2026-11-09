@@ -538,11 +538,12 @@ model SiteSettings {
   instagram      String?
   customHtml     String?  @db.Text // [DEPRECATED] Mantido no banco para migração segura sem perda de dados legados; funcionalidade descontinuada
 
-  // Minisite Media Slots (Phase 3/5)
+  // Minisite Media Slots (Desktop Hero, Mobile Hero & Shared About)
   heroMediaType          String   @default("IMAGE") // IMAGE, FRAME_ANIMATION, VIDEO
   heroMediaUrl           String?  @db.Text
   heroPosterUrl          String?  @db.Text
   heroFps                Int      @default(24)
+  heroPlaybackSpeed      Float    @default(1) // 0.5, 1, 2
   heroLoop               Boolean  @default(true)
   heroAutoplay           Boolean  @default(true)
   heroPlaybackMode       String   @default("AUTOMATIC") // AUTOMATIC, SCROLL
@@ -556,10 +557,27 @@ model SiteSettings {
   heroBgStatus           String   @default("IDLE") // IDLE, SUCCESS, FAILED, FALLBACK
   heroBgMediaRef         String?  @db.Text
 
+  heroMobileMediaType         String   @default("IMAGE") // IMAGE, FRAME_ANIMATION, VIDEO
+  heroMobileMediaUrl          String?  @db.Text
+  heroMobilePosterUrl         String?  @db.Text
+  heroMobileFps               Int      @default(24)
+  heroMobilePlaybackSpeed     Float    @default(1) // 0.5, 1, 2
+  heroMobileLoop              Boolean  @default(true)
+  heroMobileAutoplay          Boolean  @default(true)
+  heroMobilePlaybackMode      String   @default("AUTOMATIC") // AUTOMATIC, SCROLL
+  heroMobilePlaybackDirection String   @default("FORWARD") // FORWARD, ALTERNATE
+  heroMobilePositioning       String   @default("center") // center, cover, contain, top, bottom
+  heroMobileFrameCount        Int      @default(0)
+  heroMobileFramesJson        String?  @db.MediumText
+  heroMobileBgDetectedColor   String?
+  heroMobileBgStatus          String   @default("IDLE") // IDLE, SUCCESS, FAILED, FALLBACK
+  heroMobileBgMediaRef        String?  @db.Text
+
   aboutMediaType         String   @default("IMAGE") // IMAGE, FRAME_ANIMATION, VIDEO
   aboutMediaUrl          String?  @db.Text
   aboutPosterUrl         String?  @db.Text
   aboutFps               Int      @default(24)
+  aboutPlaybackSpeed     Float    @default(1) // 0.5, 1, 2
   aboutLoop              Boolean  @default(true)
   aboutAutoplay          Boolean  @default(true)
   aboutPlaybackMode      String   @default("AUTOMATIC") // AUTOMATIC, SCROLL

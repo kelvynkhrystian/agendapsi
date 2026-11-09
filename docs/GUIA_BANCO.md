@@ -123,8 +123,10 @@ Na tabela **`SiteSettings`** (modelo Prisma `SiteSettings`, linha fixa `id = "de
   - `secondaryColor` (cor secundária)
   - `accentColor` (cor de destaque)
   - `buttonColor` (cor dos botões)
-  - `heroBgMode`, `heroBgDetectedColor`, `heroBgCustomColor`, `heroBgStatus`, `heroBgMediaRef` (integração, status e detecção de cor de fundo do Hero)
-- **Arquivo de referência:** `src/app/admin/configuracoes/page.tsx` (aba "Identidade Visual").
+  - `heroBgMode`, `heroBgDetectedColor`, `heroBgCustomColor`, `heroBgStatus`, `heroBgMediaRef` (detecção automática de cor de fundo do Hero Desktop)
+  - `heroMobileMediaType`, `heroMobileMediaUrl`, `heroMobilePlaybackSpeed`, `heroMobileBgDetectedColor`, `heroMobileBgStatus`, `heroMobileBgMediaRef` (mídia independente e cor automática do Hero Mobile, com fallback automático para o Hero Desktop)
+  - `heroPlaybackSpeed`, `aboutPlaybackSpeed` (multiplicadores de velocidade `0.5x`, `1x`, `2x` para vídeos e ZIPs)
+- **Arquivo de referência:** `src/app/admin/configuracoes/page.tsx` (aba "Aparência").
 
 ### 16. Como uma alteração no banco afeta o frontend?
 No PSI, a comunicação entre o banco e as telas do frontend segue um fluxo previsível:

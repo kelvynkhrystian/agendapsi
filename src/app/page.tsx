@@ -162,6 +162,32 @@ export default async function HomePage() {
       : heroMediaUrl;
   const heroDimensions = await getLocalMediaDimensions(heroDimensionsSource);
 
+  // Mídia independente do Hero Mobile (com fallback para o Hero Desktop quando vazia)
+  let heroMobileFrames: string[] = [];
+  if (site?.heroMobileFramesJson) {
+    try {
+      heroMobileFrames = JSON.parse(site.heroMobileFramesJson);
+    } catch {}
+  }
+  const heroMobileMediaType = site?.heroMobileMediaType || "IMAGE";
+  const heroMobileMediaUrl = site?.heroMobileMediaUrl || null;
+  const heroMobilePosterUrl = site?.heroMobilePosterUrl || null;
+  const hasMobileHeroMedia =
+    heroMobileMediaType === "FRAME_ANIMATION"
+      ? heroMobileFrames.length > 0
+      : Boolean(heroMobileMediaUrl);
+
+  const heroMobileDimensionsSource = hasMobileHeroMedia
+    ? heroMobileMediaType === "FRAME_ANIMATION" && heroMobileFrames.length > 0
+      ? heroMobilePosterUrl && !/\.(mp4|webm|mov|avi)(\?|#|$)/i.test(heroMobilePosterUrl)
+        ? heroMobilePosterUrl
+        : heroMobileFrames[0]
+      : heroMobileMediaUrl
+    : null;
+  const heroMobileDimensions = hasMobileHeroMedia
+    ? await getLocalMediaDimensions(heroMobileDimensionsSource)
+    : null;
+
   // Indicadores de Benefício do Hero (Fase 4/5)
   let benefits: HeroBenefitItem[] = DEFAULT_HERO_BENEFITS;
   if (site?.benefitsJson) {
@@ -194,7 +220,7 @@ export default async function HomePage() {
   const mapsEmbedSrc = getGoogleMapsEmbedSrc(site);
   const shouldShowLocation = site?.showLocation !== false && !!(formattedAddress || mapsDestinationUrl);
 
-  // Detecção e Resolução da Cor de Fundo do Hero (Fase 5+)
+  // Detecção e Resolução da Cor de Fundo do Hero (Desktop e Mobile independentes com fallback)
   const heroBgMode = site?.heroBgMode || "AUTO";
   const heroBgDetected = site?.heroBgDetectedColor;
   const heroBgCustom = site?.heroBgCustomColor;
@@ -205,6 +231,13 @@ export default async function HomePage() {
       : heroBgDetected && /^#[0-9A-Fa-f]{6}$/i.test(heroBgDetected)
       ? heroBgDetected
       : "#FAF7F2";
+
+  const heroMobileBgDetected = site?.heroMobileBgDetectedColor;
+  const effectiveMobileHeroBgColor = hasMobileHeroMedia
+    ? heroMobileBgDetected && /^#[0-9A-Fa-f]{6}$/i.test(heroMobileBgDetected)
+      ? heroMobileBgDetected
+      : "#FAF7F2"
+    : effectiveHeroBgColor;
 
   return (
     <div
@@ -226,11 +259,12 @@ export default async function HomePage() {
         id="inicio"
         style={
           {
-            backgroundColor: effectiveHeroBgColor,
+            "--hero-bg-mobile": effectiveMobileHeroBgColor,
+            "--hero-bg-desktop": effectiveHeroBgColor,
             "--hero-background-color": effectiveHeroBgColor,
           } as React.CSSProperties
         }
-        className="relative min-h-[auto] lg:min-h-screen flex flex-col justify-center px-0 overflow-hidden bg-[#FAF7F2] pt-20 sm:pt-24 lg:pt-28 pb-12 lg:pb-16 scroll-mt-24 transition-colors duration-300"
+        className="relative min-h-[auto] lg:min-h-screen flex flex-col justify-center px-0 overflow-hidden bg-[var(--hero-bg-mobile)] lg:bg-[var(--hero-bg-desktop)] pt-20 sm:pt-24 lg:pt-28 pb-12 lg:pb-16 scroll-mt-24 transition-colors duration-300"
       >
         {/* Padrão orgânico ondulado de fundo (Curvas suaves) */}
         <div className="absolute inset-0 pointer-events-none opacity-30 overflow-hidden lg:hidden" aria-hidden="true">
@@ -279,8 +313,7 @@ export default async function HomePage() {
         {/* MEDIA SLOT 1: Imagem/Vídeo/Frames Principal (Mobile: 100% largura em fluxo; Desktop: background absoluto cobrindo a seção com fundo sólido) */}
         <div
           id="hero-media-container"
-          style={{ backgroundColor: effectiveHeroBgColor }}
-          className="order-2 relative w-full z-10 lg:absolute lg:inset-0 lg:w-full lg:h-full lg:z-0 lg:overflow-hidden flex items-center justify-center p-0 m-0 border-0 shadow-none rounded-none pointer-events-none transition-colors duration-300"
+          className="order-2 relative w-full z-10 lg:absolute lg:inset-0 lg:w-full lg:h-full lg:z-0 lg:overflow-hidden bg-[var(--hero-bg-mobile)] lg:bg-[var(--hero-bg-desktop)] flex items-center justify-center p-0 m-0 border-0 shadow-none rounded-none pointer-events-none transition-colors duration-300"
         >
           <div id="hero-bg-leaves" className="hidden" aria-hidden="true" />
 
@@ -289,24 +322,77 @@ export default async function HomePage() {
             id="hero-parallax-layer"
             className="w-full h-auto lg:h-[115%] lg:w-full lg:absolute lg:-top-[5%] lg:left-0 flex items-center justify-center p-0 m-0 pointer-events-none will-change-transform"
           >
-            {/* Container Responsivo de Mídia em 100% de Largura (Proporção Natural no Mobile, Cover no Desktop com Fundo Sólido) */}
-            <MiniSiteMediaPlayer
-              slot="hero"
-              mediaType={heroMediaType}
-              mediaUrl={heroMediaUrl}
-              posterUrl={heroPosterUrl}
-              frames={heroFrames}
-              fps={site?.heroFps ?? 24}
-              loop={site?.heroLoop ?? true}
-              autoplay={site?.heroAutoplay ?? true}
-              playbackMode={site?.heroPlaybackMode || "AUTOMATIC"}
-              playbackDirection={site?.heroPlaybackDirection || "FORWARD"}
-              positioning={site?.heroPositioning || "center"}
-              intrinsicWidth={heroDimensions?.width}
-              intrinsicHeight={heroDimensions?.height}
-              altText={professionalName}
-              className="w-full h-auto lg:h-full lg:w-full p-0 m-0 border-0 shadow-none rounded-none"
-            />
+            {/* Container Responsivo de Mídia (Hero Desktop com fallback automático no Mobile se Hero Mobile estiver vazio) */}
+            {!hasMobileHeroMedia ? (
+              <MiniSiteMediaPlayer
+                slot="hero"
+                mediaType={heroMediaType}
+                mediaUrl={heroMediaUrl}
+                posterUrl={heroPosterUrl}
+                frames={heroFrames}
+                fps={site?.heroFps ?? 24}
+                playbackSpeed={site?.heroPlaybackSpeed ?? 1}
+                loop={site?.heroLoop ?? true}
+                autoplay={site?.heroAutoplay ?? true}
+                playbackMode={site?.heroPlaybackMode || "AUTOMATIC"}
+                playbackDirection={site?.heroPlaybackDirection || "FORWARD"}
+                positioning={site?.heroPositioning || "center"}
+                intrinsicWidth={heroDimensions?.width}
+                intrinsicHeight={heroDimensions?.height}
+                altText={professionalName}
+                className="w-full h-auto lg:h-full lg:w-full p-0 m-0 border-0 shadow-none rounded-none"
+              />
+            ) : (
+              <>
+                <div className="hidden lg:block w-full h-full p-0 m-0">
+                  <MiniSiteMediaPlayer
+                    slot="hero"
+                    mediaType={heroMediaType}
+                    mediaUrl={heroMediaUrl}
+                    posterUrl={heroPosterUrl}
+                    frames={heroFrames}
+                    fps={site?.heroFps ?? 24}
+                    playbackSpeed={site?.heroPlaybackSpeed ?? 1}
+                    loop={site?.heroLoop ?? true}
+                    autoplay={site?.heroAutoplay ?? true}
+                    playbackMode={site?.heroPlaybackMode || "AUTOMATIC"}
+                    playbackDirection={site?.heroPlaybackDirection || "FORWARD"}
+                    positioning={site?.heroPositioning || "center"}
+                    intrinsicWidth={heroDimensions?.width}
+                    intrinsicHeight={heroDimensions?.height}
+                    altText={professionalName}
+                    className="w-full h-auto lg:h-full lg:w-full p-0 m-0 border-0 shadow-none rounded-none"
+                  />
+                </div>
+                <div
+                  style={
+                    {
+                      "--hero-background-color": effectiveMobileHeroBgColor,
+                    } as React.CSSProperties
+                  }
+                  className="w-full block lg:hidden p-0 m-0 border-0 shadow-none rounded-none"
+                >
+                  <MiniSiteMediaPlayer
+                    slot="hero_mobile"
+                    mediaType={heroMobileMediaType}
+                    mediaUrl={heroMobileMediaUrl}
+                    posterUrl={heroMobilePosterUrl}
+                    frames={heroMobileFrames}
+                    fps={site?.heroMobileFps ?? 24}
+                    playbackSpeed={site?.heroMobilePlaybackSpeed ?? 1}
+                    loop={site?.heroMobileLoop ?? true}
+                    autoplay={site?.heroMobileAutoplay ?? true}
+                    playbackMode={site?.heroMobilePlaybackMode || "AUTOMATIC"}
+                    playbackDirection={site?.heroMobilePlaybackDirection || "FORWARD"}
+                    positioning={site?.heroMobilePositioning || "center"}
+                    intrinsicWidth={heroMobileDimensions?.width}
+                    intrinsicHeight={heroMobileDimensions?.height}
+                    altText={professionalName}
+                    className="w-full h-auto p-0 m-0 border-0 shadow-none rounded-none"
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -426,7 +512,7 @@ export default async function HomePage() {
       {/* Divisor Ondulado Orgânico 1 (Exibido no Mobile; no Desktop a fusão ocorre via gradiente vertical suave para white) */}
       <div
         className="w-full overflow-hidden leading-none -mt-1 lg:hidden"
-        style={{ color: effectiveHeroBgColor }}
+        style={{ color: effectiveMobileHeroBgColor }}
         aria-hidden="true"
       >
         <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-8 fill-current">
@@ -529,6 +615,7 @@ export default async function HomePage() {
                   posterUrl={aboutPosterUrl}
                   frames={aboutFrames}
                   fps={site?.aboutFps ?? 24}
+                  playbackSpeed={site?.aboutPlaybackSpeed ?? 1}
                   loop={site?.aboutLoop ?? true}
                   autoplay={site?.aboutAutoplay ?? true}
                   playbackMode={site?.aboutPlaybackMode || "AUTOMATIC"}

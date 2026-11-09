@@ -171,12 +171,13 @@ A ação de reenvio de mensagens (`POST /api/admin/message-logs/[id]/resend`) po
 - O modo escuro é permitido e preservado exclusivamente nas rotas autenticadas do sistema (`/admin/*` e `/paciente/*`).
 - O MiniSite público e páginas abertas institucionais operam invariavelmente em modo claro, assegurando identidade visual acolhedora conforme os padrões da psicologia clínica.
 
-### 10.3 Slots de Mídia Independentes (Hero & Sobre Mim)
-- O MiniSite possui dois slots de mídia completamente isolados:
-  1. **Slot 1 (Hero):** Foto principal do profissional ao lado dos botões de agendamento.
-  2. **Slot 2 (Sobre Mim):** Apresentação pessoal e ambiente do consultório.
-- Cada slot suporta independentemente três formatos: `IMAGE` (JPG, PNG, WebP), `FRAME_ANIMATION` (sequência de frames em ZIP) e `VIDEO` (MP4, WebM).
-- Cada slot possui parâmetros próprios de taxa de quadros (10 a 60 FPS), repetição (Loop), reprodução automática (Autoplay), modo (`AUTOMATIC` ou `SCROLL`), direção (`FORWARD` ou `ALTERNATE`) e enquadramento (`cover`, `contain`, `center`, `top`, `bottom`).
+### 10.3 Áreas de Mídia do MiniSite (Hero Desktop, Hero Mobile & Sobre Mim)
+- O painel administrativo oferece exatamente **3 áreas de upload** com reconhecimento automático de arquivo (JPG, JPEG, PNG, WebP, MP4, WebM ou ZIP de frames sequenciais):
+  1. **Hero — Desktop (`hero`):** Mídia de fundo exibida em telas grandes (`storage/minisite/top/`).
+  2. **Hero — Mobile (`hero_mobile`):** Mídia independente exibida no topo do layout mobile (`storage/minisite/top-mobile/`). Caso esteja vazia, utiliza automaticamente a mídia e cor de fundo do **Hero — Desktop** como fallback.
+  3. **Sobre Mim (`about`):** Mídia única compartilhada entre desktop e mobile (`storage/minisite/sobre/`).
+- Para **vídeos** e **animações ZIP**, cada área armazena independentemente o multiplicador de velocidade (`0.5x`, `1x`, `2x` via `heroPlaybackSpeed`, `heroMobilePlaybackSpeed`, `aboutPlaybackSpeed`), preservando a cadência base (`FPS`) em `1x` e ocultando o seletor para imagens estáticas.
+- Regras padrão preservam autoplay, loop, ordenação numérica dos frames e os modos `FORWARD`/`ALTERNATE`, `AUTOMATIC`/`SCROLL` e enquadramento sem expor painéis técnicos ao administrador.
 
 ### 10.4 Segurança e Processamento de ZIP de Frames
 - O arquivo ZIP é validado contra *Path Traversal* (rejeição de caminhos com `..` ou barras iniciais) e contra *ZIP Bomb* (limite de 150MB descompactado e 100MB compactado).
@@ -198,10 +199,8 @@ A ação de reenvio de mensagens (`POST /api/admin/message-logs/[id]/resend`) po
 - A mensagem inicial é personalizável e codificada com segurança na URL.
 - Nenhuma informação clínica, prontuário, anotação ou diagnóstico de paciente trafega nos parâmetros de contato do WhatsApp.
 
-### 10.8 Integração e Detecção Automática da Cor de Fundo do Hero
-- O Hero do MiniSite analisa as bordas e cantos da mídia enviada (imagem, vídeo ou animação ZIP) para identificar a cor de fundo mais representativa via algoritmo de quantização e amostragem de bordas (`heroBgDetectedColor`, `heroBgStatus`, `heroBgMediaRef`).
-- A cor detectada ou customizada é injetada exclusivamente na seção Hero via variável CSS escopada `--hero-background-color`, sem alterar a paleta global do sistema.
-- O administrador pode alternar entre os modos `AUTO` (detecção automática por amostragem) e `MANUAL` (código HEX personalizado com color picker via `heroBgMode` e `heroBgCustomColor`).
-- No mobile, a cor de fundo preenche integralmente a seção acima e abaixo da mídia, criando continuidade visual perfeita sem faixas ou cortes artificiais.
-- No desktop, a cor de fundo serve como base para a mídia de fundo e alimenta suavemente a sobreposição gradiente de legibilidade.
+### 10.8 Detecção Automática e Estável da Cor de Fundo do Hero (Desktop e Mobile)
+- Os slots **Hero — Desktop** (`heroBgDetectedColor`, `heroBgStatus`, `heroBgMediaRef`, além do suporte interno a `heroBgMode` e `heroBgCustomColor` para compatibilidade) e **Hero — Mobile** (`heroMobileBgDetectedColor`, `heroMobileBgStatus`, `heroMobileBgMediaRef`) analisam automaticamente as mídias enviadas para compatibilizar a cor de fundo da seção Hero em cada viewport.
+- Em imagens estáticas, analisa-se uma cópia reduzida priorizando bordas e cantos por clustering quantizado e estimação robusta por mediana dentro do cluster predominante. Em vídeos e animações ZIP, analisam-se múltiplos quadros representativos ao longo da duração/sequência para isolar o fundo estável e evitar sujeitos em movimento.
+- A cor permanece estável durante toda a reprodução (sem piscar frame a frame), aplica-se exclusivamente via `--hero-background-color` (Desktop e Mobile independentes, com o Hero Mobile herdando a cor do Desktop em caso de fallback) sem alterar a paleta global de aparência ou a seção **Sobre Mim**, e recorre ao fallback neutro seguro `#FAF7F2` (ou última cor válida) se falhar.
 

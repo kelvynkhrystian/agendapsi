@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { formatDate, formatTime } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import {
   calculateContrastRatio,
   isContrastAccessible,
 } from "@/lib/theme-presets";
-import { MiniSiteMediaPlayer } from "@/components/minisite/media-player";
+import { MiniSiteMediaSlotCard } from "@/components/admin/minisite-media-slot-card";
 import {
   Settings,
   Bell,
@@ -21,17 +21,13 @@ import {
   ShieldCheck,
   Save,
   RotateCcw,
-  RefreshCw,
   Upload,
-  Eye,
   Check,
   CheckCircle2,
   AlertTriangle,
-  Trash2,
   Copy,
   Info,
   ExternalLink,
-  Sparkles,
   Layers,
   Monitor,
   Activity,
@@ -40,10 +36,6 @@ import {
   Unlink,
   Calendar,
   Film,
-  FileArchive,
-  Play,
-  Folder,
-  Images,
   UserCircle,
   User,
   Building2,
@@ -62,8 +54,6 @@ interface VideoProviderItem {
   isActive: boolean;
   config: Record<string, any>;
 }
-
-const isValidHex = (hex: string) => /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(hex);
 
 export default function AdminSettingsPage() {
   const [activeTab, setActiveTab] = useState<
@@ -102,11 +92,12 @@ export default function AdminSettingsPage() {
   const [appearanceFeedback, setAppearanceFeedback] = useState<string | null>(null);
   const [uploadingAsset, setUploadingAsset] = useState<string | null>(null);
 
-  // MiniSite Media Slots State (Phase 3/5)
+  // MiniSite Media Slots State (Hero Desktop, Hero Mobile, Sobre Mim)
   const [heroMediaType, setHeroMediaType] = useState<string>("IMAGE");
   const [heroMediaUrl, setHeroMediaUrl] = useState<string | null>(null);
   const [heroPosterUrl, setHeroPosterUrl] = useState<string | null>(null);
   const [heroFps, setHeroFps] = useState<number>(24);
+  const [heroPlaybackSpeed, setHeroPlaybackSpeed] = useState<number>(1);
   const [heroLoop, setHeroLoop] = useState<boolean>(true);
   const [heroAutoplay, setHeroAutoplay] = useState<boolean>(true);
   const [heroPlaybackMode, setHeroPlaybackMode] = useState<string>("AUTOMATIC");
@@ -119,13 +110,28 @@ export default function AdminSettingsPage() {
   const [heroBgCustomColor, setHeroBgCustomColor] = useState<string>("#FAF7F2");
   const [heroBgStatus, setHeroBgStatus] = useState<string>("IDLE");
   const [heroBgMediaRef, setHeroBgMediaRef] = useState<string | null>(null);
-  const [isAnalyzingHeroColor, setIsAnalyzingHeroColor] = useState<boolean>(false);
-  const [heroColorFeedback, setHeroColorFeedback] = useState<string | null>(null);
+
+  const [heroMobileMediaType, setHeroMobileMediaType] = useState<string>("IMAGE");
+  const [heroMobileMediaUrl, setHeroMobileMediaUrl] = useState<string | null>(null);
+  const [heroMobilePosterUrl, setHeroMobilePosterUrl] = useState<string | null>(null);
+  const [heroMobileFps, setHeroMobileFps] = useState<number>(24);
+  const [heroMobilePlaybackSpeed, setHeroMobilePlaybackSpeed] = useState<number>(1);
+  const [heroMobileLoop, setHeroMobileLoop] = useState<boolean>(true);
+  const [heroMobileAutoplay, setHeroMobileAutoplay] = useState<boolean>(true);
+  const [heroMobilePlaybackMode, setHeroMobilePlaybackMode] = useState<string>("AUTOMATIC");
+  const [heroMobilePlaybackDirection, setHeroMobilePlaybackDirection] = useState<string>("FORWARD");
+  const [heroMobilePositioning, setHeroMobilePositioning] = useState<string>("center");
+  const [heroMobileFrameCount, setHeroMobileFrameCount] = useState<number>(0);
+  const [heroMobileFrames, setHeroMobileFrames] = useState<string[]>([]);
+  const [heroMobileBgDetectedColor, setHeroMobileBgDetectedColor] = useState<string | null>(null);
+  const [heroMobileBgStatus, setHeroMobileBgStatus] = useState<string>("IDLE");
+  const [heroMobileBgMediaRef, setHeroMobileBgMediaRef] = useState<string | null>(null);
 
   const [aboutMediaType, setAboutMediaType] = useState<string>("IMAGE");
   const [aboutMediaUrl, setAboutMediaUrl] = useState<string | null>(null);
   const [aboutPosterUrl, setAboutPosterUrl] = useState<string | null>(null);
   const [aboutFps, setAboutFps] = useState<number>(24);
+  const [aboutPlaybackSpeed, setAboutPlaybackSpeed] = useState<number>(1);
   const [aboutLoop, setAboutLoop] = useState<boolean>(true);
   const [aboutAutoplay, setAboutAutoplay] = useState<boolean>(true);
   const [aboutPlaybackMode, setAboutPlaybackMode] = useState<string>("AUTOMATIC");
@@ -137,6 +143,9 @@ export default function AdminSettingsPage() {
   const [uploadingSlot, setUploadingSlot] = useState<string | null>(null);
   const [mediaFeedback, setMediaFeedback] = useState<string | null>(null);
   const [isSavingMedia, setIsSavingMedia] = useState<boolean>(false);
+
+  const pendingHeroColorRef = useRef<Promise<string | null> | null>(null);
+  const pendingHeroMobileColorRef = useRef<Promise<string | null> | null>(null);
 
   // Video Providers State (Task 9)
   const [videoProviders, setVideoProviders] = useState<VideoProviderItem[]>([]);
@@ -256,6 +265,7 @@ export default function AdminSettingsPage() {
           setHeroMediaUrl(mediaData.hero.mediaUrl || null);
           setHeroPosterUrl(mediaData.hero.posterUrl || null);
           setHeroFps(mediaData.hero.fps ?? 24);
+          setHeroPlaybackSpeed(mediaData.hero.playbackSpeed ?? 1);
           setHeroLoop(mediaData.hero.loop ?? true);
           setHeroAutoplay(mediaData.hero.autoplay ?? true);
           setHeroPlaybackMode(mediaData.hero.playbackMode || "AUTOMATIC");
@@ -269,11 +279,29 @@ export default function AdminSettingsPage() {
           setHeroBgStatus(mediaData.hero.bgStatus || "IDLE");
           setHeroBgMediaRef(mediaData.hero.bgMediaRef || null);
         }
+        if (mediaData.heroMobile) {
+          setHeroMobileMediaType(mediaData.heroMobile.mediaType || "IMAGE");
+          setHeroMobileMediaUrl(mediaData.heroMobile.mediaUrl || null);
+          setHeroMobilePosterUrl(mediaData.heroMobile.posterUrl || null);
+          setHeroMobileFps(mediaData.heroMobile.fps ?? 24);
+          setHeroMobilePlaybackSpeed(mediaData.heroMobile.playbackSpeed ?? 1);
+          setHeroMobileLoop(mediaData.heroMobile.loop ?? true);
+          setHeroMobileAutoplay(mediaData.heroMobile.autoplay ?? true);
+          setHeroMobilePlaybackMode(mediaData.heroMobile.playbackMode || "AUTOMATIC");
+          setHeroMobilePlaybackDirection(mediaData.heroMobile.playbackDirection || "FORWARD");
+          setHeroMobilePositioning(mediaData.heroMobile.positioning || "center");
+          setHeroMobileFrameCount(mediaData.heroMobile.frameCount ?? 0);
+          setHeroMobileFrames(mediaData.heroMobile.frames || []);
+          setHeroMobileBgDetectedColor(mediaData.heroMobile.bgDetectedColor || null);
+          setHeroMobileBgStatus(mediaData.heroMobile.bgStatus || "IDLE");
+          setHeroMobileBgMediaRef(mediaData.heroMobile.bgMediaRef || null);
+        }
         if (mediaData.about) {
           setAboutMediaType(mediaData.about.mediaType || "IMAGE");
           setAboutMediaUrl(mediaData.about.mediaUrl || null);
           setAboutPosterUrl(mediaData.about.posterUrl || null);
           setAboutFps(mediaData.about.fps ?? 24);
+          setAboutPlaybackSpeed(mediaData.about.playbackSpeed ?? 1);
           setAboutLoop(mediaData.about.loop ?? true);
           setAboutAutoplay(mediaData.about.autoplay ?? true);
           setAboutPlaybackMode(mediaData.about.playbackMode || "AUTOMATIC");
@@ -484,109 +512,167 @@ export default function AdminSettingsPage() {
     }
   };
 
-  // Extrai frame de vídeo no navegador para análise de cor
-  const extractAndAnalyzeVideoFrame = async (videoUrl: string) => {
-    if (typeof window === "undefined") return;
-    setIsAnalyzingHeroColor(true);
-    setHeroColorFeedback("Analisando quadro do vídeo para identificação de cor...");
-    try {
+  // Extrai múltiplos quadros representativos de um vídeo no navegador para estimativa automática de cor de fundo
+  const extractAndAnalyzeVideoFrames = (
+    videoUrl: string,
+    targetSlot: "hero" | "hero_mobile"
+  ): Promise<string | null> => {
+    const ref = targetSlot === "hero" ? pendingHeroColorRef : pendingHeroMobileColorRef;
+    const previousValidColor =
+      targetSlot === "hero" ? heroBgDetectedColor : heroMobileBgDetectedColor;
+
+    const run = async (): Promise<string | null> => {
+      if (typeof window === "undefined") return previousValidColor || "#FAF7F2";
+
       const video = document.createElement("video");
       video.crossOrigin = "anonymous";
       video.src = videoUrl;
       video.muted = true;
       video.playsInline = true;
-
-      await new Promise<void>((resolve) => {
-        const timeout = setTimeout(() => {
-          video.onloadeddata = null;
-          video.onseeked = null;
-          video.onerror = null;
-          resolve();
-        }, 6000);
-
-        video.onloadeddata = () => {
-          try {
-            video.currentTime = Math.min(0.2, (video.duration || 1) / 2);
-          } catch {
-            clearTimeout(timeout);
-            resolve();
-          }
-        };
-
-        video.onseeked = () => {
-          clearTimeout(timeout);
-          resolve();
-        };
-
-        video.onerror = () => {
-          clearTimeout(timeout);
-          resolve();
-        };
-      });
-
-      const canvas = document.createElement("canvas");
-      canvas.width = 120;
-      canvas.height = 120;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
+      video.preload = "auto";
 
       try {
-        ctx.drawImage(video, 0, 0, 120, 120);
-        const frameBase64 = canvas.toDataURL("image/jpeg", 0.85);
+        await new Promise<void>((resolve) => {
+          const timeout = setTimeout(() => {
+            video.onloadeddata = null;
+            video.onerror = null;
+            resolve();
+          }, 6000);
+
+          video.onloadeddata = () => {
+            clearTimeout(timeout);
+            resolve();
+          };
+          video.onerror = () => {
+            clearTimeout(timeout);
+            resolve();
+          };
+        });
+
+        const canvas = document.createElement("canvas");
+        canvas.width = 120;
+        canvas.height = 120;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          return previousValidColor || "#FAF7F2";
+        }
+
+        const framesBase64: string[] = [];
+        const duration = Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 0;
+
+        if (duration > 0.3) {
+          const fractions = [0.08, 0.28, 0.5, 0.72, 0.9];
+          for (const frac of fractions) {
+            const targetTime = Math.min(duration - 0.05, Math.max(0, duration * frac));
+            await new Promise<void>((resolve) => {
+              const seekTimeout = setTimeout(() => {
+                video.onseeked = null;
+                resolve();
+              }, 1500);
+              video.onseeked = () => {
+                clearTimeout(seekTimeout);
+                resolve();
+              };
+              try {
+                video.currentTime = targetTime;
+              } catch {
+                clearTimeout(seekTimeout);
+                resolve();
+              }
+            });
+            try {
+              ctx.clearRect(0, 0, 120, 120);
+              ctx.drawImage(video, 0, 0, 120, 120);
+              framesBase64.push(canvas.toDataURL("image/png"));
+            } catch {
+              // Ignora falha pontual de leitura em quadro isolado
+            }
+          }
+        } else {
+          try {
+            ctx.drawImage(video, 0, 0, 120, 120);
+            framesBase64.push(canvas.toDataURL("image/png"));
+          } catch {}
+        }
+
+        if (framesBase64.length === 0) {
+          const fallback = previousValidColor || "#FAF7F2";
+          if (targetSlot === "hero") {
+            setHeroBgDetectedColor(fallback);
+            setHeroBgStatus("FALLBACK");
+            setHeroBgMediaRef(videoUrl);
+          } else {
+            setHeroMobileBgDetectedColor(fallback);
+            setHeroMobileBgStatus("FALLBACK");
+            setHeroMobileBgMediaRef(videoUrl);
+          }
+          return fallback;
+        }
 
         const res = await fetch("/api/admin/minisite/hero-color", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "analyze-frame", frameBase64 }),
+          body: JSON.stringify({
+            action: "analyze-frames",
+            slot: targetSlot,
+            framesBase64,
+          }),
         });
 
         const resData = await res.json();
-        if (res.ok && resData.detectedColor) {
-          setHeroBgDetectedColor(resData.detectedColor);
-          setHeroBgStatus(resData.status || "DETECTED");
-          setHeroBgMediaRef(videoUrl);
-          setHeroColorFeedback(`Cor detectada com sucesso do vídeo: ${resData.detectedColor}`);
+        const detected = resData.hex || resData.detectedColor || null;
+
+        if (res.ok && detected) {
+          if (targetSlot === "hero") {
+            setHeroBgMode("AUTO");
+            setHeroBgDetectedColor(detected);
+            setHeroBgStatus(resData.status || "SUCCESS");
+            setHeroBgMediaRef(videoUrl);
+          } else {
+            setHeroMobileBgDetectedColor(detected);
+            setHeroMobileBgStatus(resData.status || "SUCCESS");
+            setHeroMobileBgMediaRef(videoUrl);
+          }
+          return detected;
         }
-      } catch (drawErr) {
-        console.warn("Could not extract canvas frame from video:", drawErr);
-      }
-    } catch (e) {
-      console.error("Erro ao analisar frame de vídeo:", e);
-    } finally {
-      setIsAnalyzingHeroColor(false);
-    }
-  };
 
-  // Reanalisa cor de fundo da mídia Hero atual
-  const handleReanalyzeHeroColor = async () => {
-    setIsAnalyzingHeroColor(true);
-    setHeroColorFeedback(null);
-    try {
-      if (heroMediaType === "VIDEO" && heroMediaUrl) {
-        await extractAndAnalyzeVideoFrame(heroMediaUrl);
-        return;
+        const fallback = previousValidColor || "#FAF7F2";
+        if (targetSlot === "hero") {
+          setHeroBgDetectedColor(fallback);
+          setHeroBgStatus("FALLBACK");
+          setHeroBgMediaRef(videoUrl);
+        } else {
+          setHeroMobileBgDetectedColor(fallback);
+          setHeroMobileBgStatus("FALLBACK");
+          setHeroMobileBgMediaRef(videoUrl);
+        }
+        return fallback;
+      } catch (err) {
+        console.warn("Não foi possível analisar quadros do vídeo:", err);
+        const fallback = previousValidColor || "#FAF7F2";
+        if (targetSlot === "hero") {
+          setHeroBgDetectedColor(fallback);
+          setHeroBgStatus("FALLBACK");
+          setHeroBgMediaRef(videoUrl);
+        } else {
+          setHeroMobileBgDetectedColor(fallback);
+          setHeroMobileBgStatus("FALLBACK");
+          setHeroMobileBgMediaRef(videoUrl);
+        }
+        return fallback;
+      } finally {
+        video.removeAttribute("src");
+        video.load();
       }
+    };
 
-      const res = await fetch("/api/admin/minisite/hero-color", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "analyze-current" }),
-      });
-
-      const data = await res.json();
-      if (res.ok && data.detectedColor) {
-        setHeroBgDetectedColor(data.detectedColor);
-        setHeroBgStatus(data.status || "DETECTED");
-        if (data.mediaRef) setHeroBgMediaRef(data.mediaRef);
-        setHeroColorFeedback(`Cor detectada com sucesso: ${data.detectedColor}`);
-      } else {
-        setHeroColorFeedback(data.error || "Não foi possível analisar a cor da mídia atual.");
+    const promise = run().finally(() => {
+      if (ref.current === promise) {
+        ref.current = null;
       }
-    } catch {
-      setHeroColorFeedback("Erro de conexão ao reanalisar a cor.");
-    } finally {
-      setIsAnalyzingHeroColor(false);
-    }
+    });
+    ref.current = promise;
+    return promise;
   };
 
   // Restaura Aparência Padrão (Verde Institucional PSI)
@@ -602,30 +688,17 @@ export default function AdminSettingsPage() {
     setAppearanceFeedback("Cores restauradas para a paleta padrão do PSI (Verde). Clique em Salvar para persistir.");
   };
 
-  // Upload de Mídia para Slots do MiniSite (Fase 3/5 & Suporte a Frames e Pastas)
+  // Upload universal de mídia para as 3 áreas do MiniSite (reconhecimento automático no servidor)
   const handleUploadSlotMedia = async (
-    slot: "hero" | "about",
-    mediaType: string,
-    filesOrFile: File | File[] | FileList
+    slot: "hero" | "hero_mobile" | "about",
+    file: File
   ) => {
-    setUploadingSlot(`${slot}-${mediaType}`);
+    setUploadingSlot(slot);
     setMediaFeedback(null);
     try {
       const formData = new FormData();
       formData.append("slot", slot);
-      formData.append("mediaType", mediaType);
-
-      if (filesOrFile instanceof FileList || Array.isArray(filesOrFile)) {
-        const fileList = Array.from(filesOrFile);
-        if (fileList.length === 1 && fileList[0].name.toLowerCase().endsWith(".zip")) {
-          formData.append("file", fileList[0]);
-        } else {
-          formData.append("isMultiple", "true");
-          fileList.forEach((f) => formData.append("files", f));
-        }
-      } else {
-        formData.append("file", filesOrFile);
-      }
+      formData.append("file", file);
 
       const res = await fetch("/api/admin/minisite/media/upload", {
         method: "POST",
@@ -638,45 +711,110 @@ export default function AdminSettingsPage() {
         return;
       }
 
+      const detectedType = data.mediaType as string;
+      const areaLabel =
+        slot === "hero"
+          ? "Hero — Desktop"
+          : slot === "hero_mobile"
+          ? "Hero — Mobile"
+          : "Sobre Mim";
+
       if (slot === "hero") {
-        setHeroMediaType(mediaType);
-        if (data.detectedBgColor) {
-          setHeroBgDetectedColor(data.detectedBgColor);
-          setHeroBgStatus(data.detectionStatus || "DETECTED");
-          setHeroBgMediaRef(data.url || data.frames?.[0] || null);
-        }
-        if (mediaType === "FRAME_ANIMATION") {
+        setHeroMediaType(detectedType);
+        setHeroPlaybackSpeed(1);
+        setHeroLoop(true);
+        setHeroAutoplay(true);
+        setHeroBgMode("AUTO");
+
+        if (detectedType === "FRAME_ANIMATION") {
           setHeroFrameCount(data.frameCount || 0);
           setHeroFrames(data.frames || []);
           setHeroPosterUrl(data.posterUrl || null);
           setHeroMediaUrl(data.frames?.[0] || null);
-          setMediaFeedback(`Animação do Hero processada com sucesso! ${data.frameCount} frames ordenados e validados.`);
-        } else if (mediaType === "VIDEO") {
+          const color = data.detectedBgColor || heroBgDetectedColor || "#FAF7F2";
+          setHeroBgDetectedColor(color);
+          setHeroBgStatus(data.detectedBgColor ? data.detectionStatus || "SUCCESS" : "FALLBACK");
+          setHeroBgMediaRef(data.frames?.[0] || null);
+        } else if (detectedType === "VIDEO") {
+          setHeroFrames([]);
+          setHeroFrameCount(0);
           setHeroMediaUrl(data.url);
           setHeroPosterUrl(data.url);
-          setMediaFeedback("Vídeo da Foto Principal (Hero) enviado! Analisando cor de fundo...");
           if (data.url) {
-            extractAndAnalyzeVideoFrame(data.url);
+            extractAndAnalyzeVideoFrames(data.url, "hero");
           }
         } else {
+          setHeroFrames([]);
+          setHeroFrameCount(0);
           setHeroMediaUrl(data.url);
           setHeroPosterUrl(data.url);
-          setMediaFeedback("Mídia da Foto Principal (Hero) atualizada com sucesso!");
+          const color = data.detectedBgColor || heroBgDetectedColor || "#FAF7F2";
+          setHeroBgDetectedColor(color);
+          setHeroBgStatus(data.detectedBgColor ? data.detectionStatus || "SUCCESS" : "FALLBACK");
+          setHeroBgMediaRef(data.url || null);
+        }
+      } else if (slot === "hero_mobile") {
+        setHeroMobileMediaType(detectedType);
+        setHeroMobilePlaybackSpeed(1);
+        setHeroMobileLoop(true);
+        setHeroMobileAutoplay(true);
+
+        if (detectedType === "FRAME_ANIMATION") {
+          setHeroMobileFrameCount(data.frameCount || 0);
+          setHeroMobileFrames(data.frames || []);
+          setHeroMobilePosterUrl(data.posterUrl || null);
+          setHeroMobileMediaUrl(data.frames?.[0] || null);
+          const color = data.detectedBgColor || heroMobileBgDetectedColor || "#FAF7F2";
+          setHeroMobileBgDetectedColor(color);
+          setHeroMobileBgStatus(data.detectedBgColor ? data.detectionStatus || "SUCCESS" : "FALLBACK");
+          setHeroMobileBgMediaRef(data.frames?.[0] || null);
+        } else if (detectedType === "VIDEO") {
+          setHeroMobileFrames([]);
+          setHeroMobileFrameCount(0);
+          setHeroMobileMediaUrl(data.url);
+          setHeroMobilePosterUrl(data.url);
+          if (data.url) {
+            extractAndAnalyzeVideoFrames(data.url, "hero_mobile");
+          }
+        } else {
+          setHeroMobileFrames([]);
+          setHeroMobileFrameCount(0);
+          setHeroMobileMediaUrl(data.url);
+          setHeroMobilePosterUrl(data.url);
+          const color = data.detectedBgColor || heroMobileBgDetectedColor || "#FAF7F2";
+          setHeroMobileBgDetectedColor(color);
+          setHeroMobileBgStatus(data.detectedBgColor ? data.detectionStatus || "SUCCESS" : "FALLBACK");
+          setHeroMobileBgMediaRef(data.url || null);
         }
       } else {
-        setAboutMediaType(mediaType);
-        if (mediaType === "FRAME_ANIMATION") {
+        setAboutMediaType(detectedType);
+        setAboutPlaybackSpeed(1);
+        setAboutLoop(true);
+        setAboutAutoplay(true);
+
+        if (detectedType === "FRAME_ANIMATION") {
           setAboutFrameCount(data.frameCount || 0);
           setAboutFrames(data.frames || []);
           setAboutPosterUrl(data.posterUrl || null);
           setAboutMediaUrl(data.frames?.[0] || null);
-          setMediaFeedback(`Animação do Sobre Mim processada com sucesso! ${data.frameCount} frames ordenados e validados.`);
         } else {
+          setAboutFrames([]);
+          setAboutFrameCount(0);
           setAboutMediaUrl(data.url);
           setAboutPosterUrl(data.url);
-          setMediaFeedback("Mídia da Foto Sobre Mim atualizada com sucesso!");
         }
       }
+
+      const formatLabel =
+        detectedType === "FRAME_ANIMATION"
+          ? `animação ZIP (${data.frameCount} quadros)`
+          : detectedType === "VIDEO"
+          ? "vídeo"
+          : "imagem";
+
+      setMediaFeedback(
+        `Mídia enviada para "${areaLabel}" e reconhecida como ${formatLabel}. Clique em "Salvar Mídias do MiniSite" para publicar.`
+      );
     } catch {
       setMediaFeedback("Erro de conexão ao enviar arquivo de mídia.");
     } finally {
@@ -684,46 +822,39 @@ export default function AdminSettingsPage() {
     }
   };
 
-  // Importar frames locais já existentes em storage/minisite/top ou mid
-  const handleImportLocalFrames = async (slot: "hero" | "about") => {
-    setUploadingSlot(`${slot}-import`);
-    setMediaFeedback(null);
-    try {
-      const res = await fetch("/api/admin/minisite/media/import-local", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slot }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setMediaFeedback(`Erro na importação local: ${data.error}`);
-        return;
-      }
-
-      if (slot === "hero") {
-        setHeroMediaType("FRAME_ANIMATION");
-        setHeroFrameCount(data.frameCount || 0);
-        setHeroFrames(data.frames || []);
-        setHeroPosterUrl(data.posterUrl || null);
-        setHeroMediaUrl(data.frames?.[0] || null);
-        setTimeout(() => {
-          handleReanalyzeHeroColor();
-        }, 150);
-      } else {
-        setAboutMediaType("FRAME_ANIMATION");
-        setAboutFrameCount(data.frameCount || 0);
-        setAboutFrames(data.frames || []);
-        setAboutPosterUrl(data.posterUrl || null);
-        setAboutMediaUrl(data.frames?.[0] || null);
-      }
-
-      setMediaFeedback(data.message || `${data.frameCount} frames importados com sucesso!`);
-    } catch {
-      setMediaFeedback("Erro ao importar frames locais.");
-    } finally {
-      setUploadingSlot(null);
+  // Remover mídia de uma área do MiniSite
+  const handleRemoveSlotMedia = (slot: "hero" | "hero_mobile" | "about") => {
+    if (slot === "hero") {
+      setHeroMediaUrl(null);
+      setHeroPosterUrl(null);
+      setHeroFrames([]);
+      setHeroFrameCount(0);
+      setHeroMediaType("IMAGE");
+      setHeroPlaybackSpeed(1);
+      setHeroBgDetectedColor(null);
+      setHeroBgStatus("IDLE");
+      setHeroBgMediaRef(null);
+    } else if (slot === "hero_mobile") {
+      setHeroMobileMediaUrl(null);
+      setHeroMobilePosterUrl(null);
+      setHeroMobileFrames([]);
+      setHeroMobileFrameCount(0);
+      setHeroMobileMediaType("IMAGE");
+      setHeroMobilePlaybackSpeed(1);
+      setHeroMobileBgDetectedColor(null);
+      setHeroMobileBgStatus("IDLE");
+      setHeroMobileBgMediaRef(null);
+    } else {
+      setAboutMediaUrl(null);
+      setAboutPosterUrl(null);
+      setAboutFrames([]);
+      setAboutFrameCount(0);
+      setAboutMediaType("IMAGE");
+      setAboutPlaybackSpeed(1);
     }
+    setMediaFeedback(
+      'Mídia removida da prévia. Clique em "Salvar Mídias do MiniSite" para confirmar a alteração.'
+    );
   };
 
   // Salvar configurações de mídia do MiniSite
@@ -731,6 +862,26 @@ export default function AdminSettingsPage() {
     setIsSavingMedia(true);
     setMediaFeedback(null);
     try {
+      let resolvedHeroBgColor = heroBgDetectedColor;
+      let resolvedHeroBgStatus = heroBgStatus;
+      if (pendingHeroColorRef.current) {
+        const computed = await pendingHeroColorRef.current;
+        if (computed) {
+          resolvedHeroBgColor = computed;
+          resolvedHeroBgStatus = "SUCCESS";
+        }
+      }
+
+      let resolvedHeroMobileBgColor = heroMobileBgDetectedColor;
+      let resolvedHeroMobileBgStatus = heroMobileBgStatus;
+      if (pendingHeroMobileColorRef.current) {
+        const computed = await pendingHeroMobileColorRef.current;
+        if (computed) {
+          resolvedHeroMobileBgColor = computed;
+          resolvedHeroMobileBgStatus = "SUCCESS";
+        }
+      }
+
       const res = await fetch("/api/admin/minisite/media/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -740,6 +891,7 @@ export default function AdminSettingsPage() {
             mediaUrl: heroMediaUrl,
             posterUrl: heroPosterUrl,
             fps: heroFps,
+            playbackSpeed: heroPlaybackSpeed,
             loop: heroLoop,
             autoplay: heroAutoplay,
             playbackMode: heroPlaybackMode,
@@ -747,17 +899,35 @@ export default function AdminSettingsPage() {
             positioning: heroPositioning,
             frameCount: heroFrameCount,
             frames: heroFrames,
-            bgMode: heroBgMode,
-            bgDetectedColor: heroBgDetectedColor,
+            bgMode: resolvedHeroBgColor ? "AUTO" : heroBgMode,
+            bgDetectedColor: resolvedHeroBgColor,
             bgCustomColor: heroBgCustomColor,
-            bgStatus: heroBgStatus,
+            bgStatus: resolvedHeroBgStatus,
             bgMediaRef: heroBgMediaRef,
+          },
+          heroMobile: {
+            mediaType: heroMobileMediaType,
+            mediaUrl: heroMobileMediaUrl,
+            posterUrl: heroMobilePosterUrl,
+            fps: heroMobileFps,
+            playbackSpeed: heroMobilePlaybackSpeed,
+            loop: heroMobileLoop,
+            autoplay: heroMobileAutoplay,
+            playbackMode: heroMobilePlaybackMode,
+            playbackDirection: heroMobilePlaybackDirection,
+            positioning: heroMobilePositioning,
+            frameCount: heroMobileFrameCount,
+            frames: heroMobileFrames,
+            bgDetectedColor: resolvedHeroMobileBgColor,
+            bgStatus: resolvedHeroMobileBgStatus,
+            bgMediaRef: heroMobileBgMediaRef,
           },
           about: {
             mediaType: aboutMediaType,
             mediaUrl: aboutMediaUrl,
             posterUrl: aboutPosterUrl,
             fps: aboutFps,
+            playbackSpeed: aboutPlaybackSpeed,
             loop: aboutLoop,
             autoplay: aboutAutoplay,
             playbackMode: aboutPlaybackMode,
@@ -1750,36 +1920,21 @@ export default function AdminSettingsPage() {
             </CardContent>
           </Card>
 
-          {/* CARD NOVO: IMAGENS E ANIMAÇÕES DO MINISITE (HERO & SOBRE MIM) */}
+          {/* CARD: IMAGENS & ANIMAÇÕES DO MINISITE (HERO DESKTOP, HERO MOBILE, SOBRE MIM) */}
           <Card className="border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
             <CardHeader className="pb-4 border-b border-slate-200 dark:border-slate-800">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
-                    <Film className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base font-semibold flex items-center gap-2">
-                      Imagens & Animações do MiniSite
-                      <Badge variant="outline" className="text-[10px] bg-[var(--primary)]/10 text-[var(--primary)] border-[var(--primary)]/20">
-                        Fase 3: Mídias Dinâmicas
-                      </Badge>
-                    </CardTitle>
-                    <CardDescription className="text-xs">
-                      Gerencie as mídias da Foto Principal (Hero) e Foto Sobre Mim do MiniSite público com suporte a imagens estáticas, vídeos ou animações interativas por frames (ZIP).
-                    </CardDescription>
-                  </div>
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                  <Film className="h-5 w-5" />
                 </div>
-
-                <Button
-                  type="button"
-                  onClick={handleSaveMediaSettings}
-                  disabled={isSavingMedia}
-                  className="gap-2 text-xs self-start sm:self-auto bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white"
-                >
-                  <Save className="h-4 w-4" />
-                  <span>{isSavingMedia ? "Salvando Mídias..." : "Salvar Mídias do MiniSite"}</span>
-                </Button>
+                <div>
+                  <CardTitle className="text-base font-semibold">
+                    Imagens & Animações do MiniSite
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Envie a mídia de cada área e o sistema reconhecerá o formato automaticamente.
+                  </CardDescription>
+                </div>
               </div>
 
               {mediaFeedback && (
@@ -1796,851 +1951,79 @@ export default function AdminSettingsPage() {
               )}
             </CardHeader>
 
-            <CardContent className="pt-6 space-y-8">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* ================= SLOT 1: HERO (FOTO PRINCIPAL) ================= */}
-                <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 space-y-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                        <span>1. Foto Principal (Hero)</span>
-                      </h4>
-                      <p className="text-[11px] text-slate-400">
-                        Exibida no topo do MiniSite com o crachá CRP e botões de agendamento.
-                      </p>
-                    </div>
-                    <Badge variant="outline" className="text-[10px] font-mono">
-                      {heroMediaType === "FRAME_ANIMATION"
-                        ? `${heroFrameCount} Frames`
-                        : heroMediaType === "VIDEO"
-                        ? "Vídeo"
-                        : "Imagem"}
-                    </Badge>
-                  </div>
+            <CardContent className="pt-6 space-y-5">
+              {/* Desktop: Hero Desktop e Hero Mobile lado a lado | Mobile: empilhados */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <MiniSiteMediaSlotCard
+                  title="Hero — Desktop"
+                  slot="hero"
+                  mediaType={heroMediaType}
+                  mediaUrl={heroMediaUrl}
+                  posterUrl={heroPosterUrl}
+                  frames={heroFrames}
+                  fps={heroFps}
+                  playbackSpeed={heroPlaybackSpeed}
+                  loop={heroLoop}
+                  autoplay={heroAutoplay}
+                  playbackMode={heroPlaybackMode}
+                  playbackDirection={heroPlaybackDirection}
+                  positioning={heroPositioning}
+                  isUploading={uploadingSlot === "hero"}
+                  onUploadFile={(file) => handleUploadSlotMedia("hero", file)}
+                  onChangePlaybackSpeed={(speed) => setHeroPlaybackSpeed(speed)}
+                  onRemoveMedia={() => handleRemoveSlotMedia("hero")}
+                />
 
-                  {/* Prévia em tempo real */}
-                  <div className="relative aspect-[4/5] max-h-80 w-full mx-auto rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 shadow-inner flex items-center justify-center">
-                    <div className="absolute top-2 left-2 z-20">
-                      <span className="px-2 py-0.5 rounded-full text-[9px] font-semibold tracking-wider uppercase bg-black/60 text-white backdrop-blur-md">
-                        Prévia em Tempo Real
-                      </span>
-                    </div>
-
-                    <MiniSiteMediaPlayer
-                      slot="hero"
-                      mediaType={heroMediaType}
-                      mediaUrl={heroMediaUrl}
-                      posterUrl={heroPosterUrl}
-                      frames={heroFrames}
-                      frameCount={heroFrameCount}
-                      fps={heroFps}
-                      loop={heroLoop}
-                      autoplay={heroAutoplay}
-                      playbackMode={heroPlaybackMode}
-                      playbackDirection={heroPlaybackDirection}
-                      positioning={heroPositioning}
-                      alt="Prévia Hero"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-
-                  {/* Seletor de Tipo de Mídia */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                      Tipo de Mídia
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setHeroMediaType("IMAGE")}
-                        className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
-                          heroMediaType === "IMAGE"
-                            ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
-                            : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
-                        }`}
-                      >
-                        <Eye className="h-4 w-4" />
-                        <span>Imagem</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setHeroMediaType("FRAME_ANIMATION")}
-                        className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
-                          heroMediaType === "FRAME_ANIMATION"
-                            ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
-                            : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
-                        }`}
-                      >
-                        <FileArchive className="h-4 w-4" />
-                        <span>Frames (ZIP)</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setHeroMediaType("VIDEO")}
-                        className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
-                          heroMediaType === "VIDEO"
-                            ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
-                            : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
-                        }`}
-                      >
-                        <Play className="h-4 w-4" />
-                        <span>Vídeo</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Dropzone de Upload e Opções de Envio */}
-                  <div className="space-y-2">
-                    <div
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        const dropped = e.dataTransfer.files;
-                        if (dropped && dropped.length > 0) {
-                          handleUploadSlotMedia("hero", heroMediaType, dropped);
-                        }
-                      }}
-                      className="p-4 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl text-center hover:bg-slate-100/50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors"
-                    >
-                      <label className="cursor-pointer block">
-                        <input
-                          type="file"
-                          accept={
-                            heroMediaType === "FRAME_ANIMATION"
-                              ? ".zip,application/zip,application/x-zip-compressed"
-                              : heroMediaType === "VIDEO"
-                              ? "video/mp4,video/webm"
-                              : "image/jpeg,image/png,image/webp"
-                          }
-                          className="hidden"
-                          onChange={(e) => {
-                            if (e.target.files?.[0]) {
-                              handleUploadSlotMedia("hero", heroMediaType, e.target.files[0]);
-                            }
-                          }}
-                        />
-                        <Upload className="h-5 w-5 text-[var(--primary)] mx-auto mb-1" />
-                        <p className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
-                          {uploadingSlot === "hero-FRAME_ANIMATION" || uploadingSlot === "hero-IMAGE" || uploadingSlot === "hero-VIDEO"
-                            ? "Processando e enviando arquivo..."
-                            : heroMediaType === "FRAME_ANIMATION"
-                            ? "Clique ou arraste arquivo ZIP com os frames"
-                            : heroMediaType === "VIDEO"
-                            ? "Clique para enviar vídeo (WebM / MP4)"
-                            : "Clique para enviar imagem (JPG, PNG, WebP)"}
-                        </p>
-                        <p className="text-[10px] text-slate-400 mt-0.5">
-                          {heroMediaType === "FRAME_ANIMATION"
-                            ? "Frames numerados ordenadamente (ex: 001.png ... 040.png). Máx 150 frames / 100MB."
-                            : heroMediaType === "VIDEO"
-                            ? "Vídeos rodam sem áudio (muted) para compatibilidade mobile. Máx 50MB."
-                            : "Imagens com alta resolução. Máx 10MB."}
-                        </p>
-                      </label>
-                    </div>
-
-                    {/* Opções alternativas para Animação: Múltiplos Arquivos ou Pasta Inteira */}
-                    {heroMediaType === "FRAME_ANIMATION" && (
-                      <div className="grid grid-cols-2 gap-2 pt-1">
-                        <label className="cursor-pointer block">
-                          <input
-                            type="file"
-                            multiple
-                            accept="image/png,image/jpeg,image/webp"
-                            className="hidden"
-                            onChange={(e) => {
-                              if (e.target.files && e.target.files.length > 0) {
-                                handleUploadSlotMedia("hero", "FRAME_ANIMATION", e.target.files);
-                              }
-                            }}
-                          />
-                          <div className="p-2 border border-slate-200 dark:border-slate-800 rounded-lg text-center hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
-                            <Images className="h-3.5 w-3.5 text-[var(--primary)]" />
-                            <span>Múltiplos Frames</span>
-                          </div>
-                        </label>
-
-                        <label className="cursor-pointer block">
-                          <input
-                            type="file"
-                            multiple
-                            {...({ webkitdirectory: "", directory: "" } as any)}
-                            accept="image/png,image/jpeg,image/webp"
-                            className="hidden"
-                            onChange={(e) => {
-                              if (e.target.files && e.target.files.length > 0) {
-                                handleUploadSlotMedia("hero", "FRAME_ANIMATION", e.target.files);
-                              }
-                            }}
-                          />
-                          <div className="p-2 border border-slate-200 dark:border-slate-800 rounded-lg text-center hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
-                            <Folder className="h-3.5 w-3.5 text-[var(--primary)]" />
-                            <span>Pasta de Frames</span>
-                          </div>
-                        </label>
-                      </div>
-                    )}
-
-                    {/* Botão de Atalho para Importar storage/minisite/top */}
-                    {heroMediaType === "FRAME_ANIMATION" && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleImportLocalFrames("hero")}
-                        disabled={uploadingSlot === "hero-import"}
-                        className="w-full text-xs gap-1.5 border-[var(--primary)]/30 hover:bg-[var(--primary)]/10 text-[var(--primary)]"
-                      >
-                        <Sparkles className="h-3.5 w-3.5 text-[var(--primary)]" />
-                        <span>
-                          {uploadingSlot === "hero-import"
-                            ? "Importando frames locais..."
-                            : "⚡ Importar frames existentes (storage/minisite/top)"}
-                        </span>
-                      </Button>
-                    )}
-                  </div>
-
-                  {/* Parâmetros Específicos do Slot Hero */}
-                  <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800 text-xs">
-                    {/* Controles para Frame Animation */}
-                    {heroMediaType === "FRAME_ANIMATION" && (
-                      <>
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
-                            <span className="font-semibold">Velocidade (FPS)</span>
-                            <span className="font-mono text-[var(--primary)] font-bold">{heroFps} quadros/s</span>
-                          </div>
-                          <input
-                            type="range"
-                            min="10"
-                            max="60"
-                            step="1"
-                            value={heroFps}
-                            onChange={(e) => setHeroFps(Number(e.target.value))}
-                            className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[var(--primary)]"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <label className="font-semibold text-slate-700 dark:text-slate-300">
-                              Modo de Reprodução
-                            </label>
-                            <select
-                              value={heroPlaybackMode}
-                              onChange={(e) => setHeroPlaybackMode(e.target.value as "AUTOMATIC" | "SCROLL")}
-                              className="w-full p-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
-                            >
-                              <option value="AUTOMATIC">Automático (Tempo)</option>
-                              <option value="SCROLL">Scroll da Página (Scrub)</option>
-                            </select>
-                          </div>
-
-                          <div className="space-y-1">
-                            <label className="font-semibold text-slate-700 dark:text-slate-300">
-                              Direção do Loop
-                            </label>
-                            <select
-                              value={heroPlaybackDirection}
-                              onChange={(e) => setHeroPlaybackDirection(e.target.value as "FORWARD" | "ALTERNATE")}
-                              className="w-full p-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
-                            >
-                              <option value="FORWARD">Normal (Frente)</option>
-                              <option value="ALTERNATE">Ida e Volta (Ping-pong)</option>
-                            </select>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-4 pt-1">
-                          <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300">
-                            <input
-                              type="checkbox"
-                              checked={heroLoop}
-                              onChange={(e) => setHeroLoop(e.target.checked)}
-                              className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
-                            />
-                            <span>Repetir (Loop)</span>
-                          </label>
-
-                          <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300">
-                            <input
-                              type="checkbox"
-                              checked={heroAutoplay}
-                              onChange={(e) => setHeroAutoplay(e.target.checked)}
-                              className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
-                            />
-                            <span>Reprodução Automática</span>
-                          </label>
-                        </div>
-                      </>
-                    )}
-
-                    {/* Controles para Vídeo */}
-                    {heroMediaType === "VIDEO" && (
-                      <div className="flex items-center gap-4 pt-1">
-                        <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300">
-                          <input
-                            type="checkbox"
-                            checked={heroLoop}
-                            onChange={(e) => setHeroLoop(e.target.checked)}
-                            className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
-                          />
-                          <span>Repetir (Loop)</span>
-                        </label>
-
-                        <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300">
-                          <input
-                            type="checkbox"
-                            checked={heroAutoplay}
-                            onChange={(e) => setHeroAutoplay(e.target.checked)}
-                            className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
-                          />
-                          <span>Autoplay</span>
-                        </label>
-                      </div>
-                    )}
-
-                    {/* Enquadramento / Posição (Todos os tipos) */}
-                    <div className="space-y-1">
-                      <label className="font-semibold text-slate-700 dark:text-slate-300">
-                        Enquadramento / Posicionamento
-                      </label>
-                      <select
-                        value={heroPositioning}
-                        onChange={(e) => setHeroPositioning(e.target.value)}
-                        className="w-full p-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
-                      >
-                        <option value="center">Centralizado (Padrão)</option>
-                        <option value="top">Focar no Topo</option>
-                        <option value="bottom">Focar na Base</option>
-                        <option value="cover">Preencher todo o quadro (Cover)</option>
-                        <option value="contain">Conter imagem inteira (Contain)</option>
-                      </select>
-                    </div>
-
-                    {/* Cor de Fundo do Hero (Detecção Automática ou Personalizada) */}
-                    <div className="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <label className="font-semibold text-xs text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                            <Palette className="h-3.5 w-3.5 text-[var(--primary)]" />
-                            <span>Cor de Fundo do Hero</span>
-                          </label>
-                          <p className="text-[11px] text-slate-400">
-                            Harmoniza a seção inteira do Hero com a mídia principal sem cortes ou bordas visíveis.
-                          </p>
-                        </div>
-                        <Badge
-                          variant="outline"
-                          className={`text-[10px] font-medium ${
-                            heroBgMode === "MANUAL"
-                              ? "border-amber-400/40 text-amber-600 dark:text-amber-400 bg-amber-500/10"
-                              : heroBgStatus === "DETECTED"
-                              ? "border-emerald-500/40 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10"
-                              : heroBgStatus === "FALLBACK"
-                              ? "border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10"
-                              : "border-slate-400/40 text-slate-500 bg-slate-500/10"
-                          }`}
-                        >
-                          {heroBgMode === "MANUAL"
-                            ? "Personalizada"
-                            : heroBgStatus === "DETECTED"
-                            ? "Detectada com sucesso"
-                            : heroBgStatus === "FALLBACK"
-                            ? "Fallback (Padrão)"
-                            : "Aguardando mídia"}
-                        </Badge>
-                      </div>
-
-                      {/* Alternador de Modo: Automática vs Personalizada */}
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setHeroBgMode("AUTO")}
-                          className={`p-2 rounded-xl border text-xs font-medium flex items-center justify-center gap-1.5 transition-all ${
-                            heroBgMode === "AUTO"
-                              ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs"
-                              : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
-                          }`}
-                        >
-                          <Sparkles className="h-3.5 w-3.5" />
-                          <span>Automática</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setHeroBgMode("MANUAL")}
-                          className={`p-2 rounded-xl border text-xs font-medium flex items-center justify-center gap-1.5 transition-all ${
-                            heroBgMode === "MANUAL"
-                              ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs"
-                              : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
-                          }`}
-                        >
-                          <Palette className="h-3.5 w-3.5" />
-                          <span>Personalizada</span>
-                        </button>
-                      </div>
-
-                      {/* Modo Automático */}
-                      {heroBgMode === "AUTO" && (
-                        <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100/50 dark:bg-slate-800/40 space-y-2.5">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2.5">
-                              <div
-                                className="w-8 h-8 rounded-lg border border-black/10 dark:border-white/10 shadow-xs flex-shrink-0"
-                                style={{ backgroundColor: heroBgDetectedColor || "#FAF7F2" }}
-                                title={`Cor detectada: ${heroBgDetectedColor || "#FAF7F2"}`}
-                              />
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <span className="font-mono font-bold text-xs text-slate-800 dark:text-slate-100">
-                                    {heroBgDetectedColor || "#FAF7F2"}
-                                  </span>
-                                  <span className="text-[10px] text-slate-400">
-                                    {heroBgStatus === "DETECTED" ? "Cor dominante das bordas" : "Cor neutra padrão"}
-                                  </span>
-                                </div>
-                                <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                                  Aplicada dinamicamente ao fundo do Hero e nos gradientes laterais e inferiores.
-                                </p>
-                              </div>
-                            </div>
-
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={handleReanalyzeHeroColor}
-                              disabled={isAnalyzingHeroColor}
-                              className="text-xs gap-1.5 h-8 px-2.5"
-                            >
-                              <RefreshCw className={`h-3.5 w-3.5 ${isAnalyzingHeroColor ? "animate-spin" : ""}`} />
-                              <span>{isAnalyzingHeroColor ? "Analisando..." : "Analisar novamente"}</span>
-                            </Button>
-                          </div>
-
-                          {heroColorFeedback && (
-                            <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-                              {heroColorFeedback}
-                            </p>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Modo Manual */}
-                      {heroBgMode === "MANUAL" && (
-                        <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100/50 dark:bg-slate-800/40 space-y-2.5">
-                          <div className="flex items-center gap-3">
-                            <input
-                              type="color"
-                              value={isValidHex(heroBgCustomColor) ? heroBgCustomColor : "#FAF7F2"}
-                              onChange={(e) => setHeroBgCustomColor(e.target.value.toUpperCase())}
-                              className="h-9 w-10 rounded-lg cursor-pointer border border-slate-300 dark:border-slate-700 p-0.5 bg-transparent"
-                            />
-                            <div className="flex-1">
-                              <Input
-                                value={heroBgCustomColor}
-                                onChange={(e) => {
-                                  const val = e.target.value.trim();
-                                  setHeroBgCustomColor(val);
-                                }}
-                                placeholder="#FAF7F2"
-                                maxLength={7}
-                                className="font-mono text-xs uppercase"
-                              />
-                            </div>
-                            {heroBgDetectedColor && (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setHeroBgCustomColor(heroBgDetectedColor)}
-                                title="Copiar cor detectada para o campo personalizado"
-                                className="text-[11px] h-8 px-2 text-slate-600 dark:text-slate-300 hover:text-[var(--primary)]"
-                              >
-                                Usar detectada ({heroBgDetectedColor})
-                              </Button>
-                            )}
-                          </div>
-                          <p className="text-[10px] text-slate-400">
-                            Insira um código hexadecimal válido (ex: #FAF7F2 ou #1A202C). A cor personalizada sobrepõe a detecção automática no MiniSite.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Ação de Remoção / Limpeza do Hero */}
-                    {(heroMediaUrl || heroFrames.length > 0) && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setHeroMediaUrl(null);
-                          setHeroPosterUrl(null);
-                          setHeroFrames([]);
-                          setHeroFrameCount(0);
-                          setHeroMediaType("IMAGE");
-                        }}
-                        className="text-[11px] text-red-500 hover:underline pt-1 flex items-center gap-1"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                        <span>Remover mídia e restaurar ilustração padrão do Hero</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* ================= SLOT 2: SOBRE MIM ================= */}
-                <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 space-y-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                        <span>2. Foto Sobre Mim</span>
-                      </h4>
-                      <p className="text-[11px] text-slate-400">
-                        Exibida na seção de apresentação pessoal e trajetória clínica.
-                      </p>
-                    </div>
-                    <Badge variant="outline" className="text-[10px] font-mono">
-                      {aboutMediaType === "FRAME_ANIMATION"
-                        ? `${aboutFrameCount} Frames`
-                        : aboutMediaType === "VIDEO"
-                        ? "Vídeo"
-                        : "Imagem"}
-                    </Badge>
-                  </div>
-
-                  {/* Prévia em tempo real */}
-                  <div className="relative aspect-[4/5] max-h-80 w-full mx-auto rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 shadow-inner flex items-center justify-center">
-                    <div className="absolute top-2 left-2 z-20">
-                      <span className="px-2 py-0.5 rounded-full text-[9px] font-semibold tracking-wider uppercase bg-black/60 text-white backdrop-blur-md">
-                        Prévia em Tempo Real
-                      </span>
-                    </div>
-
-                    <MiniSiteMediaPlayer
-                      slot="about"
-                      mediaType={aboutMediaType}
-                      mediaUrl={aboutMediaUrl}
-                      posterUrl={aboutPosterUrl}
-                      frames={aboutFrames}
-                      frameCount={aboutFrameCount}
-                      fps={aboutFps}
-                      loop={aboutLoop}
-                      autoplay={aboutAutoplay}
-                      playbackMode={aboutPlaybackMode}
-                      playbackDirection={aboutPlaybackDirection}
-                      positioning={aboutPositioning}
-                      alt="Prévia Sobre Mim"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-
-                  {/* Seletor de Tipo de Mídia */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                      Tipo de Mídia
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setAboutMediaType("IMAGE")}
-                        className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
-                          aboutMediaType === "IMAGE"
-                            ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
-                            : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
-                        }`}
-                      >
-                        <Eye className="h-4 w-4" />
-                        <span>Imagem</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setAboutMediaType("FRAME_ANIMATION")}
-                        className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
-                          aboutMediaType === "FRAME_ANIMATION"
-                            ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
-                            : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
-                        }`}
-                      >
-                        <FileArchive className="h-4 w-4" />
-                        <span>Frames (ZIP)</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setAboutMediaType("VIDEO")}
-                        className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition-all ${
-                          aboutMediaType === "VIDEO"
-                            ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
-                            : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50"
-                        }`}
-                      >
-                        <Play className="h-4 w-4" />
-                        <span>Vídeo</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Dropzone de Upload e Opções de Envio */}
-                  <div className="space-y-2">
-                    <div
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        const dropped = e.dataTransfer.files;
-                        if (dropped && dropped.length > 0) {
-                          handleUploadSlotMedia("about", aboutMediaType, dropped);
-                        }
-                      }}
-                      className="p-4 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl text-center hover:bg-slate-100/50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors"
-                    >
-                      <label className="cursor-pointer block">
-                        <input
-                          type="file"
-                          accept={
-                            aboutMediaType === "FRAME_ANIMATION"
-                              ? ".zip,application/zip,application/x-zip-compressed"
-                              : aboutMediaType === "VIDEO"
-                              ? "video/mp4,video/webm"
-                              : "image/jpeg,image/png,image/webp"
-                          }
-                          className="hidden"
-                          onChange={(e) => {
-                            if (e.target.files?.[0]) {
-                              handleUploadSlotMedia("about", aboutMediaType, e.target.files[0]);
-                            }
-                          }}
-                        />
-                        <Upload className="h-5 w-5 text-[var(--primary)] mx-auto mb-1" />
-                        <p className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
-                          {uploadingSlot === "about-FRAME_ANIMATION" || uploadingSlot === "about-IMAGE" || uploadingSlot === "about-VIDEO"
-                            ? "Processando e enviando arquivo..."
-                            : aboutMediaType === "FRAME_ANIMATION"
-                            ? "Clique ou arraste arquivo ZIP com os frames"
-                            : aboutMediaType === "VIDEO"
-                            ? "Clique para enviar vídeo (WebM / MP4)"
-                            : "Clique para enviar imagem (JPG, PNG, WebP)"}
-                        </p>
-                        <p className="text-[10px] text-slate-400 mt-0.5">
-                          {aboutMediaType === "FRAME_ANIMATION"
-                            ? "Frames numerados ordenadamente (ex: 001.png ... 040.png). Máx 150 frames / 100MB."
-                            : aboutMediaType === "VIDEO"
-                            ? "Vídeos rodam sem áudio (muted) para compatibilidade mobile. Máx 50MB."
-                            : "Imagens com alta resolução. Máx 10MB."}
-                        </p>
-                      </label>
-                    </div>
-
-                    {/* Opções alternativas para Animação: Múltiplos Arquivos ou Pasta Inteira */}
-                    {aboutMediaType === "FRAME_ANIMATION" && (
-                      <div className="grid grid-cols-2 gap-2 pt-1">
-                        <label className="cursor-pointer block">
-                          <input
-                            type="file"
-                            multiple
-                            accept="image/png,image/jpeg,image/webp"
-                            className="hidden"
-                            onChange={(e) => {
-                              if (e.target.files && e.target.files.length > 0) {
-                                handleUploadSlotMedia("about", "FRAME_ANIMATION", e.target.files);
-                              }
-                            }}
-                          />
-                          <div className="p-2 border border-slate-200 dark:border-slate-800 rounded-lg text-center hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
-                            <Images className="h-3.5 w-3.5 text-[var(--primary)]" />
-                            <span>Múltiplos Frames</span>
-                          </div>
-                        </label>
-
-                        <label className="cursor-pointer block">
-                          <input
-                            type="file"
-                            multiple
-                            {...({ webkitdirectory: "", directory: "" } as any)}
-                            accept="image/png,image/jpeg,image/webp"
-                            className="hidden"
-                            onChange={(e) => {
-                              if (e.target.files && e.target.files.length > 0) {
-                                handleUploadSlotMedia("about", "FRAME_ANIMATION", e.target.files);
-                              }
-                            }}
-                          />
-                          <div className="p-2 border border-slate-200 dark:border-slate-800 rounded-lg text-center hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
-                            <Folder className="h-3.5 w-3.5 text-[var(--primary)]" />
-                            <span>Pasta de Frames</span>
-                          </div>
-                        </label>
-                      </div>
-                    )}
-
-                    {/* Botão de Atalho para Importar storage/minisite/sobre */}
-                    {aboutMediaType === "FRAME_ANIMATION" && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleImportLocalFrames("about")}
-                        disabled={uploadingSlot === "about-import"}
-                        className="w-full text-xs gap-1.5 border-[var(--primary)]/30 hover:bg-[var(--primary)]/10 text-[var(--primary)]"
-                      >
-                        <Sparkles className="h-3.5 w-3.5 text-[var(--primary)]" />
-                        <span>
-                          {uploadingSlot === "about-import"
-                            ? "Importando frames locais..."
-                            : "⚡ Importar frames existentes (storage/minisite/sobre)"}
-                        </span>
-                      </Button>
-                    )}
-                  </div>
-
-                  {/* Parâmetros Específicos do Slot Sobre Mim */}
-                  <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800 text-xs">
-                    {/* Controles para Frame Animation */}
-                    {aboutMediaType === "FRAME_ANIMATION" && (
-                      <>
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center text-slate-700 dark:text-slate-300">
-                            <span className="font-semibold">Velocidade (FPS)</span>
-                            <span className="font-mono text-[var(--primary)] font-bold">{aboutFps} quadros/s</span>
-                          </div>
-                          <input
-                            type="range"
-                            min="10"
-                            max="60"
-                            step="1"
-                            value={aboutFps}
-                            onChange={(e) => setAboutFps(Number(e.target.value))}
-                            className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[var(--primary)]"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <label className="font-semibold text-slate-700 dark:text-slate-300">
-                              Modo de Reprodução
-                            </label>
-                            <select
-                              value={aboutPlaybackMode}
-                              onChange={(e) => setAboutPlaybackMode(e.target.value as "AUTOMATIC" | "SCROLL")}
-                              className="w-full p-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
-                            >
-                              <option value="AUTOMATIC">Automático (Tempo)</option>
-                              <option value="SCROLL">Scroll da Página (Scrub)</option>
-                            </select>
-                          </div>
-
-                          <div className="space-y-1">
-                            <label className="font-semibold text-slate-700 dark:text-slate-300">
-                              Direção do Loop
-                            </label>
-                            <select
-                              value={aboutPlaybackDirection}
-                              onChange={(e) => setAboutPlaybackDirection(e.target.value as "FORWARD" | "ALTERNATE")}
-                              className="w-full p-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
-                            >
-                              <option value="FORWARD">Normal (Frente)</option>
-                              <option value="ALTERNATE">Ida e Volta (Ping-pong)</option>
-                            </select>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-4 pt-1">
-                          <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300">
-                            <input
-                              type="checkbox"
-                              checked={aboutLoop}
-                              onChange={(e) => setAboutLoop(e.target.checked)}
-                              className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
-                            />
-                            <span>Repetir (Loop)</span>
-                          </label>
-
-                          <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300">
-                            <input
-                              type="checkbox"
-                              checked={aboutAutoplay}
-                              onChange={(e) => setAboutAutoplay(e.target.checked)}
-                              className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
-                            />
-                            <span>Reprodução Automática</span>
-                          </label>
-                        </div>
-                      </>
-                    )}
-
-                    {/* Controles para Vídeo */}
-                    {aboutMediaType === "VIDEO" && (
-                      <div className="flex items-center gap-4 pt-1">
-                        <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300">
-                          <input
-                            type="checkbox"
-                            checked={aboutLoop}
-                            onChange={(e) => setAboutLoop(e.target.checked)}
-                            className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
-                          />
-                          <span>Repetir (Loop)</span>
-                        </label>
-
-                        <label className="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300">
-                          <input
-                            type="checkbox"
-                            checked={aboutAutoplay}
-                            onChange={(e) => setAboutAutoplay(e.target.checked)}
-                            className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
-                          />
-                          <span>Autoplay</span>
-                        </label>
-                      </div>
-                    )}
-
-                    {/* Enquadramento / Posição (Todos os tipos) */}
-                    <div className="space-y-1">
-                      <label className="font-semibold text-slate-700 dark:text-slate-300">
-                        Enquadramento / Posicionamento
-                      </label>
-                      <select
-                        value={aboutPositioning}
-                        onChange={(e) => setAboutPositioning(e.target.value)}
-                        className="w-full p-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
-                      >
-                        <option value="center">Centralizado (Padrão)</option>
-                        <option value="top">Focar no Topo</option>
-                        <option value="bottom">Focar na Base</option>
-                        <option value="cover">Preencher todo o quadro (Cover)</option>
-                        <option value="contain">Conter imagem inteira (Contain)</option>
-                      </select>
-                    </div>
-
-                    {/* Ação de Remoção / Limpeza do Sobre Mim */}
-                    {(aboutMediaUrl || aboutFrames.length > 0) && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setAboutMediaUrl(null);
-                          setAboutPosterUrl(null);
-                          setAboutFrames([]);
-                          setAboutFrameCount(0);
-                          setAboutMediaType("IMAGE");
-                        }}
-                        className="text-[11px] text-red-500 hover:underline pt-1 flex items-center gap-1"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                        <span>Remover mídia e restaurar ilustração padrão do Sobre Mim</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
+                <MiniSiteMediaSlotCard
+                  title="Hero — Mobile"
+                  slot="hero_mobile"
+                  mediaType={heroMobileMediaType}
+                  mediaUrl={heroMobileMediaUrl}
+                  posterUrl={heroMobilePosterUrl}
+                  frames={heroMobileFrames}
+                  fps={heroMobileFps}
+                  playbackSpeed={heroMobilePlaybackSpeed}
+                  loop={heroMobileLoop}
+                  autoplay={heroMobileAutoplay}
+                  playbackMode={heroMobilePlaybackMode}
+                  playbackDirection={heroMobilePlaybackDirection}
+                  positioning={heroMobilePositioning}
+                  isUploading={uploadingSlot === "hero_mobile"}
+                  onUploadFile={(file) => handleUploadSlotMedia("hero_mobile", file)}
+                  onChangePlaybackSpeed={(speed) => setHeroMobilePlaybackSpeed(speed)}
+                  onRemoveMedia={() => handleRemoveSlotMedia("hero_mobile")}
+                />
               </div>
 
-              {/* Botão de Salvar no rodapé do Card de Mídias */}
+              {/* Abaixo: Sobre Mim (mídia única usada em desktop e mobile) */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <MiniSiteMediaSlotCard
+                  title="Sobre Mim"
+                  slot="about"
+                  mediaType={aboutMediaType}
+                  mediaUrl={aboutMediaUrl}
+                  posterUrl={aboutPosterUrl}
+                  frames={aboutFrames}
+                  fps={aboutFps}
+                  playbackSpeed={aboutPlaybackSpeed}
+                  loop={aboutLoop}
+                  autoplay={aboutAutoplay}
+                  playbackMode={aboutPlaybackMode}
+                  playbackDirection={aboutPlaybackDirection}
+                  positioning={aboutPositioning}
+                  isUploading={uploadingSlot === "about"}
+                  onUploadFile={(file) => handleUploadSlotMedia("about", file)}
+                  onChangePlaybackSpeed={(speed) => setAboutPlaybackSpeed(speed)}
+                  onRemoveMedia={() => handleRemoveSlotMedia("about")}
+                />
+              </div>
+
+              {/* Botão único de salvamento */}
               <div className="flex items-center justify-end pt-4 border-t border-slate-200 dark:border-slate-800">
                 <Button
                   type="button"
                   onClick={handleSaveMediaSettings}
-                  disabled={isSavingMedia}
+                  disabled={isSavingMedia || uploadingSlot !== null}
                   className="gap-2 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white"
                 >
                   <Save className="h-4 w-4" />

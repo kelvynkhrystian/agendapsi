@@ -2,10 +2,19 @@ import path from "path";
 import { promises as fs } from "fs";
 import AdmZip from "adm-zip";
 
-export type MediaSlot = "hero" | "about";
+export type MediaSlot = "hero" | "hero_mobile" | "about";
 export type MediaType = "IMAGE" | "FRAME_ANIMATION" | "VIDEO";
 export type PlaybackMode = "AUTOMATIC" | "SCROLL";
 export type PlaybackDirection = "FORWARD" | "ALTERNATE";
+export type PlaybackSpeed = 0.5 | 1 | 2;
+
+export const ALLOWED_PLAYBACK_SPEEDS: readonly PlaybackSpeed[] = [0.5, 1, 2];
+
+export interface DetectedFileFormat {
+  mediaType: MediaType;
+  extension: string;
+  kind: "image" | "video" | "zip";
+}
 
 export interface FrameProcessingResult {
   frameCount: number;
@@ -26,12 +35,117 @@ export const MIN_FRAMES = 2;
 export const MAX_TOTAL_UNCOMPRESSED_BYTES = 150 * 1024 * 1024; // 150MB
 
 /**
+ * Normaliza e restringe a velocidade de reprodução aos valores suportados (0.5x, 1x, 2x)
+ */
+export function normalizePlaybackSpeed(value: unknown): PlaybackSpeed {
+  const num = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(num) || num <= 0) return 1;
+  if (num < 0.75) return 0.5;
+  if (num >= 1.5) return 2;
+  return 1;
+}
+
+/**
+ * Reconhece automaticamente o tipo de mídia (Imagem, Vídeo ou ZIP de frames)
+ * inspecionando assinatura binária (magic bytes), MIME type e extensão do arquivo.
+ */
+export function detectMediaTypeFromFile(
+  filename: string,
+  mimeType: string | undefined | null,
+  buffer: Buffer
+): DetectedFileFormat {
+  if (!buffer || buffer.length < 4) {
+    throw new Error("Arquivo inválido ou corrompido. Envie JPG, PNG, WebP, MP4, WebM ou ZIP.");
+  }
+
+  const rawExt = path.extname(filename || "").toLowerCase();
+  const normalizedMime = (mimeType || "").toLowerCase();
+
+  // 1. PNG (89 50 4E 47 0D 0A 1A 0A)
+  if (
+    buffer.length >= 8 &&
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47 &&
+    buffer[4] === 0x0d &&
+    buffer[5] === 0x0a &&
+    buffer[6] === 0x1a &&
+    buffer[7] === 0x0a
+  ) {
+    return { mediaType: "IMAGE", extension: ".png", kind: "image" };
+  }
+
+  // 2. JPEG / JPG (FF D8 FF)
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return {
+      mediaType: "IMAGE",
+      extension: rawExt === ".jpeg" ? ".jpeg" : ".jpg",
+      kind: "image",
+    };
+  }
+
+  // 3. WebP (RIFF....WEBP)
+  if (
+    buffer.length >= 12 &&
+    buffer.toString("ascii", 0, 4) === "RIFF" &&
+    buffer.toString("ascii", 8, 12) === "WEBP"
+  ) {
+    return { mediaType: "IMAGE", extension: ".webp", kind: "image" };
+  }
+
+  // 4. ZIP de frames sequenciais (PK..)
+  if (
+    buffer[0] === 0x50 &&
+    buffer[1] === 0x4b &&
+    ((buffer[2] === 0x03 && buffer[3] === 0x04) ||
+      (buffer[2] === 0x05 && buffer[3] === 0x06) ||
+      (buffer[2] === 0x07 && buffer[3] === 0x08))
+  ) {
+    return { mediaType: "FRAME_ANIMATION", extension: ".zip", kind: "zip" };
+  }
+
+  // 5. MP4 (ISO Base Media: offset 4 = "ftyp")
+  if (buffer.length >= 12 && buffer.toString("ascii", 4, 8) === "ftyp") {
+    const brand = buffer.toString("ascii", 8, 12).toLowerCase();
+    // Rejeitar explícitamente QuickTime (.mov) caso extensão seja .mov e brand seja qt
+    if (brand === "qt  " && rawExt === ".mov") {
+      throw new Error("Formato .mov não é suportado. Envie um vídeo MP4 ou WebM.");
+    }
+    return { mediaType: "VIDEO", extension: ".mp4", kind: "video" };
+  }
+
+  // 6. WebM (EBML header: 1A 45 DF A3 com assinatura DocType webm ou extensão/MIME webm)
+  if (
+    buffer[0] === 0x1a &&
+    buffer[1] === 0x45 &&
+    buffer[2] === 0xdf &&
+    buffer[3] === 0xa3
+  ) {
+    const headerSlice = buffer.subarray(0, Math.min(buffer.length, 256)).toString("latin1").toLowerCase();
+    if (headerSlice.includes("matroska") && !headerSlice.includes("webm") && rawExt !== ".webm") {
+      throw new Error("Formato MKV não é suportado. Envie um vídeo MP4 ou WebM.");
+    }
+    if (headerSlice.includes("webm") || rawExt === ".webm" || normalizedMime.includes("webm")) {
+      return { mediaType: "VIDEO", extension: ".webm", kind: "video" };
+    }
+  }
+
+  throw new Error(
+    "Formato de arquivo não suportado. Envie uma imagem, vídeo ou animação ZIP (JPG, PNG, WebP, MP4, WebM ou ZIP)."
+  );
+}
+
+/**
  * Mapeia o slot de mídia da UI para a pasta de armazenamento isolada no disco
- * Hero -> storage/minisite/top
+ * Hero Desktop -> storage/minisite/top
+ * Hero Mobile -> storage/minisite/top-mobile
  * Sobre Mim -> storage/minisite/sobre
  */
-export function getSlotDirectory(slot: MediaSlot): "top" | "sobre" {
-  return slot === "hero" ? "top" : "sobre";
+export function getSlotDirectory(slot: MediaSlot): "top" | "top-mobile" | "sobre" {
+  if (slot === "hero") return "top";
+  if (slot === "hero_mobile") return "top-mobile";
+  return "sobre";
 }
 
 /**
@@ -203,15 +317,16 @@ export async function processMultipleImageFiles(
 }
 
 /**
- * Salva uma mídia estática individual (imagem ou vídeo) em storage/minisite/{top|sobre}/{uploadId}/
+ * Salva uma mídia estática individual (imagem ou vídeo) em storage/minisite/{top|top-mobile|sobre}/{uploadId}/
  */
 export async function saveStaticMediaFile(
   filename: string,
   buffer: Buffer,
   slot: MediaSlot,
-  type: "image" | "video"
+  type: "image" | "video",
+  detectedExt?: string
 ): Promise<string> {
-  const ext = path.extname(filename).toLowerCase();
+  const ext = (detectedExt || path.extname(filename)).toLowerCase();
   const allowed = type === "image" ? ALLOWED_IMAGE_EXTENSIONS : ALLOWED_VIDEO_EXTENSIONS;
 
   if (!allowed.includes(ext)) {
@@ -282,16 +397,18 @@ export async function detectExistingFrames(slot: MediaSlot): Promise<FrameProces
       }
     }
 
-    // Se houver um arquivo ZIP (ex: b.zip ou a.zip), podemos descompactar para a pasta do slot
-    const zipName = slot === "hero" ? "b.zip" : "a.zip";
-    const zipPath = path.join(baseDir, zipName);
-    try {
-      const zipStat = await fs.stat(zipPath);
-      if (zipStat.isFile()) {
-        const zipBuffer = await fs.readFile(zipPath);
-        return await processZipBuffer(zipBuffer, slot);
-      }
-    } catch {}
+    // Se houver um arquivo ZIP legado (b.zip ou a.zip), podemos descompactar para a pasta do slot
+    const zipName = slot === "hero" ? "b.zip" : slot === "about" ? "a.zip" : null;
+    if (zipName) {
+      const zipPath = path.join(baseDir, zipName);
+      try {
+        const zipStat = await fs.stat(zipPath);
+        if (zipStat.isFile()) {
+          const zipBuffer = await fs.readFile(zipPath);
+          return await processZipBuffer(zipBuffer, slot);
+        }
+      } catch {}
+    }
 
     return null;
   } catch (e) {

@@ -1095,33 +1095,50 @@ erDiagram
 | `email` | `String?` | Não | `null` | E-mail público de contato | `"contato@espacoequilibrio.com.br"` |
 | `instagram` | `String?` | Não | `null` | Usuário ou link do perfil no Instagram | `"@dra.helenamartins"` |
 | `customHtml` | `String?` (Text) | Não | `null` | [DEPRECATED / INATIVO] Bloco HTML customizado legado mantido no banco para migração segura sem perda de dados; funcionalidade descontinuada do Admin e da API | `null` |
-| `heroMediaType` | `String` | Sim | `"IMAGE"` | Tipo de mídia do Slot 1 (Hero): IMAGE, FRAME_ANIMATION, VIDEO | `"FRAME_ANIMATION"` |
-| `heroMediaUrl` | `String?` (Text) | Não | `null` | URL da imagem, vídeo ou pasta de frames do Hero | `"/uploads/minisite-frames/hero-123"` |
-| `heroPosterUrl` | `String?` (Text) | Não | `null` | URL do pôster ou frame inicial do Hero | `"/uploads/minisite-frames/hero-123/frame-001.png"` |
-| `heroFps` | `Int` | Sim | `24` | Taxa de quadros por segundo da animação do Hero | `24` |
-| `heroLoop` | `Boolean` | Sim | `true` | Repetição contínua da animação do Hero | `true` |
-| `heroAutoplay` | `Boolean` | Sim | `true` | Reprodução automática do Hero | `true` |
-| `heroPlaybackMode` | `String` | Sim | `"AUTOMATIC"` | Modo de reprodução do Hero: AUTOMATIC ou SCROLL | `"SCROLL"` |
-| `heroPlaybackDirection`| `String` | Sim | `"FORWARD"` | Direção da reprodução: FORWARD ou ALTERNATE | `"FORWARD"` |
-| `heroPositioning` | `String` | Sim | `"center"` | Enquadramento da mídia do Hero: center, cover, contain, top | `"center"` |
-| `heroFrameCount` | `Int` | Sim | `0` | Quantidade total de frames processados no Hero | `40` |
-| `heroFramesJson` | `String?` (MediumText) | Não | `null` | Sequência de caminhos relativos dos frames em JSON | `'["/uploads/.../frame-001.png", ...]'` |
-| `heroBgMode` | `String` | Sim | `"AUTO"` | Modo da cor de fundo do Hero: AUTO (detecção automática) ou MANUAL (personalizada) | `"AUTO"`, `"MANUAL"` |
-| `heroBgDetectedColor` | `String?` | Não | `null` | Cor de fundo representativa detectada automaticamente a partir das bordas da mídia do Hero | `"#FAF7F2"`, `"#3D2817"` |
-| `heroBgCustomColor` | `String?` | Não | `null` | Cor de fundo personalizada informada manualmente pelo administrador | `"#FDFCFB"`, `"#2B1B17"` |
-| `heroBgStatus` | `String` | Sim | `"IDLE"` | Status do processamento de detecção de cor: IDLE, SUCCESS, FAILED ou FALLBACK | `"SUCCESS"`, `"IDLE"` |
-| `heroBgMediaRef` | `String?` (Text) | Não | `null` | Referência da mídia analisada (URL ou identificador de upload) para controle de reanálise | `"/api/minisite/media/top/up_123/video.mp4"` |
-| `aboutMediaType` | `String` | Sim | `"IMAGE"` | Tipo de mídia do Slot 2 (Sobre Mim): IMAGE, FRAME_ANIMATION, VIDEO | `"FRAME_ANIMATION"` |
-| `aboutMediaUrl` | `String?` (Text) | Não | `null` | URL da imagem, vídeo ou pasta de frames do Sobre Mim | `"/uploads/minisite-frames/about-123"` |
-| `aboutPosterUrl` | `String?` (Text) | Não | `null` | URL do pôster ou frame inicial do Sobre Mim | `"/uploads/minisite-frames/about-123/frame-001.png"` |
-| `aboutFps` | `Int` | Sim | `24` | Taxa de quadros por segundo da animação do Sobre Mim | `24` |
-| `aboutLoop` | `Boolean` | Sim | `true` | Repetição contínua da animação do Sobre Mim | `true` |
+| `heroMediaType` | `String` | Sim | `"IMAGE"` | Tipo de mídia do Slot 1 (Hero Desktop) reconhecido automaticamente: `IMAGE`, `FRAME_ANIMATION`, `VIDEO` | `"FRAME_ANIMATION"` |
+| `heroMediaUrl` | `String?` (Text) | Não | `null` | URL da imagem, vídeo ou frame inicial do Hero Desktop (`storage/minisite/top/`) | `"/api/minisite/media/top/up_123/video.mp4"` |
+| `heroPosterUrl` | `String?` (Text) | Não | `null` | URL do pôster ou frame inicial do Hero Desktop | `"/api/minisite/media/top/up_123/frame-001.png"` |
+| `heroFps` | `Int` | Sim | `24` | Taxa base de quadros por segundo da animação do Hero Desktop | `30` |
+| `heroPlaybackSpeed` | `Float` | Sim | `1` | Multiplicador de velocidade de reprodução do Hero Desktop para vídeos e ZIP (`0.5`, `1`, `2`) | `1`, `2` |
+| `heroLoop` | `Boolean` | Sim | `true` | Repetição contínua da animação ou vídeo do Hero Desktop | `true` |
+| `heroAutoplay` | `Boolean` | Sim | `true` | Reprodução automática do Hero Desktop | `true` |
+| `heroPlaybackMode` | `String` | Sim | `"AUTOMATIC"` | Modo de reprodução do Hero Desktop: `AUTOMATIC` ou `SCROLL` | `"AUTOMATIC"` |
+| `heroPlaybackDirection`| `String` | Sim | `"FORWARD"` | Direção da reprodução do Hero Desktop: `FORWARD` ou `ALTERNATE` | `"FORWARD"` |
+| `heroPositioning` | `String` | Sim | `"center"` | Enquadramento da mídia do Hero Desktop: `center`, `cover`, `contain`, `top`, `bottom` | `"center"` |
+| `heroFrameCount` | `Int` | Sim | `0` | Quantidade total de frames processados no Hero Desktop | `40` |
+| `heroFramesJson` | `String?` (MediumText) | Não | `null` | Sequência ordenada de caminhos relativos dos frames do Hero Desktop em JSON | `'["/api/minisite/media/top/.../frame-001.png", ...]'` |
+| `heroBgMode` | `String` | Sim | `"AUTO"` | Modo da cor de fundo do Hero Desktop: `AUTO` (detecção automática) ou `MANUAL` (legado) | `"AUTO"` |
+| `heroBgDetectedColor` | `String?` | Não | `null` | Cor de fundo representativa detectada automaticamente por amostragem de bordas/cantos e clustering/mediana da mídia do Hero Desktop | `"#FAF7F2"`, `"#3D2817"` |
+| `heroBgCustomColor` | `String?` | Não | `null` | Cor de fundo personalizada de fallback legado em HEX | `"#FAF7F2"` |
+| `heroBgStatus` | `String` | Sim | `"IDLE"` | Status interno da detecção de cor do Hero Desktop: `IDLE`, `SUCCESS`, `FAILED` ou `FALLBACK` | `"SUCCESS"` |
+| `heroBgMediaRef` | `String?` (Text) | Não | `null` | Referência da mídia analisada do Hero Desktop (URL ou identificador) | `"/api/minisite/media/top/up_123/video.mp4"` |
+| `heroMobileMediaType` | `String` | Sim | `"IMAGE"` | Tipo de mídia independente do Hero Mobile reconhecido automaticamente (`IMAGE`, `FRAME_ANIMATION`, `VIDEO`); se vazio, utiliza o Hero Desktop como fallback | `"IMAGE"` |
+| `heroMobileMediaUrl` | `String?` (Text) | Não | `null` | URL da imagem, vídeo ou frame inicial independente do Hero Mobile (`storage/minisite/top-mobile/`) | `"/api/minisite/media/top-mobile/up_456/image.jpg"` |
+| `heroMobilePosterUrl` | `String?` (Text) | Não | `null` | URL do pôster ou frame inicial do Hero Mobile | `"/api/minisite/media/top-mobile/up_456/frame-001.png"` |
+| `heroMobileFps` | `Int` | Sim | `24` | Taxa base de quadros por segundo da animação do Hero Mobile | `24` |
+| `heroMobilePlaybackSpeed` | `Float` | Sim | `1` | Multiplicador de velocidade de reprodução do Hero Mobile para vídeos e ZIP (`0.5`, `1`, `2`) | `1` |
+| `heroMobileLoop` | `Boolean` | Sim | `true` | Repetição contínua da animação ou vídeo do Hero Mobile | `true` |
+| `heroMobileAutoplay` | `Boolean` | Sim | `true` | Reprodução automática do Hero Mobile | `true` |
+| `heroMobilePlaybackMode` | `String` | Sim | `"AUTOMATIC"` | Modo de reprodução do Hero Mobile: `AUTOMATIC` ou `SCROLL` | `"AUTOMATIC"` |
+| `heroMobilePlaybackDirection` | `String` | Sim | `"FORWARD"` | Direção da reprodução do Hero Mobile: `FORWARD` ou `ALTERNATE` | `"FORWARD"` |
+| `heroMobilePositioning` | `String` | Sim | `"center"` | Enquadramento da mídia do Hero Mobile (`center`, `cover`, `contain`, `top`, `bottom`) | `"center"` |
+| `heroMobileFrameCount` | `Int` | Sim | `0` | Quantidade total de frames processados no Hero Mobile | `0` |
+| `heroMobileFramesJson` | `String?` (MediumText) | Não | `null` | Sequência ordenada de caminhos relativos dos frames do Hero Mobile em JSON | `null` |
+| `heroMobileBgDetectedColor` | `String?` | Não | `null` | Cor de fundo detectada automaticamente a partir da mídia do Hero Mobile (em fallback, herda a cor do Hero Desktop) | `"#FFFFFF"` |
+| `heroMobileBgStatus` | `String` | Sim | `"IDLE"` | Status interno da detecção automática de cor do Hero Mobile (`IDLE`, `SUCCESS`, `FAILED`, `FALLBACK`) | `"SUCCESS"` |
+| `heroMobileBgMediaRef` | `String?` (Text) | Não | `null` | Referência da mídia analisada do Hero Mobile | `"/api/minisite/media/top-mobile/up_456/image.jpg"` |
+| `aboutMediaType` | `String` | Sim | `"IMAGE"` | Tipo de mídia único do Slot Sobre Mim (compartilhado entre desktop e mobile): `IMAGE`, `FRAME_ANIMATION`, `VIDEO` | `"IMAGE"` |
+| `aboutMediaUrl` | `String?` (Text) | Não | `null` | URL da imagem, vídeo ou frame inicial do Sobre Mim (`storage/minisite/sobre/`) | `"/api/minisite/media/sobre/up_789/image.jpg"` |
+| `aboutPosterUrl` | `String?` (Text) | Não | `null` | URL do pôster ou frame inicial do Sobre Mim | `"/api/minisite/media/sobre/up_789/frame-001.png"` |
+| `aboutFps` | `Int` | Sim | `24` | Taxa base de quadros por segundo da animação do Sobre Mim | `60` |
+| `aboutPlaybackSpeed` | `Float` | Sim | `1` | Multiplicador de velocidade de reprodução do Sobre Mim para vídeos e ZIP (`0.5`, `1`, `2`) | `1`, `0.5` |
+| `aboutLoop` | `Boolean` | Sim | `true` | Repetição contínua da animação ou vídeo do Sobre Mim | `true` |
 | `aboutAutoplay` | `Boolean` | Sim | `true` | Reprodução automática do Sobre Mim | `true` |
-| `aboutPlaybackMode` | `String` | Sim | `"AUTOMATIC"` | Modo de reprodução do Sobre Mim: AUTOMATIC ou SCROLL | `"AUTOMATIC"` |
-| `aboutPlaybackDirection`| `String`| Sim | `"FORWARD"` | Direção da reprodução: FORWARD ou ALTERNATE | `"FORWARD"` |
-| `aboutPositioning` | `String` | Sim | `"center"` | Enquadramento da mídia do Sobre Mim: center, cover, contain | `"center"` |
+| `aboutPlaybackMode` | `String` | Sim | `"AUTOMATIC"` | Modo de reprodução do Sobre Mim: `AUTOMATIC` ou `SCROLL` | `"AUTOMATIC"` |
+| `aboutPlaybackDirection`| `String`| Sim | `"FORWARD"` | Direção da reprodução: `FORWARD` ou `ALTERNATE` | `"FORWARD"` |
+| `aboutPositioning` | `String` | Sim | `"center"` | Enquadramento da mídia do Sobre Mim: `center`, `cover`, `contain` | `"center"` |
 | `aboutFrameCount` | `Int` | Sim | `0` | Quantidade total de frames processados no Sobre Mim | `40` |
-| `aboutFramesJson` | `String?` (MediumText) | Não | `null` | Sequência de caminhos relativos dos frames em JSON | `'["/uploads/.../frame-001.png", ...]'` |
+| `aboutFramesJson` | `String?` (MediumText) | Não | `null` | Sequência de caminhos relativos dos frames em JSON | `'["/api/minisite/media/sobre/.../frame-001.png", ...]'` |
 | `benefitsJson` | `String?` (MediumText) | Não | `null` | Array JSON com os 3 benefícios configurados do Hero: ícones, upload, título, subtítulo, ordem e visibilidade | `'[{"id":"1","icon":"HandHeart","title":"Acolhimento","isVisible":true,"order":1}]'` |
 | `addressNumber` | `String?` | Não | `null` | Número do imóvel do consultório | `"1000"` |
 | `addressComplement` | `String?` | Não | `null` | Complemento do endereço (sala, andar, bloco) | `"Cj. 42"` |
