@@ -261,7 +261,7 @@ export default async function HomePage() {
         <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:max-w-none lg:mx-0 lg:pl-[7vw] xl:pl-[8vw] lg:pr-8 relative z-10 order-1 flex flex-col items-center lg:items-start text-center lg:text-left mb-3 lg:mb-4">
           <div
             id="hero-badge"
-            className="inline-block px-5 py-1.5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] font-heading font-semibold text-xs uppercase tracking-wider shadow-xs"
+            className="inline-block px-5 py-1.5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] lg:bg-white/15 lg:border lg:border-white/30 lg:text-white lg:backdrop-blur-md font-heading font-semibold text-xs uppercase tracking-wider shadow-xs"
           >
             {crpCrm}
           </div>
@@ -326,10 +326,10 @@ export default async function HomePage() {
               <Link href="/agendar" className="w-full sm:w-auto">
                 <button
                   type="button"
-                  className="w-full sm:w-auto py-3.5 px-7 rounded-2xl font-heading font-semibold text-xs sm:text-sm uppercase tracking-wider shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)]"
+                  className="w-full sm:w-auto py-3.5 px-7 rounded-2xl font-heading font-semibold text-xs sm:text-sm uppercase tracking-wider shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] lg:text-white"
                 >
-                  <Calendar className="h-4 w-4" />
-                  <span>Agende sua consulta</span>
+                  <Calendar className="h-4 w-4 text-[var(--primary-foreground,#ffffff)] lg:text-white shrink-0" />
+                  <span className="text-[var(--primary-foreground,#ffffff)] lg:text-white">Agende sua consulta</span>
                 </button>
               </Link>
 

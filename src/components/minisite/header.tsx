@@ -336,10 +336,10 @@ export function MiniSiteHeader({
               />
             ) : (
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] font-serif font-black text-lg">
+                <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-[var(--primary)]/10 lg:bg-white/15 flex items-center justify-center text-[var(--primary)] lg:text-white font-serif font-black text-lg">
                   Ψ
                 </div>
-                <span className="text-base lg:text-lg tracking-tight font-semibold text-slate-900">
+                <span className="text-base lg:text-lg tracking-tight font-semibold text-slate-900 lg:text-white">
                   {neutralFallbackName}
                 </span>
               </div>
@@ -353,8 +353,8 @@ export function MiniSiteHeader({
             aria-label="Navegação principal"
             className={`inline-flex items-center p-1 md:p-1.5 lg:p-1.5 rounded-full border transition-all duration-300 ${
               isScrolled
-                ? "bg-white/95 backdrop-blur-lg border-[#E2DDD5] shadow-[0_8px_28px_rgba(0,0,0,0.08)]"
-                : "bg-white/80 backdrop-blur-md border-[#E7E2DA]/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)]"
+                ? "bg-white/95 backdrop-blur-lg border-[#E2DDD5] shadow-[0_8px_28px_rgba(0,0,0,0.08)] lg:bg-black/45 lg:border-white/20 lg:shadow-[0_8px_32px_rgba(0,0,0,0.25)]"
+                : "bg-white/80 backdrop-blur-md border-[#E7E2DA]/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] lg:bg-black/35 lg:backdrop-blur-md lg:border-white/20 lg:shadow-[0_4px_24px_rgba(0,0,0,0.15)]"
             }`}
           >
             <a
@@ -362,10 +362,10 @@ export function MiniSiteHeader({
               onClick={(e) => scrollToSection(e, "inicio")}
               className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                 activeSection === "inicio"
-                  ? "shadow-xs font-semibold"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]"
+                  ? "shadow-xs font-semibold text-white"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] lg:text-white/90 lg:hover:text-white lg:hover:bg-white/15"
               }`}
-              style={activeSection === "inicio" ? { backgroundColor: "var(--primary)", color: "var(--primary-foreground, #ffffff)" } : undefined}
+              style={activeSection === "inicio" ? { backgroundColor: "var(--primary)", color: "#ffffff" } : undefined}
             >
               Início
             </a>
@@ -374,10 +374,10 @@ export function MiniSiteHeader({
               onClick={(e) => scrollToSection(e, "atendimentos")}
               className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                 activeSection === "atendimentos"
-                  ? "shadow-xs font-semibold"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]"
+                  ? "shadow-xs font-semibold text-white"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] lg:text-white/90 lg:hover:text-white lg:hover:bg-white/15"
               }`}
-              style={activeSection === "atendimentos" ? { backgroundColor: "var(--primary)", color: "var(--primary-foreground, #ffffff)" } : undefined}
+              style={activeSection === "atendimentos" ? { backgroundColor: "var(--primary)", color: "#ffffff" } : undefined}
             >
               Atendimentos
             </a>
@@ -386,10 +386,10 @@ export function MiniSiteHeader({
               onClick={(e) => scrollToSection(e, "sobre")}
               className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                 activeSection === "sobre"
-                  ? "shadow-xs font-semibold"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]"
+                  ? "shadow-xs font-semibold text-white"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] lg:text-white/90 lg:hover:text-white lg:hover:bg-white/15"
               }`}
-              style={activeSection === "sobre" ? { backgroundColor: "var(--primary)", color: "var(--primary-foreground, #ffffff)" } : undefined}
+              style={activeSection === "sobre" ? { backgroundColor: "var(--primary)", color: "#ffffff" } : undefined}
             >
               Sobre Mim
             </a>
@@ -398,10 +398,10 @@ export function MiniSiteHeader({
               onClick={(e) => scrollToSection(e, "diferenciais")}
               className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                 activeSection === "diferenciais"
-                  ? "shadow-xs font-semibold"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]"
+                  ? "shadow-xs font-semibold text-white"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] lg:text-white/90 lg:hover:text-white lg:hover:bg-white/15"
               }`}
-              style={activeSection === "diferenciais" ? { backgroundColor: "var(--primary)", color: "var(--primary-foreground, #ffffff)" } : undefined}
+              style={activeSection === "diferenciais" ? { backgroundColor: "var(--primary)", color: "#ffffff" } : undefined}
             >
               Diferenciais
             </a>
@@ -410,10 +410,10 @@ export function MiniSiteHeader({
               onClick={(e) => scrollToSection(e, "como-funciona")}
               className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                 activeSection === "como-funciona"
-                  ? "shadow-xs font-semibold"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]"
+                  ? "shadow-xs font-semibold text-white"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] lg:text-white/90 lg:hover:text-white lg:hover:bg-white/15"
               }`}
-              style={activeSection === "como-funciona" ? { backgroundColor: "var(--primary)", color: "var(--primary-foreground, #ffffff)" } : undefined}
+              style={activeSection === "como-funciona" ? { backgroundColor: "var(--primary)", color: "#ffffff" } : undefined}
             >
               Como Funciona
             </a>
@@ -423,10 +423,10 @@ export function MiniSiteHeader({
                 onClick={(e) => scrollToSection(e, "localizacao")}
                 className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                   activeSection === "localizacao"
-                    ? "shadow-xs font-semibold"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]"
+                    ? "shadow-xs font-semibold text-white"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] lg:text-white/90 lg:hover:text-white lg:hover:bg-white/15"
                 }`}
-                style={activeSection === "localizacao" ? { backgroundColor: "var(--primary)", color: "var(--primary-foreground, #ffffff)" } : undefined}
+                style={activeSection === "localizacao" ? { backgroundColor: "var(--primary)", color: "#ffffff" } : undefined}
               >
                 Localização
               </a>
@@ -444,13 +444,13 @@ export function MiniSiteHeader({
                 href={dashboardUrl}
                 className={`inline-flex items-center gap-2 px-3.5 py-1.5 md:px-4 md:py-2 lg:px-4.5 lg:py-2 rounded-full border transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 group text-xs md:text-sm lg:text-[15px] font-heading font-semibold ${
                   isScrolled
-                    ? "bg-white/95 backdrop-blur-lg border-[#E2DDD5] text-slate-800 hover:text-[var(--primary)] hover:border-[var(--primary)]/50 shadow-[0_6px_20px_rgba(0,0,0,0.06)]"
-                    : "bg-white/80 backdrop-blur-md border-[#E7E2DA]/90 text-slate-700 hover:text-[var(--primary)] hover:border-[var(--primary)]/40 shadow-[0_2px_12px_rgba(0,0,0,0.03)]"
+                    ? "bg-white/95 backdrop-blur-lg border-[#E2DDD5] text-slate-800 hover:text-[var(--primary)] hover:border-[var(--primary)]/50 shadow-[0_6px_20px_rgba(0,0,0,0.06)] lg:bg-black/45 lg:border-white/20 lg:text-white hover:lg:text-white"
+                    : "bg-white/80 backdrop-blur-md border-[#E7E2DA]/90 text-slate-700 hover:text-[var(--primary)] hover:border-[var(--primary)]/40 shadow-[0_2px_12px_rgba(0,0,0,0.03)] lg:bg-black/35 lg:backdrop-blur-md lg:border-white/20 lg:text-white hover:lg:text-white"
                 }`}
                 aria-label={`Acessar painel (${user.name})`}
               >
-                <UserCheck className="h-4 w-4 md:h-4.5 md:w-4.5 text-[var(--primary)] group-hover:scale-105 transition-transform shrink-0" />
-                <span className="max-w-[110px] lg:max-w-[140px] truncate">{user.name}</span>
+                <UserCheck className="h-4 w-4 md:h-4.5 md:w-4.5 text-[var(--primary)] lg:text-white group-hover:scale-105 transition-transform shrink-0" />
+                <span className="max-w-[110px] lg:max-w-[140px] truncate text-inherit">{user.name}</span>
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-[var(--primary)] text-white px-2 py-0.5 rounded-full shrink-0">
                   {user.role === "ADMIN" ? "Admin" : "Paciente"}
                 </span>
@@ -462,8 +462,8 @@ export function MiniSiteHeader({
                 aria-label="Sair da conta"
                 className={`p-1.5 md:p-2 lg:p-2 rounded-full border transition-all duration-200 cursor-pointer ${
                   isScrolled
-                    ? "bg-white/95 backdrop-blur-lg border-[var(--primary)]/50 text-[var(--primary)] hover:border-[var(--primary)] hover:bg-[var(--primary)]/10"
-                    : "bg-white/80 backdrop-blur-md border-[var(--primary)]/40 text-[var(--primary)] hover:border-[var(--primary)] hover:bg-[var(--primary)]/10"
+                    ? "bg-white/95 backdrop-blur-lg border-[var(--primary)]/50 text-[var(--primary)] hover:border-[var(--primary)] hover:bg-[var(--primary)]/10 lg:bg-black/45 lg:border-white/20 lg:text-white hover:lg:bg-white/15"
+                    : "bg-white/80 backdrop-blur-md border-[var(--primary)]/40 text-[var(--primary)] hover:border-[var(--primary)] hover:bg-[var(--primary)]/10 lg:bg-black/35 lg:border-white/20 lg:text-white hover:lg:bg-white/15"
                 }`}
               >
                 <LogOut className="h-4 w-4 md:h-4.5 md:w-4.5" />
@@ -475,12 +475,12 @@ export function MiniSiteHeader({
                 type="button"
                 className={`inline-flex items-center gap-2 px-4 py-1.5 md:px-4 md:py-2 lg:px-4.5 lg:py-2 rounded-full border transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 text-xs md:text-sm lg:text-[16px] font-heading font-semibold ${
                   isScrolled
-                    ? "bg-white/95 backdrop-blur-lg border-[#E2DDD5] text-slate-800 hover:text-[var(--primary)] hover:border-[var(--primary)]/50 shadow-[0_6px_20px_rgba(0,0,0,0.06)]"
-                    : "bg-white/80 backdrop-blur-md border-[#E7E2DA]/90 text-slate-700 hover:text-[var(--primary)] hover:border-[var(--primary)]/40 shadow-[0_2px_12px_rgba(0,0,0,0.03)]"
+                    ? "bg-white/95 backdrop-blur-lg border-[#E2DDD5] text-slate-800 hover:text-[var(--primary)] hover:border-[var(--primary)]/50 shadow-[0_6px_20px_rgba(0,0,0,0.06)] lg:bg-black/45 lg:border-white/20 lg:text-white hover:lg:bg-black/60"
+                    : "bg-white/80 backdrop-blur-md border-[#E7E2DA]/90 text-slate-700 hover:text-[var(--primary)] hover:border-[var(--primary)]/40 shadow-[0_2px_12px_rgba(0,0,0,0.03)] lg:bg-black/35 lg:backdrop-blur-md lg:border-white/20 lg:text-white hover:lg:bg-black/50 hover:lg:border-white/35"
                 }`}
               >
-                <LogIn className="h-4 w-4 md:h-4.5 md:w-4.5 text-slate-500" />
-                <span>Login</span>
+                <LogIn className="h-4 w-4 md:h-4.5 md:w-4.5 text-slate-500 lg:text-white" />
+                <span className="lg:text-white">Login</span>
               </button>
             </Link>
           )}
