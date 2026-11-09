@@ -71,7 +71,7 @@ export function HeroScrollIndicator({
           onClick={handleScrollDown}
           tabIndex={isFadedOut ? -1 : 0}
           aria-label="Rolar para a próxima seção"
-          className="group relative flex items-center justify-center p-1 m-0 bg-transparent border-0 shadow-none cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/70 focus-visible:ring-offset-2 rounded-full transition-transform duration-200 hover:scale-105 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 drop-shadow-[0_1px_2px_rgba(255,255,255,0.85)]"
+          className="group relative flex items-center justify-center p-1 m-0 bg-transparent border-0 shadow-none cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/70 focus-visible:ring-offset-2 rounded-full transition-transform duration-200 hover:scale-105 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100"
         >
           <span
             aria-hidden="true"

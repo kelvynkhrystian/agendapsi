@@ -71,12 +71,13 @@ test("Hero Benefits & Scroll Indicator: Alinhamento à direita acima do WhatsApp
   const pagePath = path.join(process.cwd(), "src", "app", "page.tsx");
   const pageContent = fs.readFileSync(pagePath, "utf-8");
 
-  // Posicionamento responsivo alinhado verticalmente à coluna direita (right-6 w-[52px]) sem colidir com WhatsApp (bottom-40)
+  // Posicionamento responsivo no extremo direito (~50% da altura visível do Hero desktop) sem colidir com WhatsApp
   assert.ok(pageContent.includes("HeroScrollIndicator"), "page.tsx deve renderizar HeroScrollIndicator");
   assert.ok(pageContent.includes('targetSectionId="atendimentos"'), "Indicador deve rolar para #atendimentos");
   assert.ok(
-    pageContent.includes("hidden lg:flex absolute bottom-40 right-6 z-20 w-[52px]"),
-    "Indicador deve ficar no extremo direito (right-6 w-[52px]) alinhado verticalmente ao WhatsApp com espaçamento seguro (bottom-40)"
+    pageContent.includes('id="hero-scroll-indicator-position"') &&
+      pageContent.includes("hidden lg:flex absolute top-1/2 -translate-y-1/2 right-6 xl:right-8 z-20 w-[52px]"),
+    "Indicador deve ficar centralizado verticalmente (~50% do Hero) no extremo direito (top-1/2 -translate-y-1/2 right-6)"
   );
 
   // Ampliação proporcional dos benefícios (~1.5x vs baseline anterior) e redução do gap com CTAs

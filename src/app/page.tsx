@@ -493,11 +493,16 @@ export default async function HomePage() {
         </div>
 
         {/* ================= INDICADOR DE SCROLL ANIMADO NO DESKTOP ================= */}
-        {/* Posicionado no extremo direito do Hero desktop, alinhado verticalmente com o WhatsApp flutuante sem sobreposição */}
-        <HeroScrollIndicator
-          targetSectionId="atendimentos"
-          className="hidden lg:flex absolute bottom-40 right-6 z-20 w-[52px] items-center justify-center"
-        />
+        {/* Posicionado no extremo direito (~50% da altura visível do Hero desktop), fora do elemento animado pelo GSAP */}
+        <div
+          id="hero-scroll-indicator-position"
+          className="hidden lg:flex absolute top-1/2 -translate-y-1/2 right-6 xl:right-8 z-20 w-[52px] items-center justify-center pointer-events-none"
+        >
+          <HeroScrollIndicator
+            targetSectionId="atendimentos"
+            className="pointer-events-auto"
+          />
+        </div>
 
         {/* ================= TRANSIÇÃO GRADIENTE INFERIOR NO DESKTOP ================= */}
         {/* Suave fusão vertical na base (inferior 15-25%) conectando o Hero à seção seguinte (#atendimentos, bg-white).
