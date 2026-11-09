@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { isReducedMotion } from "@/lib/animation/gsap";
 
 export interface HeroScrollIndicatorProps {
   targetSectionId?: string;
@@ -9,26 +10,25 @@ export interface HeroScrollIndicatorProps {
 
 /**
  * Indicador de rolagem animado para o Hero Desktop do MiniSite.
- * Utiliza o arquivo SVG nativo animado via SMIL em /minisite/scroll-down.svg.
- * Fica posicionado no canto inferior direito do Hero desktop e desaparece suavemente na rolagem.
+ * Renderiza exclusivamente o asset SVG oficial (/minisite/scroll-down.svg) com sua animação SMIL nativa
+ * colorida dinamicamente via cor primária da Aparência (var(--primary)), sem rótulos de texto visíveis.
  */
 export function HeroScrollIndicator({
   targetSectionId = "atendimentos",
   className = "",
 }: HeroScrollIndicatorProps) {
-  const [opacity, setOpacity] = useState(1);
+  const [scrollOpacity, setScrollOpacity] = useState(1);
 
   // Controla o fade-out progressivo conforme o visitante rola a página para baixo
   useEffect(() => {
     const handleScroll = () => {
-      const scrollY = window.scrollY;
-      if (scrollY <= 10) {
-        setOpacity(1);
-      } else if (scrollY >= 200) {
-        setOpacity(0);
+      const y = window.scrollY;
+      if (y <= 12) {
+        setScrollOpacity(1);
+      } else if (y >= 180) {
+        setScrollOpacity(0);
       } else {
-        // Desvanecimento suave nos primeiros 200px de rolagem
-        setOpacity(Math.max(0, 1 - scrollY / 200));
+        setScrollOpacity(Math.max(0, 1 - (y - 12) / 168));
       }
     };
 
@@ -43,40 +43,50 @@ export function HeroScrollIndicator({
       // Offset de 84px para compensar a barra de navegação fixa do topo
       const headerOffset = 84;
       const elementPosition = targetElement.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      const offsetPosition = elementPosition + window.scrollY - headerOffset;
       window.scrollTo({
         top: offsetPosition,
-        behavior: "smooth",
+        behavior: isReducedMotion() ? "auto" : "smooth",
       });
     }
   }, [targetSectionId]);
 
+  const isFadedOut = scrollOpacity <= 0.05;
+
   return (
     <div
       id="hero-scroll-indicator"
-      className={`hidden lg:block select-none will-change-transform ${className}`}
-      aria-hidden={opacity <= 0.05}
+      className={`hidden lg:flex select-none will-change-transform ${className}`}
+      aria-hidden={isFadedOut}
     >
       <div
-        className="transition-opacity duration-300 ease-out"
+        className="transition-opacity duration-300 ease-out motion-reduce:transition-none"
         style={{
-          opacity,
-          pointerEvents: opacity <= 0.05 ? "none" : "auto",
+          opacity: scrollOpacity,
+          pointerEvents: isFadedOut ? "none" : "auto",
         }}
       >
         <button
           type="button"
           onClick={handleScrollDown}
+          tabIndex={isFadedOut ? -1 : 0}
           aria-label="Rolar para a próxima seção"
-          className="group relative flex flex-col items-center justify-center p-0 m-0 bg-transparent border-0 shadow-none cursor-pointer outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 rounded-full transition-transform hover:scale-105 active:scale-95"
+          className="group relative flex items-center justify-center p-1 m-0 bg-transparent border-0 shadow-none cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/70 focus-visible:ring-offset-2 rounded-full transition-transform duration-200 hover:scale-105 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 drop-shadow-[0_1px_2px_rgba(255,255,255,0.85)]"
         >
-          <img
-            src="/minisite/scroll-down.svg"
-            alt=""
-            width={42}
-            height={107}
-            className="w-[36px] lg:w-[42px] xl:w-[46px] h-auto pointer-events-none select-none drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]"
-            loading="eager"
+          <span
+            aria-hidden="true"
+            className="block w-[36px] xl:w-[40px] aspect-[51/130] pointer-events-none select-none"
+            style={{
+              backgroundColor: "var(--primary)",
+              WebkitMaskImage: 'url("/minisite/scroll-down.svg")',
+              maskImage: 'url("/minisite/scroll-down.svg")',
+              WebkitMaskRepeat: "no-repeat",
+              maskRepeat: "no-repeat",
+              WebkitMaskPosition: "center",
+              maskPosition: "center",
+              WebkitMaskSize: "contain",
+              maskSize: "contain",
+            }}
           />
         </button>
       </div>

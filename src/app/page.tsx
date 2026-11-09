@@ -311,10 +311,10 @@ export default async function HomePage() {
         </div>
 
         {/* Conteúdo Textual e Ações do Hero: Mobile centralizado; Desktop alinhado à esquerda sobre a mídia */}
-        <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:max-w-none lg:mx-0 lg:pl-[7vw] xl:pl-[8vw] lg:pr-8 relative z-10 order-3 lg:order-2 flex flex-col items-center lg:items-start text-center lg:text-left space-y-6 mt-4 lg:mt-0">
-          <div className="w-full lg:max-w-xl xl:max-w-2xl flex flex-col items-center lg:items-start text-center lg:text-left space-y-6 lg:[text-shadow:0_1px_3px_rgba(255,255,255,0.6)]">
+        <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:max-w-none lg:mx-0 lg:pl-[7vw] xl:pl-[8vw] lg:pr-8 relative z-10 order-3 lg:order-2 flex flex-col items-center lg:items-start text-center lg:text-left mt-4 lg:mt-0">
+          <div className="w-full lg:max-w-xl xl:max-w-2xl flex flex-col items-center lg:items-start text-center lg:text-left lg:[text-shadow:0_1px_3px_rgba(255,255,255,0.6)]">
             {/* Nome e Especialidade com Tipografia Elegante */}
-            <div id="hero-title-group" className="space-y-1.5 pt-1 flex flex-col items-center lg:items-start text-center lg:text-left">
+            <div id="hero-title-group" className="space-y-1.5 pt-1 mb-4 sm:mb-5 flex flex-col items-center lg:items-start text-center lg:text-left">
               <h1
                 id="hero-name"
                 className="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-display italic text-[var(--primary)] font-medium tracking-tight drop-shadow-2xs leading-tight"
@@ -328,14 +328,14 @@ export default async function HomePage() {
             </div>
 
             {/* Subtítulo / Frase de Acolhimento */}
-            <p id="hero-subtitle" className="text-sm sm:text-base text-slate-600 max-w-lg mx-auto lg:mx-0 lg:text-left leading-relaxed">
+            <p id="hero-subtitle" className="text-sm sm:text-base text-slate-600 max-w-lg mx-auto lg:mx-0 lg:text-left leading-relaxed mb-5 sm:mb-6">
               {heroSubtitle}
             </p>
 
             {/* Botões de Ação Hero */}
             <div
               id="hero-cta"
-              className="flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-3.5 w-full max-w-md lg:max-w-none pt-2"
+              className="flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-3.5 w-full max-w-md lg:max-w-none pt-1 mb-3.5 sm:mb-4"
             >
               <div className="hero-cta-item w-full lg:w-auto shrink-0">
                 <Link href="/agendar" className="block w-full lg:w-auto">
@@ -368,33 +368,33 @@ export default async function HomePage() {
             {activeBenefits.length > 0 && (
               <div
                 id="hero-benefits"
-                className={`w-full max-w-xl lg:max-w-2xl xl:max-w-3xl border-t border-slate-200/60 pt-3.5 mt-3 sm:pt-4 sm:mt-3.5 ${
+                className={`w-full max-w-xl lg:max-w-[565px] xl:max-w-none border-t border-slate-200/70 pt-3.5 mt-0 sm:pt-4 ${
                   activeBenefits.length === 1
                     ? "grid grid-cols-1 max-w-xs lg:flex lg:flex-row lg:items-start lg:justify-start"
                     : activeBenefits.length === 2
                     ? "grid grid-cols-2 max-w-sm lg:flex lg:flex-row lg:items-start lg:justify-start lg:gap-8 xl:gap-10"
-                    : "grid grid-cols-3 lg:flex lg:flex-row lg:items-start lg:justify-start lg:gap-6 xl:gap-8"
+                    : "grid grid-cols-3 lg:flex lg:flex-row lg:items-start lg:justify-start lg:gap-5 xl:gap-8"
                 } gap-3 sm:gap-5`}
               >
                 {activeBenefits.map((item) => (
                   <div
                     key={item.id}
-                    className="hero-benefit-item group flex flex-col items-center text-center space-y-2 p-2 lg:p-0 lg:flex-row lg:items-center lg:text-left lg:space-y-0 lg:gap-3.5 rounded-2xl transition-colors"
+                    className="hero-benefit-item group flex flex-col items-center text-center space-y-2 p-2 lg:p-0 lg:flex-row lg:items-center lg:text-left lg:space-y-0 lg:gap-3.5 xl:gap-4 rounded-2xl transition-colors min-w-0"
                   >
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-14 lg:h-14 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center transition-transform group-hover:scale-105 shadow-2xs shrink-0">
+                    <div className="w-13 h-13 sm:w-14 sm:h-14 lg:w-[58px] lg:h-[58px] xl:w-[62px] xl:h-[62px] rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center transition-transform group-hover:scale-105 shadow-2xs shrink-0">
                       <ThemeIcon
                         iconName={item.icon}
                         customIconUrl={item.customIconUrl}
-                        className="h-6.5 w-6.5 sm:h-7 sm:w-7 text-[var(--primary)]"
+                        className="h-6.5 w-6.5 sm:h-7 sm:w-7 lg:h-[29px] lg:w-[29px] xl:h-[31px] xl:w-[31px] text-[var(--primary)]"
                         alt={item.title}
                       />
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs sm:text-sm lg:text-[15px] font-heading font-bold uppercase tracking-tight text-slate-800 leading-tight">
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs sm:text-sm lg:text-[15px] xl:text-[17px] font-heading font-bold uppercase tracking-tight text-slate-800 leading-tight">
                         {item.title}
                       </span>
                       {item.subtitle && (
-                        <span className="text-[11px] sm:text-xs lg:text-[13px] text-slate-500 font-normal leading-relaxed line-clamp-1 lg:line-clamp-2">
+                        <span className="text-[11px] sm:text-xs lg:text-[13px] xl:text-[14px] text-slate-500 font-normal leading-snug line-clamp-1 lg:line-clamp-2">
                           {item.subtitle}
                         </span>
                       )}
@@ -407,10 +407,10 @@ export default async function HomePage() {
         </div>
 
         {/* ================= INDICADOR DE SCROLL ANIMADO NO DESKTOP ================= */}
-        {/* Posicionado no canto inferior direito do Hero desktop, com distância segura da borda e do WhatsApp flutuante */}
+        {/* Posicionado no extremo direito do Hero desktop, alinhado verticalmente com o WhatsApp flutuante sem sobreposição */}
         <HeroScrollIndicator
           targetSectionId="atendimentos"
-          className="absolute bottom-10 right-24 xl:right-32 2xl:right-40 z-20"
+          className="hidden lg:flex absolute bottom-40 right-6 z-20 w-[52px] items-center justify-center"
         />
 
         {/* ================= TRANSIÇÃO GRADIENTE INFERIOR NO DESKTOP ================= */}
