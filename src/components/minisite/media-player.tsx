@@ -350,7 +350,7 @@ export function MiniSiteMediaPlayer({
 
   // Enquadramento de objeto
   const getObjectFitClass = () => {
-    if (previewMode) return "object-contain";
+    if (previewMode || slot === "about") return "object-contain object-center";
     if (positioning === "contain") return "object-contain";
     if (positioning === "cover") return "object-cover";
     if (positioning === "top") return "object-cover object-top";
@@ -361,6 +361,11 @@ export function MiniSiteMediaPlayer({
   const isPublicHeroDesktop = !previewMode && slot === "hero";
   const isPublicHeroMobile = !previewMode && slot === "hero_mobile";
   const isPublicHero = isPublicHeroDesktop || isPublicHeroMobile;
+  const isPublicAbout = !previewMode && slot === "about";
+  const hasRenderableMedia =
+    (mediaType === "VIDEO" && Boolean(mediaUrl)) ||
+    (mediaType === "FRAME_ANIMATION" && Boolean(frames && frames.length > 0)) ||
+    (mediaType === "IMAGE" && Boolean(mediaUrl));
 
   const hasIntrinsicDims = Boolean(
     intrinsicWidth && intrinsicWidth > 0 && intrinsicHeight && intrinsicHeight > 0
@@ -392,6 +397,11 @@ export function MiniSiteMediaPlayer({
             : {}),
         } as React.CSSProperties)
       : undefined;
+  const aboutAspectStyle: React.CSSProperties | undefined =
+    isPublicAbout && resolvedAspectRatio
+      ? ({ aspectRatio: resolvedAspectRatio } as React.CSSProperties)
+      : undefined;
+  const activeAspectStyle = isPublicAbout ? aboutAspectStyle : heroAspectStyle;
   const isImagePoster =
     Boolean(posterUrl) && !/\.(mp4|webm|mov|avi)(\?|#|$)/i.test(posterUrl || "");
   const effectiveVideoPoster = isImagePoster ? posterUrl || undefined : undefined;
@@ -409,6 +419,8 @@ export function MiniSiteMediaPlayer({
     ? `w-full h-auto lg:h-full lg:w-full block max-w-full bg-[var(--hero-background-color,#FAF7F2)] object-contain hero-mobile-enlarged-media lg:object-cover ${desktopHeroObjectPos}`
     : isPublicHeroMobile
     ? "w-full h-auto block max-w-full bg-[var(--hero-background-color,#FAF7F2)] object-contain hero-mobile-enlarged-media"
+    : isPublicAbout
+    ? "w-auto h-auto max-w-full max-h-[500px] block object-contain object-center"
     : `w-full h-full ${getObjectFitClass()}`;
 
   return (
@@ -419,6 +431,8 @@ export function MiniSiteMediaPlayer({
           ? `relative w-full h-auto lg:h-full lg:w-full lg:absolute lg:inset-0 flex items-center justify-center bg-[var(--hero-background-color,#FAF7F2)] ${className}`
           : isPublicHeroMobile
           ? `relative w-full h-auto flex items-center justify-center bg-[var(--hero-background-color,#FAF7F2)] ${className}`
+          : isPublicAbout && hasRenderableMedia
+          ? `relative w-full max-h-[500px] flex items-center justify-center overflow-hidden ${className}`
           : `relative w-full h-full flex items-center justify-center overflow-hidden ${className}`
       }
     >
@@ -440,7 +454,7 @@ export function MiniSiteMediaPlayer({
             e.currentTarget.defaultPlaybackRate = effectiveSpeed;
             e.currentTarget.playbackRate = effectiveSpeed;
           }}
-          style={heroAspectStyle}
+          style={activeAspectStyle}
           className={mediaClassName}
         />
       ) : null}
@@ -453,6 +467,8 @@ export function MiniSiteMediaPlayer({
               ? "w-full h-auto lg:h-full lg:w-full lg:absolute lg:inset-0 relative flex items-center justify-center bg-[var(--hero-background-color,#FAF7F2)]"
               : isPublicHeroMobile
               ? "w-full h-auto relative flex items-center justify-center bg-[var(--hero-background-color,#FAF7F2)]"
+              : isPublicAbout
+              ? "w-full max-h-[500px] relative flex items-center justify-center"
               : "w-full h-full relative flex items-center justify-center"
           }
         >
@@ -463,14 +479,14 @@ export function MiniSiteMediaPlayer({
               alt={actualAlt}
               width={intrinsicWidth || undefined}
               height={intrinsicHeight || undefined}
-              style={heroAspectStyle}
+              style={activeAspectStyle}
               className={mediaClassName}
             />
           ) : (
             <canvas
               ref={canvasRef}
               className={mediaClassName}
-              style={{ display: "block", ...(heroAspectStyle || {}) }}
+              style={{ display: "block", ...(activeAspectStyle || {}) }}
             />
           )}
         </div>
@@ -483,7 +499,7 @@ export function MiniSiteMediaPlayer({
           alt={actualAlt}
           width={intrinsicWidth || undefined}
           height={intrinsicHeight || undefined}
-          style={heroAspectStyle}
+          style={activeAspectStyle}
           className={mediaClassName}
         />
       ) : null}

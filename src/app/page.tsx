@@ -169,6 +169,21 @@ export default async function HomePage() {
       : heroMediaUrl;
   const heroDimensions = await getLocalMediaDimensions(heroDimensionsSource);
 
+  const hasAboutMedia =
+    aboutMediaType === "FRAME_ANIMATION"
+      ? aboutFrames.length > 0
+      : Boolean(aboutMediaUrl);
+  const aboutDimensionsSource = hasAboutMedia
+    ? aboutMediaType === "FRAME_ANIMATION" && aboutFrames.length > 0
+      ? aboutPosterUrl && !/\.(mp4|webm|mov|avi)(\?|#|$)/i.test(aboutPosterUrl)
+        ? aboutPosterUrl
+        : aboutFrames[0]
+      : aboutMediaUrl
+    : null;
+  const aboutDimensions = hasAboutMedia
+    ? await getLocalMediaDimensions(aboutDimensionsSource)
+    : null;
+
   // Mídia independente do Hero Mobile (com fallback para o Hero Desktop quando vazia)
   let heroMobileFrames: string[] = [];
   if (site?.heroMobileFramesJson) {
@@ -653,7 +668,11 @@ export default async function HomePage() {
           <div className="p-6 sm:p-10 rounded-3xl bg-white border border-[#EFE9DF] shadow-xs flex flex-col md:flex-row items-center gap-8 lg:gap-10">
             {/* MEDIA SLOT 2: Ambiente do Consultório / Segundo Retrato Independente */}
             <div id="sobre-media" className="w-full md:w-5/12 shrink-0">
-              <div className="w-full aspect-4/3 rounded-2xl border border-[#EFE9DF] overflow-hidden relative shadow-inner bg-gradient-to-tr from-[#EBE3D5] to-[#F5EFEB]">
+              <div
+                className={`w-full ${
+                  hasAboutMedia ? "max-h-[500px]" : "aspect-4/3"
+                } rounded-2xl border border-[#EFE9DF] overflow-hidden relative shadow-inner bg-gradient-to-tr from-[#EBE3D5] to-[#F5EFEB] flex items-center justify-center`}
+              >
                 <MiniSiteMediaPlayer
                   slot="about"
                   mediaType={aboutMediaType}
@@ -667,6 +686,8 @@ export default async function HomePage() {
                   playbackMode={site?.aboutPlaybackMode || "AUTOMATIC"}
                   playbackDirection={site?.aboutPlaybackDirection || "FORWARD"}
                   positioning={site?.aboutPositioning || "center"}
+                  intrinsicWidth={aboutDimensions?.width}
+                  intrinsicHeight={aboutDimensions?.height}
                   altText="Consultório e Espaço Terapêutico"
                   className="rounded-2xl"
                 />
