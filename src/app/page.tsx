@@ -261,7 +261,7 @@ export default async function HomePage() {
         <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:max-w-none lg:mx-0 lg:pl-[7vw] xl:pl-[8vw] lg:pr-8 relative z-10 order-1 flex flex-col items-center lg:items-start text-center lg:text-left mb-3 lg:mb-4">
           <div
             id="hero-badge"
-            className="inline-block px-5 py-1.5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] lg:bg-white/15 lg:border lg:border-white/30 lg:text-white lg:backdrop-blur-md font-heading font-semibold text-xs uppercase tracking-wider shadow-xs"
+            className="inline-block px-5 py-1.5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] text-white font-heading font-semibold text-xs uppercase tracking-wider shadow-xs"
           >
             {crpCrm}
           </div>
@@ -322,14 +322,17 @@ export default async function HomePage() {
             </p>
 
             {/* Botões de Ação Hero */}
-            <div id="hero-cta" className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 w-full max-w-md pt-2">
-              <Link href="/agendar" className="w-full sm:w-auto">
+            <div
+              id="hero-cta"
+              className="flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-3.5 w-full max-w-md lg:max-w-none pt-2"
+            >
+              <Link href="/agendar" className="w-full lg:w-auto shrink-0">
                 <button
                   type="button"
-                  className="w-full sm:w-auto py-3.5 px-7 rounded-2xl font-heading font-semibold text-xs sm:text-sm uppercase tracking-wider shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] lg:text-white"
+                  className="w-full lg:w-auto inline-flex items-center justify-center gap-2 h-12 py-3.5 px-6 sm:px-7 rounded-2xl font-heading font-semibold text-xs sm:text-sm uppercase tracking-wider shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] transition-all cursor-pointer bg-[var(--primary)] text-white whitespace-nowrap"
                 >
-                  <Calendar className="h-4 w-4 text-[var(--primary-foreground,#ffffff)] lg:text-white shrink-0" />
-                  <span className="text-[var(--primary-foreground,#ffffff)] lg:text-white">Agende sua consulta</span>
+                  <Calendar className="h-4 w-4 text-white shrink-0" />
+                  <span className="text-white whitespace-nowrap">Agende sua consulta</span>
                 </button>
               </Link>
 
@@ -338,10 +341,10 @@ export default async function HomePage() {
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full sm:w-auto py-3.5 px-7 rounded-2xl font-heading font-semibold text-xs sm:text-sm text-white bg-[#221B16] hover:bg-[#181310] shadow-sm hover:shadow-md hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full lg:w-auto inline-flex items-center justify-center gap-2 h-12 py-3.5 px-6 sm:px-7 rounded-2xl font-heading font-semibold text-xs sm:text-sm text-white bg-[#221B16] hover:bg-[#181310] shadow-sm hover:shadow-md hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap shrink-0"
                 >
-                  <WhatsAppIcon className="h-4.5 w-4.5 shrink-0" variant="original" />
-                  <span>Chamar no WhatsApp</span>
+                  <WhatsAppIcon className="h-4.5 w-4.5 text-white shrink-0" variant="white" />
+                  <span className="text-white whitespace-nowrap">Chamar no WhatsApp</span>
                 </a>
               )}
             </div>
