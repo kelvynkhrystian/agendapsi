@@ -11,6 +11,7 @@ import { MiniSiteHeader } from "@/components/minisite/header";
 import { MiniSiteFloatingControls } from "@/components/minisite/floating-controls";
 import { MiniSiteMotionController } from "@/components/minisite/motion-controller";
 import { ThemeIcon } from "@/components/minisite/theme-icon";
+import { HeroScrollIndicator } from "@/components/minisite/hero-scroll-indicator";
 import { CookieBanner } from "@/components/cookie-consent/cookie-banner";
 import { CookiePreferencesTrigger } from "@/components/cookie-consent/cookie-preferences-trigger";
 import { DEFAULT_HERO_BENEFITS, HeroBenefitItem } from "@/lib/minisite-icons";
@@ -353,33 +354,33 @@ export default async function HomePage() {
             {activeBenefits.length > 0 && (
               <div
                 id="hero-benefits"
-                className={`w-full max-w-xl border-t border-slate-200/70 pt-6 mt-6 ${
+                className={`w-full max-w-xl lg:max-w-2xl xl:max-w-3xl border-t border-slate-200/60 pt-3.5 mt-3 sm:pt-4 sm:mt-3.5 ${
                   activeBenefits.length === 1
                     ? "grid grid-cols-1 max-w-xs lg:flex lg:flex-row lg:items-start lg:justify-start"
                     : activeBenefits.length === 2
-                    ? "grid grid-cols-2 max-w-sm lg:flex lg:flex-row lg:items-start lg:justify-start lg:gap-8"
-                    : "grid grid-cols-3 lg:flex lg:flex-row lg:items-start lg:justify-start lg:gap-6"
-                } gap-3 sm:gap-6`}
+                    ? "grid grid-cols-2 max-w-sm lg:flex lg:flex-row lg:items-start lg:justify-start lg:gap-8 xl:gap-10"
+                    : "grid grid-cols-3 lg:flex lg:flex-row lg:items-start lg:justify-start lg:gap-6 xl:gap-8"
+                } gap-3 sm:gap-5`}
               >
                 {activeBenefits.map((item) => (
                   <div
                     key={item.id}
-                    className="hero-benefit-item group flex flex-col items-center text-center space-y-2 p-2 lg:p-0 lg:flex-row lg:items-center lg:text-left lg:space-y-0 lg:gap-3 rounded-xl transition-all"
+                    className="hero-benefit-item group flex flex-col items-center text-center space-y-2 p-2 lg:p-0 lg:flex-row lg:items-center lg:text-left lg:space-y-0 lg:gap-3.5 rounded-2xl transition-all"
                   >
-                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center transition-transform group-hover:scale-105 shadow-2xs shrink-0">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-14 lg:h-14 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center transition-transform group-hover:scale-105 shadow-2xs shrink-0">
                       <ThemeIcon
                         iconName={item.icon}
                         customIconUrl={item.customIconUrl}
-                        className="h-5 w-5 text-[var(--primary)]"
+                        className="h-6.5 w-6.5 sm:h-7 sm:w-7 text-[var(--primary)]"
                         alt={item.title}
                       />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[11px] sm:text-xs font-heading font-bold uppercase tracking-tight text-slate-800 leading-tight">
+                      <span className="text-xs sm:text-sm lg:text-[15px] font-heading font-bold uppercase tracking-tight text-slate-800 leading-tight">
                         {item.title}
                       </span>
                       {item.subtitle && (
-                        <span className="text-[10px] sm:text-[11px] text-slate-500 font-normal leading-relaxed line-clamp-1 lg:line-clamp-2">
+                        <span className="text-[11px] sm:text-xs lg:text-[13px] text-slate-500 font-normal leading-relaxed line-clamp-1 lg:line-clamp-2">
                           {item.subtitle}
                         </span>
                       )}
@@ -390,6 +391,13 @@ export default async function HomePage() {
             )}
           </div>
         </div>
+
+        {/* ================= INDICADOR DE SCROLL ANIMADO NO DESKTOP ================= */}
+        {/* Posicionado no canto inferior direito do Hero desktop, com distância segura da borda e do WhatsApp flutuante */}
+        <HeroScrollIndicator
+          targetSectionId="atendimentos"
+          className="absolute bottom-10 right-24 xl:right-32 2xl:right-40 z-20"
+        />
 
         {/* ================= TRANSIÇÃO GRADIENTE INFERIOR NO DESKTOP ================= */}
         {/* Suave fusão vertical na base (inferior 15-25%) conectando o Hero à seção seguinte (#atendimentos, bg-white).

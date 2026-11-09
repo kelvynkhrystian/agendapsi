@@ -104,6 +104,17 @@ export function MiniSiteMotionController() {
       }, 0.65);
     }
 
+    // 1.8 Indicador de scroll animado no Hero desktop (aparição suave inicial)
+    if (document.querySelector("#hero-scroll-indicator")) {
+      heroTl.from("#hero-scroll-indicator", {
+        opacity: 0,
+        y: 12,
+        duration: 0.6,
+        ease: "power2.out",
+        clearProps: "all",
+      }, 0.75);
+    }
+
     // ============================================================================
     // 1.8 TRANSIÇÃO PARALLAX DO HERO NO DESKTOP (GSAP ScrollTrigger)
     // ============================================================================
