@@ -100,20 +100,25 @@ test("3. MiniSiteHeader — Botão de Login para Visitantes Não Autenticados", 
   );
 });
 
-test("4. MiniSiteHeader — Exibição do Nome do Usuário Autenticado e Ação de Conta", () => {
+test("4. MiniSiteHeader — Exibição do Primeiro Nome em Pílula Unificada e Ação de Conta", () => {
   const headerPath = path.join(process.cwd(), "src", "components", "minisite", "header.tsx");
   const content = fs.readFileSync(headerPath, "utf-8");
 
-  // Ícone de usuário e nome
+  // Pílula unificada Model 01 com avatar por iniciais e estritamente o primeiro nome
   assert.strictEqual(
-    content.includes("<UserCheck"),
+    content.includes("extractFirstName") && content.includes("getUserInitials"),
     true,
-    "Deve exibir ícone de usuário autenticado"
+    "Deve derivar estritamente o primeiro nome e as iniciais do avatar a partir do usuário autenticado"
   );
   assert.strictEqual(
-    content.includes("{user.name}"),
+    content.includes("{firstName}") && content.includes("{initials}"),
     true,
-    "Deve exibir o nome do usuário autenticado a partir da sessão real"
+    "Deve exibir o primeiro nome e as iniciais no cabeçalho autenticado"
+  );
+  assert.strictEqual(
+    content.includes('data-testid="minisite-profile-pill"'),
+    true,
+    "Deve renderizar o perfil desktop em uma única pílula horizontal coesa"
   );
 
   // Redirecionamento por papel (Role-based routing)
@@ -123,7 +128,7 @@ test("4. MiniSiteHeader — Exibição do Nome do Usuário Autenticado e Ação 
     "Admin deve ser direcionado para /admin e Paciente para /paciente"
   );
 
-  // Ação de logout
+  // Ação de logout integrada
   assert.strictEqual(
     content.includes('fetch("/api/auth/logout"'),
     true,

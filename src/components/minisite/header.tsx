@@ -8,7 +8,6 @@ import {
   X,
   LogIn,
   LogOut,
-  UserCheck,
   MapPin,
   Sparkles,
   Heart,
@@ -17,6 +16,7 @@ import {
   Home,
   ChevronRight,
 } from "lucide-react";
+import { extractFirstName, getUserInitials } from "@/lib/header-profile";
 
 export interface HeaderUser {
   name: string;
@@ -43,7 +43,7 @@ export function MiniSiteHeader({
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<HeaderUser | null>(currentUser);
-  const [isLoadingAuth, setIsLoadingAuth] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("inicio");
 
   const headerRef = useRef<HTMLElement>(null);
@@ -57,25 +57,28 @@ export function MiniSiteHeader({
       ? clinicName
       : professionalName || "Consultório de Psicologia";
 
-  // Sincroniza sessão no cliente caso tenha ocorrido login/logout em outra aba ou via router
+  // Sincroniza sessão no cliente de forma silenciosa caso tenha ocorrido login/logout em outra aba
   useEffect(() => {
-    setIsLoadingAuth(true);
-    fetch("/api/auth/me")
+    let active = true;
+    fetch("/api/auth/me", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
+        if (!active) return;
         if (data?.authenticated && data?.user) {
+          const authoritativeRole = data.role === "ADMIN" ? "ADMIN" : "PATIENT";
+          const savedName = data.user.name ?? data.user.fullName;
           setUser({
-            name: data.user.name || data.user.fullName || "Usuário",
-            role: data.role,
+            name: typeof savedName === "string" ? savedName : "",
+            role: authoritativeRole,
           });
         } else {
           setUser(null);
         }
       })
-      .catch(() => {})
-      .finally(() => {
-        setIsLoadingAuth(false);
-      });
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Monitora scroll para ativar efeito de sombra e fundo translúcido
@@ -192,6 +195,8 @@ export function MiniSiteHeader({
   };
 
   const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } finally {
@@ -202,6 +207,9 @@ export function MiniSiteHeader({
     }
   };
 
+  const isAdmin = user?.role === "ADMIN";
+  const firstName = user ? extractFirstName(user.name) : "";
+  const initials = user ? getUserInitials(user.name) : "";
   const dashboardUrl = user?.role === "ADMIN" ? "/admin" : "/paciente";
 
   const mobileNavItems = [
@@ -374,39 +382,55 @@ export function MiniSiteHeader({
           </nav>
         </div>
 
-        {/* LADO DIREITO: Autenticação (Pill arredondado de Login ou Usuário) */}
+        {/* LADO DIREITO: Autenticação (Pill arredondado de Login ou Perfil Model 01) */}
         <div id="hero-header-auth" ref={authRef} className="flex items-center justify-end gap-2.5 shrink-0 pointer-events-auto">
-          {isLoadingAuth ? (
-            <div className="w-24 h-10 rounded-full bg-slate-100/80 animate-pulse" />
-          ) : user ? (
-            <div className="flex items-center gap-1.5">
+          {user ? (
+            <div
+              data-testid="minisite-profile-pill"
+              className={`inline-flex items-center rounded-full border p-1 transition-all duration-200 max-w-[240px] ${
+                isScrolled
+                  ? "bg-black/68 backdrop-blur-lg border-white/25 shadow-[0_8px_28px_rgba(0,0,0,0.24)]"
+                  : "bg-black/55 backdrop-blur-md border-white/20 shadow-[0_4px_20px_rgba(0,0,0,0.16)]"
+              }`}
+            >
               <Link
                 href={dashboardUrl}
-                className={`inline-flex items-center gap-2 px-3.5 py-1.5 md:px-4 md:py-2 lg:px-4.5 lg:py-2 rounded-full border transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 group text-xs md:text-sm lg:text-[15px] font-heading font-semibold ${
-                  isScrolled
-                    ? "bg-white/95 backdrop-blur-lg border-[#E2DDD5] text-slate-800 hover:text-[var(--primary)] hover:border-[var(--primary)]/50 shadow-[0_6px_20px_rgba(0,0,0,0.06)] lg:bg-black/45 lg:border-white/20 lg:text-white hover:lg:text-white"
-                    : "bg-white/80 backdrop-blur-md border-[#E7E2DA]/90 text-slate-700 hover:text-[var(--primary)] hover:border-[var(--primary)]/40 shadow-[0_2px_12px_rgba(0,0,0,0.03)] lg:bg-black/35 lg:backdrop-blur-md lg:border-white/20 lg:text-white hover:lg:text-white"
-                }`}
-                aria-label={`Acessar painel (${user.name})`}
+                title={firstName}
+                aria-label={`Acessar painel (${firstName})`}
+                className="inline-flex items-center gap-2.5 pl-0.5 pr-2.5 py-0.5 rounded-full hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 min-w-0"
               >
-                <UserCheck className="h-4 w-4 md:h-4.5 md:w-4.5 text-[var(--primary)] lg:text-white group-hover:scale-105 transition-transform shrink-0" />
-                <span className="max-w-[110px] lg:max-w-[140px] truncate text-inherit">{user.name}</span>
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-[var(--primary)] text-white px-2 py-0.5 rounded-full shrink-0">
-                  {user.role === "ADMIN" ? "Admin" : "Paciente"}
+                <span
+                  aria-hidden="true"
+                  className="w-8 h-8 rounded-full bg-[var(--primary)] text-white flex items-center justify-center font-heading font-bold text-xs tracking-tight shrink-0 shadow-xs select-none"
+                >
+                  {initials}
+                </span>
+                <span className="flex flex-col justify-center min-w-0">
+                  <span className="font-heading font-semibold text-[13px] md:text-sm text-white truncate max-w-[82px] lg:max-w-[104px] xl:max-w-[120px] leading-tight whitespace-nowrap">
+                    {firstName}
+                  </span>
+                  {isAdmin && (
+                    <span
+                      data-testid="minisite-profile-admin-badge"
+                      className="mt-0.5 inline-flex items-center self-start px-1.5 py-[2px] rounded-full bg-[var(--primary)] text-white font-heading font-bold text-[9px] uppercase tracking-[0.08em] leading-none shrink-0"
+                    >
+                      ADMIN
+                    </span>
+                  )}
                 </span>
               </Link>
+
+              <span className="w-px h-5 bg-white/20 mx-0.5 shrink-0" aria-hidden="true" />
+
               <button
                 type="button"
                 onClick={handleLogout}
+                disabled={isLoggingOut}
                 title="Sair da conta"
                 aria-label="Sair da conta"
-                className={`p-1.5 md:p-2 lg:p-2 rounded-full border transition-all duration-200 cursor-pointer ${
-                  isScrolled
-                    ? "bg-white/95 backdrop-blur-lg border-[var(--primary)]/50 text-[var(--primary)] hover:border-[var(--primary)] hover:bg-[var(--primary)]/10 lg:bg-black/45 lg:border-white/20 lg:text-white hover:lg:bg-white/15"
-                    : "bg-white/80 backdrop-blur-md border-[var(--primary)]/40 text-[var(--primary)] hover:border-[var(--primary)] hover:bg-[var(--primary)]/10 lg:bg-black/35 lg:border-white/20 lg:text-white hover:lg:bg-white/15"
-                }`}
+                className="w-8 h-8 rounded-full inline-flex items-center justify-center text-white hover:bg-white/15 active:bg-white/25 disabled:opacity-60 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 shrink-0"
               >
-                <LogOut className="h-4 w-4 md:h-4.5 md:w-4.5" />
+                <LogOut className="h-4 w-4 text-white" />
               </button>
             </div>
           ) : (
@@ -488,28 +512,37 @@ export function MiniSiteHeader({
                 className="pt-1 pb-2 animate-block-stagger"
                 style={{ animationDelay: `${mobileNavItems.length * 55 + 90}ms` }}
               >
-                {isLoadingAuth ? (
-                  <div className="w-full h-12 rounded-xl bg-slate-100 animate-pulse" />
-                ) : user ? (
+                {user ? (
                   <div className="space-y-2">
                     <Link
                       href={dashboardUrl}
                       onClick={handleLinkClick}
-                      className="flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-bold text-slate-800 bg-[var(--primary)]/8 hover:bg-[var(--primary)]/15 text-[var(--primary)] transition-colors cursor-pointer"
+                      title={firstName}
+                      aria-label={`Acessar painel (${firstName})`}
+                      className="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold text-slate-800 bg-[var(--primary)]/8 hover:bg-[var(--primary)]/15 transition-colors cursor-pointer"
                     >
-                      <span className="flex items-center gap-3">
-                        <UserCheck className="h-4 w-4 text-[var(--primary)]" />
-                        <span className="truncate max-w-[190px]">{user.name}</span>
+                      <span className="flex items-center gap-3 min-w-0">
+                        <span
+                          aria-hidden="true"
+                          className="w-8 h-8 rounded-full bg-[var(--primary)] text-white flex items-center justify-center font-heading font-bold text-xs shrink-0"
+                        >
+                          {initials}
+                        </span>
+                        <span className="truncate max-w-[170px] text-slate-900">{firstName}</span>
                       </span>
-                      <span className="text-[10px] font-bold uppercase tracking-wider bg-[var(--primary)] text-white px-2.5 py-0.5 rounded-full">
-                        {user.role === "ADMIN" ? "Admin" : "Paciente"}
-                      </span>
+                      {isAdmin && (
+                        <span className="text-[10px] font-bold uppercase tracking-wider bg-[var(--primary)] text-white px-2.5 py-0.5 rounded-full shrink-0">
+                          ADMIN
+                        </span>
+                      )}
                     </Link>
 
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-semibold border border-[var(--primary)]/50 hover:border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)]/8 active:bg-[var(--primary)]/15 transition-all duration-200 cursor-pointer shadow-xs"
+                      disabled={isLoggingOut}
+                      aria-label="Sair da conta"
+                      className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-semibold border border-[var(--primary)]/50 hover:border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)]/8 active:bg-[var(--primary)]/15 disabled:opacity-60 transition-all duration-200 cursor-pointer shadow-xs"
                     >
                       <LogOut className="h-4 w-4 text-[var(--primary)]" />
                       <span>Sair da conta</span>
