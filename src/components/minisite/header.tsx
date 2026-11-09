@@ -351,7 +351,7 @@ export function MiniSiteHeader({
         <div ref={pillRef} className="flex items-center justify-center pointer-events-auto">
           <nav
             aria-label="Navegação principal"
-            className={`inline-flex items-center p-1 md:p-1.5 lg:p-1.5 rounded-full border transition-all duration-300 ${
+            className={`inline-flex items-center gap-0.5 lg:gap-1 p-1 md:p-1.5 lg:p-1.5 rounded-full border transition-all duration-300 ${
               isScrolled
                 ? "bg-white/95 backdrop-blur-lg border-[#E2DDD5] shadow-[0_8px_28px_rgba(0,0,0,0.08)] lg:bg-black/45 lg:border-white/20 lg:shadow-[0_8px_32px_rgba(0,0,0,0.25)]"
                 : "bg-white/80 backdrop-blur-md border-[#E7E2DA]/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] lg:bg-black/35 lg:backdrop-blur-md lg:border-white/20 lg:shadow-[0_4px_24px_rgba(0,0,0,0.15)]"
@@ -360,7 +360,7 @@ export function MiniSiteHeader({
             <a
               href="#inicio"
               onClick={(e) => scrollToSection(e, "inicio")}
-              className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
+              className={`px-3.5 py-1.5 md:px-4 md:py-2 lg:px-5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal whitespace-nowrap transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                 activeSection === "inicio"
                   ? "shadow-xs font-semibold text-white"
                   : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] lg:text-white/90 lg:hover:text-white lg:hover:bg-white/15"
@@ -370,21 +370,9 @@ export function MiniSiteHeader({
               Início
             </a>
             <a
-              href="#atendimentos"
-              onClick={(e) => scrollToSection(e, "atendimentos")}
-              className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
-                activeSection === "atendimentos"
-                  ? "shadow-xs font-semibold text-white"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] lg:text-white/90 lg:hover:text-white lg:hover:bg-white/15"
-              }`}
-              style={activeSection === "atendimentos" ? { backgroundColor: "var(--primary)", color: "#ffffff" } : undefined}
-            >
-              Atendimentos
-            </a>
-            <a
               href="#sobre"
               onClick={(e) => scrollToSection(e, "sobre")}
-              className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
+              className={`px-3.5 py-1.5 md:px-4 md:py-2 lg:px-5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal whitespace-nowrap transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                 activeSection === "sobre"
                   ? "shadow-xs font-semibold text-white"
                   : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] lg:text-white/90 lg:hover:text-white lg:hover:bg-white/15"
@@ -394,21 +382,9 @@ export function MiniSiteHeader({
               Sobre Mim
             </a>
             <a
-              href="#diferenciais"
-              onClick={(e) => scrollToSection(e, "diferenciais")}
-              className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
-                activeSection === "diferenciais"
-                  ? "shadow-xs font-semibold text-white"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] lg:text-white/90 lg:hover:text-white lg:hover:bg-white/15"
-              }`}
-              style={activeSection === "diferenciais" ? { backgroundColor: "var(--primary)", color: "#ffffff" } : undefined}
-            >
-              Diferenciais
-            </a>
-            <a
               href="#como-funciona"
               onClick={(e) => scrollToSection(e, "como-funciona")}
-              className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
+              className={`px-3.5 py-1.5 md:px-4 md:py-2 lg:px-5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal whitespace-nowrap transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                 activeSection === "como-funciona"
                   ? "shadow-xs font-semibold text-white"
                   : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] lg:text-white/90 lg:hover:text-white lg:hover:bg-white/15"
@@ -421,7 +397,7 @@ export function MiniSiteHeader({
               <a
                 href="#localizacao"
                 onClick={(e) => scrollToSection(e, "localizacao")}
-                className={`px-3 py-1.5 md:px-3.5 md:py-2 lg:px-4.5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
+                className={`px-3.5 py-1.5 md:px-4 md:py-2 lg:px-5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] tracking-normal whitespace-nowrap transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
                   activeSection === "localizacao"
                     ? "shadow-xs font-semibold text-white"
                     : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] lg:text-white/90 lg:hover:text-white lg:hover:bg-white/15"

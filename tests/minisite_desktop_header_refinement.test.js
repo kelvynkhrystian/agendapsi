@@ -155,12 +155,17 @@ test("7. Preservação de Funcionalidades de Navegação e Responsividade Móvel
   const headerPath = path.join(process.cwd(), "src", "components", "minisite", "header.tsx");
   const content = fs.readFileSync(headerPath, "utf-8");
 
-  // Links essenciais preservados
-  assert.ok(content.includes("#inicio"), "Deve conter link para Início");
-  assert.ok(content.includes("#atendimentos"), "Deve conter link para Atendimentos");
-  assert.ok(content.includes("#sobre"), "Deve conter link para Sobre Mim");
-  assert.ok(content.includes("#diferenciais"), "Deve conter link para Diferenciais");
-  assert.ok(content.includes("#como-funciona"), "Deve conter link para Como Funciona");
+  // Links essenciais do menu desktop simplificado
+  assert.ok(content.includes('href="#inicio"'), "Desktop deve conter link para Início");
+  assert.ok(content.includes('href="#sobre"'), "Desktop deve conter link para Sobre Mim");
+  assert.ok(content.includes('href="#como-funciona"'), "Desktop deve conter link para Como Funciona");
+  assert.ok(content.includes('href="#localizacao"'), "Desktop deve conter link para Localização");
+  assert.ok(!content.includes('href="#atendimentos"'), "Desktop não deve conter link para Atendimentos");
+  assert.ok(!content.includes('href="#diferenciais"'), "Desktop não deve conter link para Diferenciais");
+
+  // Navegação móvel preservada na íntegra via mobileNavItems
+  assert.ok(content.includes('id: "atendimentos"'), "Mobile deve preservar link para Atendimentos");
+  assert.ok(content.includes('id: "diferenciais"'), "Mobile deve preservar link para Diferenciais");
 
   // Não adiciona 'Agendar Consulta' nem marca 'PSI' no header
   assert.ok(

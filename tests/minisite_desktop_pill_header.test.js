@@ -31,11 +31,20 @@ test("2. Floating Pill Navigation: Estilo cápsula arredondada, itens corretos e
   assert.strictEqual(content.includes("backdrop-blur"), true, "Deve possuir fundo com desfoque suave (backdrop-blur)");
   assert.strictEqual(content.includes("shadow-"), true, "Deve possuir sombra sutil e refinada");
 
-  // Itens de navegação obrigatórios
-  const items = ["Início", "Atendimentos", "Sobre Mim", "Diferenciais", "Como Funciona"];
-  for (const item of items) {
-    assert.strictEqual(content.includes(item), true, `Pill deve conter o item ${item}`);
+  // Itens de navegação simplificados no pill desktop (exatamente 4 em ordem)
+  const navMatch = content.match(/<nav[\s\S]*?<\/nav>/);
+  assert.strictEqual(Boolean(navMatch), true, "Tag <nav> do pill desktop deve existir");
+  const navHtml = navMatch[0];
+
+  const desktopItems = ["Início", "Sobre Mim", "Como Funciona", "Localização"];
+  let lastIdx = -1;
+  for (const item of desktopItems) {
+    const idx = navHtml.indexOf(item);
+    assert.strictEqual(idx > lastIdx, true, `Pill desktop deve conter '${item}' na ordem correta`);
+    lastIdx = idx;
   }
+  assert.strictEqual(navHtml.includes("Atendimentos"), false, "Pill desktop não deve conter 'Atendimentos'");
+  assert.strictEqual(navHtml.includes("Diferenciais"), false, "Pill desktop não deve conter 'Diferenciais'");
 
   // Destaque do item ativo com a cor do tema configurada
   assert.strictEqual(

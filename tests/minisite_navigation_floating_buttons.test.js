@@ -135,21 +135,26 @@ test("5. MiniSiteHeader — Drawer de Navegação Móvel Completo", () => {
   const headerPath = path.join(process.cwd(), "src", "components", "minisite", "header.tsx");
   const content = fs.readFileSync(headerPath, "utf-8");
 
-  const expectedMobileLinks = [
-    'href="#inicio"',
-    'href="#atendimentos"',
-    'href="#sobre"',
-    'href="#diferenciais"',
-    'href="#como-funciona"',
+  const expectedMobileIds = [
+    'id: "inicio"',
+    'id: "atendimentos"',
+    'id: "sobre"',
+    'id: "diferenciais"',
+    'id: "como-funciona"',
   ];
 
-  for (const link of expectedMobileLinks) {
+  for (const idAttr of expectedMobileIds) {
     assert.strictEqual(
-      content.includes(link),
+      content.includes(idAttr),
       true,
-      `Menu móvel deve incluir link para ${link}`
+      `Menu móvel deve incluir item ${idAttr}`
     );
   }
+  assert.strictEqual(
+    content.includes('href={`#${item.id}`}'),
+    true,
+    "Menu móvel deve renderizar links âncora dinâmicos para cada seção"
+  );
 
   // Localização condicional
   assert.strictEqual(
