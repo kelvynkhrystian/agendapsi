@@ -599,6 +599,7 @@ model SiteSettings {
   showLocation           Boolean  @default(true) // Permite profissionais 100% online ocultarem o bloco físico
   whatsappDefaultMessage String?  @db.Text
   showFloatingWhatsApp   Boolean  @default(true) // Botão flutuante inferior de WhatsApp
+  sectionsConfigJson     String?  @db.MediumText // Configurações estruturadas por seção do Site (Atendimentos, Sobre, Diferenciais, Como Funciona, Depoimentos, Localização, Chamada Final e Rodapé)
 
   updatedAt      DateTime @updatedAt
 }

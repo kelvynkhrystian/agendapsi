@@ -15,6 +15,7 @@ import { CookieBanner } from "@/components/cookie-consent/cookie-banner";
 import { CookiePreferencesTrigger } from "@/components/cookie-consent/cookie-preferences-trigger";
 import { DEFAULT_HERO_BENEFITS, HeroBenefitItem } from "@/lib/minisite-icons";
 import { detectExistingFrames, getLocalMediaDimensions } from "@/lib/minisite-media";
+import { parseSiteSectionsConfig, DEVELOPER_ATTRIBUTION } from "@/lib/site-sections";
 import {
   formatFullAddress,
   getGoogleMapsDestinationUrl,
@@ -56,6 +57,46 @@ function hexToRgbTriplet(hex: string): string {
   const value = parseInt(match[1], 16);
   return `${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}`;
 }
+
+const DEFAULT_COMO_FUNCIONA_HEADER_FALLBACK = {
+  eyebrow: "PASSO A PASSO",
+  title: "Como Funciona?",
+  subtitle:
+    "Um processo simples, acolhedor e seguro, pensado para ajudar você a cuidar da sua saúde emocional com clareza e consistência.",
+} as const;
+
+const DEFAULT_COMO_FUNCIONA_FALLBACK_STEPS = [
+  {
+    id: "step-1",
+    number: "01",
+    icon: "CalendarDays",
+    title: "Agende sua consulta",
+    description:
+      "Escolha o horário e a modalidade ideal diretamente pelo nosso sistema online com praticidade e segurança.",
+  },
+  {
+    id: "step-2",
+    number: "02",
+    icon: "MessagesSquare",
+    title: "Realize sua avaliação inicial",
+    description:
+      "Primeira conversa para compreender suas necessidades, histórico e objetivos terapêuticos, em um espaço de escuta acolhedora.",
+  },
+  {
+    id: "step-3",
+    number: "03",
+    icon: "HandHeart",
+    title: "Inicie seu acompanhamento",
+    description:
+      "Sua jornada de cuidado, com sessões contínuas e um plano terapêutico personalizado, no seu ritmo e de forma consistente.",
+  },
+] as const;
+
+const COMO_FUNCIONA_ICON_COMPONENTS = {
+  CalendarDays,
+  MessagesSquare,
+  HandHeart,
+} as const;
 
 export default async function HomePage() {
   let site, profile, services, session, publishedLegalPages;
@@ -242,6 +283,32 @@ export default async function HomePage() {
   const mapsEmbedSrc = getGoogleMapsEmbedSrc(site);
   const shouldShowLocation = site?.showLocation !== false && !!(formattedAddress || mapsDestinationUrl);
 
+  // Configurações Dinâmicas das Seções do Site
+  const sections = parseSiteSectionsConfig(site?.sectionsConfigJson);
+  const visibleDiferenciais = sections.diferenciais.items.filter(
+    (item) => item.isVisible && item.title.trim().length > 0
+  );
+  const comoFuncionaSteps =
+    sections.comoFunciona.steps.length === 3
+      ? sections.comoFunciona.steps
+      : DEFAULT_COMO_FUNCIONA_FALLBACK_STEPS.map((step) => ({
+          id: step.id,
+          number: step.number,
+          icon: step.icon,
+          title: step.title,
+          description: step.description,
+        }));
+  const publishedTestimonials = sections.depoimentos.items.filter(
+    (item) => item.isVisible && item.consentConfirmed && item.quote.trim().length > 0
+  );
+  const hasFooterPrivacyLink = publishedPageIds.has("privacy") && sections.rodape.showPrivacyLink;
+  const hasFooterTermsLink = publishedPageIds.has("terms") && sections.rodape.showTermsLink;
+  const hasFooterLgpdLink = publishedPageIds.has("lgpd") && sections.rodape.showLgpdLink;
+  const hasFooterEthicsLink = publishedPageIds.has("ethics") && sections.rodape.showEthicsLink;
+  const footerCopyrightText =
+    sections.rodape.copyrightText.trim() ||
+    `© ${new Date().getFullYear()} ${clinicName}. Todos os direitos reservados.`;
+
   // Detecção e Resolução da Cor de Fundo do Hero (Desktop e Mobile independentes com fallback)
   const heroBgMode = site?.heroBgMode || "AUTO";
   const heroBgDetected = site?.heroBgDetectedColor;
@@ -275,6 +342,11 @@ export default async function HomePage() {
         professionalName={professionalName}
         crpCrm={crpCrm}
         shouldShowLocation={shouldShowLocation}
+        visibleSections={{
+          atendimentos: sections.atendimentos.isVisible,
+          diferenciais: sections.diferenciais.isVisible && visibleDiferenciais.length > 0,
+          comoFunciona: sections.comoFunciona.isVisible,
+        }}
         currentUser={currentUser}
       />
 
@@ -582,85 +654,91 @@ export default async function HomePage() {
       </div>
 
       {/* ================= 2. PRINCIPAIS DEMANDAS & ATENDIMENTOS ================= */}
-      <section id="atendimentos" className="py-16 px-4 bg-white scroll-mt-20">
-        <div className="max-w-4xl mx-auto space-y-10">
-          <div id="atendimentos-header" className="text-center space-y-2.5">
-            <span className="text-xs font-heading font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
-              — Atendimentos —
-            </span>
-            <h2 className="font-heading text-2xl sm:text-4xl font-bold tracking-tight text-slate-900">
-              Principais Demandas
-            </h2>
-            <p className="text-xs sm:text-base text-slate-600 max-w-lg mx-auto leading-relaxed">
-              Acompanhamento psicológico para diferentes momentos e desafios da vida.
-            </p>
-          </div>
+      {sections.atendimentos.isVisible && (
+        <section id="atendimentos" className="py-16 px-4 bg-white scroll-mt-20">
+          <div className="max-w-4xl mx-auto space-y-10">
+            <div id="atendimentos-header" className="text-center space-y-2.5">
+              {sections.atendimentos.eyebrow && (
+                <span className="text-xs font-heading font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
+                  — {sections.atendimentos.eyebrow} —
+                </span>
+              )}
+              <h2 className="font-heading text-2xl sm:text-4xl font-bold tracking-tight text-slate-900">
+                {sections.atendimentos.title}
+              </h2>
+              {sections.atendimentos.subtitle && (
+                <p className="text-xs sm:text-base text-slate-600 max-w-lg mx-auto leading-relaxed">
+                  {sections.atendimentos.subtitle}
+                </p>
+              )}
+            </div>
 
-          {/* Cards de Demandas e Serviços Reais do PSI */}
-          <div id="services-list" className="space-y-3.5">
-            {services.map((service, index) => {
-              // Ícones temáticos para cada serviço com base na modalidade ou posição
-              const icons = [Brain, Heart, Compass, Sparkles, User];
-              const IconComponent = icons[index % icons.length];
+            {/* Cards de Demandas e Serviços Reais do PSI */}
+            <div id="services-list" className="space-y-3.5">
+              {services.map((service, index) => {
+                // Ícones temáticos para cada serviço com base na modalidade ou posição
+                const icons = [Brain, Heart, Compass, Sparkles, User];
+                const IconComponent = icons[index % icons.length];
 
-              return (
-                <Link
-                  key={service.id}
-                  href={`/agendar?serviceId=${service.id}`}
-                  className="block group"
-                >
-                  <div className="p-4 sm:p-5 rounded-2xl bg-[#FCFAF6] border border-[#EFE9DF] hover:border-[var(--primary)] hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-4 min-w-0">
-                      <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
-                        <IconComponent className="h-5 w-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="font-heading font-bold text-sm sm:text-base text-slate-900 group-hover:text-[var(--primary)] transition-colors truncate">
-                          {service.name}
-                        </h3>
-                        <p className="text-xs text-slate-500 line-clamp-1 mt-0.5 leading-relaxed">
-                          {service.description || "Atendimento psicológico clínico personalizado e humanizado."}
-                        </p>
-                        <div className="flex flex-wrap items-center gap-2.5 mt-2 text-[11px] text-slate-400 font-medium">
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {service.durationMinutes} min
-                          </span>
-                          <span>•</span>
-                          <span>
-                            {service.modality === "ONLINE"
-                              ? "Teleconsulta"
-                              : service.modality === "PRESENTIAL"
-                              ? "Presencial"
-                              : "Presencial & Online"}
-                          </span>
-                          <span>•</span>
-                          <span className="font-bold text-[var(--primary)]">
-                            {service.isFree ? "Gratuito" : formatBRL(service.priceCents)}
-                          </span>
+                return (
+                  <Link
+                    key={service.id}
+                    href={`/agendar?serviceId=${service.id}`}
+                    className="block group"
+                  >
+                    <div className="p-4 sm:p-5 rounded-2xl bg-[#FCFAF6] border border-[#EFE9DF] hover:border-[var(--primary)] hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
+                          <IconComponent className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="font-heading font-bold text-sm sm:text-base text-slate-900 group-hover:text-[var(--primary)] transition-colors truncate">
+                            {service.name}
+                          </h3>
+                          <p className="text-xs text-slate-500 line-clamp-1 mt-0.5 leading-relaxed">
+                            {service.description || "Atendimento psicológico clínico personalizado e humanizado."}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2.5 mt-2 text-[11px] text-slate-500 font-medium">
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {service.durationMinutes} min
+                            </span>
+                            <span>•</span>
+                            <span>
+                              {service.modality === "ONLINE"
+                                ? "Teleconsulta"
+                                : service.modality === "PRESENTIAL"
+                                ? "Presencial"
+                                : "Presencial & Online"}
+                            </span>
+                            <span>•</span>
+                            <span className="font-bold text-[var(--primary)]">
+                              {service.isFree ? "Gratuito" : formatBRL(service.priceCents)}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="w-8 h-8 rounded-full bg-white border border-[#EFE9DF] flex items-center justify-center text-slate-400 group-hover:text-white group-hover:bg-[var(--primary)] group-hover:border-[var(--primary)] shrink-0 transition-colors shadow-2xs">
-                      <ChevronRight className="h-4 w-4" />
+                      <div className="w-8 h-8 rounded-full bg-white border border-[#EFE9DF] flex items-center justify-center text-slate-400 group-hover:text-white group-hover:bg-[var(--primary)] group-hover:border-[var(--primary)] shrink-0 transition-colors shadow-2xs">
+                        <ChevronRight className="h-4 w-4" />
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+                  </Link>
+                );
+              })}
+            </div>
 
-          <div className="text-center pt-2">
-            <Link href="/agendar">
-              <span className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 text-[var(--primary)] font-heading font-semibold text-xs transition-all hover:gap-2.5 cursor-pointer shadow-2xs">
-                <span>Ver todas as demandas & agendar</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </span>
-            </Link>
+            <div className="text-center pt-2">
+              <Link href="/agendar">
+                <span className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 text-[var(--primary)] font-heading font-semibold text-xs transition-all hover:gap-2.5 cursor-pointer shadow-2xs">
+                  <span>{sections.atendimentos.ctaLabel}</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </span>
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ================= 3. SOBRE MIM (Referência Visual) ================= */}
       <section id="sobre" className="py-16 px-4 bg-[#F8F5EE] border-y border-slate-200/60 scroll-mt-20">
@@ -697,11 +775,13 @@ export default async function HomePage() {
             {/* Conteúdo Biográfico */}
             <div id="sobre-content" className="w-full md:w-7/12 space-y-4">
               <div className="space-y-1">
-                <span className="text-xs font-heading font-bold uppercase tracking-[0.2em] text-[var(--primary)]">
-                  Trajetória Profissional
-                </span>
+                {sections.sobre.eyebrow && (
+                  <span className="text-xs font-heading font-bold uppercase tracking-[0.2em] text-[var(--primary)]">
+                    {sections.sobre.eyebrow}
+                  </span>
+                )}
                 <h2 className="font-heading text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-                  Sobre Mim
+                  {sections.sobre.title}
                 </h2>
               </div>
 
@@ -712,7 +792,7 @@ export default async function HomePage() {
               <div className="pt-2 flex flex-wrap items-center gap-3">
                 <Link href="/agendar">
                   <span className="inline-flex items-center gap-1.5 text-xs font-heading font-bold text-[var(--primary)] hover:underline">
-                    <span>Conheça minha história & agende uma sessão</span>
+                    <span>{sections.sobre.ctaLabel}</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </span>
                 </Link>
@@ -723,358 +803,354 @@ export default async function HomePage() {
       </section>
 
       {/* ================= 4. DIFERENCIAIS (Referência Visual) ================= */}
-      <section id="diferenciais" className="py-16 px-4 bg-white scroll-mt-20">
-        <div className="max-w-4xl mx-auto space-y-10">
-          <div id="diferenciais-header" className="text-center space-y-2.5">
-            <span className="text-xs font-heading font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
-              — Diferenciais —
-            </span>
-            <h2 className="font-heading text-2xl sm:text-4xl font-bold tracking-tight text-slate-900">
-              Por que escolher meu atendimento?
-            </h2>
-          </div>
-
-          <div id="diferenciais-grid" className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {/* Card 1 */}
-            <div className="p-5 sm:p-6 rounded-2xl bg-[#FCFAF6] border border-[#EFE9DF] hover:border-[var(--primary)]/50 hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-start gap-4">
-              <div className="w-11 h-11 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 shadow-2xs">
-                <Heart className="h-5 w-5" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="font-heading font-bold text-sm text-slate-900">
-                  Escuta Ativa e Acolhedora
-                </h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Espaço ético, seguro e livre de julgamentos, centrado na sua singularidade e no seu tempo.
-                </p>
-              </div>
+      {sections.diferenciais.isVisible && visibleDiferenciais.length > 0 && (
+        <section id="diferenciais" className="py-16 px-4 bg-white scroll-mt-20">
+          <div className="max-w-4xl mx-auto space-y-10">
+            <div id="diferenciais-header" className="text-center space-y-2.5">
+              {sections.diferenciais.eyebrow && (
+                <span className="text-xs font-heading font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
+                  — {sections.diferenciais.eyebrow} —
+                </span>
+              )}
+              <h2 className="font-heading text-2xl sm:text-4xl font-bold tracking-tight text-slate-900">
+                {sections.diferenciais.title}
+              </h2>
             </div>
 
-            {/* Card 2 */}
-            <div className="p-5 sm:p-6 rounded-2xl bg-[#FCFAF6] border border-[#EFE9DF] hover:border-[var(--primary)]/50 hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-start gap-4">
-              <div className="w-11 h-11 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 shadow-2xs">
-                <Target className="h-5 w-5" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="font-heading font-bold text-sm text-slate-900">
-                  Plano Terapêutico Personalizado
-                </h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Intervenções e metodologias baseadas em evidências científicas, alinhadas aos seus objetivos.
-                </p>
-              </div>
-            </div>
-
-            {/* Card 3 */}
-            <div className="p-5 sm:p-6 rounded-2xl bg-[#FCFAF6] border border-[#EFE9DF] hover:border-[var(--primary)]/50 hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-start gap-4">
-              <div className="w-11 h-11 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 shadow-2xs">
-                <Clock className="h-5 w-5" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="font-heading font-bold text-sm text-slate-900">
-                  Horários Flexíveis
-                </h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Grade de atendimento com ampla disponibilidade para harmonizar a terapia à sua rotina diária.
-                </p>
-              </div>
-            </div>
-
-            {/* Card 4 */}
-            <div className="p-5 sm:p-6 rounded-2xl bg-[#FCFAF6] border border-[#EFE9DF] hover:border-[var(--primary)]/50 hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-start gap-4">
-              <div className="w-11 h-11 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 shadow-2xs">
-                <Video className="h-5 w-5" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="font-heading font-bold text-sm text-slate-900">
-                  Atendimento Presencial e Online
-                </h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Flexibilidade para consultar no consultório físico ou por teleconsulta criptografada de onde estiver.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ================= 5. COMO FUNCIONA (Referência Visual) ================= */}
-      <section id="como-funciona" className="py-16 px-4 bg-[#F8F5EE] scroll-mt-20">
-        <div className="max-w-5xl mx-auto">
-          <div
-            id="como-funciona-card"
-            className="relative overflow-hidden rounded-[32px] sm:rounded-[40px] bg-[#FFFDF9] border border-[#EFE6DA] shadow-[0_12px_36px_-18px_rgba(62,32,20,0.08)] px-5 py-10 sm:px-10 sm:py-14 md:px-14 md:py-16"
-          >
-            {/* Elemento decorativo discreto: ramo de folhas bege/dourado no canto superior esquerdo */}
-            <svg
-              id="como-funciona-decor-leaves"
-              aria-hidden="true"
-              viewBox="0 0 180 140"
-              fill="none"
-              className="pointer-events-none select-none absolute -top-1 -left-1 w-24 sm:w-40 md:w-48 h-auto opacity-85 z-0"
-            >
-              <defs>
-                <linearGradient id="como-funciona-leaf-grad" x1="0%" y1="100%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#B9905B" stopOpacity="0.62" />
-                  <stop offset="55%" stopColor="#CFB082" stopOpacity="0.46" />
-                  <stop offset="100%" stopColor="#E6CFAF" stopOpacity="0.28" />
-                </linearGradient>
-              </defs>
-              {/* Caule orgânico principal */}
-              <path
-                d="M-6 110 C 28 96, 72 64, 122 18"
-                stroke="#C39E6B"
-                strokeOpacity="0.45"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-              {/* Ramo secundário inferior esquerdo */}
-              <path
-                d="M36 86 C 50 96, 62 100, 74 102"
-                stroke="#C39E6B"
-                strokeOpacity="0.35"
-                strokeWidth="1.2"
-                strokeLinecap="round"
-              />
-              {/* Folha 1 inferior esquerda */}
-              <path
-                d="M20 96 C 14 112, 22 126, 40 120 C 38 106, 30 98, 20 96 Z"
-                fill="url(#como-funciona-leaf-grad)"
-              />
-              {/* Folha 2 superior esquerda */}
-              <path
-                d="M42 82 C 30 62, 36 36, 56 32 C 62 50, 56 70, 42 82 Z"
-                fill="url(#como-funciona-leaf-grad)"
-              />
-              {/* Folha 3 inferior direita do caule */}
-              <path
-                d="M52 80 C 66 74, 86 78, 96 90 C 80 96, 62 92, 52 80 Z"
-                fill="url(#como-funciona-leaf-grad)"
-              />
-              {/* Folha 4 superior central */}
-              <path
-                d="M74 58 C 68 38, 76 14, 96 6 C 98 28, 90 46, 74 58 Z"
-                fill="url(#como-funciona-leaf-grad)"
-              />
-              {/* Folha 5 direita */}
-              <path
-                d="M84 54 C 102 48, 124 48, 138 56 C 122 66, 100 66, 84 54 Z"
-                fill="url(#como-funciona-leaf-grad)"
-              />
-              {/* Folha 6 apical (ponta) */}
-              <path
-                d="M104 34 C 114 16, 134 6, 152 8 C 142 26, 122 36, 104 34 Z"
-                fill="url(#como-funciona-leaf-grad)"
-              />
-            </svg>
-
-            {/* Elemento decorativo discreto: forma orgânica suave no canto inferior direito */}
-            <svg
-              id="como-funciona-decor-wave"
-              aria-hidden="true"
-              viewBox="0 0 400 160"
-              preserveAspectRatio="none"
-              fill="none"
-              className="pointer-events-none select-none absolute bottom-0 right-0 w-44 sm:w-72 md:w-[380px] h-24 sm:h-36 md:h-40 z-0"
-            >
-              <path
-                d="M16 160 C 92 158, 146 126, 214 88 C 276 54, 338 36, 400 18 L 400 160 Z"
-                fill="#F7EAE0"
-                fillOpacity="0.82"
-              />
-            </svg>
-
-            <div className="relative z-10">
-              {/* Cabeçalho centralizado */}
-              <div id="como-funciona-header" className="text-center max-w-2xl mx-auto space-y-3 sm:space-y-4">
+            <div id="diferenciais-grid" className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {visibleDiferenciais.map((item) => (
                 <div
-                  id="como-funciona-eyebrow"
-                  className="inline-flex items-center justify-center gap-3 text-[11px] sm:text-xs font-heading font-semibold uppercase tracking-[0.24em] text-[#C24A0E]"
+                  key={item.id}
+                  className="p-5 sm:p-6 rounded-2xl bg-[#FCFAF6] border border-[#EFE9DF] hover:border-[var(--primary)]/50 hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-start gap-4"
                 >
-                  <span className="w-3.5 h-[1.5px] bg-[#D96528]/70 rounded-full" aria-hidden="true" />
-                  <span>PASSO A PASSO</span>
-                  <span className="w-3.5 h-[1.5px] bg-[#D96528]/70 rounded-full" aria-hidden="true" />
-                </div>
-
-                <h2
-                  id="como-funciona-title"
-                  style={{ fontFamily: "var(--font-playfair), var(--font-display), Georgia, serif" }}
-                  className="text-[32px] min-[375px]:text-[36px] sm:text-[42px] md:text-[46px] font-medium text-[#2E1A10] tracking-[-0.012em] leading-[1.14]"
-                >
-                  Como Funciona?
-                </h2>
-
-                <p
-                  id="como-funciona-subtitle"
-                  className="text-[13.5px] sm:text-[15.5px] text-[#66574E] max-w-[540px] mx-auto leading-[1.65] font-normal"
-                >
-                  Um processo simples, acolhedor e seguro, pensado para ajudar você a cuidar da sua saúde emocional com clareza e consistência.
-                </p>
-              </div>
-
-              {/* Timeline Horizontal (Desktop) / Vertical à esquerda (Mobile) */}
-              <div
-                id="como-funciona-steps"
-                className="mt-10 sm:mt-12 md:mt-14 [--cf-gap:2rem] lg:[--cf-gap:2.5rem] flex flex-col gap-7 md:grid md:grid-cols-3 md:gap-8 lg:gap-10 relative"
-              >
-                {[
-                  {
-                    number: "01",
-                    title: "Agende sua consulta",
-                    description:
-                      "Escolha o horário e a modalidade ideal diretamente pelo nosso sistema online com praticidade e segurança.",
-                    Icon: CalendarDays,
-                  },
-                  {
-                    number: "02",
-                    title: "Realize sua avaliação inicial",
-                    description:
-                      "Primeira conversa para compreender suas necessidades, histórico e objetivos terapêuticos, em um espaço de escuta acolhedora.",
-                    Icon: MessagesSquare,
-                  },
-                  {
-                    number: "03",
-                    title: "Inicie seu acompanhamento",
-                    description:
-                      "Sua jornada de cuidado, com sessões contínuas e um plano terapêutico personalizado, no seu ritmo e de forma consistente.",
-                    Icon: HandHeart,
-                  },
-                ].map((step, index) => {
-                  const StepIcon = step.Icon;
-                  const hasNext = index < 2;
-                  return (
-                    <div
-                      key={step.number}
-                      data-step={step.number}
-                      className="como-funciona-step group relative flex flex-row items-start text-left gap-4 md:flex-col md:items-center md:text-center md:gap-0 min-w-0"
-                    >
-                      {/* Linha conectora horizontal (Desktop >= md) */}
-                      {hasNext && (
-                        <div
-                          aria-hidden="true"
-                          style={{
-                            left: "calc(50% + 58px)",
-                            width: "calc(100% + var(--cf-gap) - 116px)",
-                          }}
-                          className="hidden md:flex items-center absolute top-[44px] -translate-y-1/2 pointer-events-none z-0"
-                        >
-                          <span className="como-funciona-line flex-1 h-[1.5px] bg-[#E8AD84]/80 rounded-full origin-left" />
-                          <span className="como-funciona-dot w-2.5 h-2.5 rounded-full border-[1.75px] border-[#DF6B2B] bg-[#FFFDF9] mx-1.5 shrink-0" />
-                          <span className="como-funciona-line flex-1 h-[1.5px] bg-[#E8AD84]/80 rounded-full origin-left" />
-                        </div>
-                      )}
-
-                      {/* Linha conectora vertical à esquerda (Mobile < md) */}
-                      {hasNext && (
-                        <div
-                          aria-hidden="true"
-                          className="md:hidden absolute top-[62px] min-[375px]:top-[70px] bottom-[-22px] left-[28px] min-[375px]:left-[32px] -translate-x-1/2 flex flex-col items-center pointer-events-none z-0"
-                        >
-                          <span className="como-funciona-mobile-line w-[1.5px] flex-1 bg-[#E8AD84]/80 rounded-full origin-top" />
-                          <span className="como-funciona-mobile-dot w-2 h-2 rounded-full border-[1.5px] border-[#DF6B2B] bg-[#FFFDF9] my-1 shrink-0" />
-                          <span className="como-funciona-mobile-line w-[1.5px] flex-1 bg-[#E8AD84]/80 rounded-full origin-top" />
-                        </div>
-                      )}
-
-                      {/* Círculo bege-claro (~88px desktop, proporcional mobile) com ícone outline marrom escuro */}
-                      <div className="como-funciona-icon-wrap relative z-10 w-14 h-14 min-[375px]:w-16 min-[375px]:h-16 md:w-[88px] md:h-[88px] rounded-full bg-[#FCEFE4] border border-[#F7DFCC]/70 flex items-center justify-center shrink-0">
-                        <StepIcon
-                          className="w-6 h-6 min-[375px]:w-7 min-[375px]:h-7 md:w-[34px] md:h-[34px] text-[#462516]"
-                          strokeWidth={1.65}
-                        />
-                      </div>
-
-                      {/* Conteúdo da etapa (cápsula numérica + título + descrição) */}
-                      <div className="flex-1 min-w-0 md:mt-4 flex flex-col items-start md:items-center">
-                        <span className="inline-flex items-center justify-center px-3 py-0.5 rounded-full bg-[#FDE4CF] text-[#B8470A] font-heading font-bold text-[11px] tracking-wider tabular-nums mb-2">
-                          {step.number}
-                        </span>
-                        <h3 className="font-heading font-bold text-[15px] sm:text-base text-[#2E1A10] leading-snug mb-1.5">
-                          {step.title}
-                        </h3>
-                        <p className="text-[13px] sm:text-[13.5px] text-[#6A5A50] leading-[1.6] md:max-w-[250px] md:mx-auto">
-                          {step.description}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Botão de Agendamento Online centralizado abaixo da timeline */}
-              <div id="como-funciona-cta" className="mt-10 sm:mt-12 text-center">
-                <Link
-                  href="/agendar"
-                  className="group inline-flex w-full sm:w-auto max-w-full items-center justify-center gap-2.5 rounded-full bg-[#F45108] hover:bg-[#DC4606] active:scale-[0.98] text-white font-heading font-semibold text-sm sm:text-[15px] px-7 sm:px-9 py-3.5 sm:py-4 shadow-[0_8px_20px_-6px_rgba(244,81,8,0.38)] hover:shadow-[0_12px_24px_-6px_rgba(244,81,8,0.46)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F45108] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FFFDF9] transition-all duration-200"
-                >
-                  <span>Iniciar Agendamento Online</span>
-                  <ArrowRight className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ================= 6. DEPOIMENTOS (Referência Visual & Ética) ================= */}
-      <section id="depoimentos" className="py-16 sm:py-20 px-4 bg-white">
-        <div className="max-w-2xl mx-auto space-y-8 text-center">
-          <div className="space-y-2">
-            <span className="text-xs font-heading font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
-              — Depoimentos —
-            </span>
-            <h2 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-              O que meus pacientes dizem
-            </h2>
-          </div>
-
-          {/* Card de Depoimento Autorizado & Conformidade Ética CFP */}
-          <div id="depoimento-card" className="p-6 sm:p-8 rounded-3xl bg-[#FCFAF6] border border-[#EFE9DF] shadow-xs space-y-4 text-left relative overflow-hidden">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/15 text-[var(--primary)] font-heading font-bold flex items-center justify-center text-base shrink-0 shadow-2xs">
-                A
-              </div>
-              <div className="space-y-1.5 flex-1">
-                <p className="text-xs sm:text-sm text-slate-700 italic leading-relaxed">
-                  &quot;O processo terapêutico tem sido transformador. A escuta atenciosa e as orientações práticas me ajudaram a lidar com a ansiedade e a retomar a clareza nas decisões da minha vida.&quot;
-                </p>
-                <div className="flex items-center justify-between pt-2">
-                  <span className="font-heading font-bold text-xs text-[var(--primary)]">
-                    Ana R. (Paciente em Acompanhamento)
-                  </span>
-                  <div className="flex items-center text-amber-400 gap-0.5">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-3.5 w-3.5 fill-current" />
-                    ))}
+                  <div className="w-11 h-11 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 shadow-2xs">
+                    <ThemeIcon
+                      iconName={item.icon}
+                      customIconUrl={item.customIconUrl}
+                      className="h-5 w-5"
+                      alt={item.title}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-heading font-bold text-sm text-slate-900">
+                      {item.title}
+                    </h4>
+                    {item.description && (
+                      <p className="text-xs text-slate-600 leading-relaxed">
+                        {item.description}
+                      </p>
+                    )}
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <div className="border-t border-[#EFE9DF] pt-3 text-[10px] text-slate-400 flex items-center gap-1.5">
-              <Lock className="h-3 w-3 shrink-0" />
-              <span>
-                Depoimento publicado sob consentimento livre e esclarecido, em conformidade com o Código de Ética Profissional (CFP).
-              </span>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* ================= 5. COMO FUNCIONA (Referência Visual) ================= */}
+      {sections.comoFunciona.isVisible && (
+        <section id="como-funciona" className="py-16 px-4 bg-[#F8F5EE] scroll-mt-20">
+          <div className="max-w-5xl mx-auto">
+            <div
+              id="como-funciona-card"
+              className="relative overflow-hidden rounded-[32px] sm:rounded-[40px] bg-[#FFFDF9] border border-[#EFE6DA] shadow-[0_12px_36px_-18px_rgba(62,32,20,0.08)] px-5 py-10 sm:px-10 sm:py-14 md:px-14 md:py-16"
+            >
+              {/* Elemento decorativo discreto: ramo de folhas bege/dourado no canto superior esquerdo */}
+              <svg
+                id="como-funciona-decor-leaves"
+                aria-hidden="true"
+                viewBox="0 0 180 140"
+                fill="none"
+                className="pointer-events-none select-none absolute -top-1 -left-1 w-24 sm:w-40 md:w-48 h-auto opacity-85 z-0"
+              >
+                <defs>
+                  <linearGradient id="como-funciona-leaf-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#B9905B" stopOpacity="0.62" />
+                    <stop offset="55%" stopColor="#CFB082" stopOpacity="0.46" />
+                    <stop offset="100%" stopColor="#E6CFAF" stopOpacity="0.28" />
+                  </linearGradient>
+                </defs>
+                {/* Caule orgânico principal */}
+                <path
+                  d="M-6 110 C 28 96, 72 64, 122 18"
+                  stroke="#C39E6B"
+                  strokeOpacity="0.45"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+                {/* Ramo secundário inferior esquerdo */}
+                <path
+                  d="M36 86 C 50 96, 62 100, 74 102"
+                  stroke="#C39E6B"
+                  strokeOpacity="0.35"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                />
+                {/* Folha 1 inferior esquerda */}
+                <path
+                  d="M20 96 C 14 112, 22 126, 40 120 C 38 106, 30 98, 20 96 Z"
+                  fill="url(#como-funciona-leaf-grad)"
+                />
+                {/* Folha 2 superior esquerda */}
+                <path
+                  d="M42 82 C 30 62, 36 36, 56 32 C 62 50, 56 70, 42 82 Z"
+                  fill="url(#como-funciona-leaf-grad)"
+                />
+                {/* Folha 3 inferior direita do caule */}
+                <path
+                  d="M52 80 C 66 74, 86 78, 96 90 C 80 96, 62 92, 52 80 Z"
+                  fill="url(#como-funciona-leaf-grad)"
+                />
+                {/* Folha 4 superior central */}
+                <path
+                  d="M74 58 C 68 38, 76 14, 96 6 C 98 28, 90 46, 74 58 Z"
+                  fill="url(#como-funciona-leaf-grad)"
+                />
+                {/* Folha 5 direita */}
+                <path
+                  d="M84 54 C 102 48, 124 48, 138 56 C 122 66, 100 66, 84 54 Z"
+                  fill="url(#como-funciona-leaf-grad)"
+                />
+                {/* Folha 6 apical (ponta) */}
+                <path
+                  d="M104 34 C 114 16, 134 6, 152 8 C 142 26, 122 36, 104 34 Z"
+                  fill="url(#como-funciona-leaf-grad)"
+                />
+              </svg>
+
+              {/* Elemento decorativo discreto: forma orgânica suave no canto inferior direito */}
+              <svg
+                id="como-funciona-decor-wave"
+                aria-hidden="true"
+                viewBox="0 0 400 160"
+                preserveAspectRatio="none"
+                fill="none"
+                className="pointer-events-none select-none absolute bottom-0 right-0 w-44 sm:w-72 md:w-[380px] h-24 sm:h-36 md:h-40 z-0"
+              >
+                <path
+                  d="M16 160 C 92 158, 146 126, 214 88 C 276 54, 338 36, 400 18 L 400 160 Z"
+                  fill="#F7EAE0"
+                  fillOpacity="0.82"
+                />
+              </svg>
+
+              <div className="relative z-10">
+                {/* Cabeçalho centralizado */}
+                <div id="como-funciona-header" className="text-center max-w-2xl mx-auto space-y-3 sm:space-y-4">
+                  <div
+                    id="como-funciona-eyebrow"
+                    className="inline-flex items-center justify-center gap-3 text-[11px] sm:text-xs font-heading font-semibold uppercase tracking-[0.24em] text-[#C24A0E]"
+                  >
+                    <span className="w-3.5 h-[1.5px] bg-[#D96528]/70 rounded-full" aria-hidden="true" />
+                    <span>{sections.comoFunciona.eyebrow || DEFAULT_COMO_FUNCIONA_HEADER_FALLBACK.eyebrow}</span>
+                    <span className="w-3.5 h-[1.5px] bg-[#D96528]/70 rounded-full" aria-hidden="true" />
+                  </div>
+
+                  <h2
+                    id="como-funciona-title"
+                    style={{ fontFamily: "var(--font-playfair), var(--font-display), Georgia, serif" }}
+                    className="text-[32px] min-[375px]:text-[36px] sm:text-[42px] md:text-[46px] font-medium text-[#2E1A10] tracking-[-0.012em] leading-[1.14]"
+                  >
+                    {sections.comoFunciona.title || DEFAULT_COMO_FUNCIONA_HEADER_FALLBACK.title}
+                  </h2>
+
+                  {(sections.comoFunciona.subtitle ?? DEFAULT_COMO_FUNCIONA_HEADER_FALLBACK.subtitle) && (
+                    <p
+                      id="como-funciona-subtitle"
+                      className="text-[13.5px] sm:text-[15.5px] text-[#66574E] max-w-[540px] mx-auto leading-[1.65] font-normal"
+                    >
+                      {sections.comoFunciona.subtitle ?? DEFAULT_COMO_FUNCIONA_HEADER_FALLBACK.subtitle}
+                    </p>
+                  )}
+                </div>
+
+                {/* Timeline Horizontal (Desktop) / Vertical à esquerda (Mobile) */}
+                <div
+                  id="como-funciona-steps"
+                  className="mt-10 sm:mt-12 md:mt-14 [--cf-gap:2rem] lg:[--cf-gap:2.5rem] flex flex-col gap-7 md:grid md:grid-cols-3 md:gap-8 lg:gap-10 relative"
+                >
+                  {comoFuncionaSteps.map((step, index) => {
+                    const DirectIcon =
+                      COMO_FUNCIONA_ICON_COMPONENTS[
+                        step.icon as keyof typeof COMO_FUNCIONA_ICON_COMPONENTS
+                      ];
+                    const hasNext = index < comoFuncionaSteps.length - 1;
+                    return (
+                      <div
+                        key={step.id || step.number}
+                        data-step={step.number}
+                        className="como-funciona-step group relative flex flex-row items-start text-left gap-4 md:flex-col md:items-center md:text-center md:gap-0 min-w-0"
+                      >
+                        {/* Linha conectora horizontal (Desktop >= md) */}
+                        {hasNext && (
+                          <div
+                            aria-hidden="true"
+                            style={{
+                              left: "calc(50% + 58px)",
+                              width: "calc(100% + var(--cf-gap) - 116px)",
+                            }}
+                            className="hidden md:flex items-center absolute top-[44px] -translate-y-1/2 pointer-events-none z-0"
+                          >
+                            <span className="como-funciona-line flex-1 h-[1.5px] bg-[#E8AD84]/80 rounded-full origin-left" />
+                            <span className="como-funciona-dot w-2.5 h-2.5 rounded-full border-[1.75px] border-[#DF6B2B] bg-[#FFFDF9] mx-1.5 shrink-0" />
+                            <span className="como-funciona-line flex-1 h-[1.5px] bg-[#E8AD84]/80 rounded-full origin-left" />
+                          </div>
+                        )}
+
+                        {/* Linha conectora vertical à esquerda (Mobile < md) */}
+                        {hasNext && (
+                          <div
+                            aria-hidden="true"
+                            className="md:hidden absolute top-[62px] min-[375px]:top-[70px] bottom-[-22px] left-[28px] min-[375px]:left-[32px] -translate-x-1/2 flex flex-col items-center pointer-events-none z-0"
+                          >
+                            <span className="como-funciona-mobile-line w-[1.5px] flex-1 bg-[#E8AD84]/80 rounded-full origin-top" />
+                            <span className="como-funciona-mobile-dot w-2 h-2 rounded-full border-[1.5px] border-[#DF6B2B] bg-[#FFFDF9] my-1 shrink-0" />
+                            <span className="como-funciona-mobile-line w-[1.5px] flex-1 bg-[#E8AD84]/80 rounded-full origin-top" />
+                          </div>
+                        )}
+
+                        {/* Círculo bege-claro (~88px desktop, proporcional mobile) com ícone outline marrom escuro */}
+                        <div className="como-funciona-icon-wrap relative z-10 w-14 h-14 min-[375px]:w-16 min-[375px]:h-16 md:w-[88px] md:h-[88px] rounded-full bg-[#FCEFE4] border border-[#F7DFCC]/70 flex items-center justify-center shrink-0">
+                          {DirectIcon ? (
+                            <DirectIcon
+                              className="w-6 h-6 min-[375px]:w-7 min-[375px]:h-7 md:w-[34px] md:h-[34px] text-[#462516]"
+                              strokeWidth={1.65}
+                            />
+                          ) : (
+                            <ThemeIcon
+                              iconName={step.icon}
+                              className="w-6 h-6 min-[375px]:w-7 min-[375px]:h-7 md:w-[34px] md:h-[34px] text-[#462516]"
+                              strokeWidth={1.65}
+                              alt={step.title}
+                            />
+                          )}
+                        </div>
+
+                        {/* Conteúdo da etapa (cápsula numérica + título + descrição) */}
+                        <div className="flex-1 min-w-0 md:mt-4 flex flex-col items-start md:items-center">
+                          <span className="inline-flex items-center justify-center px-3 py-0.5 rounded-full bg-[#FDE4CF] text-[#B8470A] font-heading font-bold text-[11px] tracking-wider tabular-nums mb-2">
+                            {step.number}
+                          </span>
+                          <h3 className="font-heading font-bold text-[15px] sm:text-base text-[#2E1A10] leading-snug mb-1.5">
+                            {step.title}
+                          </h3>
+                          <p className="text-[13px] sm:text-[13.5px] text-[#6A5A50] leading-[1.6] md:max-w-[250px] md:mx-auto">
+                            {step.description}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Botão de Agendamento Online centralizado abaixo da timeline */}
+                <div id="como-funciona-cta" className="mt-10 sm:mt-12 text-center">
+                  <Link
+                    href="/agendar"
+                    className="group inline-flex w-full sm:w-auto max-w-full items-center justify-center gap-2.5 rounded-full bg-[#F45108] hover:bg-[#DC4606] active:scale-[0.98] text-white font-heading font-semibold text-sm sm:text-[15px] px-7 sm:px-9 py-3.5 sm:py-4 shadow-[0_8px_20px_-6px_rgba(244,81,8,0.38)] hover:shadow-[0_12px_24px_-6px_rgba(244,81,8,0.46)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F45108] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FFFDF9] transition-all duration-200"
+                  >
+                    <span>{sections.comoFunciona.ctaLabel || "Iniciar Agendamento Online"}</span>
+                    <ArrowRight className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ================= 6. DEPOIMENTOS (Referência Visual & Ética) ================= */}
+      {sections.depoimentos.isVisible && publishedTestimonials.length > 0 && (
+        <section id="depoimentos" className="py-16 sm:py-20 px-4 bg-white">
+          <div className="max-w-2xl mx-auto space-y-8 text-center">
+            <div className="space-y-2">
+              {sections.depoimentos.eyebrow && (
+                <span className="text-xs font-heading font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
+                  — {sections.depoimentos.eyebrow} —
+                </span>
+              )}
+              <h2 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+                {sections.depoimentos.title}
+              </h2>
+            </div>
+
+            {/* Card(s) de Depoimento Autorizado & Conformidade Ética CFP */}
+            <div className="space-y-4">
+              {publishedTestimonials.map((dep, idx) => {
+                const authorInitial = (dep.author.trim().charAt(0) || "P").toUpperCase();
+                const starCount = Math.min(5, Math.max(1, Number(dep.rating) || 5));
+                return (
+                  <div
+                    key={dep.id || idx}
+                    id={idx === 0 ? "depoimento-card" : undefined}
+                    className="depoimento-card p-6 sm:p-8 rounded-3xl bg-[#FCFAF6] border border-[#EFE9DF] shadow-xs space-y-4 text-left relative overflow-hidden"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/15 text-[var(--primary)] font-heading font-bold flex items-center justify-center text-base shrink-0 shadow-2xs">
+                        {authorInitial}
+                      </div>
+                      <div className="space-y-1.5 flex-1">
+                        <p className="text-xs sm:text-sm text-slate-700 italic leading-relaxed">
+                          &quot;{dep.quote}&quot;
+                        </p>
+                        <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
+                          <span className="font-heading font-bold text-xs text-[var(--primary)]">
+                            {dep.author}
+                            {dep.roleLabel?.trim() ? ` (${dep.roleLabel.trim()})` : ""}
+                          </span>
+                          <div className="flex items-center text-amber-400 gap-0.5" aria-label={`${starCount} de 5 estrelas`}>
+                            {[...Array(starCount)].map((_, i) => (
+                              <Star key={i} className="h-3.5 w-3.5 fill-current" />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {publishedTestimonials.length === 1 && (
+                      <div className="border-t border-[#EFE9DF] pt-3 text-[11px] text-slate-500 flex items-center gap-1.5">
+                        <Lock className="h-3 w-3 shrink-0" />
+                        <span>
+                          Depoimento publicado sob consentimento livre e esclarecido, em conformidade com o Código de Ética Profissional (CFP).
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {publishedTestimonials.length > 1 && (
+                <div className="px-4 py-3 rounded-2xl bg-[#FCFAF6] border border-[#EFE9DF] text-[11px] text-slate-500 flex items-center justify-center gap-1.5 text-center">
+                  <Lock className="h-3 w-3 shrink-0" />
+                  <span>
+                    Depoimentos publicados sob consentimento livre e esclarecido, em conformidade com o Código de Ética Profissional (CFP).
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ================= 7. LOCALIZAÇÃO DO CONSULTÓRIO (Fase 4/5: Opcional e Configurável) ================= */}
       {shouldShowLocation && (
         <section id="localizacao" className="py-16 sm:py-20 px-4 bg-[#F8F5EE] border-t border-slate-200/60 scroll-mt-20">
           <div className="max-w-4xl mx-auto space-y-8">
             <div className="text-center space-y-2">
-              <span className="text-xs font-heading font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
-                — Atendimento Presencial —
-              </span>
+              {sections.localizacao.eyebrow && (
+                <span className="text-xs font-heading font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
+                  — {sections.localizacao.eyebrow} —
+                </span>
+              )}
               <h2 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-                Localização do Consultório
+                {sections.localizacao.title}
               </h2>
-              <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
-                Ambiente preparado com isolamento acústico, total privacidade e acessibilidade.
-              </p>
+              {sections.localizacao.subtitle && (
+                <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
+                  {sections.localizacao.subtitle}
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
@@ -1183,93 +1259,144 @@ export default async function HomePage() {
       )}
 
       {/* ================= 8. FINAL CTA (Referência Visual: Banner Destaque) ================= */}
-      <section id="cta-final" className="py-14 sm:py-16 px-4 bg-white">
-        <div className="max-w-4xl mx-auto">
-          <div
-            id="cta-final-box"
-            className="p-6 min-[375px]:p-7 sm:p-10 rounded-3xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-5 md:gap-6 relative overflow-hidden bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)]"
-          >
-            {/* Brilho decorativo sutil */}
-            <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-white/10 blur-xl pointer-events-none" aria-hidden="true" />
+      {sections.chamadaFinal.isVisible && (
+        <section id="cta-final" className="py-14 sm:py-16 px-4 bg-white">
+          <div className="max-w-4xl mx-auto">
+            <div
+              id="cta-final-box"
+              className="p-6 min-[375px]:p-7 sm:p-10 rounded-3xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-5 md:gap-6 relative overflow-hidden bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)]"
+            >
+              {/* Brilho decorativo sutil */}
+              <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-white/10 blur-xl pointer-events-none" aria-hidden="true" />
 
-            <div className="flex flex-col md:flex-row items-center gap-3.5 md:gap-4 text-center md:text-left relative z-10 w-full md:w-auto">
-              <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0 shadow-xs">
-                <Calendar className="h-6 w-6 md:h-7 md:w-7 text-white" />
+              <div className="flex flex-col md:flex-row items-center gap-3.5 md:gap-4 text-center md:text-left relative z-10 w-full md:w-auto">
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0 shadow-xs">
+                  <Calendar className="h-6 w-6 md:h-7 md:w-7 text-white" />
+                </div>
+                <div className="space-y-1.5 md:space-y-1 max-w-full">
+                  <h3 className="font-heading text-lg min-[360px]:text-xl md:text-2xl font-extrabold text-white tracking-tight leading-snug">
+                    {sections.chamadaFinal.mobileHeading === "Agende sua consulta!" ? (
+                      <span className="md:hidden">Agende sua consulta!</span>
+                    ) : (
+                      <span className="md:hidden">{sections.chamadaFinal.mobileHeading}</span>
+                    )}
+                    {sections.chamadaFinal.heading === "Agende sua consulta agora" ? (
+                      <span className="hidden md:inline">Agende sua consulta agora</span>
+                    ) : (
+                      <span className="hidden md:inline">{sections.chamadaFinal.heading}</span>
+                    )}
+                  </h3>
+                  {(sections.chamadaFinal.mobileSubtitle || sections.chamadaFinal.subtitle) && (
+                    <p className="text-[13px] min-[360px]:text-sm text-white/95 md:text-white/90 leading-relaxed">
+                      {sections.chamadaFinal.mobileSubtitle === "Bem-estar e independência emocional." ? (
+                        <span className="md:hidden">Bem-estar e independência emocional.</span>
+                      ) : (
+                        <span className="md:hidden">{sections.chamadaFinal.mobileSubtitle}</span>
+                      )}
+                      {sections.chamadaFinal.subtitle === "Dê o primeiro passo para o seu bem-estar emocional." ? (
+                        <span className="hidden md:inline">Dê o primeiro passo para o seu bem-estar emocional.</span>
+                      ) : (
+                        <span className="hidden md:inline">{sections.chamadaFinal.subtitle}</span>
+                      )}
+                    </p>
+                  )}
+                </div>
               </div>
-              <div className="space-y-1.5 md:space-y-1 max-w-full">
-                <h3 className="font-heading text-lg min-[360px]:text-xl md:text-2xl font-extrabold text-white tracking-tight leading-snug">
-                  <span className="md:hidden">Agende sua consulta!</span>
-                  <span className="hidden md:inline">Agende sua consulta agora</span>
-                </h3>
-                <p className="text-[13px] min-[360px]:text-sm text-white/95 md:text-white/90 leading-relaxed">
-                  <span className="md:hidden">Bem-estar e independência emocional.</span>
-                  <span className="hidden md:inline">Dê o primeiro passo para o seu bem-estar emocional.</span>
-                </p>
-              </div>
-            </div>
 
-            <div className="w-full md:w-auto flex justify-center md:justify-end shrink-0 relative z-10">
-              <Link href="/agendar" className="block w-full sm:w-auto shrink-0">
-                <button
-                  type="button"
-                  className="w-full sm:w-auto px-4 min-[360px]:px-6 sm:px-7 py-3.5 rounded-2xl bg-white text-slate-900 font-heading font-bold text-[13px] min-[360px]:text-sm tracking-tight sm:tracking-normal sm:whitespace-nowrap shadow-md hover:bg-slate-50 hover:shadow-lg active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2 text-center"
-                >
-                  <span className="md:hidden">Agenda agora pelo app!</span>
-                  <span className="hidden md:inline">Agendar agora sua consulta pelo app</span>
-                  <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                </button>
-              </Link>
+              <div className="w-full md:w-auto flex justify-center md:justify-end shrink-0 relative z-10">
+                <Link href="/agendar" className="block w-full sm:w-auto shrink-0">
+                  <button
+                    type="button"
+                    className="w-full sm:w-auto px-4 min-[360px]:px-6 sm:px-7 py-3.5 rounded-2xl bg-white text-slate-900 font-heading font-bold text-[13px] min-[360px]:text-sm tracking-tight sm:tracking-normal sm:whitespace-nowrap shadow-md hover:bg-slate-50 hover:shadow-lg active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2 text-center"
+                  >
+                    {sections.chamadaFinal.mobileCtaLabel === "Agenda agora pelo app!" ? (
+                      <span className="md:hidden">Agenda agora pelo app!</span>
+                    ) : (
+                      <span className="md:hidden">{sections.chamadaFinal.mobileCtaLabel}</span>
+                    )}
+                    {sections.chamadaFinal.ctaLabel === "Agendar agora sua consulta pelo app" ? (
+                      <span className="hidden md:inline">Agendar agora sua consulta pelo app</span>
+                    ) : (
+                      <span className="hidden md:inline">{sections.chamadaFinal.ctaLabel}</span>
+                    )}
+                    <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                  </button>
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ================= 9. FOOTER ================= */}
-      <footer id="contato" className="border-t border-[#EFE9DF] bg-[#F8F5EE] py-14 px-4 text-xs text-slate-600">
+      <footer id="contato" className="border-t border-[#EFE9DF] bg-[#F8F5EE] pt-14 pb-44 sm:py-14 px-4 text-xs text-slate-600">
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Dados do Consultório e Ética */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left text-slate-500">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left text-slate-600">
             <div className="space-y-1">
               <p className="font-heading font-bold text-slate-800 text-sm">{clinicName}</p>
               <p className="text-[11px]">
                 {professionalName} • {crpCrm}
               </p>
-              <p className="text-[10px] text-slate-400 max-w-md leading-relaxed">
-                Atendimento clínico respaldado pelos preceitos éticos do Conselho Federal de Psicologia.
-              </p>
+              {sections.rodape.showDescription && sections.rodape.description.trim() && (
+                <p className="text-[11px] text-slate-500 max-w-md leading-relaxed">
+                  {sections.rodape.description.trim()}
+                </p>
+              )}
             </div>
 
-            <div className="flex flex-col items-center sm:items-end gap-2 text-xs font-medium">
-              <div className="flex flex-wrap justify-center sm:justify-end items-center gap-4">
-                {publishedPageIds.has("privacy") && (
-                  <Link href="/politica-de-privacidade" className="hover:text-[var(--primary)] hover:underline">
-                    Política de Privacidade
-                  </Link>
+            {(hasFooterPrivacyLink ||
+              hasFooterTermsLink ||
+              hasFooterLgpdLink ||
+              hasFooterEthicsLink ||
+              sections.rodape.showCookiePreferences) && (
+              <div className="flex flex-col items-center sm:items-end gap-2 text-xs font-medium">
+                {(hasFooterPrivacyLink || hasFooterTermsLink || hasFooterLgpdLink) && (
+                  <div className="flex flex-wrap justify-center sm:justify-end items-center gap-4">
+                    {hasFooterPrivacyLink && (
+                      <Link href="/politica-de-privacidade" className="hover:text-[var(--primary)] hover:underline">
+                        Política de Privacidade
+                      </Link>
+                    )}
+                    {hasFooterTermsLink && (
+                      <Link href="/termos-de-uso" className="hover:text-[var(--primary)] hover:underline">
+                        Termos de Uso
+                      </Link>
+                    )}
+                    {hasFooterLgpdLink && (
+                      <Link href="/protecao-de-dados" className="hover:text-[var(--primary)] hover:underline">
+                        LGPD
+                      </Link>
+                    )}
+                  </div>
                 )}
-                {publishedPageIds.has("terms") && (
-                  <Link href="/termos-de-uso" className="hover:text-[var(--primary)] hover:underline">
-                    Termos de Uso
-                  </Link>
-                )}
-                {publishedPageIds.has("lgpd") && (
-                  <Link href="/protecao-de-dados" className="hover:text-[var(--primary)] hover:underline">
-                    LGPD
-                  </Link>
+                {(hasFooterEthicsLink || sections.rodape.showCookiePreferences) && (
+                  <div className="flex flex-wrap justify-center sm:justify-end items-center gap-4">
+                    {hasFooterEthicsLink && (
+                      <Link href="/etica-profissional" className="hover:text-[var(--primary)] hover:underline">
+                        Ética Profissional
+                      </Link>
+                    )}
+                    {sections.rodape.showCookiePreferences && <CookiePreferencesTrigger />}
+                  </div>
                 )}
               </div>
-              <div className="flex flex-wrap justify-center sm:justify-end items-center gap-4">
-                {publishedPageIds.has("ethics") && (
-                  <Link href="/etica-profissional" className="hover:text-[var(--primary)] hover:underline">
-                    Ética Profissional
-                  </Link>
-                )}
-                <CookiePreferencesTrigger />
-              </div>
-            </div>
+            )}
           </div>
 
-          <div className="pt-4 border-t border-[#EFE9DF] text-center text-[10px] text-slate-400">
-            &copy; {new Date().getFullYear()} {clinicName}. Todos os direitos reservados. Software de Gestão Clínica PSI — Instalação Standalone Dedicada.
+          <div className="pt-4 border-t border-[#EFE9DF] text-center space-y-1.5 text-[11px] text-slate-600">
+            <p>{footerCopyrightText}</p>
+            <p id="footer-developer-attribution" className="text-[11px] text-slate-500 leading-relaxed">
+              {DEVELOPER_ATTRIBUTION.prefix}{" "}
+              <a
+                href={DEVELOPER_ATTRIBUTION.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-slate-700 underline decoration-slate-400/70 underline-offset-2 hover:text-[var(--primary)] hover:decoration-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/50 focus-visible:rounded-xs transition-colors"
+              >
+                {DEVELOPER_ATTRIBUTION.brandName}
+              </a>
+            </p>
           </div>
         </div>
       </footer>
@@ -1283,7 +1410,7 @@ export default async function HomePage() {
       {/* ================= BANNER DE CONSENTIMENTO DE COOKIES ================= */}
       <CookieBanner />
 
-      {/* ================= CONTROLADOR DE ANIMAÇÃO GSAP (MINISITE) ================= */}
+      {/* ================= CONTROLADOR DE ANIMAÇÃO GSAP (SITE) ================= */}
       <MiniSiteMotionController />
     </div>
   );

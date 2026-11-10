@@ -35,7 +35,7 @@ const navItems = [
   { href: "/admin/servicos", label: "Serviços", icon: Briefcase },
   { href: "/admin/pacotes", label: "Pacotes", icon: Boxes },
   { href: "/admin/financeiro", label: "Financeiro", icon: DollarSign },
-  { href: "/admin/minisite", label: "MiniSite", icon: Globe },
+  { href: "/admin/minisite", label: "Site", icon: Globe },
   { href: "/admin/paginas-informativas", label: "Páginas Info", icon: FileText },
   { href: "/admin/lembretes", label: "Lembretes", icon: BellRing },
   { href: "/admin/integracoes", label: "Integrações", icon: Share2 },
@@ -177,10 +177,10 @@ export default function AdminLayout({
           </div>
 
           <div className="flex items-center gap-3">
-            <Link href="/" target="_blank">
+            <Link href="/" target="_blank" title="Abrir Site público em nova aba" aria-label="Abrir Site público em nova aba">
               <Button variant="outline" size="sm" className="hidden sm:inline-flex text-xs gap-1.5 rounded-xl border-[#E5E5E5] dark:border-[#393939] text-[#171717] dark:text-[#F5F5F5] hover:bg-[#F2F2F2] dark:hover:bg-[#202020]">
                 <Globe className="h-3.5 w-3.5 text-[var(--primary)] dark:text-[#C0C0C0]" />
-                <span>Ver MiniSite</span>
+                <span>Ver Site</span>
               </Button>
             </Link>
             <ThemeToggle />

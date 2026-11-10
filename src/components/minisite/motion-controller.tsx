@@ -883,7 +883,8 @@ export function MiniSiteMotionController() {
     // 6. DEPOIMENTOS (Transição Horizontal da Direita no Desktop)
     // ============================================================================
     if (document.querySelector("#depoimentos")) {
-      gsap.from("#depoimento-card", {
+      const testimonialCards = document.querySelectorAll(".depoimento-card");
+      gsap.from(testimonialCards.length > 0 ? testimonialCards : "#depoimento-card", {
         scrollTrigger: {
           trigger: "#depoimentos",
           start: "top 88%",
@@ -893,6 +894,7 @@ export function MiniSiteMotionController() {
         y: isDesktop ? 0 : 22,
         opacity: 0,
         duration: 0.7,
+        stagger: 0.08,
         ease: "power2.out",
         clearProps: "all",
       });
@@ -1006,6 +1008,7 @@ export function MiniSiteMotionController() {
         "#sobre-media",
         "#sobre-content",
         "#depoimento-card",
+        ".depoimento-card",
         "#localizacao-info",
         "#localizacao-map",
         "#cta-final-box",

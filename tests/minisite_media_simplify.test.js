@@ -219,7 +219,8 @@ test("5. Schema Prisma, UI Admin e Card Reutilizável implementam os 3 blocos si
   assert.ok(adminSrc.includes('title="Hero — Desktop"'));
   assert.ok(adminSrc.includes('title="Hero — Mobile"'));
   assert.ok(adminSrc.includes('title="Sobre Mim"'));
-  assert.ok(adminSrc.includes("Salvar Mídias do MiniSite"));
+  assert.ok(adminSrc.includes("Salvar Mídias do Site"));
+  assert.ok(!adminSrc.includes("Salvar Mídias do MiniSite"), "Rótulo antigo 'Salvar Mídias do MiniSite' deve ter sido substituído por 'Site'");
   assert.ok(
     !adminSrc.includes("Fase 3: Mídias Dinâmicas") &&
       !adminSrc.includes("Modo de Reprodução") &&

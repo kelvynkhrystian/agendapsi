@@ -813,7 +813,7 @@ export default function AdminSettingsPage() {
           : "imagem";
 
       setMediaFeedback(
-        `Mídia enviada para "${areaLabel}" e reconhecida como ${formatLabel}. Clique em "Salvar Mídias do MiniSite" para publicar.`
+        `Mídia enviada para "${areaLabel}" e reconhecida como ${formatLabel}. Clique em "Salvar Mídias do Site" para publicar.`
       );
     } catch {
       setMediaFeedback("Erro de conexão ao enviar arquivo de mídia.");
@@ -853,7 +853,7 @@ export default function AdminSettingsPage() {
       setAboutPlaybackSpeed(1);
     }
     setMediaFeedback(
-      'Mídia removida da prévia. Clique em "Salvar Mídias do MiniSite" para confirmar a alteração.'
+      'Mídia removida da prévia. Clique em "Salvar Mídias do Site" para confirmar a alteração.'
     );
   };
 
@@ -941,7 +941,7 @@ export default function AdminSettingsPage() {
 
       const data = await res.json();
       if (res.ok) {
-        setMediaFeedback("Configurações de mídia do MiniSite salvas e publicadas com sucesso!");
+        setMediaFeedback("Configurações de mídia do Site salvas e publicadas com sucesso!");
       } else {
         setMediaFeedback(data.error || "Erro ao salvar mídias.");
       }
@@ -1219,7 +1219,7 @@ export default function AdminSettingsPage() {
               <span>Fonte Centralizada de Perfil e Contato</span>
             </p>
             <p>
-              As informações abaixo alimentam a identidade institucional, o MiniSite público e o canal de suporte aos pacientes em uma única fonte da verdade.
+              As informações abaixo alimentam a identidade institucional, o Site público e o canal de suporte aos pacientes em uma única fonte da verdade.
             </p>
           </div>
 
@@ -1306,7 +1306,7 @@ export default function AdminSettingsPage() {
                     placeholder="Ex: Dra. Helena Martins"
                   />
                   <p className="text-[11px] text-slate-400 mt-1">
-                    Nome social ou profissional exibido no MiniSite público e crachás. Se vazio, utiliza o nome completo.
+                    Nome social ou profissional exibido no Site público e crachás. Se vazio, utiliza o nome completo.
                   </p>
                 </div>
               </div>
@@ -1359,7 +1359,7 @@ export default function AdminSettingsPage() {
                 <span>Seção C — Contatos e Redes Sociais</span>
               </CardTitle>
               <CardDescription className="text-xs">
-                Canais de contato compartilhados para agendamento, botões do MiniSite e suporte ao paciente.
+                Canais de contato compartilhados para agendamento, botões do Site e suporte ao paciente.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 text-xs">
@@ -1393,7 +1393,7 @@ export default function AdminSettingsPage() {
                     placeholder="contato@consultorio.com.br"
                   />
                   <p className="text-[11px] text-slate-400 mt-1">
-                    E-mail público exibido no rodapé do MiniSite (separado do e-mail de acesso administrativo).
+                    E-mail público exibido no rodapé do Site (separado do e-mail de acesso administrativo).
                   </p>
                 </div>
                 <div>
@@ -1435,7 +1435,7 @@ export default function AdminSettingsPage() {
               <span>Sistema Global de Aparência e Temas (Fase 1 de 5)</span>
             </p>
             <p>
-              Escolha uma das paletas predefinidas ou personalize as cores institucionais do consultório. O tema selecionado unifica os painéis administrativos, a área do paciente e o MiniSite público em tempo real.
+              Escolha uma das paletas predefinidas ou personalize as cores institucionais do consultório. O tema selecionado unifica os painéis administrativos, a área do paciente e o Site público em tempo real.
             </p>
           </div>
 
@@ -1635,7 +1635,7 @@ export default function AdminSettingsPage() {
                 <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
                   <div>
                     <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor de Fundo</span>
-                    <span className="text-[11px] text-slate-400">Superfície base do MiniSite e tema</span>
+                    <span className="text-[11px] text-slate-400">Superfície base do Site e tema</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <input
@@ -1920,7 +1920,7 @@ export default function AdminSettingsPage() {
             </CardContent>
           </Card>
 
-          {/* CARD: IMAGENS & ANIMAÇÕES DO MINISITE (HERO DESKTOP, HERO MOBILE, SOBRE MIM) */}
+          {/* CARD: IMAGENS & ANIMAÇÕES DO SITE (HERO DESKTOP, HERO MOBILE, SOBRE MIM) */}
           <Card className="border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
             <CardHeader className="pb-4 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-2.5">
@@ -1929,7 +1929,7 @@ export default function AdminSettingsPage() {
                 </div>
                 <div>
                   <CardTitle className="text-base font-semibold">
-                    Imagens & Animações do MiniSite
+                    Imagens & Animações do Site
                   </CardTitle>
                   <CardDescription className="text-xs">
                     Envie a mídia de cada área e o sistema reconhecerá o formato automaticamente.
@@ -2027,7 +2027,7 @@ export default function AdminSettingsPage() {
                   className="gap-2 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white"
                 >
                   <Save className="h-4 w-4" />
-                  <span>{isSavingMedia ? "Salvando Mídias..." : "Salvar Mídias do MiniSite"}</span>
+                  <span>{isSavingMedia ? "Salvando Mídias..." : "Salvar Mídias do Site"}</span>
                 </Button>
               </div>
             </CardContent>

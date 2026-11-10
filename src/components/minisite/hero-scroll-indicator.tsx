@@ -38,7 +38,11 @@ export function HeroScrollIndicator({
   }, []);
 
   const handleScrollDown = useCallback(() => {
-    const targetElement = document.getElementById(targetSectionId);
+    const targetElement =
+      document.getElementById(targetSectionId) ||
+      document.getElementById("sobre") ||
+      document.getElementById("diferenciais") ||
+      document.getElementById("como-funciona");
     if (targetElement) {
       // Offset de 84px para compensar a barra de navegação fixa do topo
       const headerOffset = 84;

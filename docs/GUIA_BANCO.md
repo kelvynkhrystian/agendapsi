@@ -23,7 +23,7 @@ Este guia prático foi criado para permitir que desenvolvedores, operadores e pr
 | **Salas de Teleconsulta** | `VideoMeeting` | `VideoMeeting` | `Appointment` (1:1) | `src/app/sala-virtual/page.tsx`, `src/lib/video.ts` |
 | **Notificações no App (Sininho)**| `Notification` | `Notification` | `recipientId` -> `AdminAccount` ou `Patient` | `src/components/NotificationBell.tsx`, `/api/notifications` |
 | **Templates de Mensagens** | `SharedNotificationTemplate`, `NotificationTemplate` | `SharedNotificationTemplate`, `NotificationTemplate` | Isoladas por tipo de evento | `src/app/admin/configuracoes/page.tsx?tab=mensagens` |
-| **Configurações da Clínica / MiniSite** | `SiteSettings`, `ProfessionalProfile` | `SiteSettings`, `ProfessionalProfile` | Singleton com `id = "default"` | `src/app/admin/configuracoes/page.tsx?tab=aparencia` |
+| **Configurações da Clínica / Site** | `SiteSettings`, `ProfessionalProfile` | `SiteSettings`, `ProfessionalProfile` | Singleton com `id = "default"` | `src/app/admin/minisite/page.tsx`, `src/app/admin/configuracoes/page.tsx?tab=aparencia` |
 | **Configurações Técnicas e SMTP/WhatsApp** | `SystemSettings` | `SystemSettings` | Singleton com `id = "default"` | `src/app/admin/integracoes/page.tsx` |
 | **Trilha de Auditoria (LGPD)** | `AuditLog`, `TechnicalAccessLog` | `AuditLog`, `TechnicalAccessLog` | `userId` -> Autor da ação | `src/app/admin/auditoria/page.tsx` |
 | **Backups do Sistema** | `BackupJob` | `BackupJob` | Isolada por execução | `src/app/admin/backup/page.tsx`, `storage/backups/` |

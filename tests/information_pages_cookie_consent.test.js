@@ -3,14 +3,15 @@ const assert = require("node:assert");
 const fs = require("node:fs");
 const path = require("node:path");
 
-test("1. Admin Sidebar: 'MiniSite' renomeado e 'Páginas Informativas' inserido logo abaixo", () => {
+test("1. Admin Sidebar: 'Site' renomeado e 'Páginas Informativas' inserido logo abaixo", () => {
   const layoutPath = path.join(__dirname, "../src/app/admin/layout.tsx");
   assert.ok(fs.existsSync(layoutPath), "Layout do Admin deve existir");
 
   const layoutContent = fs.readFileSync(layoutPath, "utf8");
 
-  // Verifica que o item do MiniSite agora se chama apenas 'MiniSite'
-  assert.ok(layoutContent.includes('label: "MiniSite"') && layoutContent.includes('href: "/admin/minisite"'), "Item do menu deve ser 'MiniSite'");
+  // Verifica que o item do Site agora se chama 'Site' mantendo a rota /admin/minisite
+  assert.ok(layoutContent.includes('label: "Site"') && layoutContent.includes('href: "/admin/minisite"'), "Item do menu deve ser 'Site'");
+  assert.ok(!layoutContent.includes('label: "MiniSite"'), "Não deve mais exibir o rótulo antigo 'MiniSite' no menu lateral");
   assert.ok(!layoutContent.includes('"MiniSite & Páginas"'), "Não deve mais existir 'MiniSite & Páginas'");
 
   // Verifica novo item 'Páginas Info' / 'Páginas Informativas'
@@ -20,10 +21,10 @@ test("1. Admin Sidebar: 'MiniSite' renomeado e 'Páginas Informativas' inserido 
   );
   assert.ok(layoutContent.includes("FileText"), "Item deve utilizar o ícone FileText");
 
-  // Garante que 'Páginas Informativas' está posicionado logo após 'MiniSite'
+  // Garante que 'Páginas Informativas' está posicionado logo após 'Site'
   const minisiteIdx = layoutContent.indexOf('href: "/admin/minisite"');
   const paginasIdx = layoutContent.indexOf('href: "/admin/paginas-informativas"');
-  assert.ok(minisiteIdx !== -1 && paginasIdx !== -1 && paginasIdx > minisiteIdx, "Páginas Informativas deve vir logo após MiniSite");
+  assert.ok(minisiteIdx !== -1 && paginasIdx !== -1 && paginasIdx > minisiteIdx, "Páginas Informativas deve vir logo após Site");
 });
 
 test("2. Prisma Schema: LegalPage expandido com description, isPublished e publishedAt", () => {

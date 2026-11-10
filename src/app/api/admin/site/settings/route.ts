@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
+import { siteSectionsConfigSchema, parseSiteSectionsConfig } from "@/lib/site-sections";
 
 const siteSettingsSchema = z.object({
   clinicName: z.string().min(2).optional(),
@@ -15,7 +17,7 @@ const siteSettingsSchema = z.object({
   whatsappNumber: z.string().optional(),
   email: z.string().optional(),
   instagram: z.string().optional(),
-  // Minisite Phase 4/5: Icons, Location & WhatsApp
+  // Site: Ícones do Hero, Localização, WhatsApp & Seções
   benefits: z
     .array(
       z.object({
@@ -30,6 +32,8 @@ const siteSettingsSchema = z.object({
     )
     .optional(),
   benefitsJson: z.string().optional(),
+  sectionsConfig: siteSectionsConfigSchema.optional(),
+  sectionsConfigJson: z.string().optional(),
   addressNumber: z.string().optional(),
   addressComplement: z.string().optional(),
   addressNeighborhood: z.string().optional(),
@@ -69,6 +73,12 @@ export async function PUT(req: NextRequest) {
       ? data.benefitsJson
       : undefined;
 
+    const computedSectionsConfigJson = data.sectionsConfig
+      ? JSON.stringify(data.sectionsConfig)
+      : data.sectionsConfigJson !== undefined
+      ? JSON.stringify(parseSiteSectionsConfig(data.sectionsConfigJson))
+      : undefined;
+
     const [updatedSite, updatedProfile] = await prisma.$transaction([
       prisma.siteSettings.upsert({
         where: { id: "default" },
@@ -96,6 +106,9 @@ export async function PUT(req: NextRequest) {
           ...(data.email !== undefined ? { email: data.email } : {}),
           ...(data.instagram !== undefined ? { instagram: data.instagram } : {}),
           ...(computedBenefitsJson !== undefined ? { benefitsJson: computedBenefitsJson } : {}),
+          ...(computedSectionsConfigJson !== undefined
+            ? { sectionsConfigJson: computedSectionsConfigJson }
+            : {}),
         },
         create: {
           id: "default",
@@ -122,6 +135,7 @@ export async function PUT(req: NextRequest) {
           email: data.email,
           instagram: data.instagram,
           benefitsJson: computedBenefitsJson || null,
+          sectionsConfigJson: computedSectionsConfigJson || null,
         },
       }),
 
@@ -143,10 +157,19 @@ export async function PUT(req: NextRequest) {
       }),
     ]);
 
+    try {
+      revalidatePath("/");
+      revalidatePath("/site");
+      revalidatePath("/admin/minisite");
+    } catch {
+      // Silencioso em execuções de teste fora do servidor Next
+    }
+
     return NextResponse.json({
       success: true,
       site: updatedSite,
       profile: updatedProfile,
+      sectionsConfig: parseSiteSectionsConfig(updatedSite.sectionsConfigJson),
     });
   } catch (error: unknown) {
     if (error instanceof Error && (error.message === "UNAUTHORIZED" || error.message === "FORBIDDEN")) {

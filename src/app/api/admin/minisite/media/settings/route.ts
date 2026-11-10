@@ -284,14 +284,14 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Configurações de mídia do MiniSite salvas com sucesso!",
+      message: "Configurações de mídia do Site salvas com sucesso!",
       site: updated,
     });
   } catch (error: unknown) {
     if (error instanceof Error && error.message === "FORBIDDEN") {
       return NextResponse.json({ error: "Acesso restrito ao administrador." }, { status: 403 });
     }
-    console.error("Erro ao atualizar configurações de mídia do MiniSite:", error);
+    console.error("Erro ao atualizar configurações de mídia do Site:", error);
     return NextResponse.json({ error: "Erro interno ao salvar configurações de mídia." }, { status: 500 });
   }
 }

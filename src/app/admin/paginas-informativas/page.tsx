@@ -205,7 +205,7 @@ export default function AdminInformationPagesPage() {
               Governança de Cookies e Privacidade Integrada
             </p>
             <p>
-              As informações técnicas sobre os cookies utilizados pelo sistema (essenciais de sessão e preferências) estão consolidadas na <strong>Política de Privacidade</strong>. O banner de consentimento de cookies é executado automaticamente no MiniSite público para os visitantes, permitindo a personalização ou revisão de preferências a qualquer momento no rodapé.
+              As informações técnicas sobre os cookies utilizados pelo sistema (essenciais de sessão e preferências) estão consolidadas na <strong>Política de Privacidade</strong>. O banner de consentimento de cookies é executado automaticamente no Site público para os visitantes, permitindo a personalização ou revisão de preferências a qualquer momento no rodapé.
             </p>
           </div>
         </CardContent>

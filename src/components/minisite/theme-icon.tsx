@@ -12,6 +12,7 @@ import {
   Flower,
   Leaf,
   Calendar,
+  CalendarDays,
   Clock,
   Users,
   UserCheck,
@@ -19,6 +20,7 @@ import {
   ShieldCheck,
   MessageCircle,
   MessageSquare,
+  MessagesSquare,
   Target,
   Star,
   Award,
@@ -28,7 +30,7 @@ import {
   Video,
 } from "lucide-react";
 
-export const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+export const ICON_MAP: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
   Heart,
   HandHeart,
   HeartHandshake,
@@ -39,6 +41,7 @@ export const ICON_MAP: Record<string, React.ComponentType<{ className?: string }
   Flower,
   Leaf,
   Calendar,
+  CalendarDays,
   Clock,
   Users,
   UserCheck,
@@ -46,6 +49,7 @@ export const ICON_MAP: Record<string, React.ComponentType<{ className?: string }
   ShieldCheck,
   MessageCircle,
   MessageSquare,
+  MessagesSquare,
   Target,
   Star,
   Award,
@@ -59,6 +63,7 @@ interface ThemeIconProps {
   iconName?: string;
   customIconUrl?: string | null;
   className?: string;
+  strokeWidth?: number;
   alt?: string;
 }
 
@@ -66,6 +71,7 @@ export function ThemeIcon({
   iconName = "Sparkles",
   customIconUrl,
   className = "h-5 w-5",
+  strokeWidth,
   alt = "Ícone",
 }: ThemeIconProps) {
   if (customIconUrl) {
@@ -79,5 +85,5 @@ export function ThemeIcon({
   }
 
   const IconComponent = ICON_MAP[iconName] || Sparkles;
-  return <IconComponent className={className} />;
+  return <IconComponent className={className} {...(strokeWidth !== undefined ? { strokeWidth } : {})} />;
 }

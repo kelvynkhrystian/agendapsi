@@ -31,6 +31,11 @@ export interface MiniSiteHeaderProps {
   professionalName?: string;
   crpCrm?: string | null;
   shouldShowLocation?: boolean;
+  visibleSections?: {
+    atendimentos?: boolean;
+    diferenciais?: boolean;
+    comoFunciona?: boolean;
+  };
   currentUser?: HeaderUser | null;
 }
 
@@ -56,6 +61,7 @@ export function MiniSiteHeader({
   professionalName,
   crpCrm,
   shouldShowLocation = false,
+  visibleSections,
   currentUser = null,
 }: MiniSiteHeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -111,7 +117,11 @@ export function MiniSiteHeader({
 
   // Detecção automática da seção ativa conforme a rolagem da página
   useEffect(() => {
-    const sectionIds = ["inicio", "atendimentos", "sobre", "diferenciais", "como-funciona"];
+    const sectionIds = ["inicio"];
+    if (visibleSections?.atendimentos !== false) sectionIds.push("atendimentos");
+    sectionIds.push("sobre");
+    if (visibleSections?.diferenciais !== false) sectionIds.push("diferenciais");
+    if (visibleSections?.comoFunciona !== false) sectionIds.push("como-funciona");
     if (shouldShowLocation) sectionIds.push("localizacao");
 
     const handleScroll = () => {
@@ -133,7 +143,12 @@ export function MiniSiteHeader({
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [shouldShowLocation]);
+  }, [
+    shouldShowLocation,
+    visibleSections?.atendimentos,
+    visibleSections?.diferenciais,
+    visibleSections?.comoFunciona,
+  ]);
 
   // Fecha o menu móvel ao redimensionar para telas desktop
   useEffect(() => {
@@ -236,7 +251,12 @@ export function MiniSiteHeader({
     { id: "diferenciais", label: "Diferenciais", icon: Sparkles },
     { id: "como-funciona", label: "Como Funciona", icon: HelpCircle },
     ...(shouldShowLocation ? [{ id: "localizacao", label: "Localização", icon: MapPin }] : []),
-  ];
+  ].filter((item) => {
+    if (item.id === "atendimentos" && visibleSections?.atendimentos === false) return false;
+    if (item.id === "diferenciais" && visibleSections?.diferenciais === false) return false;
+    if (item.id === "como-funciona" && visibleSections?.comoFunciona === false) return false;
+    return true;
+  });
 
   return (
     <header
@@ -407,18 +427,20 @@ export function MiniSiteHeader({
               >
                 Sobre Mim
               </a>
-              <a
-                href="#como-funciona"
-                onClick={(e) => scrollToSection(e, "como-funciona")}
-                className={`h-full inline-flex items-center px-3.5 py-1.5 md:px-4 md:py-2 lg:px-5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] leading-5 lg:leading-6 tracking-normal whitespace-nowrap transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
-                  activeSection === "como-funciona"
-                    ? "shadow-xs font-semibold text-white"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] lg:text-white/90 lg:hover:text-white lg:hover:bg-white/15"
-                }`}
-                style={activeSection === "como-funciona" ? { backgroundColor: "var(--primary)", color: "#ffffff" } : undefined}
-              >
-                Como Funciona
-              </a>
+              {visibleSections?.comoFunciona !== false && (
+                <a
+                  href="#como-funciona"
+                  onClick={(e) => scrollToSection(e, "como-funciona")}
+                  className={`h-full inline-flex items-center px-3.5 py-1.5 md:px-4 md:py-2 lg:px-5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] leading-5 lg:leading-6 tracking-normal whitespace-nowrap transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
+                    activeSection === "como-funciona"
+                      ? "shadow-xs font-semibold text-white"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] lg:text-white/90 lg:hover:text-white lg:hover:bg-white/15"
+                  }`}
+                  style={activeSection === "como-funciona" ? { backgroundColor: "var(--primary)", color: "#ffffff" } : undefined}
+                >
+                  Como Funciona
+                </a>
+              )}
               {shouldShowLocation && (
                 <a
                   href="#localizacao"

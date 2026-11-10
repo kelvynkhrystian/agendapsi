@@ -24,6 +24,7 @@ export const BUILTIN_ICONS: BuiltinIconDefinition[] = [
 
   // Tempo & Atendimento
   { key: "Calendar", name: "Calendário / Agendamento", category: "tempo", keywords: ["calendario", "agenda", "data", "dia", "marcar"] },
+  { key: "CalendarDays", name: "Agenda com Dias", category: "tempo", keywords: ["calendario", "dias", "agenda", "agendar", "consulta"] },
   { key: "Clock", name: "Relógio / Pontualidade", category: "tempo", keywords: ["relogio", "hora", "tempo", "duracao", "pontual"] },
 
   // Pessoas & Relações
@@ -37,6 +38,7 @@ export const BUILTIN_ICONS: BuiltinIconDefinition[] = [
   // Comunicação
   { key: "MessageCircle", name: "Mensagem / Conversa", category: "comunicacao", keywords: ["mensagem", "chat", "conversa", "whatsapp", "falar"] },
   { key: "MessageSquare", name: "Balão de Fala", category: "comunicacao", keywords: ["fala", "dialogo", "escuta", "texto"] },
+  { key: "MessagesSquare", name: "Avaliação / Diálogo", category: "comunicacao", keywords: ["conversa", "avaliacao", "duas falas", "escuta", "dialogo"] },
 
   // Objetivos & Trajetória
   { key: "Target", name: "Alvo / Foco Terapêutico", category: "geral", keywords: ["alvo", "objetivo", "meta", "foco", "direcao"] },

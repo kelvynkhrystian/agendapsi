@@ -1064,9 +1064,9 @@ erDiagram
 #### A. Identificação
 - **Modelo Prisma:** `SiteSettings`
 - **Tabela MySQL:** `SiteSettings`
-- **Descrição sucinta:** Configurações gerais de apresentação visual e conteúdo do MiniSite público.
-- **Finalidade de negócio:** Armazenar nome do consultório, slogan, textos de apresentação, logotipos, favicon, paleta visual de cores customizável, endereço físico e redes sociais.
-- **Módulo do PSI:** MiniSite Público (`/`, `/site`) e Personalização Visual (`/admin/configuracoes?tab=aparencia`).
+- **Descrição sucinta:** Configurações gerais de apresentação visual, seções e conteúdo do Site público.
+- **Finalidade de negócio:** Armazenar nome do consultório, slogan, textos e visibilidade de seções, logotipos, favicon, paleta visual de cores customizável, endereço físico e redes sociais.
+- **Módulo do PSI:** Site Público (`/`, `/site`), Editor do Site (`/admin/minisite`) e Personalização Visual (`/admin/configuracoes?tab=aparencia`).
 - **Informações sensíveis:** Não.
 
 #### B. Dicionário Completo de Campos
@@ -1151,6 +1151,7 @@ erDiagram
 | `showLocation` | `Boolean` | Sim | `true` | Habilita ou oculta a seção de localização no MiniSite (suporta profissionais 100% online) | `true` |
 | `whatsappDefaultMessage` | `String?` (Text) | Não | `null` | Mensagem inicial personalizada ao iniciar conversa no WhatsApp | `"Olá! Conheci seu trabalho pelo site..."` |
 | `showFloatingWhatsApp` | `Boolean` | Sim | `true` | Exibe ou oculta o botão flutuante de WhatsApp no canto inferior da página | `true` |
+| `sectionsConfigJson` | `String?` (MediumText) | Não | `null` | Configurações estruturadas por seção do Site público (Atendimentos, Sobre Mim, Diferenciais, Como Funciona, Depoimentos com confirmação CFP, Localização, Chamada Final e Rodapé) serializadas em JSON | `'{"atendimentos":{"isVisible":true},"rodape":{"showCookiePreferences":true}}'` |
 | `updatedAt` | `DateTime` | Sim | Auto | Timestamp UTC da última alteração | `2026-11-04T12:00:00.000Z` |
 
 ---

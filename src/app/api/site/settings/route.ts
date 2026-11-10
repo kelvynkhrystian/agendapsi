@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { parseSiteSectionsConfig } from "@/lib/site-sections";
 
 export async function GET() {
   try {
@@ -16,9 +17,10 @@ export async function GET() {
       site,
       profile,
       services,
+      sectionsConfig: parseSiteSectionsConfig(site?.sectionsConfigJson),
     });
   } catch (error) {
-    console.error("Erro ao buscar dados do MiniSite:", error);
+    console.error("Erro ao buscar dados do Site:", error);
     return NextResponse.json({ error: "Erro interno." }, { status: 500 });
   }
 }

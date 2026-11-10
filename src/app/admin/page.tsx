@@ -473,10 +473,10 @@ export default function AdminDashboardPage() {
                   <span>Confirmar Recebimentos</span>
                 </Button>
               </Link>
-              <Link href="/" target="_blank" className="block">
+              <Link href="/" target="_blank" className="block" title="Visualizar Site público em nova aba">
                 <Button variant="outline" className="w-full justify-start gap-2.5 text-xs rounded-xl h-10 shadow-2xs">
                   <Globe className="h-4 w-4 text-purple-500 dark:text-[#C0C0C0]" />
-                  <span>Visualizar MiniSite Público</span>
+                  <span>Visualizar Site</span>
                 </Button>
               </Link>
             </CardContent>
