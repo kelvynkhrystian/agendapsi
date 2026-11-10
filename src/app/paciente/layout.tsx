@@ -166,10 +166,10 @@ export default function PatientLayout({
           <Button
             type="button"
             variant="ghost"
-            className="w-full justify-start text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-[#F87171] dark:hover:bg-[#321E1E] gap-2 rounded-xl text-xs"
+            className="w-full justify-start bg-white border border-red-200/80 text-red-600 hover:bg-red-50 hover:border-red-300 dark:bg-transparent dark:border-transparent dark:text-[#F87171] dark:hover:bg-[#321E1E] gap-2 rounded-xl text-xs h-9"
             onClick={handleLogout}
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-4 w-4 text-current" />
             <span>Sair da Conta</span>
           </Button>
         </div>

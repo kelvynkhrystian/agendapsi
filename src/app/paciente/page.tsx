@@ -265,7 +265,7 @@ export default function PatientAppointmentsPage() {
         </div>
 
         {isLoading ? (
-          <div className="h-36 bg-slate-200 dark:bg-[#202020] rounded-2xl animate-pulse" />
+          <div className="h-36 bg-[#E5E5E5] dark:bg-[#202020] rounded-2xl animate-pulse" />
         ) : upcomingAppointments.length > 0 ? (
           <div ref={cardsGridRef} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {upcomingAppointments.map((appt) => {

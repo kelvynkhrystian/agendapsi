@@ -181,8 +181,10 @@ export default async function RootLayout({
                   var path = window.location.pathname;
                   var isAuth = path.startsWith('/admin') || path.startsWith('/paciente');
                   if (isAuth) {
-                    var key = path.startsWith('/admin') ? 'psi_theme_admin' : 'psi_theme_patient';
-                    var saved = localStorage.getItem(key) || localStorage.getItem('psi_theme');
+                    var isAdminPath = path.startsWith('/admin');
+                    var saved = isAdminPath
+                      ? (localStorage.getItem('psi_theme_admin') || localStorage.getItem('psi_theme'))
+                      : localStorage.getItem('psi_theme_patient');
                     var isDark = saved === 'dark' || (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
                     if (isDark) {
                       document.documentElement.classList.add('dark');

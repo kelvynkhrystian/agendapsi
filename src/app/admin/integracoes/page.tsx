@@ -218,7 +218,7 @@ export default function AdminIntegrationsPage() {
         </p>
       </div>
 
-      <div className="p-4 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-xs text-slate-800 dark:text-[#F5F5F5] space-y-1">
+      <div className="p-4 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-xs text-[#171717] dark:bg-[#202020] dark:border-[#333333] dark:text-[#F5F5F5] space-y-1">
         <p className="font-semibold flex items-center gap-1.5">
           <ShieldCheck className="h-4 w-4 text-[var(--primary)]" />
           <span>Arquitetura Desacoplada e Segura</span>

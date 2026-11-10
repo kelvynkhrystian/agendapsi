@@ -112,8 +112,8 @@ export default function PatientAnamnesisPage() {
   if (isLoading) {
     return (
       <div className="space-y-4 max-w-2xl mx-auto py-8">
-        <div className="h-8 w-48 bg-slate-200 dark:bg-[#202020] rounded animate-pulse" />
-        <div className="h-64 bg-slate-200 dark:bg-[#202020] rounded-xl animate-pulse" />
+        <div className="h-8 w-48 bg-[#E5E5E5] dark:bg-[#202020] rounded animate-pulse" />
+        <div className="h-64 bg-[#E5E5E5] dark:bg-[#202020] rounded-xl animate-pulse" />
       </div>
     );
   }

@@ -100,7 +100,7 @@ export default function PatientDocumentsPage() {
         </p>
       </div>
 
-      <div className="p-3.5 bg-[var(--primary)]/10 dark:bg-[#202020] border border-[var(--primary)]/20 dark:border-[#393939] rounded-xl flex items-start sm:items-center gap-3 text-xs text-slate-800 dark:text-[#F5F5F5] shadow-xs">
+      <div className="p-3.5 bg-[var(--primary)]/10 dark:bg-[#202020] border border-[var(--primary)]/20 dark:border-[#393939] rounded-xl flex items-start sm:items-center gap-3 text-xs text-[#171717] dark:text-[#F5F5F5] shadow-xs">
         <ShieldCheck className="h-5 w-5 text-[var(--primary)] dark:text-[#C0C0C0] shrink-0 mt-0.5 sm:mt-0" />
         <span>
           <strong>Ambiente Protegido e Confidencial:</strong> Os arquivos disponibilizados nesta área foram emitidos exclusivamente para você. Documentos com prazo de expiração devem ser baixados para sua guarda pessoal antes do término da vigência.
