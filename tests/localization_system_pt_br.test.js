@@ -42,6 +42,20 @@ test("Localização pt-BR — 1. Mapeamento Centralizado de Atividades Recentes 
   assert.ok(content.includes('LOGIN_FAILED: "Tentativa de login malsucedida"'), "LOGIN_FAILED");
   assert.ok(content.includes('"Login successful": "Login realizado com sucesso"'), "Legado Login successful");
 
+  // Exclusões e Arquivamento (histórico e enums)
+  assert.ok(content.includes('PATIENT_ARCHIVED: "Paciente arquivado"'), "PATIENT_ARCHIVED");
+  assert.ok(
+    content.includes('PATIENT_PERMANENTLY_DELETED: "Paciente excluído permanentemente"'),
+    "PATIENT_PERMANENTLY_DELETED"
+  );
+  assert.ok(content.includes('DOCUMENT_DELETED: "Documento excluído"'), "DOCUMENT_DELETED");
+  assert.ok(content.includes('"Patient archived": "Paciente arquivado"'), "Legado Patient archived");
+  assert.ok(
+    content.includes('"Patient permanently deleted": "Paciente excluído permanentemente"'),
+    "Legado Patient permanently deleted"
+  );
+  assert.ok(content.includes('"Document deleted": "Documento excluído"'), "Legado Document deleted");
+
   // Função helper
   assert.ok(content.includes("export function formatActivityAction"), "Deve exportar formatActivityAction");
 });

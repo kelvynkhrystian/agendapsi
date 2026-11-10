@@ -11,12 +11,14 @@ export const ACTIVITY_ACTION_MAP: Record<string, string> = {
   // Pagamentos
   PAYMENT_CREATED: "Pagamento criado",
   PAYMENT_APPROVED: "Pagamento aprovado",
+  PAYMENT_RECEIVED: "Pagamento recebido",
   PAYMENT_PENDING: "Pagamento pendente",
   PAYMENT_FAILED: "Falha no pagamento",
   PAYMENT_REFUNDED: "Pagamento estornado",
   PAYMENT_CONFIRMED_MANUALLY: "Pagamento confirmado manualmente",
   "Payment created": "Pagamento criado",
   "Payment approved": "Pagamento aprovado",
+  "Payment received": "Pagamento recebido",
   "Payment pending": "Pagamento pendente",
   "Payment failed": "Falha no pagamento",
   "Payment refunded": "Pagamento reembolsado",
@@ -24,33 +26,55 @@ export const ACTIVITY_ACTION_MAP: Record<string, string> = {
 
   // Agendamentos e Consultas
   APPOINTMENT_CREATED: "Agendamento criado",
+  APPOINTMENT_CONFIRMED: "Consulta confirmada",
   APPOINTMENT_CANCELLED: "Agendamento cancelado",
+  APPOINTMENT_CANCELED: "Agendamento cancelado",
   APPOINTMENT_RESCHEDULED: "Agendamento remarcado",
   APPOINTMENT_STATUS_CHANGED_TO_CONFIRMED: "Consulta confirmada",
   APPOINTMENT_STATUS_CHANGED_TO_COMPLETED: "Consulta realizada",
   APPOINTMENT_STATUS_CHANGED_TO_CANCELLED: "Consulta cancelada",
-  APPOINTMENT_STATUS_CHANGED_TO_NO_SHOW: "Não comparecimento (No-Show) registrado",
+  APPOINTMENT_STATUS_CHANGED_TO_CANCELED: "Consulta cancelada",
+  APPOINTMENT_STATUS_CHANGED_TO_NO_SHOW: "Não comparecimento registrado",
   APPOINTMENT_STATUS_CHANGED_TO_LATE_CANCELLED: "Cancelamento tardio registrado",
   APPOINTMENT_STATUS_CHANGED_TO_PENDING_CONFIRMATION: "Consulta aguardando confirmação",
   "Appointment created": "Agendamento criado",
+  "Appointment confirmed": "Consulta confirmada",
   "Appointment cancelled": "Agendamento cancelado",
+  "Appointment canceled": "Agendamento cancelado",
   "Appointment rescheduled": "Agendamento remarcado",
 
   // Pacientes e Perfil
   PATIENT_REGISTERED: "Paciente cadastrado",
+  PATIENT_CREATED: "Paciente cadastrado",
   PATIENT_CREATED_BY_ADMIN: "Paciente cadastrado pelo profissional",
-  PATIENT_UPDATED_BY_ADMIN: "Cadastro do paciente atualizado",
+  PATIENT_UPDATED: "Dados do paciente atualizados",
+  PATIENT_UPDATED_BY_ADMIN: "Dados do paciente atualizados",
+  PATIENT_ARCHIVED: "Paciente arquivado",
+  PATIENT_RESTORED: "Paciente restaurado",
+  PATIENT_PERMANENTLY_DELETED: "Paciente excluído permanentemente",
   PATIENT_PROFILE_UPDATED: "Perfil do paciente atualizado",
   PROFILE_CHANGE_REQUESTED: "Solicitação de alteração cadastral recebida",
   PROFILE_CHANGE_APPROVED: "Alteração cadastral aprovada",
   PROFILE_CHANGE_REJECTED: "Alteração cadastral recusada",
   "Patient registered": "Paciente cadastrado",
+  "Patient created": "Paciente cadastrado",
+  "Patient created by admin": "Paciente cadastrado pelo profissional",
+  "Patient updated": "Dados do paciente atualizados",
+  "Patient updated by admin": "Dados do paciente atualizados",
+  "Patient archived": "Paciente arquivado",
+  "Patient restored": "Paciente restaurado",
+  "Patient permanently deleted": "Paciente excluído permanentemente",
+  "Patient profile updated": "Perfil do paciente atualizado",
   "Profile updated": "Perfil atualizado",
+  "Profile change requested": "Solicitação de alteração cadastral recebida",
+  "Profile change approved": "Alteração cadastral aprovada",
+  "Profile change rejected": "Alteração cadastral recusada",
 
   // Autenticação e Credenciais
   LOGIN_SUCCESS: "Login realizado com sucesso",
   LOGIN_FAILED: "Tentativa de login malsucedida",
   PASSWORD_CHANGED: "Senha de acesso alterada",
+  LOGOUT: "Sessão encerrada",
   "Login successful": "Login realizado com sucesso",
   "Login failed": "Tentativa de login falhou",
   "Password changed": "Senha alterada",
@@ -64,8 +88,21 @@ export const ACTIVITY_ACTION_MAP: Record<string, string> = {
   FILE_SHARE_REVOKED: "Acesso a documento revogado",
   FILE_SHARE_REACTIVATED: "Acesso a documento reativado",
   FILE_UPLOADED: "Arquivo enviado com sucesso",
+  DOCUMENT_UPLOADED: "Documento enviado",
+  DOCUMENT_DELETED: "Documento excluído",
+  FILE_DELETED: "Documento excluído",
+  "Clinical record created": "Evolução de prontuário registrada",
+  "Clinical record revised": "Evolução de prontuário retificada",
+  "Anamnesis submitted": "Ficha de anamnese enviada pelo paciente",
+  "Anamnesis reset requested": "Reenvio de anamnese solicitado pelo profissional",
   "File uploaded": "Arquivo enviado com sucesso",
+  "Document uploaded": "Documento enviado",
   "File shared": "Documento compartilhado",
+  "File shared with patient": "Documento compartilhado com o paciente",
+  "File share revoked": "Acesso a documento revogado",
+  "File share reactivated": "Acesso a documento reativado",
+  "Document deleted": "Documento excluído",
+  "File deleted": "Documento excluído",
 
   // Pacotes de Atendimento
   PACKAGE_PROPOSED: "Proposta de pacote enviada",
@@ -75,50 +112,97 @@ export const ACTIVITY_ACTION_MAP: Record<string, string> = {
   "Package accepted": "Pacote de consultas aceito",
   "Package rejected": "Pacote de consultas recusado",
 
-  // Integrações e Sistema
+  // Integrações, Páginas e Sistema
   BACKUP_GENERATED: "Backup do sistema gerado com sucesso",
   GOOGLE_MEET_CONNECTED: "Conta do Google Meet conectada",
   GOOGLE_MEET_DISCONNECTED: "Conta do Google Meet desconectada",
   TEST_EMAIL_DISPATCHED: "E-mail de teste disparado",
   TEST_WHATSAPP_DISPATCHED: "Mensagem de teste do WhatsApp disparada",
+  MESSAGE_MANUALLY_RESENT: "Mensagem reenviada manualmente",
   EMAIL_CHANGE_REQUESTED: "Solicitação de troca de e-mail iniciada",
   EMAIL_CHANGE_REJECTED_NO_SMTP: "Troca de e-mail rejeitada por falta de servidor SMTP",
   EMAIL_CHANGED_VERIFIED: "Novo e-mail verificado e confirmado",
+  PUBLISH_INFORMATION_PAGE: "Página informativa publicada",
+  UNPUBLISH_INFORMATION_PAGE: "Página informativa despublicada",
+  RESTORE_DEFAULT_INFORMATION_PAGE: "Página informativa restaurada ao padrão",
+  UPDATE_INFORMATION_PAGE: "Página informativa atualizada",
+  UPDATE_GENERAL_SERVICE_SETTINGS: "Configurações gerais de atendimento atualizadas",
   SERVICE_CREATED: "Novo serviço cadastrado",
   SERVICE_UPDATED: "Serviço atualizado",
   SERVICE_DELETED: "Serviço desativado",
+  "Service created": "Novo serviço cadastrado",
   "Service updated": "Serviço atualizado",
+  "Service deleted": "Serviço desativado",
   "Backup created": "Backup do sistema gerado",
+  "Backup generated": "Backup do sistema gerado com sucesso",
+  "Google Meet connected": "Conta do Google Meet conectada",
+  "Google Meet disconnected": "Conta do Google Meet desconectada",
+  "Message manually resent": "Mensagem reenviada manualmente",
 };
+
+const ACTIVITY_FALLBACK_LABEL = "Atividade registrada no sistema";
+
+function normalizeActivityActionKey(value: string): string {
+  return value
+    .trim()
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+    .replace(/[\s.-]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .toUpperCase();
+}
+
+const NORMALIZED_ACTIVITY_ACTION_MAP: Record<string, string> = Object.entries(ACTIVITY_ACTION_MAP).reduce(
+  (acc, [key, label]) => {
+    const normalized = normalizeActivityActionKey(key);
+    if (normalized && !Object.prototype.hasOwnProperty.call(acc, normalized)) {
+      acc[normalized] = label;
+    }
+    return acc;
+  },
+  {} as Record<string, string>
+);
 
 /**
  * Traduz a ação ou evento de atividade recente para o Português do Brasil.
  * Mantém compatibilidade com registros legados e históricos em inglês.
+ * Eventos desconhecidos recebem fallback seguro em pt-BR sem expor códigos técnicos crus.
  */
 export function formatActivityAction(action?: string | null): string {
-  if (!action) return "Atividade registrada";
+  if (!action) return ACTIVITY_FALLBACK_LABEL;
 
-  // Busca correspondência direta no mapa
-  if (ACTIVITY_ACTION_MAP[action]) {
-    return ACTIVITY_ACTION_MAP[action];
+  const trimmed = action.trim();
+  if (!trimmed) return ACTIVITY_FALLBACK_LABEL;
+
+  // 1. Busca correspondência exata no mapa oficial
+  if (Object.prototype.hasOwnProperty.call(ACTIVITY_ACTION_MAP, trimmed)) {
+    return ACTIVITY_ACTION_MAP[trimmed];
   }
 
-  // Verifica prefixos dinâmicos conhecidos
-  if (action.startsWith("APPOINTMENT_STATUS_CHANGED_TO_")) {
-    const targetStatus = action.replace("APPOINTMENT_STATUS_CHANGED_TO_", "");
-    return `Status da consulta alterado para ${formatAppointmentStatus(targetStatus).toLowerCase()}`;
+  // 2. Busca normalizada (insensível a maiúsculas/minúsculas, espaços, pontos ou camelCase)
+  const normalized = normalizeActivityActionKey(trimmed);
+  if (normalized && Object.prototype.hasOwnProperty.call(NORMALIZED_ACTIVITY_ACTION_MAP, normalized)) {
+    return NORMALIZED_ACTIVITY_ACTION_MAP[normalized];
   }
 
-  if (action.startsWith("PROFILE_CHANGE_")) {
-    const decision = action.replace("PROFILE_CHANGE_", "");
-    return `Alteração cadastral ${decision === "APPROVED" ? "aprovada" : "recusada"}`;
+  // 3. Verifica prefixos dinâmicos conhecidos
+  if (normalized.startsWith("APPOINTMENT_STATUS_CHANGED_TO_")) {
+    const targetStatus = normalized.slice("APPOINTMENT_STATUS_CHANGED_TO_".length);
+    if (Object.prototype.hasOwnProperty.call(APPOINTMENT_STATUS_MAP, targetStatus)) {
+      return `Status da consulta alterado para ${APPOINTMENT_STATUS_MAP[targetStatus].toLowerCase()}`;
+    }
+    return "Status da consulta atualizado";
   }
 
-  // Fallback seguro: formata termos técnicos com underline para exibição legível
-  return action
-    .replace(/_/g, " ")
-    .toLowerCase()
-    .replace(/^\w/, (c) => c.toUpperCase());
+  if (normalized.startsWith("PROFILE_CHANGE_")) {
+    const decision = normalized.slice("PROFILE_CHANGE_".length);
+    if (decision === "APPROVED") return "Alteração cadastral aprovada";
+    if (decision === "REJECTED") return "Alteração cadastral recusada";
+    if (decision === "REQUESTED") return "Solicitação de alteração cadastral recebida";
+    return "Solicitação de alteração cadastral atualizada";
+  }
+
+  // 4. Fallback seguro localizado em pt-BR para eventos desconhecidos
+  return ACTIVITY_FALLBACK_LABEL;
 }
 
 // ==========================================

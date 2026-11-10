@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 
 interface DashboardData {
+  timezone?: string;
   todayAppointments: Array<{
     id: string;
     startAt: string;
@@ -174,15 +175,9 @@ export default function AdminDashboardPage() {
       {/* ================= 1. PAGE HEADER & QUICK ACTIONS ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E5E5E5] dark:border-[#333333]">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
-              Painel do Consultório
-            </h1>
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Ao Vivo
-            </span>
-          </div>
+          <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
+            Painel do Consultório
+          </h1>
           <p className="text-xs sm:text-sm text-[#525252] dark:text-[#A6A6A6] leading-relaxed">
             Visão geral em tempo real dos agendamentos, pacientes e finanças.
           </p>
@@ -316,7 +311,7 @@ export default function AdminDashboardPage() {
                   </Badge>
                 </div>
                 <CardDescription className="mt-1">
-                  {formatDate(new Date())} — Consultas marcadas para o dia
+                  {formatDate(new Date(), data.timezone)} — Consultas marcadas para o dia
                 </CardDescription>
               </div>
 
@@ -342,7 +337,7 @@ export default function AdminDashboardPage() {
                       >
                         <div className="flex items-start gap-3.5 min-w-0">
                           <div className="px-3 py-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] dark:bg-[#292929] dark:text-[#FFFFFF] font-mono text-sm font-bold text-center shrink-0 border border-[var(--primary)]/20 dark:border-[#393939] shadow-2xs">
-                            {formatTime(appt.startAt)}
+                            {formatTime(appt.startAt, data.timezone)}
                           </div>
                           <div className="min-w-0">
                             <h4 className="font-heading font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] truncate">
@@ -433,7 +428,7 @@ export default function AdminDashboardPage() {
                       </div>
                       <div className="text-right shrink-0">
                         <span className="text-xs font-heading font-semibold text-[#171717] dark:text-[#F5F5F5] block">
-                          {formatDate(appt.startAt)} às {formatTime(appt.startAt)}
+                          {formatDate(appt.startAt, data.timezone)} às {formatTime(appt.startAt, data.timezone)}
                         </span>
                         <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                           {appt.modality === "ONLINE" ? "Teleconsulta" : "Presencial"}
@@ -604,7 +599,7 @@ export default function AdminDashboardPage() {
                           {formatActivityAction(act.action)}
                         </p>
                         <p className="text-[#737373] dark:text-[#A6A6A6] text-[10px]">
-                          {formatDate(act.createdAt)} às {formatTime(act.createdAt)}
+                          {formatDate(act.createdAt, data.timezone)} às {formatTime(act.createdAt, data.timezone)}
                         </p>
                       </div>
                     </div>

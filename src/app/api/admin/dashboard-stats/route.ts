@@ -23,6 +23,7 @@ export async function GET() {
       fileCount,
       totalFileBytes,
       recentNotifications,
+      systemSettings,
     ] = await Promise.all([
       // Consultas de hoje
       prisma.appointment.findMany({
@@ -93,6 +94,11 @@ export async function GET() {
         where: { createdAt: { gte: sevenDaysAgo } },
         select: { status: true },
       }),
+
+      // Fuso horário configurado pelo profissional
+      prisma.systemSettings.findFirst({
+        select: { timezone: true },
+      }),
     ]);
 
     // Separação rigorosa entre receita real e receita simulada
@@ -144,6 +150,7 @@ export async function GET() {
     };
 
     return NextResponse.json({
+      timezone: systemSettings?.timezone || "America/Sao_Paulo",
       todayAppointments,
       nextAppointments,
       activePatientsCount,

@@ -15,17 +15,30 @@ export function formatBRL(cents: number): string {
   }).format(cents / 100);
 }
 
+const DEFAULT_TIMEZONE = "America/Sao_Paulo";
+
+function resolveSafeTimezone(timezone?: string | null): string {
+  const candidate = timezone?.trim() || DEFAULT_TIMEZONE;
+  try {
+    new Intl.DateTimeFormat("pt-BR", { timeZone: candidate });
+    return candidate;
+  } catch {
+    return DEFAULT_TIMEZONE;
+  }
+}
+
 /**
  * Formata data e hora para exibição em pt-BR com base no timezone do consultório
  */
 export function formatDateTime(
   date: Date | string,
-  timezone: string = "America/Sao_Paulo",
+  timezone?: string | null,
   options?: Intl.DateTimeFormatOptions
 ): string {
   const d = typeof date === "string" ? new Date(date) : date;
+  if (Number.isNaN(d.getTime())) return "";
   return new Intl.DateTimeFormat("pt-BR", {
-    timeZone: timezone,
+    timeZone: resolveSafeTimezone(timezone),
     dateStyle: options?.dateStyle ?? "short",
     timeStyle: options?.timeStyle ?? "short",
     ...options,
@@ -35,23 +48,25 @@ export function formatDateTime(
 /**
  * Formata apenas a hora (HH:mm) no timezone do consultório
  */
-export function formatTime(date: Date | string, timezone: string = "America/Sao_Paulo"): string {
+export function formatTime(date: Date | string, timezone?: string | null): string {
   const d = typeof date === "string" ? new Date(date) : date;
+  if (Number.isNaN(d.getTime())) return "";
   return new Intl.DateTimeFormat("pt-BR", {
-    timeZone: timezone,
+    timeZone: resolveSafeTimezone(timezone),
     hour: "2-digit",
     minute: "2-digit",
-    hour12: false,
+    hourCycle: "h23",
   }).format(d);
 }
 
 /**
  * Formata apenas a data (DD/MM/AAAA) no timezone do consultório
  */
-export function formatDate(date: Date | string, timezone: string = "America/Sao_Paulo"): string {
+export function formatDate(date: Date | string, timezone?: string | null): string {
   const d = typeof date === "string" ? new Date(date) : date;
+  if (Number.isNaN(d.getTime())) return "";
   return new Intl.DateTimeFormat("pt-BR", {
-    timeZone: timezone,
+    timeZone: resolveSafeTimezone(timezone),
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
