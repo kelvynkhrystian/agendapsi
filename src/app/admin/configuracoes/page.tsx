@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { formatDate, formatTime } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,11 +11,12 @@ import {
   THEME_PRESETS,
   calculateContrastRatio,
   isContrastAccessible,
+  normalizeHexColor,
+  resolveAccessibleButtonBg,
 } from "@/lib/theme-presets";
 import { MiniSiteMediaSlotCard } from "@/components/admin/minisite-media-slot-card";
 import {
   Settings,
-  Bell,
   Palette,
   Video,
   ShieldCheck,
@@ -27,11 +28,7 @@ import {
   AlertTriangle,
   Copy,
   Info,
-  ExternalLink,
-  Layers,
-  Monitor,
   Activity,
-  Radio,
   Link2,
   Unlink,
   Calendar,
@@ -41,8 +38,7 @@ import {
   Building2,
   Lock,
   MessageCircle,
-  Mail,
-  Phone,
+  Sparkles,
 } from "lucide-react";
 
 interface VideoProviderItem {
@@ -55,41 +51,109 @@ interface VideoProviderItem {
   config: Record<string, any>;
 }
 
+interface ThemeDraftColors {
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  buttonColor: string;
+  backgroundColor: string;
+  textColor: string;
+}
+
+interface ThemeSnapshot extends ThemeDraftColors {
+  themeName: string;
+}
+
+const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
+
+function isValidHex6(value: string): boolean {
+  return HEX_COLOR_PATTERN.test((value || "").trim());
+}
+
 export default function AdminSettingsPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<
     "profile" | "appearance" | "video" | "general" | "security"
   >("profile");
 
-  // Profile State (Perfil Centralizado)
+  // Profile State — Seção A (Dados da Aplicação)
   const [clinicName, setClinicName] = useState("");
   const [tagline, setTagline] = useState("");
   const [appVersion, setAppVersion] = useState("1.0.0");
+  const [savedAppSection, setSavedAppSection] = useState({ clinicName: "", tagline: "" });
+  const [isSavingApp, setIsSavingApp] = useState(false);
+  const [appFeedback, setAppFeedback] = useState<string | null>(null);
+  const [appError, setAppError] = useState<string | null>(null);
+
+  // Profile State — Seção B (Dados do Administrador / Profissional)
   const [fullName, setFullName] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [crpCrm, setCrpCrm] = useState("");
   const [title, setTitle] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
+  const [savedProfSection, setSavedProfSection] = useState({
+    fullName: "",
+    displayName: "",
+    crpCrm: "",
+    title: "",
+  });
+  const [isSavingProf, setIsSavingProf] = useState(false);
+  const [profFeedback, setProfFeedback] = useState<string | null>(null);
+  const [profError, setProfError] = useState<string | null>(null);
+
+  // Profile State — Seção C (Contatos e Redes Sociais)
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [instagram, setInstagram] = useState("");
-  const [isSavingProfile, setIsSavingProfile] = useState(false);
-  const [profileFeedback, setProfileFeedback] = useState<string | null>(null);
-  const [profileError, setProfileError] = useState<string | null>(null);
+  const [savedContactSection, setSavedContactSection] = useState({
+    whatsappNumber: "",
+    phone: "",
+    email: "",
+    instagram: "",
+  });
+  const [isSavingContact, setIsSavingContact] = useState(false);
+  const [contactFeedback, setContactFeedback] = useState<string | null>(null);
+  const [contactError, setContactError] = useState<string | null>(null);
 
-  // Appearance State (Task 8 & Phase 1/5)
+  // Appearance Theme State (Rascunho isolado do salvo)
   const [themeName, setThemeName] = useState<string>("VERDE");
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [logoHorizontalUrl, setLogoHorizontalUrl] = useState<string | null>(null);
-  const [faviconUrl, setFaviconUrl] = useState<string | null>(null);
   const [primaryColor, setPrimaryColor] = useState("#16A34A");
   const [secondaryColor, setSecondaryColor] = useState("#DCFCE7");
   const [accentColor, setAccentColor] = useState("#86EFAC");
   const [buttonColor, setButtonColor] = useState("#16A34A");
   const [backgroundColor, setBackgroundColor] = useState("#F0FDF4");
   const [textColor, setTextColor] = useState("#14532D");
-  const [isSavingAppearance, setIsSavingAppearance] = useState(false);
-  const [appearanceFeedback, setAppearanceFeedback] = useState<string | null>(null);
+  const [savedTheme, setSavedTheme] = useState<ThemeSnapshot>({
+    themeName: "VERDE",
+    primaryColor: "#16A34A",
+    secondaryColor: "#DCFCE7",
+    accentColor: "#86EFAC",
+    buttonColor: "#16A34A",
+    backgroundColor: "#F0FDF4",
+    textColor: "#14532D",
+  });
+  const [lastBasePreset, setLastBasePreset] = useState<string>("VERDE");
+  const [customDraftState, setCustomDraftState] = useState<{
+    baseKey: string;
+    colors: ThemeDraftColors;
+  } | null>(null);
+  const [isSavingTheme, setIsSavingTheme] = useState(false);
+  const [themeFeedback, setThemeFeedback] = useState<string | null>(null);
+  const [themeError, setThemeError] = useState<string | null>(null);
+
+  // System Images State (Card independente)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoHorizontalUrl, setLogoHorizontalUrl] = useState<string | null>(null);
+  const [faviconUrl, setFaviconUrl] = useState<string | null>(null);
+  const [savedImagesSection, setSavedImagesSection] = useState<{
+    logoUrl: string | null;
+    logoHorizontalUrl: string | null;
+    faviconUrl: string | null;
+  }>({ logoUrl: null, logoHorizontalUrl: null, faviconUrl: null });
+  const [isSavingImages, setIsSavingImages] = useState(false);
+  const [imagesFeedback, setImagesFeedback] = useState<string | null>(null);
+  const [imagesError, setImagesError] = useState<string | null>(null);
   const [uploadingAsset, setUploadingAsset] = useState<string | null>(null);
 
   // MiniSite Media Slots State (Hero Desktop, Hero Mobile, Sobre Mim)
@@ -142,7 +206,9 @@ export default function AdminSettingsPage() {
 
   const [uploadingSlot, setUploadingSlot] = useState<string | null>(null);
   const [mediaFeedback, setMediaFeedback] = useState<string | null>(null);
+  const [mediaError, setMediaError] = useState<string | null>(null);
   const [isSavingMedia, setIsSavingMedia] = useState<boolean>(false);
+  const [savedMediaSnapshot, setSavedMediaSnapshot] = useState<string>("");
 
   const pendingHeroColorRef = useRef<Promise<string | null> | null>(null);
   const pendingHeroMobileColorRef = useRef<Promise<string | null> | null>(null);
@@ -184,13 +250,29 @@ export default function AdminSettingsPage() {
   } | null>(null);
   const [isSavingVideo, setIsSavingVideo] = useState(false);
   const [videoFeedback, setVideoFeedback] = useState<string | null>(null);
+  const [videoError, setVideoError] = useState<string | null>(null);
+  const [savedVideoSnapshot, setSavedVideoSnapshot] = useState<string>("");
 
-  // General Settings State
+  // General Settings State (Agenda & Políticas persistidas em SystemSettings)
   const [timezone, setTimezone] = useState("America/Sao_Paulo");
   const [minNoticeHours, setMinNoticeHours] = useState(24);
   const [horizonDays, setHorizonDays] = useState(30);
   const [cancellationNoticeDays, setCancellationNoticeDays] = useState(3);
+  const [defaultBufferMinutes, setDefaultBufferMinutes] = useState(10);
+  const [defaultModality, setDefaultModality] = useState<"PRESENTIAL" | "ONLINE" | "BOTH">("BOTH");
+  const [defaultConfirmationPolicy, setDefaultConfirmationPolicy] = useState<
+    "AUTOMATIC" | "UPON_PAYMENT" | "MANUAL_ADMIN" | "PAYMENT_AND_ADMIN"
+  >("AUTOMATIC");
+  const [allowPatientReschedule, setAllowPatientReschedule] = useState(true);
+  const [savedGeneralSection, setSavedGeneralSection] = useState({
+    timezone: "America/Sao_Paulo",
+    minNoticeHours: 24,
+    horizonDays: 30,
+    cancellationNoticeDays: 3,
+  });
+  const [isSavingGeneral, setIsSavingGeneral] = useState(false);
   const [generalFeedback, setGeneralFeedback] = useState<string | null>(null);
+  const [generalError, setGeneralError] = useState<string | null>(null);
 
   // Security / Technical State
   const [copiedUrl, setCopiedUrl] = useState(false);
@@ -211,61 +293,235 @@ export default function AdminSettingsPage() {
     }
   }, []);
 
+  const buildSiteMediaSnapshot = (params: {
+    heroMediaType: string;
+    heroMediaUrl: string | null;
+    heroPosterUrl: string | null;
+    heroPlaybackSpeed: number;
+    heroBgMode: string;
+    heroBgDetectedColor: string | null;
+    heroBgCustomColor: string;
+    heroBgMediaRef: string | null;
+    heroMobileMediaType: string;
+    heroMobileMediaUrl: string | null;
+    heroMobilePosterUrl: string | null;
+    heroMobilePlaybackSpeed: number;
+    heroMobileBgDetectedColor: string | null;
+    heroMobileBgMediaRef: string | null;
+    aboutMediaType: string;
+    aboutMediaUrl: string | null;
+    aboutPosterUrl: string | null;
+    aboutPlaybackSpeed: number;
+  }) => JSON.stringify(params);
+
+  const buildVideoSnapshot = (params: {
+    activeVideoKey: string;
+    jitsiDomain: string;
+    peerJsHost: string;
+    peerJsPort: number;
+    peerJsPath: string;
+    peerJsSecure: boolean;
+    peerJsStunServer: string;
+    peerJsTurnServer: string;
+    peerJsTurnUser: string;
+    peerJsTurnSecret: string;
+    googleMeetClientId: string;
+    googleMeetClientSecret: string;
+  }) => JSON.stringify(params);
+
+  const syncLiveLightThemeCss = (snapshot: ThemeSnapshot) => {
+    if (typeof document === "undefined") return;
+    const primary = normalizeHexColor(snapshot.primaryColor, "#16A34A");
+    const secondary = normalizeHexColor(snapshot.secondaryColor, "#DCFCE7");
+    const accent = normalizeHexColor(snapshot.accentColor, "#86EFAC");
+    const rawButton = normalizeHexColor(snapshot.buttonColor || primary, primary);
+    const accessibleBtn = resolveAccessibleButtonBg(rawButton, 4.6);
+    const bg = normalizeHexColor(snapshot.backgroundColor, "#F0FDF4");
+    const txt = normalizeHexColor(snapshot.textColor, "#14532D");
+    const primaryFg = calculateContrastRatio("#ffffff", primary) >= 4.5 ? "#ffffff" : "#111111";
+
+    let styleEl = document.getElementById("psi-live-theme-vars") as HTMLStyleElement | null;
+    if (!styleEl) {
+      styleEl = document.createElement("style");
+      styleEl.id = "psi-live-theme-vars";
+      document.head.appendChild(styleEl);
+    }
+    const darkAccentVivid = primary.toUpperCase() === "#525252" ? "#EA580C" : primary;
+    const darkAccentSafe = resolveAccessibleButtonBg(darkAccentVivid, 4.6);
+
+    // Propaga acentos ativos no Modo Claro e no Modo Escuro preservando superfícies matte do Dark Mode
+    styleEl.textContent = `
+      :root:not(.dark):not([data-theme="dark"]) {
+        --primary: ${primary};
+        --primary-foreground: ${primaryFg};
+        --secondary: ${secondary};
+        --accent: ${accent};
+        --button-bg: ${accessibleBtn};
+        --button-fg: #ffffff;
+        --button-secondary-bg: #ffffff;
+        --button-secondary-fg: ${accessibleBtn};
+        --button-outline-bg: #ffffff;
+        --button-outline-fg: ${accessibleBtn};
+        --button-ghost-bg: transparent;
+        --button-ghost-fg: ${accessibleBtn};
+        --ring: ${primary};
+        --theme-bg: ${bg};
+        --theme-text: ${txt};
+        --color-primary: ${primary};
+        --color-primary-hover: ${accessibleBtn};
+        --color-secondary: ${secondary};
+        --color-accent: ${accent};
+        --color-background: ${bg};
+        --color-text: ${txt};
+      }
+      .dark,
+      [data-theme="dark"] {
+        --primary: ${darkAccentVivid};
+        --button-bg: ${darkAccentSafe};
+        --button-hover: ${darkAccentVivid};
+        --dark-accent: ${darkAccentSafe};
+        --dark-accent-vivid: ${darkAccentVivid};
+        --ring: ${darkAccentVivid};
+        --color-primary: ${darkAccentVivid};
+        --color-primary-hover: ${darkAccentSafe};
+      }
+    `;
+  };
+
   // Carrega dados das APIs
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [appRes, vidRes, mediaRes, profRes] = await Promise.all([
+      const [appRes, vidRes, mediaRes, profRes, svcSettingsRes] = await Promise.all([
         fetch("/api/admin/appearance"),
         fetch("/api/admin/video-providers"),
         fetch("/api/admin/minisite/media/settings"),
         fetch("/api/admin/profile"),
+        fetch("/api/admin/services/settings"),
       ]);
 
       if (profRes && profRes.ok) {
         const profData = await profRes.json();
         if (profData.application) {
-          setClinicName(profData.application.clinicName || "");
-          setTagline(profData.application.tagline || "");
+          const nextClinicName = profData.application.clinicName || "";
+          const nextTagline = profData.application.tagline || "";
+          setClinicName(nextClinicName);
+          setTagline(nextTagline);
           setAppVersion(profData.application.appVersion || "1.0.0");
+          setSavedAppSection({ clinicName: nextClinicName, tagline: nextTagline });
         }
         if (profData.professional) {
-          setFullName(profData.professional.fullName || "");
-          setDisplayName(profData.professional.displayName || "");
-          setCrpCrm(profData.professional.crpCrm || "");
-          setTitle(profData.professional.title || "");
+          const nextFullName = profData.professional.fullName || "";
+          const nextDisplayName = profData.professional.displayName || "";
+          const nextCrpCrm = profData.professional.crpCrm || "";
+          const nextTitle = profData.professional.title || "";
+          setFullName(nextFullName);
+          setDisplayName(nextDisplayName);
+          setCrpCrm(nextCrpCrm);
+          setTitle(nextTitle);
           setAdminEmail(profData.professional.adminEmail || "");
+          setSavedProfSection({
+            fullName: nextFullName,
+            displayName: nextDisplayName,
+            crpCrm: nextCrpCrm,
+            title: nextTitle,
+          });
         }
         if (profData.contact) {
-          setWhatsappNumber(profData.contact.whatsappNumber || "");
-          setPhone(profData.contact.phone || "");
-          setEmail(profData.contact.email || "");
-          setInstagram(profData.contact.instagram || "");
+          const nextWhatsapp = profData.contact.whatsappNumber || "";
+          const nextPhone = profData.contact.phone || "";
+          const nextEmail = profData.contact.email || "";
+          const nextInstagram = profData.contact.instagram || "";
+          setWhatsappNumber(nextWhatsapp);
+          setPhone(nextPhone);
+          setEmail(nextEmail);
+          setInstagram(nextInstagram);
+          setSavedContactSection({
+            whatsappNumber: nextWhatsapp,
+            phone: nextPhone,
+            email: nextEmail,
+            instagram: nextInstagram,
+          });
         }
       }
 
       if (appRes.ok) {
         const appData = await appRes.json();
-        setThemeName(appData.themeName || "VERDE");
-        setLogoUrl(appData.logoUrl || null);
-        setLogoHorizontalUrl(appData.logoHorizontalUrl || null);
-        setFaviconUrl(appData.faviconUrl || null);
-        setPrimaryColor(appData.primaryColor || "#16A34A");
-        setSecondaryColor(appData.secondaryColor || "#DCFCE7");
-        setAccentColor(appData.accentColor || "#86EFAC");
-        setButtonColor(appData.buttonColor || "#16A34A");
-        setBackgroundColor(appData.backgroundColor || "#F0FDF4");
-        setTextColor(appData.textColor || "#14532D");
+        const loadedThemeName = appData.themeName || "VERDE";
+        const loadedPrimary = appData.primaryColor || "#16A34A";
+        const loadedSecondary = appData.secondaryColor || "#DCFCE7";
+        const loadedAccent = appData.accentColor || "#86EFAC";
+        const loadedButton = appData.buttonColor || loadedPrimary;
+        const loadedBg = appData.backgroundColor || "#F0FDF4";
+        const loadedText = appData.textColor || "#14532D";
+
+        const loadedTheme: ThemeSnapshot = {
+          themeName: loadedThemeName,
+          primaryColor: loadedPrimary,
+          secondaryColor: loadedSecondary,
+          accentColor: loadedAccent,
+          buttonColor: loadedButton,
+          backgroundColor: loadedBg,
+          textColor: loadedText,
+        };
+
+        setThemeName(loadedThemeName);
+        setPrimaryColor(loadedPrimary);
+        setSecondaryColor(loadedSecondary);
+        setAccentColor(loadedAccent);
+        setButtonColor(loadedButton);
+        setBackgroundColor(loadedBg);
+        setTextColor(loadedText);
+        setSavedTheme(loadedTheme);
+
+        if (loadedThemeName !== "PERSONALIZADO" && THEME_PRESETS[loadedThemeName]) {
+          setLastBasePreset(loadedThemeName);
+          setCustomDraftState(null);
+        } else {
+          setLastBasePreset("VERDE");
+          setCustomDraftState({
+            baseKey: "__SAVED_CUSTOM__",
+            colors: {
+              primaryColor: loadedPrimary,
+              secondaryColor: loadedSecondary,
+              accentColor: loadedAccent,
+              buttonColor: loadedButton,
+              backgroundColor: loadedBg,
+              textColor: loadedText,
+            },
+          });
+        }
+
+        const nextLogo = appData.logoUrl || null;
+        const nextLogoH = appData.logoHorizontalUrl || null;
+        const nextFav = appData.faviconUrl || null;
+        setLogoUrl(nextLogo);
+        setLogoHorizontalUrl(nextLogoH);
+        setFaviconUrl(nextFav);
+        setSavedImagesSection({
+          logoUrl: nextLogo,
+          logoHorizontalUrl: nextLogoH,
+          faviconUrl: nextFav,
+        });
       }
 
       if (mediaRes && mediaRes.ok) {
         const mediaData = await mediaRes.json();
+        const nextHeroType = mediaData.hero?.mediaType || "IMAGE";
+        const nextHeroUrl = mediaData.hero?.mediaUrl || null;
+        const nextHeroPoster = mediaData.hero?.posterUrl || null;
+        const nextHeroSpeed = mediaData.hero?.playbackSpeed ?? 1;
+        const nextHeroBgMode = mediaData.hero?.bgMode === "MANUAL" ? "MANUAL" : "AUTO";
+        const nextHeroBgDetected = mediaData.hero?.bgDetectedColor || null;
+        const nextHeroBgCustom = mediaData.hero?.bgCustomColor || "#FAF7F2";
+        const nextHeroBgRef = mediaData.hero?.bgMediaRef || null;
+
         if (mediaData.hero) {
-          setHeroMediaType(mediaData.hero.mediaType || "IMAGE");
-          setHeroMediaUrl(mediaData.hero.mediaUrl || null);
-          setHeroPosterUrl(mediaData.hero.posterUrl || null);
+          setHeroMediaType(nextHeroType);
+          setHeroMediaUrl(nextHeroUrl);
+          setHeroPosterUrl(nextHeroPoster);
           setHeroFps(mediaData.hero.fps ?? 24);
-          setHeroPlaybackSpeed(mediaData.hero.playbackSpeed ?? 1);
+          setHeroPlaybackSpeed(nextHeroSpeed);
           setHeroLoop(mediaData.hero.loop ?? true);
           setHeroAutoplay(mediaData.hero.autoplay ?? true);
           setHeroPlaybackMode(mediaData.hero.playbackMode || "AUTOMATIC");
@@ -273,18 +529,26 @@ export default function AdminSettingsPage() {
           setHeroPositioning(mediaData.hero.positioning || "center");
           setHeroFrameCount(mediaData.hero.frameCount ?? 0);
           setHeroFrames(mediaData.hero.frames || []);
-          setHeroBgMode(mediaData.hero.bgMode === "MANUAL" ? "MANUAL" : "AUTO");
-          setHeroBgDetectedColor(mediaData.hero.bgDetectedColor || null);
-          setHeroBgCustomColor(mediaData.hero.bgCustomColor || "#FAF7F2");
+          setHeroBgMode(nextHeroBgMode);
+          setHeroBgDetectedColor(nextHeroBgDetected);
+          setHeroBgCustomColor(nextHeroBgCustom);
           setHeroBgStatus(mediaData.hero.bgStatus || "IDLE");
-          setHeroBgMediaRef(mediaData.hero.bgMediaRef || null);
+          setHeroBgMediaRef(nextHeroBgRef);
         }
+
+        const nextMobType = mediaData.heroMobile?.mediaType || "IMAGE";
+        const nextMobUrl = mediaData.heroMobile?.mediaUrl || null;
+        const nextMobPoster = mediaData.heroMobile?.posterUrl || null;
+        const nextMobSpeed = mediaData.heroMobile?.playbackSpeed ?? 1;
+        const nextMobBgDetected = mediaData.heroMobile?.bgDetectedColor || null;
+        const nextMobBgRef = mediaData.heroMobile?.bgMediaRef || null;
+
         if (mediaData.heroMobile) {
-          setHeroMobileMediaType(mediaData.heroMobile.mediaType || "IMAGE");
-          setHeroMobileMediaUrl(mediaData.heroMobile.mediaUrl || null);
-          setHeroMobilePosterUrl(mediaData.heroMobile.posterUrl || null);
+          setHeroMobileMediaType(nextMobType);
+          setHeroMobileMediaUrl(nextMobUrl);
+          setHeroMobilePosterUrl(nextMobPoster);
           setHeroMobileFps(mediaData.heroMobile.fps ?? 24);
-          setHeroMobilePlaybackSpeed(mediaData.heroMobile.playbackSpeed ?? 1);
+          setHeroMobilePlaybackSpeed(nextMobSpeed);
           setHeroMobileLoop(mediaData.heroMobile.loop ?? true);
           setHeroMobileAutoplay(mediaData.heroMobile.autoplay ?? true);
           setHeroMobilePlaybackMode(mediaData.heroMobile.playbackMode || "AUTOMATIC");
@@ -292,16 +556,22 @@ export default function AdminSettingsPage() {
           setHeroMobilePositioning(mediaData.heroMobile.positioning || "center");
           setHeroMobileFrameCount(mediaData.heroMobile.frameCount ?? 0);
           setHeroMobileFrames(mediaData.heroMobile.frames || []);
-          setHeroMobileBgDetectedColor(mediaData.heroMobile.bgDetectedColor || null);
+          setHeroMobileBgDetectedColor(nextMobBgDetected);
           setHeroMobileBgStatus(mediaData.heroMobile.bgStatus || "IDLE");
-          setHeroMobileBgMediaRef(mediaData.heroMobile.bgMediaRef || null);
+          setHeroMobileBgMediaRef(nextMobBgRef);
         }
+
+        const nextAboutType = mediaData.about?.mediaType || "IMAGE";
+        const nextAboutUrl = mediaData.about?.mediaUrl || null;
+        const nextAboutPoster = mediaData.about?.posterUrl || null;
+        const nextAboutSpeed = mediaData.about?.playbackSpeed ?? 1;
+
         if (mediaData.about) {
-          setAboutMediaType(mediaData.about.mediaType || "IMAGE");
-          setAboutMediaUrl(mediaData.about.mediaUrl || null);
-          setAboutPosterUrl(mediaData.about.posterUrl || null);
+          setAboutMediaType(nextAboutType);
+          setAboutMediaUrl(nextAboutUrl);
+          setAboutPosterUrl(nextAboutPoster);
           setAboutFps(mediaData.about.fps ?? 24);
-          setAboutPlaybackSpeed(mediaData.about.playbackSpeed ?? 1);
+          setAboutPlaybackSpeed(nextAboutSpeed);
           setAboutLoop(mediaData.about.loop ?? true);
           setAboutAutoplay(mediaData.about.autoplay ?? true);
           setAboutPlaybackMode(mediaData.about.playbackMode || "AUTOMATIC");
@@ -310,24 +580,57 @@ export default function AdminSettingsPage() {
           setAboutFrameCount(mediaData.about.frameCount ?? 0);
           setAboutFrames(mediaData.about.frames || []);
         }
+
+        setSavedMediaSnapshot(
+          buildSiteMediaSnapshot({
+            heroMediaType: nextHeroType,
+            heroMediaUrl: nextHeroUrl,
+            heroPosterUrl: nextHeroPoster,
+            heroPlaybackSpeed: nextHeroSpeed,
+            heroBgMode: nextHeroBgMode,
+            heroBgDetectedColor: nextHeroBgDetected,
+            heroBgCustomColor: nextHeroBgCustom,
+            heroBgMediaRef: nextHeroBgRef,
+            heroMobileMediaType: nextMobType,
+            heroMobileMediaUrl: nextMobUrl,
+            heroMobilePosterUrl: nextMobPoster,
+            heroMobilePlaybackSpeed: nextMobSpeed,
+            heroMobileBgDetectedColor: nextMobBgDetected,
+            heroMobileBgMediaRef: nextMobBgRef,
+            aboutMediaType: nextAboutType,
+            aboutMediaUrl: nextAboutUrl,
+            aboutPosterUrl: nextAboutPoster,
+            aboutPlaybackSpeed: nextAboutSpeed,
+          })
+        );
       }
 
       if (vidRes.ok) {
         const vidData = await vidRes.json();
         setVideoProviders(vidData.providers || []);
-        setActiveVideoKey(vidData.activeVideoProvider || "JITSI");
+        const nextActiveVideo = vidData.activeVideoProvider || "JITSI";
+        setActiveVideoKey(nextActiveVideo);
         const jitsi = vidData.providers?.find((p: any) => p.key === "JITSI");
-        if (jitsi) setJitsiDomain(jitsi.config?.domain || "meet.jit.si");
+        const nextJitsiDomain = jitsi?.config?.domain || "meet.jit.si";
+        if (jitsi) setJitsiDomain(nextJitsiDomain);
         const peer = vidData.providers?.find((p: any) => p.key === "PEERJS");
+        const nextPeerHost = peer?.config?.host || "";
+        const nextPeerPort = peer?.config?.port || 9000;
+        const nextPeerPath = peer?.config?.path || "/peerjs";
+        const nextPeerSecure = peer?.config?.secure ?? false;
+        const nextPeerStun = peer?.config?.stunServer || "stun:stun.l.google.com:19302";
+        const nextPeerTurn = peer?.config?.turnServer || "";
+        const nextPeerUser = peer?.config?.turnUser || "";
+        const nextPeerSecret = peer?.config?.turnSecret || "";
         if (peer) {
-          setPeerJsHost(peer.config?.host || "");
-          setPeerJsPort(peer.config?.port || 9000);
-          setPeerJsPath(peer.config?.path || "/peerjs");
-          setPeerJsSecure(peer.config?.secure ?? false);
-          setPeerJsStunServer(peer.config?.stunServer || "stun:stun.l.google.com:19302");
-          setPeerJsTurnServer(peer.config?.turnServer || "");
-          setPeerJsTurnUser(peer.config?.turnUser || "");
-          setPeerJsTurnSecret(peer.config?.turnSecret || "");
+          setPeerJsHost(nextPeerHost);
+          setPeerJsPort(nextPeerPort);
+          setPeerJsPath(nextPeerPath);
+          setPeerJsSecure(nextPeerSecure);
+          setPeerJsStunServer(nextPeerStun);
+          setPeerJsTurnServer(nextPeerTurn);
+          setPeerJsTurnUser(nextPeerUser);
+          setPeerJsTurnSecret(nextPeerSecret);
           if (peer.config?.lastTestedAt) {
             setPeerJsTestFeedback({
               success: peer.config?.testStatus === "SUCCESS",
@@ -340,13 +643,54 @@ export default function AdminSettingsPage() {
           }
         }
         const gmeet = vidData.providers?.find((p: any) => p.key === "GOOGLE_MEET");
+        const nextGmeetId = gmeet?.config?.clientId || "";
+        const nextGmeetSecret = gmeet?.config?.clientSecret || "";
         if (gmeet) {
-          setGoogleMeetClientId(gmeet.config?.clientId || "");
-          setGoogleMeetClientSecret(gmeet.config?.clientSecret || "");
+          setGoogleMeetClientId(nextGmeetId);
+          setGoogleMeetClientSecret(nextGmeetSecret);
           setGoogleMeetAccountEmail(gmeet.config?.accountEmail || null);
           setGoogleMeetConnectedAt(gmeet.config?.connectedAt || null);
           setGoogleMeetStatus(gmeet.status || gmeet.config?.status || null);
         }
+
+        setSavedVideoSnapshot(
+          buildVideoSnapshot({
+            activeVideoKey: nextActiveVideo,
+            jitsiDomain: nextJitsiDomain,
+            peerJsHost: nextPeerHost,
+            peerJsPort: nextPeerPort,
+            peerJsPath: nextPeerPath,
+            peerJsSecure: nextPeerSecure,
+            peerJsStunServer: nextPeerStun,
+            peerJsTurnServer: nextPeerTurn,
+            peerJsTurnUser: nextPeerUser,
+            peerJsTurnSecret: nextPeerSecret,
+            googleMeetClientId: nextGmeetId,
+            googleMeetClientSecret: nextGmeetSecret,
+          })
+        );
+      }
+
+      if (svcSettingsRes && svcSettingsRes.ok) {
+        const svcData = await svcSettingsRes.json();
+        const nextTz = svcData.timezone || "America/Sao_Paulo";
+        const nextMin = svcData.minBookingNoticeHours ?? 24;
+        const nextHorizon = svcData.maxBookingHorizonDays ?? 30;
+        const nextCancel = svcData.defaultCancellationNoticeDays ?? 3;
+        setTimezone(nextTz);
+        setMinNoticeHours(nextMin);
+        setHorizonDays(nextHorizon);
+        setCancellationNoticeDays(nextCancel);
+        setDefaultBufferMinutes(svcData.defaultBufferMinutes ?? 10);
+        setDefaultModality(svcData.defaultModality || "BOTH");
+        setDefaultConfirmationPolicy(svcData.defaultConfirmationPolicy || "AUTOMATIC");
+        setAllowPatientReschedule(svcData.allowPatientReschedule ?? true);
+        setSavedGeneralSection({
+          timezone: nextTz,
+          minNoticeHours: nextMin,
+          horizonDays: nextHorizon,
+          cancellationNoticeDays: nextCancel,
+        });
       }
     } catch (e) {
       console.error(e);
@@ -359,10 +703,85 @@ export default function AdminSettingsPage() {
     loadData();
   }, []);
 
-  // Upload de Asset de Aparência
+  // Estados de alteração (dirty-check) independentes por seção
+  const isAppDirty =
+    clinicName !== savedAppSection.clinicName || tagline !== savedAppSection.tagline;
+
+  const isProfDirty =
+    fullName !== savedProfSection.fullName ||
+    displayName !== savedProfSection.displayName ||
+    crpCrm !== savedProfSection.crpCrm ||
+    title !== savedProfSection.title;
+
+  const isContactDirty =
+    whatsappNumber !== savedContactSection.whatsappNumber ||
+    phone !== savedContactSection.phone ||
+    email !== savedContactSection.email ||
+    instagram !== savedContactSection.instagram;
+
+  const isThemeDirty =
+    themeName !== savedTheme.themeName ||
+    normalizeHexColor(primaryColor, primaryColor) !== normalizeHexColor(savedTheme.primaryColor, savedTheme.primaryColor) ||
+    normalizeHexColor(secondaryColor, secondaryColor) !== normalizeHexColor(savedTheme.secondaryColor, savedTheme.secondaryColor) ||
+    normalizeHexColor(accentColor, accentColor) !== normalizeHexColor(savedTheme.accentColor, savedTheme.accentColor) ||
+    normalizeHexColor(buttonColor, buttonColor) !== normalizeHexColor(savedTheme.buttonColor, savedTheme.buttonColor) ||
+    normalizeHexColor(backgroundColor, backgroundColor) !== normalizeHexColor(savedTheme.backgroundColor, savedTheme.backgroundColor) ||
+    normalizeHexColor(textColor, textColor) !== normalizeHexColor(savedTheme.textColor, savedTheme.textColor);
+
+  const isImagesDirty =
+    logoUrl !== savedImagesSection.logoUrl ||
+    logoHorizontalUrl !== savedImagesSection.logoHorizontalUrl ||
+    faviconUrl !== savedImagesSection.faviconUrl;
+
+  const currentMediaSnapshot = buildSiteMediaSnapshot({
+    heroMediaType,
+    heroMediaUrl,
+    heroPosterUrl,
+    heroPlaybackSpeed,
+    heroBgMode,
+    heroBgDetectedColor,
+    heroBgCustomColor,
+    heroBgMediaRef,
+    heroMobileMediaType,
+    heroMobileMediaUrl,
+    heroMobilePosterUrl,
+    heroMobilePlaybackSpeed,
+    heroMobileBgDetectedColor,
+    heroMobileBgMediaRef,
+    aboutMediaType,
+    aboutMediaUrl,
+    aboutPosterUrl,
+    aboutPlaybackSpeed,
+  });
+  const isMediaDirty = savedMediaSnapshot !== "" && currentMediaSnapshot !== savedMediaSnapshot;
+
+  const currentVideoSnapshot = buildVideoSnapshot({
+    activeVideoKey,
+    jitsiDomain,
+    peerJsHost,
+    peerJsPort,
+    peerJsPath,
+    peerJsSecure,
+    peerJsStunServer,
+    peerJsTurnServer,
+    peerJsTurnUser,
+    peerJsTurnSecret,
+    googleMeetClientId,
+    googleMeetClientSecret,
+  });
+  const isVideoDirty = savedVideoSnapshot !== "" && currentVideoSnapshot !== savedVideoSnapshot;
+
+  const isGeneralDirty =
+    timezone !== savedGeneralSection.timezone ||
+    minNoticeHours !== savedGeneralSection.minNoticeHours ||
+    horizonDays !== savedGeneralSection.horizonDays ||
+    cancellationNoticeDays !== savedGeneralSection.cancellationNoticeDays;
+
+  // Upload de Asset de Imagens do Sistema
   const handleUploadAsset = async (assetType: "logo" | "logoHorizontal" | "favicon", file: File) => {
     setUploadingAsset(assetType);
-    setAppearanceFeedback(null);
+    setImagesFeedback(null);
+    setImagesError(null);
 
     const formData = new FormData();
     formData.append("file", file);
@@ -376,139 +795,378 @@ export default function AdminSettingsPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        setAppearanceFeedback(data.error || "Erro no upload do arquivo.");
+        setImagesError(data.error || "Erro no upload do arquivo.");
       } else {
         if (assetType === "logo") setLogoUrl(data.url);
         if (assetType === "logoHorizontal") setLogoHorizontalUrl(data.url);
         if (assetType === "favicon") setFaviconUrl(data.url);
-        setAppearanceFeedback("Asset enviado e atualizado com sucesso!");
+        setImagesFeedback('Arquivo enviado na prévia. Clique em "Salvar Alterações" abaixo para publicar.');
       }
     } catch {
-      setAppearanceFeedback("Erro de conexão no upload.");
+      setImagesError("Erro de conexão no upload.");
     } finally {
       setUploadingAsset(null);
     }
   };
 
-  // Seleção de Tema Pré-definido
+  // Seleção de Tema Pré-definido (apenas rascunho em memória até clicar em "Salvar Tema")
   const handleSelectThemePreset = (presetKey: string) => {
-    setThemeName(presetKey);
+    setThemeFeedback(null);
+    setThemeError(null);
+
     if (presetKey !== "PERSONALIZADO" && THEME_PRESETS[presetKey]) {
       const p = THEME_PRESETS[presetKey];
+      setLastBasePreset(presetKey);
+      setThemeName(presetKey);
       setPrimaryColor(p.primaryColor);
       setSecondaryColor(p.secondaryColor);
       setAccentColor(p.accentColor);
       setButtonColor(p.buttonColor);
       setBackgroundColor(p.backgroundColor);
       setTextColor(p.textColor);
+      setCustomDraftState(null);
     }
   };
 
-  // Alteração de Cor Personalizada
+  // Seleção de "Personalizado" — inicializa a partir do último tema selecionado ou preserva edições em andamento
+  const handleSelectCustomTheme = () => {
+    setThemeFeedback(null);
+    setThemeError(null);
+
+    if (themeName === "PERSONALIZADO") {
+      return;
+    }
+
+    if (
+      customDraftState &&
+      (customDraftState.baseKey === lastBasePreset || customDraftState.baseKey === "__SAVED_CUSTOM__")
+    ) {
+      setThemeName("PERSONALIZADO");
+      setPrimaryColor(customDraftState.colors.primaryColor);
+      setSecondaryColor(customDraftState.colors.secondaryColor);
+      setAccentColor(customDraftState.colors.accentColor);
+      setButtonColor(customDraftState.colors.buttonColor);
+      setBackgroundColor(customDraftState.colors.backgroundColor);
+      setTextColor(customDraftState.colors.textColor);
+      return;
+    }
+
+    const basePalette = THEME_PRESETS[lastBasePreset] || THEME_PRESETS.VERDE;
+    const initialized: ThemeDraftColors = {
+      primaryColor: basePalette.primaryColor,
+      secondaryColor: basePalette.secondaryColor,
+      accentColor: basePalette.accentColor,
+      buttonColor: basePalette.buttonColor,
+      backgroundColor: basePalette.backgroundColor,
+      textColor: basePalette.textColor,
+    };
+
+    setThemeName("PERSONALIZADO");
+    setPrimaryColor(initialized.primaryColor);
+    setSecondaryColor(initialized.secondaryColor);
+    setAccentColor(initialized.accentColor);
+    setButtonColor(initialized.buttonColor);
+    setBackgroundColor(initialized.backgroundColor);
+    setTextColor(initialized.textColor);
+    setCustomDraftState({
+      baseKey: lastBasePreset,
+      colors: initialized,
+    });
+  };
+
+  // Alteração individual de token dentro de "Cores Personalizadas" (apenas rascunho)
   const handleCustomColorChange = (
-    field: "primary" | "secondary" | "accent" | "button" | "background" | "text",
+    field: "primaryColor" | "secondaryColor" | "accentColor" | "buttonColor" | "backgroundColor" | "textColor",
     value: string
   ) => {
+    setThemeFeedback(null);
+    setThemeError(null);
     setThemeName("PERSONALIZADO");
-    if (field === "primary") {
-      setPrimaryColor(value);
-      setButtonColor(value);
-    }
-    if (field === "secondary") setSecondaryColor(value);
-    if (field === "accent") setAccentColor(value);
-    if (field === "button") setButtonColor(value);
-    if (field === "background") setBackgroundColor(value);
-    if (field === "text") setTextColor(value);
+
+    if (field === "primaryColor") setPrimaryColor(value);
+    if (field === "secondaryColor") setSecondaryColor(value);
+    if (field === "accentColor") setAccentColor(value);
+    if (field === "buttonColor") setButtonColor(value);
+    if (field === "backgroundColor") setBackgroundColor(value);
+    if (field === "textColor") setTextColor(value);
+
+    const updatedColors: ThemeDraftColors = {
+      primaryColor: field === "primaryColor" ? value : primaryColor,
+      secondaryColor: field === "secondaryColor" ? value : secondaryColor,
+      accentColor: field === "accentColor" ? value : accentColor,
+      buttonColor: field === "buttonColor" ? value : buttonColor,
+      backgroundColor: field === "backgroundColor" ? value : backgroundColor,
+      textColor: field === "textColor" ? value : textColor,
+    };
+    setCustomDraftState({
+      baseKey: customDraftState?.baseKey === "__SAVED_CUSTOM__" ? "__SAVED_CUSTOM__" : lastBasePreset,
+      colors: updatedColors,
+    });
   };
 
-  // Salva Perfil Centralizado (Seções A, B e C)
-  const handleSaveProfile = async (e: React.FormEvent) => {
+  // Salvamento independente — Perfil Seção A (Dados da Aplicação)
+  const handleSaveAppSection = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSavingProfile(true);
-    setProfileFeedback(null);
-    setProfileError(null);
+    if (isSavingApp || !isAppDirty) return;
+    setIsSavingApp(true);
+    setAppFeedback(null);
+    setAppError(null);
 
     try {
       const res = await fetch("/api/admin/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          section: "application",
           clinicName,
           tagline,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAppError(data.error || "Erro ao salvar dados da aplicação.");
+        return;
+      }
+      const nextClinic = data.application?.clinicName ?? clinicName;
+      const nextTag = data.application?.tagline ?? tagline;
+      setClinicName(nextClinic);
+      setTagline(nextTag);
+      setSavedAppSection({ clinicName: nextClinic, tagline: nextTag });
+      setAppFeedback(data.message || "Dados da aplicação atualizados com sucesso.");
+      router.refresh();
+    } catch {
+      setAppError("Erro de comunicação ao salvar dados da aplicação.");
+    } finally {
+      setIsSavingApp(false);
+    }
+  };
+
+  // Salvamento independente — Perfil Seção B (Dados do Administrador / Profissional)
+  const handleSaveProfSection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSavingProf || !isProfDirty) return;
+    setIsSavingProf(true);
+    setProfFeedback(null);
+    setProfError(null);
+
+    try {
+      const res = await fetch("/api/admin/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          section: "professional",
           fullName,
           displayName,
           crpCrm,
           title,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setProfError(data.error || "Erro ao salvar dados do profissional.");
+        return;
+      }
+      const nextFull = data.professional?.fullName ?? fullName;
+      const nextDisp = data.professional?.displayName ?? displayName;
+      const nextCrp = data.professional?.crpCrm ?? crpCrm;
+      const nextTitle = data.professional?.title ?? title;
+      setFullName(nextFull);
+      setDisplayName(nextDisp);
+      setCrpCrm(nextCrp);
+      setTitle(nextTitle);
+      setSavedProfSection({
+        fullName: nextFull,
+        displayName: nextDisp,
+        crpCrm: nextCrp,
+        title: nextTitle,
+      });
+      setProfFeedback(data.message || "Dados do profissional atualizados com sucesso.");
+      router.refresh();
+    } catch {
+      setProfError("Erro de comunicação ao salvar dados do profissional.");
+    } finally {
+      setIsSavingProf(false);
+    }
+  };
+
+  // Salvamento independente — Perfil Seção C (Contatos e Redes Sociais)
+  const handleSaveContactSection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSavingContact || !isContactDirty) return;
+    setIsSavingContact(true);
+    setContactFeedback(null);
+    setContactError(null);
+
+    try {
+      const res = await fetch("/api/admin/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          section: "contact",
           whatsappNumber,
           phone,
           email,
           instagram,
         }),
       });
-
       const data = await res.json();
       if (!res.ok) {
-        setProfileError(data.error || "Erro ao salvar alterações do perfil.");
+        setContactError(data.error || "Erro ao salvar contatos e redes sociais.");
         return;
       }
-
-      setProfileFeedback("Configurações de perfil e dados de contato atualizados com sucesso!");
-      if (data.contact?.whatsappNumber) {
-        setWhatsappNumber(data.contact.whatsappNumber);
-      }
+      const nextWpp = data.contact?.whatsappNumber ?? whatsappNumber;
+      const nextPhone = data.contact?.phone ?? phone;
+      const nextEmail = data.contact?.email ?? email;
+      const nextInsta = data.contact?.instagram ?? instagram;
+      setWhatsappNumber(nextWpp);
+      setPhone(nextPhone);
+      setEmail(nextEmail);
+      setInstagram(nextInsta);
+      setSavedContactSection({
+        whatsappNumber: nextWpp,
+        phone: nextPhone,
+        email: nextEmail,
+        instagram: nextInsta,
+      });
+      setContactFeedback(data.message || "Contatos e redes sociais atualizados com sucesso.");
+      router.refresh();
     } catch {
-      setProfileError("Erro de comunicação com o servidor ao salvar perfil.");
+      setContactError("Erro de comunicação ao salvar contatos.");
     } finally {
-      setIsSavingProfile(false);
+      setIsSavingContact(false);
     }
   };
 
-  // Salva Aparência (Phase 1/5)
-  const handleSaveAppearance = async () => {
-    setIsSavingAppearance(true);
-    setAppearanceFeedback(null);
+  // Salvamento explícito apenas do Tema ao clicar em "Salvar Tema"
+  const handleSaveTheme = async () => {
+    if (isSavingTheme || !isThemeDirty) return;
+    setThemeFeedback(null);
+    setThemeError(null);
+
+    let payload: ThemeSnapshot;
+
+    if (themeName !== "PERSONALIZADO" && THEME_PRESETS[themeName]) {
+      const p = THEME_PRESETS[themeName];
+      payload = {
+        themeName,
+        primaryColor: p.primaryColor,
+        secondaryColor: p.secondaryColor,
+        accentColor: p.accentColor,
+        buttonColor: p.buttonColor,
+        backgroundColor: p.backgroundColor,
+        textColor: p.textColor,
+      };
+    } else {
+      const normPrimary = normalizeHexColor(primaryColor, "");
+      const normSecondary = normalizeHexColor(secondaryColor, "");
+      const normAccent = normalizeHexColor(accentColor, "");
+      const normButton = normalizeHexColor(buttonColor, "");
+      const normBg = normalizeHexColor(backgroundColor, "");
+      const normText = normalizeHexColor(textColor, "");
+
+      if (
+        !isValidHex6(normPrimary) ||
+        !isValidHex6(normSecondary) ||
+        !isValidHex6(normAccent) ||
+        !isValidHex6(normButton) ||
+        !isValidHex6(normBg) ||
+        !isValidHex6(normText)
+      ) {
+        setThemeError(
+          "Informe códigos hexadecimais válidos (#RRGGBB) em todas as cores personalizadas antes de salvar."
+        );
+        return;
+      }
+
+      payload = {
+        themeName: "PERSONALIZADO",
+        primaryColor: normPrimary,
+        secondaryColor: normSecondary,
+        accentColor: normAccent,
+        buttonColor: normButton,
+        backgroundColor: normBg,
+        textColor: normText,
+      };
+    }
+
+    setIsSavingTheme(true);
+    try {
+      const res = await fetch("/api/admin/appearance", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scope: "theme",
+          ...payload,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setThemeError(data.error || "Erro ao salvar tema.");
+        return;
+      }
+
+      setPrimaryColor(payload.primaryColor);
+      setSecondaryColor(payload.secondaryColor);
+      setAccentColor(payload.accentColor);
+      setButtonColor(payload.buttonColor);
+      setBackgroundColor(payload.backgroundColor);
+      setTextColor(payload.textColor);
+      setSavedTheme(payload);
+      if (payload.themeName === "PERSONALIZADO") {
+        setCustomDraftState({
+          baseKey: "__SAVED_CUSTOM__",
+          colors: {
+            primaryColor: payload.primaryColor,
+            secondaryColor: payload.secondaryColor,
+            accentColor: payload.accentColor,
+            buttonColor: payload.buttonColor,
+            backgroundColor: payload.backgroundColor,
+            textColor: payload.textColor,
+          },
+        });
+      }
+
+      syncLiveLightThemeCss(payload);
+      setThemeFeedback("Tema atualizado com sucesso.");
+      router.refresh();
+    } catch {
+      setThemeError("Erro de comunicação ao salvar tema.");
+    } finally {
+      setIsSavingTheme(false);
+    }
+  };
+
+  // Salvamento independente — Imagens do Sistema (Favicon, Logo, Banner PC)
+  const handleSaveSystemImages = async () => {
+    if (isSavingImages || !isImagesDirty || uploadingAsset !== null) return;
+    setIsSavingImages(true);
+    setImagesFeedback(null);
+    setImagesError(null);
 
     try {
       const res = await fetch("/api/admin/appearance", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          themeName,
-          primaryColor,
-          secondaryColor,
-          accentColor,
-          buttonColor,
-          backgroundColor,
-          textColor,
+          scope: "images",
           logoUrl,
           logoHorizontalUrl,
           faviconUrl,
         }),
       });
-
       const data = await res.json();
-      if (res.ok) {
-        // Atualiza dinamicamente as variáveis de tema no DOM sem necessidade de recarregar
-        if (typeof document !== "undefined") {
-          document.documentElement.style.setProperty("--primary", primaryColor);
-          document.documentElement.style.setProperty("--primary-foreground", "#ffffff");
-          document.documentElement.style.setProperty("--secondary", secondaryColor);
-          document.documentElement.style.setProperty("--accent", accentColor);
-          document.documentElement.style.setProperty("--button-bg", buttonColor);
-          document.documentElement.style.setProperty("--button-fg", "#ffffff");
-          document.documentElement.style.setProperty("--ring", primaryColor);
-          document.documentElement.style.setProperty("--theme-bg", backgroundColor);
-          document.documentElement.style.setProperty("--theme-text", textColor);
-        }
-
-        setAppearanceFeedback("Configurações de aparência e tema salvas com sucesso em todo o sistema!");
-      } else {
-        setAppearanceFeedback(data.error || "Erro ao salvar aparência.");
+      if (!res.ok) {
+        setImagesError(data.error || "Erro ao salvar imagens do sistema.");
+        return;
       }
+      setSavedImagesSection({ logoUrl, logoHorizontalUrl, faviconUrl });
+      setImagesFeedback("Imagens do sistema atualizadas com sucesso.");
+      router.refresh();
     } catch {
-      setAppearanceFeedback("Erro de comunicação ao salvar aparência.");
+      setImagesError("Erro de comunicação ao salvar imagens do sistema.");
     } finally {
-      setIsSavingAppearance(false);
+      setIsSavingImages(false);
     }
   };
 
@@ -675,9 +1333,11 @@ export default function AdminSettingsPage() {
     return promise;
   };
 
-  // Restaura Aparência Padrão (Verde Institucional PSI)
+  // Restaura Aparência Padrão no rascunho (Verde Institucional PSI)
   const handleRestoreAppearanceDefaults = () => {
     const p = THEME_PRESETS.VERDE;
+    setLastBasePreset("VERDE");
+    setCustomDraftState(null);
     setThemeName("VERDE");
     setPrimaryColor(p.primaryColor);
     setSecondaryColor(p.secondaryColor);
@@ -685,16 +1345,18 @@ export default function AdminSettingsPage() {
     setButtonColor(p.buttonColor);
     setBackgroundColor(p.backgroundColor);
     setTextColor(p.textColor);
-    setAppearanceFeedback("Cores restauradas para a paleta padrão do PSI (Verde). Clique em Salvar para persistir.");
+    setThemeError(null);
+    setThemeFeedback('Paleta restaurada para o padrão do PSI (Verde) na prévia. Clique em "Salvar Tema" para aplicar.');
   };
 
-  // Upload universal de mídia para as 3 áreas do MiniSite (reconhecimento automático no servidor)
+  // Upload universal de mídia para as 3 áreas do Site (reconhecimento automático no servidor)
   const handleUploadSlotMedia = async (
     slot: "hero" | "hero_mobile" | "about",
     file: File
   ) => {
     setUploadingSlot(slot);
     setMediaFeedback(null);
+    setMediaError(null);
     try {
       const formData = new FormData();
       formData.append("slot", slot);
@@ -707,7 +1369,7 @@ export default function AdminSettingsPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        setMediaFeedback(`Erro no upload: ${data.error}`);
+        setMediaError(`Erro no upload: ${data.error}`);
         return;
       }
 
@@ -816,14 +1478,15 @@ export default function AdminSettingsPage() {
         `Mídia enviada para "${areaLabel}" e reconhecida como ${formatLabel}. Clique em "Salvar Mídias do Site" para publicar.`
       );
     } catch {
-      setMediaFeedback("Erro de conexão ao enviar arquivo de mídia.");
+      setMediaError("Erro de conexão ao enviar arquivo de mídia.");
     } finally {
       setUploadingSlot(null);
     }
   };
 
-  // Remover mídia de uma área do MiniSite
+  // Remover mídia de uma área do Site
   const handleRemoveSlotMedia = (slot: "hero" | "hero_mobile" | "about") => {
+    setMediaError(null);
     if (slot === "hero") {
       setHeroMediaUrl(null);
       setHeroPosterUrl(null);
@@ -857,10 +1520,12 @@ export default function AdminSettingsPage() {
     );
   };
 
-  // Salvar configurações de mídia do MiniSite
+  // Salvar configurações de mídia do Site
   const handleSaveMediaSettings = async () => {
+    if (isSavingMedia || uploadingSlot !== null) return;
     setIsSavingMedia(true);
     setMediaFeedback(null);
+    setMediaError(null);
     try {
       let resolvedHeroBgColor = heroBgDetectedColor;
       let resolvedHeroBgStatus = heroBgStatus;
@@ -882,6 +1547,7 @@ export default function AdminSettingsPage() {
         }
       }
 
+      const resolvedHeroBgMode = resolvedHeroBgColor ? "AUTO" : heroBgMode;
       const res = await fetch("/api/admin/minisite/media/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -899,7 +1565,7 @@ export default function AdminSettingsPage() {
             positioning: heroPositioning,
             frameCount: heroFrameCount,
             frames: heroFrames,
-            bgMode: resolvedHeroBgColor ? "AUTO" : heroBgMode,
+            bgMode: resolvedHeroBgMode,
             bgDetectedColor: resolvedHeroBgColor,
             bgCustomColor: heroBgCustomColor,
             bgStatus: resolvedHeroBgStatus,
@@ -941,14 +1607,104 @@ export default function AdminSettingsPage() {
 
       const data = await res.json();
       if (res.ok) {
+        setHeroBgMode(resolvedHeroBgMode);
+        setHeroBgDetectedColor(resolvedHeroBgColor);
+        setHeroBgStatus(resolvedHeroBgStatus);
+        setHeroMobileBgDetectedColor(resolvedHeroMobileBgColor);
+        setHeroMobileBgStatus(resolvedHeroMobileBgStatus);
+        setSavedMediaSnapshot(
+          buildSiteMediaSnapshot({
+            heroMediaType,
+            heroMediaUrl,
+            heroPosterUrl,
+            heroPlaybackSpeed,
+            heroBgMode: resolvedHeroBgMode,
+            heroBgDetectedColor: resolvedHeroBgColor,
+            heroBgCustomColor,
+            heroBgMediaRef,
+            heroMobileMediaType,
+            heroMobileMediaUrl,
+            heroMobilePosterUrl,
+            heroMobilePlaybackSpeed,
+            heroMobileBgDetectedColor: resolvedHeroMobileBgColor,
+            heroMobileBgMediaRef,
+            aboutMediaType,
+            aboutMediaUrl,
+            aboutPosterUrl,
+            aboutPlaybackSpeed,
+          })
+        );
         setMediaFeedback("Configurações de mídia do Site salvas e publicadas com sucesso!");
+        router.refresh();
       } else {
-        setMediaFeedback(data.error || "Erro ao salvar mídias.");
+        setMediaError(data.error || "Erro ao salvar mídias.");
       }
     } catch {
-      setMediaFeedback("Erro de rede ao salvar configurações de mídia.");
+      setMediaError("Erro de rede ao salvar configurações de mídia.");
     } finally {
       setIsSavingMedia(false);
+    }
+  };
+
+  // Atualiza apenas os dados dos provedores de vídeo sem descartar rascunhos de outras seções
+  const refreshVideoProviders = async () => {
+    try {
+      const vidRes = await fetch("/api/admin/video-providers");
+      if (!vidRes.ok) return;
+      const vidData = await vidRes.json();
+      setVideoProviders(vidData.providers || []);
+      const nextActiveVideo = vidData.activeVideoProvider || "JITSI";
+      setActiveVideoKey(nextActiveVideo);
+      const jitsi = vidData.providers?.find((p: any) => p.key === "JITSI");
+      const nextJitsiDomain = jitsi?.config?.domain || "meet.jit.si";
+      if (jitsi) setJitsiDomain(nextJitsiDomain);
+      const peer = vidData.providers?.find((p: any) => p.key === "PEERJS");
+      const nextPeerHost = peer?.config?.host || "";
+      const nextPeerPort = peer?.config?.port || 9000;
+      const nextPeerPath = peer?.config?.path || "/peerjs";
+      const nextPeerSecure = peer?.config?.secure ?? false;
+      const nextPeerStun = peer?.config?.stunServer || "stun:stun.l.google.com:19302";
+      const nextPeerTurn = peer?.config?.turnServer || "";
+      const nextPeerUser = peer?.config?.turnUser || "";
+      const nextPeerSecret = peer?.config?.turnSecret || "";
+      if (peer) {
+        setPeerJsHost(nextPeerHost);
+        setPeerJsPort(nextPeerPort);
+        setPeerJsPath(nextPeerPath);
+        setPeerJsSecure(nextPeerSecure);
+        setPeerJsStunServer(nextPeerStun);
+        setPeerJsTurnServer(nextPeerTurn);
+        setPeerJsTurnUser(nextPeerUser);
+        setPeerJsTurnSecret(nextPeerSecret);
+      }
+      const gmeet = vidData.providers?.find((p: any) => p.key === "GOOGLE_MEET");
+      const nextGmeetId = gmeet?.config?.clientId || "";
+      const nextGmeetSecret = gmeet?.config?.clientSecret || "";
+      if (gmeet) {
+        setGoogleMeetClientId(nextGmeetId);
+        setGoogleMeetClientSecret(nextGmeetSecret);
+        setGoogleMeetAccountEmail(gmeet.config?.accountEmail || null);
+        setGoogleMeetConnectedAt(gmeet.config?.connectedAt || null);
+        setGoogleMeetStatus(gmeet.status || gmeet.config?.status || null);
+      }
+      setSavedVideoSnapshot(
+        buildVideoSnapshot({
+          activeVideoKey: nextActiveVideo,
+          jitsiDomain: nextJitsiDomain,
+          peerJsHost: nextPeerHost,
+          peerJsPort: nextPeerPort,
+          peerJsPath: nextPeerPath,
+          peerJsSecure: nextPeerSecure,
+          peerJsStunServer: nextPeerStun,
+          peerJsTurnServer: nextPeerTurn,
+          peerJsTurnUser: nextPeerUser,
+          peerJsTurnSecret: nextPeerSecret,
+          googleMeetClientId: nextGmeetId,
+          googleMeetClientSecret: nextGmeetSecret,
+        })
+      );
+    } catch {
+      // Silencioso em atualização secundária
     }
   };
 
@@ -974,7 +1730,7 @@ export default function AdminSettingsPage() {
           success: true,
           message: data.message || "Conta Google desconectada com sucesso.",
         });
-        loadData();
+        await refreshVideoProviders();
       } else {
         setGoogleMeetFeedback({
           success: false,
@@ -1006,7 +1762,7 @@ export default function AdminSettingsPage() {
           message: data.message || "Integração Google Meet validada com sucesso!",
           meetUrl: data.meetUrl,
         });
-        loadData();
+        await refreshVideoProviders();
       } else {
         setGoogleMeetFeedback({
           success: false,
@@ -1077,7 +1833,7 @@ export default function AdminSettingsPage() {
           message: data.message || "Conexão de sinalização validada com sucesso!",
           date: data.lastTestedAt,
         });
-        loadData();
+        await refreshVideoProviders();
       } else {
         setPeerJsTestFeedback({
           success: false,
@@ -1095,10 +1851,12 @@ export default function AdminSettingsPage() {
     }
   };
 
-  // Salva Provedores de Vídeo (Task 9 & Phase 1 WebRTC)
+  // Salva Provedores de Vídeo (independente)
   const handleSaveVideoProviders = async () => {
+    if (isSavingVideo) return;
     setIsSavingVideo(true);
     setVideoFeedback(null);
+    setVideoError(null);
 
     try {
       const res = await fetch("/api/admin/video-providers", {
@@ -1122,20 +1880,98 @@ export default function AdminSettingsPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        setVideoFeedback(data.error || "Erro ao salvar provedor de vídeo.");
+        setVideoError(data.error || "Erro ao salvar provedor de vídeo.");
       } else {
-        setVideoFeedback("Provedor padrão e configurações de teleconsulta atualizados!");
-        loadData();
+        await refreshVideoProviders();
+        setVideoFeedback("Configurações de teleconsulta atualizadas com sucesso.");
+        router.refresh();
       }
     } catch {
-      setVideoFeedback("Erro ao atualizar provedor de vídeo.");
+      setVideoError("Erro ao atualizar provedor de vídeo.");
     } finally {
       setIsSavingVideo(false);
     }
   };
 
+  // Salvamento independente — Agenda & Políticas (SystemSettings)
+  const handleSaveGeneralSettings = async () => {
+    if (isSavingGeneral || !isGeneralDirty) return;
+    setGeneralFeedback(null);
+    setGeneralError(null);
+
+    const parsedMinNotice = Number(minNoticeHours);
+    const parsedHorizon = Number(horizonDays);
+    const parsedCancel = Number(cancellationNoticeDays);
+
+    if (!Number.isFinite(parsedMinNotice) || parsedMinNotice < 0) {
+      setGeneralError("A antecedência mínima para reserva deve ser maior ou igual a zero.");
+      return;
+    }
+    if (!Number.isFinite(parsedHorizon) || parsedHorizon < 1) {
+      setGeneralError("O horizonte máximo de agendamento deve ser de pelo menos 1 dia.");
+      return;
+    }
+    if (!Number.isFinite(parsedCancel) || parsedCancel < 0) {
+      setGeneralError("O prazo limite para cancelamento deve ser maior ou igual a zero.");
+      return;
+    }
+
+    setIsSavingGeneral(true);
+    try {
+      const res = await fetch("/api/admin/services/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          timezone,
+          minBookingNoticeHours: parsedMinNotice,
+          maxBookingHorizonDays: parsedHorizon,
+          defaultBufferMinutes,
+          defaultCancellationNoticeDays: parsedCancel,
+          defaultModality,
+          defaultConfirmationPolicy,
+          allowPatientReschedule,
+          syncExistingServices: false,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setGeneralError(data.error || "Erro ao salvar políticas de agenda.");
+        return;
+      }
+
+      const nextTz = data.settings?.timezone ?? timezone;
+      const nextMin = data.settings?.minBookingNoticeHours ?? parsedMinNotice;
+      const nextHorizon = data.settings?.maxBookingHorizonDays ?? parsedHorizon;
+      const nextCancel = data.settings?.defaultCancellationNoticeDays ?? parsedCancel;
+      setTimezone(nextTz);
+      setMinNoticeHours(nextMin);
+      setHorizonDays(nextHorizon);
+      setCancellationNoticeDays(nextCancel);
+      setSavedGeneralSection({
+        timezone: nextTz,
+        minNoticeHours: nextMin,
+        horizonDays: nextHorizon,
+        cancellationNoticeDays: nextCancel,
+      });
+      setGeneralFeedback("Políticas de agenda e horários atualizadas com sucesso.");
+      router.refresh();
+    } catch {
+      setGeneralError("Erro de comunicação ao salvar políticas de agenda.");
+    } finally {
+      setIsSavingGeneral(false);
+    }
+  };
+
+  const normalizedPreviewBg = normalizeHexColor(backgroundColor, "#F0FDF4");
+  const normalizedPreviewText = normalizeHexColor(textColor, "#14532D");
+  const normalizedPreviewPrimary = normalizeHexColor(primaryColor, "#16A34A");
+  const normalizedPreviewSecondary = normalizeHexColor(secondaryColor, "#DCFCE7");
+  const normalizedPreviewAccent = normalizeHexColor(accentColor, "#86EFAC");
+  const normalizedPreviewButton = normalizeHexColor(buttonColor || primaryColor, normalizedPreviewPrimary);
+  const accessiblePreviewButtonBg = resolveAccessibleButtonBg(normalizedPreviewButton, 4.6);
+
   if (isLoading) {
-    return <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />;
+    return <div className="h-64 bg-slate-200 dark:bg-[#202020] rounded-xl animate-pulse" />;
   }
 
   return (
@@ -1147,301 +1983,379 @@ export default function AdminSettingsPage() {
         </p>
       </div>
 
-      {/* Tabs Principais */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3 overflow-x-auto text-xs font-medium">
+      {/* Tabs Principais — Brancas com letra tema quando inativas; preenchidas com letra branca quando ativas */}
+      <div className="inline-flex flex-wrap items-center gap-1.5 rounded-2xl bg-[#F4F4F5] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] p-1.5 text-xs font-medium">
         <button
+          type="button"
           onClick={() => setActiveTab("profile")}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-colors shrink-0 ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
             activeTab === "profile"
-              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs"
-              : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
+              : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1C1C1C] dark:border-transparent dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5]"
           }`}
         >
-          <UserCircle className="h-4 w-4" />
+          <UserCircle className="h-4 w-4 text-current" />
           <span>Perfil</span>
         </button>
 
         <button
+          type="button"
           onClick={() => setActiveTab("appearance")}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-colors shrink-0 ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
             activeTab === "appearance"
-              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs"
-              : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
+              : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1C1C1C] dark:border-transparent dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5]"
           }`}
         >
-          <Palette className="h-4 w-4" />
+          <Palette className="h-4 w-4 text-current" />
           <span>Aparência</span>
         </button>
 
         <button
+          type="button"
           onClick={() => setActiveTab("video")}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-colors shrink-0 ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
             activeTab === "video"
-              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs"
-              : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
+              : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1C1C1C] dark:border-transparent dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5]"
           }`}
         >
-          <Video className="h-4 w-4" />
+          <Video className="h-4 w-4 text-current" />
           <span>Consultas Virtuais</span>
         </button>
 
         <button
+          type="button"
           onClick={() => setActiveTab("general")}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-colors shrink-0 ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
             activeTab === "general"
-              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs"
-              : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
+              : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1C1C1C] dark:border-transparent dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5]"
           }`}
         >
-          <Settings className="h-4 w-4" />
+          <Settings className="h-4 w-4 text-current" />
           <span>Agenda & Políticas</span>
         </button>
 
         <button
+          type="button"
           onClick={() => setActiveTab("security")}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-colors shrink-0 ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
             activeTab === "security"
-              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs"
-              : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
+              : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1C1C1C] dark:border-transparent dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5]"
           }`}
         >
-          <ShieldCheck className="h-4 w-4" />
+          <ShieldCheck className="h-4 w-4 text-current" />
           <span>Segurança & Monitoramento</span>
         </button>
       </div>
 
-      {/* ================= ABA 0: PERFIL & IDENTIDADE CENTRALIZADA ================= */}
+      {/* ================= ABA 0: PERFIL & IDENTIDADE CENTRALIZADA (3 SEÇÕES INDEPENDENTES) ================= */}
       {activeTab === "profile" && (
-        <form onSubmit={handleSaveProfile} className="space-y-6">
-          <div className="p-4 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 space-y-1">
+        <div className="space-y-6">
+          <div className="p-4 rounded-xl bg-slate-100 dark:bg-[#141414] border border-slate-200 dark:border-[#333333] text-xs text-slate-700 dark:text-[#D4D4D4] space-y-1">
             <p className="font-bold flex items-center gap-1.5 text-[#171717] dark:text-[#F5F5F5]">
               <UserCircle className="h-4 w-4 text-[var(--primary)]" />
               <span>Fonte Centralizada de Perfil e Contato</span>
             </p>
             <p>
-              As informações abaixo alimentam a identidade institucional, o Site público e o canal de suporte aos pacientes em uma única fonte da verdade.
+              As informações abaixo alimentam a identidade institucional, o Site público e o canal de suporte aos pacientes em uma única fonte da verdade. Cada seção possui salvamento independente.
             </p>
           </div>
-
-          {profileFeedback && <Alert variant="success">{profileFeedback}</Alert>}
-          {profileError && <Alert variant="destructive">{profileError}</Alert>}
 
           {/* SEÇÃO A — DADOS DA APLICAÇÃO */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-[var(--primary)]" />
-                <span>Seção A — Dados da Aplicação</span>
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Identificação do consultório/aplicação e metadados de versão da plataforma.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  label="Nome da Aplicação / Consultório *"
-                  value={clinicName}
-                  onChange={(e) => setClinicName(e.target.value)}
-                  placeholder="Ex: Consultório de Psicologia & Psiquiatria"
-                  required
-                />
-                <Input
-                  label="Descrição Curta da Aplicação"
-                  value={tagline}
-                  onChange={(e) => setTagline(e.target.value)}
-                  placeholder="Ex: Atendimento ético, acolhedor e humanizado."
-                />
-              </div>
+          <form onSubmit={handleSaveAppSection}>
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-[var(--primary)]" />
+                  <span>Seção A — Dados da Aplicação</span>
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Identificação do consultório/aplicação e metadados de versão da plataforma.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 text-xs">
+                {appFeedback && <Alert variant="success">{appFeedback}</Alert>}
+                {appError && <Alert variant="destructive">{appError}</Alert>}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-                <div>
-                  <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5] mb-2 text-xs sm:text-sm">
-                    Versão da Aplicação
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      value={`v${appVersion}`}
-                      disabled
-                      className="bg-[#F8F8F8] dark:bg-[#141414] font-mono text-xs cursor-not-allowed"
-                    />
-                    <Badge variant="outline" className="shrink-0 text-[11px] py-1 border-[#E5E5E5] dark:border-[#333333]">
-                      <Lock className="h-3 w-3 mr-1 text-[#737373]" />
-                      Metadado do Projeto
-                    </Badge>
-                  </div>
-                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] mt-1.5">
-                    Versão oficial recuperada diretamente dos metadados da instalação standalone.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* SEÇÃO B — DADOS DO ADMINISTRADOR / PROFISSIONAL */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base flex items-center gap-2">
-                <User className="h-5 w-5 text-[var(--primary)]" />
-                <span>Seção B — Dados do Administrador / Profissional</span>
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Titularidade e habilitação profissional perante os conselhos de classe.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  label="Nome Completo do Profissional *"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Ex: Helena de Souza Martins"
-                  required
-                />
-                <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
-                    label="Nome de Exibição Público"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="Ex: Dra. Helena Martins"
-                  />
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Nome social ou profissional exibido no Site público e crachás. Se vazio, utiliza o nome completo.
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  label="Registro Profissional (CRP / CRM) *"
-                  value={crpCrm}
-                  onChange={(e) => setCrpCrm(e.target.value)}
-                  placeholder="Ex: CRP 06/184920"
-                  required
-                />
-                <Input
-                  label="Especialidade / Título Profissional"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Ex: Psicóloga Clínica - Especialista em TCC"
-                />
-              </div>
-
-              <div className="pt-2 border-t border-[#E5E5E5] dark:border-[#333333]">
-                <div className="max-w-md">
-                  <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5] mb-2 text-xs sm:text-sm">
-                    E-mail Administrativo de Acesso
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      value={adminEmail}
-                      disabled
-                      className="bg-[#F8F8F8] dark:bg-[#141414] font-mono text-xs cursor-not-allowed"
-                    />
-                    <Badge variant="outline" className="shrink-0 text-[11px] py-1 border-[#E5E5E5] dark:border-[#333333]">
-                      <Lock className="h-3 w-3 mr-1 text-[#737373]" />
-                      Autenticação Segura
-                    </Badge>
-                  </div>
-                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] mt-1.5">
-                    Utilizado exclusivamente para login do profissional titular. A alteração de credenciais deve seguir o fluxo seguro de autenticação.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* SEÇÃO C — CONTATOS E REDES SOCIAIS */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base flex items-center gap-2">
-                <MessageCircle className="h-5 w-5 text-emerald-600" />
-                <span>Seção C — Contatos e Redes Sociais</span>
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Canais de contato compartilhados para agendamento, botões do Site e suporte ao paciente.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Input
-                    label="Telefone / WhatsApp de Contato (com DDD) *"
-                    value={whatsappNumber}
-                    onChange={(e) => setWhatsappNumber(e.target.value)}
-                    placeholder="Ex: (11) 99123-4567 ou 5511991234567"
+                    label="Nome da Aplicação / Consultório *"
+                    value={clinicName}
+                    onChange={(e) => {
+                      setClinicName(e.target.value);
+                      setAppFeedback(null);
+                      setAppError(null);
+                    }}
+                    placeholder="Ex: Consultório de Psicologia & Psiquiatria"
                     required
                   />
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Normalizado automaticamente no formato internacional com DDI 55 para links diretos de WhatsApp.
-                  </p>
-                </div>
-                <Input
-                  label="Telefone Comercial Alternativo"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="Ex: (11) 3214-5678"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
                   <Input
-                    label="E-mail Público de Contato"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="contato@consultorio.com.br"
+                    label="Descrição Curta da Aplicação"
+                    value={tagline}
+                    onChange={(e) => {
+                      setTagline(e.target.value);
+                      setAppFeedback(null);
+                      setAppError(null);
+                    }}
+                    placeholder="Ex: Atendimento ético, acolhedor e humanizado."
                   />
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    E-mail público exibido no rodapé do Site (separado do e-mail de acesso administrativo).
-                  </p>
                 </div>
-                <div>
-                  <Input
-                    label="Instagram"
-                    value={instagram}
-                    onChange={(e) => setInstagram(e.target.value)}
-                    placeholder="@dra.helenamartins"
-                  />
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Perfil oficial para links de redes sociais na página pública do consultório.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* BOTÃO DE SALVAR PERFIL */}
-          <div className="flex justify-end pt-2">
-            <Button
-              type="submit"
-              size="lg"
-              disabled={isSavingProfile}
-              className="gap-2 bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white"
-            >
-              <Save className="h-4 w-4" />
-              <span>{isSavingProfile ? "Salvando Perfil..." : "Salvar Configurações de Perfil"}</span>
-            </Button>
-          </div>
-        </form>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                  <div>
+                    <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5] mb-2 text-xs sm:text-sm">
+                      Versão da Aplicação
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={`v${appVersion}`}
+                        disabled
+                        className="bg-[#F8F8F8] dark:bg-[#141414] font-mono text-xs cursor-not-allowed"
+                      />
+                      <Badge variant="outline" className="shrink-0 text-[11px] py-1 border-[#E5E5E5] dark:border-[#333333]">
+                        <Lock className="h-3 w-3 mr-1 text-[#737373]" />
+                        Metadado do Projeto
+                      </Badge>
+                    </div>
+                    <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] mt-1.5">
+                      Versão oficial recuperada diretamente dos metadados da instalação standalone.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-[#262626]">
+                  <Button
+                    type="submit"
+                    disabled={!isAppDirty || isSavingApp}
+                    isLoading={isSavingApp}
+                    className="gap-2 text-xs"
+                  >
+                    {!isSavingApp && <Save className="h-4 w-4" />}
+                    <span>{isSavingApp ? "Salvando..." : "Salvar Alterações"}</span>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </form>
+
+          {/* SEÇÃO B — DADOS DO ADMINISTRADOR / PROFISSIONAL */}
+          <form onSubmit={handleSaveProfSection}>
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <User className="h-5 w-5 text-[var(--primary)]" />
+                  <span>Seção B — Dados do Administrador / Profissional</span>
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Titularidade e habilitação profissional perante os conselhos de classe.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 text-xs">
+                {profFeedback && <Alert variant="success">{profFeedback}</Alert>}
+                {profError && <Alert variant="destructive">{profError}</Alert>}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input
+                    label="Nome Completo do Profissional *"
+                    value={fullName}
+                    onChange={(e) => {
+                      setFullName(e.target.value);
+                      setProfFeedback(null);
+                      setProfError(null);
+                    }}
+                    placeholder="Ex: Helena de Souza Martins"
+                    required
+                  />
+                  <div>
+                    <Input
+                      label="Nome de Exibição Público"
+                      value={displayName}
+                      onChange={(e) => {
+                        setDisplayName(e.target.value);
+                        setProfFeedback(null);
+                        setProfError(null);
+                      }}
+                      placeholder="Ex: Dra. Helena Martins"
+                    />
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      Nome social ou profissional exibido no Site público e crachás. Se vazio, utiliza o nome completo.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input
+                    label="Registro Profissional (CRP / CRM) *"
+                    value={crpCrm}
+                    onChange={(e) => {
+                      setCrpCrm(e.target.value);
+                      setProfFeedback(null);
+                      setProfError(null);
+                    }}
+                    placeholder="Ex: CRP 06/184920"
+                    required
+                  />
+                  <Input
+                    label="Especialidade / Título Profissional"
+                    value={title}
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                      setProfFeedback(null);
+                      setProfError(null);
+                    }}
+                    placeholder="Ex: Psicóloga Clínica - Especialista em TCC"
+                  />
+                </div>
+
+                <div className="pt-2 border-t border-[#E5E5E5] dark:border-[#333333]">
+                  <div className="max-w-md">
+                    <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5] mb-2 text-xs sm:text-sm">
+                      E-mail Administrativo de Acesso
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={adminEmail}
+                        disabled
+                        className="bg-[#F8F8F8] dark:bg-[#141414] font-mono text-xs cursor-not-allowed"
+                      />
+                      <Badge variant="outline" className="shrink-0 text-[11px] py-1 border-[#E5E5E5] dark:border-[#333333]">
+                        <Lock className="h-3 w-3 mr-1 text-[#737373]" />
+                        Autenticação Segura
+                      </Badge>
+                    </div>
+                    <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] mt-1.5">
+                      Utilizado exclusivamente para login do profissional titular. A alteração de credenciais deve seguir o fluxo seguro de autenticação.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-[#262626]">
+                  <Button
+                    type="submit"
+                    disabled={!isProfDirty || isSavingProf}
+                    isLoading={isSavingProf}
+                    className="gap-2 text-xs"
+                  >
+                    {!isSavingProf && <Save className="h-4 w-4" />}
+                    <span>{isSavingProf ? "Salvando..." : "Salvar Alterações"}</span>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </form>
+
+          {/* SEÇÃO C — CONTATOS E REDES SOCIAIS */}
+          <form onSubmit={handleSaveContactSection}>
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <MessageCircle className="h-5 w-5 text-emerald-600" />
+                  <span>Seção C — Contatos e Redes Sociais</span>
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Canais de contato compartilhados para agendamento, botões do Site e suporte ao paciente.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 text-xs">
+                {contactFeedback && <Alert variant="success">{contactFeedback}</Alert>}
+                {contactError && <Alert variant="destructive">{contactError}</Alert>}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Input
+                      label="Telefone / WhatsApp de Contato (com DDD) *"
+                      value={whatsappNumber}
+                      onChange={(e) => {
+                        setWhatsappNumber(e.target.value);
+                        setContactFeedback(null);
+                        setContactError(null);
+                      }}
+                      placeholder="Ex: (11) 99123-4567 ou 5511991234567"
+                      required
+                    />
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      Normalizado automaticamente no formato internacional com DDI 55 para links diretos de WhatsApp.
+                    </p>
+                  </div>
+                  <Input
+                    label="Telefone Comercial Alternativo"
+                    value={phone}
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                      setContactFeedback(null);
+                      setContactError(null);
+                    }}
+                    placeholder="Ex: (11) 3214-5678"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Input
+                      label="E-mail Público de Contato"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setContactFeedback(null);
+                        setContactError(null);
+                      }}
+                      placeholder="contato@consultorio.com.br"
+                    />
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      E-mail público exibido no rodapé do Site (separado do e-mail de acesso administrativo).
+                    </p>
+                  </div>
+                  <div>
+                    <Input
+                      label="Instagram"
+                      value={instagram}
+                      onChange={(e) => {
+                        setInstagram(e.target.value);
+                        setContactFeedback(null);
+                        setContactError(null);
+                      }}
+                      placeholder="@dra.helenamartins"
+                    />
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      Perfil oficial para links de redes sociais na página pública do consultório.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-[#262626]">
+                  <Button
+                    type="submit"
+                    disabled={!isContactDirty || isSavingContact}
+                    isLoading={isSavingContact}
+                    className="gap-2 text-xs"
+                  >
+                    {!isSavingContact && <Save className="h-4 w-4" />}
+                    <span>{isSavingContact ? "Salvando..." : "Salvar Alterações"}</span>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </form>
+        </div>
       )}
 
-      {/* ================= ABA 1: APARÊNCIA & CORES (PHASE 1/5) ================= */}
+      {/* ================= ABA 1: APARÊNCIA & CORES ================= */}
       {activeTab === "appearance" && (
         <div className="space-y-6">
-          <div className="p-4 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 space-y-1">
+          <div className="p-4 rounded-xl bg-slate-100 dark:bg-[#141414] border border-slate-200 dark:border-[#333333] text-xs text-slate-700 dark:text-[#D4D4D4] space-y-1">
             <p className="font-bold flex items-center gap-1.5 text-[#171717] dark:text-[#F5F5F5]">
               <Palette className="h-4 w-4 text-[var(--primary)]" />
-              <span>Sistema Global de Aparência e Temas (Fase 1 de 5)</span>
+              <span>Sistema Global de Aparência e Temas</span>
             </p>
             <p>
-              Escolha uma das paletas predefinidas ou personalize as cores institucionais do consultório. O tema selecionado unifica os painéis administrativos, a área do paciente e o Site público em tempo real.
+              Visualize paletas predefinidas ou crie uma identidade personalizada na prévia em tempo real. As alterações só passam a valer permanentemente após clicar em <strong>&quot;Salvar Tema&quot;</strong>.
             </p>
           </div>
 
-          {appearanceFeedback && <Alert variant="info">{appearanceFeedback}</Alert>}
-
-          {/* 1. TEMA DO SISTEMA E PRÉVIA DO TEMA (Referência: Imagem 1) */}
+          {/* CARD 1: APARÊNCIA — PRESETS + PREVIEW COM BOTÃO "SALVAR TEMA" AO LADO + CORES PERSONALIZADAS CONDICIONAL */}
           <Card>
             <CardHeader className="pb-4">
               <CardTitle className="text-base flex items-center gap-2">
@@ -1449,15 +2363,15 @@ export default function AdminSettingsPage() {
                 <span>Aparência</span>
               </CardTitle>
               <CardDescription className="text-xs">
-                Selecione um tema pré-definido para aplicar instantaneamente a paleta harmônica correspondente.
+                Selecione um tema predefinido ou ative &quot;Personalizado&quot; para ajustar cada token de cor da clínica.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
                   Tema do Sistema
                 </h4>
-                <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-9 gap-3">
+                <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2.5">
                   {/* Presets 1 a 8 */}
                   {Object.values(THEME_PRESETS).map((preset) => {
                     const isSelected = themeName === preset.key;
@@ -1466,27 +2380,26 @@ export default function AdminSettingsPage() {
                         key={preset.key}
                         type="button"
                         onClick={() => handleSelectThemePreset(preset.key)}
-                        className="flex flex-col items-center gap-1.5 group cursor-pointer focus:outline-none"
+                        aria-pressed={isSelected}
+                        className={`flex flex-col items-center gap-2 p-2.5 rounded-2xl transition-all group cursor-pointer focus:outline-none border ${
+                          isSelected
+                            ? "bg-white text-[#171717] border-[var(--primary)] ring-2 ring-[var(--primary)]/25 shadow-sm dark:bg-[#262626] dark:text-white dark:border-[var(--primary)]"
+                            : "bg-white hover:bg-[#F8F8F8] text-[#404040] border-[#E5E5E5] hover:border-[#D0D0D0] dark:bg-[#1B1B1B] dark:hover:bg-[#242424] dark:text-[#D0D0D0] dark:border-[#2C2C2C]"
+                        }`}
                       >
                         <div
-                          className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center transition-all shadow-xs ${
-                            isSelected
-                              ? "ring-4 ring-offset-2 ring-[var(--primary)] dark:ring-offset-slate-900 scale-105"
-                              : "hover:scale-105 border border-slate-200 dark:border-slate-700"
+                          className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center transition-transform shadow-xs ${
+                            isSelected ? "scale-105" : "group-hover:scale-105"
                           }`}
                           style={{ backgroundColor: preset.swatch }}
                         >
                           {isSelected && (
-                            <Check className="h-5 w-5 text-white drop-shadow-md stroke-[3]" />
+                            <span className="p-1.5 rounded-full bg-white/95 text-[#171717] shadow-xs">
+                              <Check className="h-4 w-4 stroke-[3]" />
+                            </span>
                           )}
                         </div>
-                        <span
-                          className={`text-xs text-center truncate max-w-full ${
-                            isSelected
-                              ? "font-bold text-slate-900 dark:text-slate-100"
-                              : "text-slate-600 dark:text-slate-400 group-hover:text-slate-900"
-                          }`}
-                        >
+                        <span className="text-[11px] font-semibold text-center truncate max-w-full">
                           {preset.label}
                         </span>
                       </button>
@@ -1496,209 +2409,387 @@ export default function AdminSettingsPage() {
                   {/* Preset 9: Personalizado */}
                   <button
                     type="button"
-                    onClick={() => setThemeName("PERSONALIZADO")}
-                    className="flex flex-col items-center gap-1.5 group cursor-pointer focus:outline-none"
+                    onClick={handleSelectCustomTheme}
+                    aria-pressed={themeName === "PERSONALIZADO"}
+                    className={`flex flex-col items-center gap-2 p-2.5 rounded-2xl transition-all group cursor-pointer focus:outline-none border ${
+                      themeName === "PERSONALIZADO"
+                        ? "bg-white text-[#171717] border-[var(--primary)] ring-2 ring-[var(--primary)]/25 shadow-sm dark:bg-[#262626] dark:text-white dark:border-[var(--primary)]"
+                        : "bg-white hover:bg-[#F8F8F8] text-[#404040] border-[#E5E5E5] hover:border-[#D0D0D0] dark:bg-[#1B1B1B] dark:hover:bg-[#242424] dark:text-[#D0D0D0] dark:border-[#2C2C2C]"
+                    }`}
                   >
                     <div
-                      className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center transition-all shadow-xs bg-gradient-to-tr from-purple-500 via-pink-500 to-indigo-500 ${
-                        themeName === "PERSONALIZADO"
-                          ? "ring-4 ring-offset-2 ring-[var(--primary)] dark:ring-offset-slate-900 scale-105"
-                          : "hover:scale-105 border border-slate-200 dark:border-slate-700"
+                      className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center transition-transform shadow-xs relative overflow-hidden bg-[#F4F4F5] dark:bg-[#1B1B1B] border border-[#E5E5E5] dark:border-[#333333] ${
+                        themeName === "PERSONALIZADO" ? "scale-105" : "group-hover:scale-105"
                       }`}
                     >
-                      <Palette className="h-6 w-6 text-white drop-shadow-md" />
+                      <div className="grid grid-cols-2 grid-rows-2 w-full h-full opacity-95">
+                        <span style={{ backgroundColor: normalizedPreviewPrimary }} />
+                        <span style={{ backgroundColor: normalizedPreviewAccent }} />
+                        <span style={{ backgroundColor: normalizedPreviewButton }} />
+                        <span style={{ backgroundColor: normalizedPreviewSecondary }} />
+                      </div>
+                      <span className="absolute inset-0 flex items-center justify-center bg-black/30">
+                        <Palette className="h-5 w-5 text-white drop-shadow-md" />
+                      </span>
                     </div>
-                    <span
-                      className={`text-xs text-center truncate max-w-full ${
-                        themeName === "PERSONALIZADO"
-                          ? "font-bold text-slate-900 dark:text-slate-100"
-                          : "text-slate-600 dark:text-slate-400 group-hover:text-slate-900"
-                      }`}
-                    >
+                    <span className="text-[11px] font-semibold text-center truncate max-w-full">
                       Personalizado
                     </span>
                   </button>
                 </div>
               </div>
 
-              {/* Preview do Tema (Referência fiel da Imagem 1) */}
-              <div className="pt-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+              {/* PREVIEW DO TEMA + BLOCO DE AÇÃO "SALVAR TEMA" DIRETAMENTE AO LADO */}
+              <div className="pt-2 space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   Preview do Tema
                 </h4>
-                <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 max-w-md space-y-4 shadow-2xs">
-                  <div className="flex items-center gap-4">
-                    <div
-                      className="w-14 h-14 rounded-xl shadow-xs shrink-0 transition-colors"
-                      style={{ backgroundColor: primaryColor }}
-                    />
-                    <div className="space-y-2 flex-1">
-                      <div className="h-3.5 bg-slate-200 dark:bg-slate-700 rounded-full w-4/5 animate-pulse" />
-                      <div className="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full w-1/2 animate-pulse" />
+
+                <div className="flex flex-col md:flex-row md:items-stretch gap-5">
+                  {/* Caixa de Preview em Tempo Real refletindo todos os 6 tokens do rascunho */}
+                  <div
+                    data-testid="theme-preview-box"
+                    className="flex-1 min-w-0 p-5 rounded-2xl border border-slate-200 dark:border-[#333333] space-y-4 shadow-2xs transition-colors"
+                    style={{ backgroundColor: normalizedPreviewBg }}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div
+                          className="w-12 h-12 rounded-xl shadow-xs shrink-0 transition-colors border border-black/10"
+                          style={{ backgroundColor: normalizedPreviewPrimary }}
+                        />
+                        <div className="space-y-1 min-w-0">
+                          <span
+                            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold"
+                            style={{
+                              backgroundColor: normalizedPreviewSecondary,
+                              color: normalizedPreviewText,
+                            }}
+                          >
+                            <span
+                              className="h-2 w-2 rounded-full shrink-0"
+                              style={{ backgroundColor: normalizedPreviewAccent }}
+                            />
+                            {themeName === "PERSONALIZADO"
+                              ? "Personalizado"
+                              : THEME_PRESETS[themeName]?.label || themeName}
+                          </span>
+                          <p
+                            className="text-sm font-bold truncate"
+                            style={{ color: normalizedPreviewText }}
+                          >
+                            Identidade Visual da Clínica
+                          </p>
+                          <p
+                            className="text-[11px] opacity-80 truncate"
+                            style={{ color: normalizedPreviewText }}
+                          >
+                            Prévia fiel de fundo, destaque, tipografia e botões ativos.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Botões de Preview — Principal com contraste branco acessível e Secundário claro e harmônico */}
+                    <div className="flex flex-wrap items-center gap-3 pt-1">
+                      <button
+                        type="button"
+                        data-testid="theme-preview-primary-btn"
+                        className="flex-1 min-w-[140px] px-4 py-2.5 rounded-xl font-semibold text-xs text-white shadow-xs transition-colors text-center cursor-default"
+                        style={{
+                          backgroundColor: accessiblePreviewButtonBg,
+                          color: "#ffffff",
+                        }}
+                      >
+                        Botão Principal
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="theme-preview-secondary-btn"
+                        className="flex-1 min-w-[140px] px-4 py-2.5 rounded-xl font-semibold text-xs bg-white border shadow-xs transition-colors text-center cursor-default"
+                        style={{
+                          color: accessiblePreviewButtonBg,
+                          borderColor: `${accessiblePreviewButtonBg}4D`,
+                        }}
+                      >
+                        Botão Secundário
+                      </button>
+                    </div>
+
+                    {/* Mini-legenda dos 6 tokens ativos */}
+                    <div className="flex flex-wrap items-center gap-2 pt-1 text-[10px] font-mono">
+                      {[
+                        { label: "Primária", color: normalizedPreviewPrimary },
+                        { label: "Secundária", color: normalizedPreviewSecondary },
+                        { label: "Destaque", color: normalizedPreviewAccent },
+                        { label: "Botões", color: normalizedPreviewButton },
+                        { label: "Fundo", color: normalizedPreviewBg },
+                        { label: "Texto", color: normalizedPreviewText },
+                      ].map((token) => (
+                        <span
+                          key={token.label}
+                          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/85 dark:bg-[#171717]/90 text-slate-800 dark:text-[#E5E5E5] border border-black/10 dark:border-white/10"
+                        >
+                          <span
+                            className="h-2.5 w-2.5 rounded-full border border-black/15 shrink-0"
+                            style={{ backgroundColor: token.color }}
+                          />
+                          <span>{token.label}: {token.color}</span>
+                        </span>
+                      ))}
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 pt-1">
-                    <button
-                      type="button"
-                      className="flex-1 px-4 py-2.5 rounded-xl font-semibold text-xs text-white shadow-xs transition-colors text-center"
-                      style={{ backgroundColor: buttonColor || primaryColor }}
-                    >
-                      Botão Principal
-                    </button>
-                    <button
-                      type="button"
-                      className="flex-1 px-4 py-2.5 rounded-xl font-semibold text-xs bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 shadow-xs text-center"
-                    >
-                      Botão Secundário
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                  {/* AÇÃO DE SALVAMENTO DO TEMA DIRETAMENTE AO LADO DO PREVIEW */}
+                  <div className="w-full md:w-72 shrink-0 p-5 rounded-2xl bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-[#333333] flex flex-col justify-between gap-4">
+                    <div className="space-y-2.5 text-xs">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-slate-800 dark:text-[#F5F5F5]">
+                          Publicação do Tema
+                        </span>
+                        <Badge variant={isThemeDirty ? "warning" : "success"} className="text-[10px]">
+                          {isThemeDirty ? "Rascunho não salvo" : "Aplicado"}
+                        </Badge>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-[#A6A6A6] leading-relaxed">
+                        {isThemeDirty
+                          ? "Você alterou a prévia. Clique em \"Salvar Tema\" para aplicar a nova paleta em todo o sistema."
+                          : "O tema exibido acima corresponde exatamente ao que está publicado atualmente no PSI."}
+                      </p>
 
-          {/* 2. CORES PERSONALIZADAS */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Cores Personalizadas</CardTitle>
-              <CardDescription className="text-xs">
-                Ajuste os valores hexadecimais de cada token de design. Modificar qualquer cor comuta o tema para &quot;Personalizado&quot;.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-5 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Cor Primária */}
-                <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
-                  <div>
-                    <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor Primária</span>
-                    <span className="text-[11px] text-slate-400">Destaques, botões, ícones e links</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={primaryColor}
-                      onChange={(e) => handleCustomColorChange("primary", e.target.value)}
-                      className="h-8 w-8 rounded-lg cursor-pointer border-0 p-0 shrink-0"
-                    />
-                    <Input
-                      value={primaryColor}
-                      onChange={(e) => handleCustomColorChange("primary", e.target.value)}
-                      className="font-mono text-xs uppercase"
-                    />
-                  </div>
-                </div>
+                      {themeFeedback && <Alert variant="success">{themeFeedback}</Alert>}
+                      {themeError && <Alert variant="destructive">{themeError}</Alert>}
+                    </div>
 
-                {/* Cor Secundária */}
-                <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
-                  <div>
-                    <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor Secundária</span>
-                    <span className="text-[11px] text-slate-400">Superfícies suaves e fundos de badges</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={secondaryColor}
-                      onChange={(e) => handleCustomColorChange("secondary", e.target.value)}
-                      className="h-8 w-8 rounded-lg cursor-pointer border-0 p-0 shrink-0"
-                    />
-                    <Input
-                      value={secondaryColor}
-                      onChange={(e) => handleCustomColorChange("secondary", e.target.value)}
-                      className="font-mono text-xs uppercase"
-                    />
-                  </div>
-                </div>
+                    <div className="space-y-2 pt-2">
+                      <Button
+                        type="button"
+                        onClick={handleSaveTheme}
+                        disabled={!isThemeDirty || isSavingTheme}
+                        isLoading={isSavingTheme}
+                        className="w-full gap-2 text-xs"
+                      >
+                        {!isSavingTheme && <Save className="h-4 w-4" />}
+                        <span>{isSavingTheme ? "Salvando Tema..." : "Salvar Tema"}</span>
+                      </Button>
 
-                {/* Cor de Destaque */}
-                <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
-                  <div>
-                    <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor de Destaque</span>
-                    <span className="text-[11px] text-slate-400">Realces e marcações ativas</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={accentColor}
-                      onChange={(e) => handleCustomColorChange("accent", e.target.value)}
-                      className="h-8 w-8 rounded-lg cursor-pointer border-0 p-0 shrink-0"
-                    />
-                    <Input
-                      value={accentColor}
-                      onChange={(e) => handleCustomColorChange("accent", e.target.value)}
-                      className="font-mono text-xs uppercase"
-                    />
-                  </div>
-                </div>
-
-                {/* Cor de Fundo */}
-                <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
-                  <div>
-                    <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor de Fundo</span>
-                    <span className="text-[11px] text-slate-400">Superfície base do Site e tema</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={backgroundColor}
-                      onChange={(e) => handleCustomColorChange("background", e.target.value)}
-                      className="h-8 w-8 rounded-lg cursor-pointer border-0 p-0 shrink-0"
-                    />
-                    <Input
-                      value={backgroundColor}
-                      onChange={(e) => handleCustomColorChange("background", e.target.value)}
-                      className="font-mono text-xs uppercase"
-                    />
-                  </div>
-                </div>
-
-                {/* Cor do Texto */}
-                <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
-                  <div>
-                    <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor do Texto</span>
-                    <span className="text-[11px] text-slate-400">Tipografia e títulos principais</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={textColor}
-                      onChange={(e) => handleCustomColorChange("text", e.target.value)}
-                      className="h-8 w-8 rounded-lg cursor-pointer border-0 p-0 shrink-0"
-                    />
-                    <Input
-                      value={textColor}
-                      onChange={(e) => handleCustomColorChange("text", e.target.value)}
-                      className="font-mono text-xs uppercase"
-                    />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={handleRestoreAppearanceDefaults}
+                        className="w-full gap-1.5 text-xs"
+                      >
+                        <RotateCcw className="h-3.5 w-3.5" />
+                        <span>Restaurar Padrão</span>
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Indicador de Contraste e Acessibilidade (WCAG AA) */}
-              {(() => {
-                const ratio = calculateContrastRatio(textColor, backgroundColor);
-                const isAccessible = isContrastAccessible(textColor, backgroundColor);
+              {/* CORES PERSONALIZADAS — EXIBIDO SOMENTE QUANDO "Personalizado" ESTÁ SELECIONADO */}
+              {themeName === "PERSONALIZADO" && (
+                <div
+                  data-testid="custom-colors-section"
+                  className="animate-custom-colors-enter pt-5 border-t border-slate-200 dark:border-[#333333] space-y-5 text-xs"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-900 dark:text-[#F5F5F5] flex items-center gap-1.5">
+                        <Sparkles className="h-4 w-4 text-[var(--primary)]" />
+                        <span>Cores Personalizadas</span>
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-[#A6A6A6] mt-0.5">
+                        Ajuste os 6 tokens hexadecimais da paleta. As mudanças refletem na prévia acima até você clicar em &quot;Salvar Tema&quot;.
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="w-fit text-[10px] shrink-0">
+                      Base: {THEME_PRESETS[lastBasePreset]?.label || "Verde (Padrão)"}
+                    </Badge>
+                  </div>
 
-                return isAccessible ? (
-                  <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300">
-                    <CheckCircle2 className="h-4 w-4 shrink-0" />
-                    <span>
-                      Contraste Texto/Fundo: <strong>{ratio}:1</strong> — Em conformidade com a norma WCAG AA (mínimo 4.5:1). Legibilidade comprovada.
-                    </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* Cor Primária */}
+                    <div className="p-3 rounded-xl border border-slate-200 dark:border-[#333333] space-y-2">
+                      <div>
+                        <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor Primária</span>
+                        <span className="text-[11px] text-slate-400">Destaques, títulos e vínculos</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          aria-label="Seletor de Cor Primária"
+                          value={normalizedPreviewPrimary}
+                          onChange={(e) => handleCustomColorChange("primaryColor", e.target.value)}
+                          className="h-8 w-8 rounded-lg cursor-pointer border-0 p-0 shrink-0"
+                        />
+                        <Input
+                          aria-label="HEX da Cor Primária"
+                          value={primaryColor}
+                          onChange={(e) => handleCustomColorChange("primaryColor", e.target.value)}
+                          className="font-mono text-xs uppercase"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Cor Secundária */}
+                    <div className="p-3 rounded-xl border border-slate-200 dark:border-[#333333] space-y-2">
+                      <div>
+                        <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor Secundária</span>
+                        <span className="text-[11px] text-slate-400">Superfícies suaves e badges</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          aria-label="Seletor de Cor Secundária"
+                          value={normalizedPreviewSecondary}
+                          onChange={(e) => handleCustomColorChange("secondaryColor", e.target.value)}
+                          className="h-8 w-8 rounded-lg cursor-pointer border-0 p-0 shrink-0"
+                        />
+                        <Input
+                          aria-label="HEX da Cor Secundária"
+                          value={secondaryColor}
+                          onChange={(e) => handleCustomColorChange("secondaryColor", e.target.value)}
+                          className="font-mono text-xs uppercase"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Cor de Destaque */}
+                    <div className="p-3 rounded-xl border border-slate-200 dark:border-[#333333] space-y-2">
+                      <div>
+                        <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor de Destaque</span>
+                        <span className="text-[11px] text-slate-400">Realces e marcações ativas</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          aria-label="Seletor de Cor de Destaque"
+                          value={normalizedPreviewAccent}
+                          onChange={(e) => handleCustomColorChange("accentColor", e.target.value)}
+                          className="h-8 w-8 rounded-lg cursor-pointer border-0 p-0 shrink-0"
+                        />
+                        <Input
+                          aria-label="HEX da Cor de Destaque"
+                          value={accentColor}
+                          onChange={(e) => handleCustomColorChange("accentColor", e.target.value)}
+                          className="font-mono text-xs uppercase"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Cor dos Botões */}
+                    <div className="p-3 rounded-xl border border-slate-200 dark:border-[#333333] space-y-2">
+                      <div>
+                        <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor dos Botões</span>
+                        <span className="text-[11px] text-slate-400">Botões principais com texto branco</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          aria-label="Seletor de Cor dos Botões"
+                          value={normalizedPreviewButton}
+                          onChange={(e) => handleCustomColorChange("buttonColor", e.target.value)}
+                          className="h-8 w-8 rounded-lg cursor-pointer border-0 p-0 shrink-0"
+                        />
+                        <Input
+                          aria-label="HEX da Cor dos Botões"
+                          value={buttonColor}
+                          onChange={(e) => handleCustomColorChange("buttonColor", e.target.value)}
+                          className="font-mono text-xs uppercase"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Cor de Fundo */}
+                    <div className="p-3 rounded-xl border border-slate-200 dark:border-[#333333] space-y-2">
+                      <div>
+                        <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor de Fundo</span>
+                        <span className="text-[11px] text-slate-400">Superfície base do Site e tema</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          aria-label="Seletor de Cor de Fundo"
+                          value={normalizedPreviewBg}
+                          onChange={(e) => handleCustomColorChange("backgroundColor", e.target.value)}
+                          className="h-8 w-8 rounded-lg cursor-pointer border-0 p-0 shrink-0"
+                        />
+                        <Input
+                          aria-label="HEX da Cor de Fundo"
+                          value={backgroundColor}
+                          onChange={(e) => handleCustomColorChange("backgroundColor", e.target.value)}
+                          className="font-mono text-xs uppercase"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Cor do Texto */}
+                    <div className="p-3 rounded-xl border border-slate-200 dark:border-[#333333] space-y-2">
+                      <div>
+                        <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor do Texto</span>
+                        <span className="text-[11px] text-slate-400">Tipografia e títulos principais</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          aria-label="Seletor de Cor do Texto"
+                          value={normalizedPreviewText}
+                          onChange={(e) => handleCustomColorChange("textColor", e.target.value)}
+                          className="h-8 w-8 rounded-lg cursor-pointer border-0 p-0 shrink-0"
+                        />
+                        <Input
+                          aria-label="HEX da Cor do Texto"
+                          value={textColor}
+                          onChange={(e) => handleCustomColorChange("textColor", e.target.value)}
+                          className="font-mono text-xs uppercase"
+                        />
+                      </div>
+                    </div>
                   </div>
-                ) : (
-                  <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300">
-                    <AlertTriangle className="h-4 w-4 shrink-0" />
-                    <span>
-                      Contraste Texto/Fundo: <strong>{ratio}:1</strong> — Abaixo do mínimo recomendado pela WCAG AA (4.5:1). Aumente o contraste entre a cor do texto e a cor de fundo para garantir acessibilidade.
-                    </span>
-                  </div>
-                );
-              })()}
+
+                  {/* Indicador de Contraste e Acessibilidade (WCAG AA) */}
+                  {(() => {
+                    const ratio = calculateContrastRatio(normalizedPreviewText, normalizedPreviewBg);
+                    const isAccessible = isContrastAccessible(normalizedPreviewText, normalizedPreviewBg);
+                    const rawBtnRatio = calculateContrastRatio("#ffffff", normalizedPreviewButton);
+                    const btnAutoAdjusted = rawBtnRatio < 4.5;
+
+                    return (
+                      <div className="space-y-2">
+                        {isAccessible ? (
+                          <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300">
+                            <CheckCircle2 className="h-4 w-4 shrink-0" />
+                            <span>
+                              Contraste Texto/Fundo: <strong>{ratio}:1</strong> — Em conformidade com a norma WCAG AA (mínimo 4.5:1).
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300">
+                            <AlertTriangle className="h-4 w-4 shrink-0" />
+                            <span>
+                              Contraste Texto/Fundo: <strong>{ratio}:1</strong> — Abaixo do mínimo recomendado pela WCAG AA (4.5:1). Aumente o contraste entre a cor do texto e a cor de fundo.
+                            </span>
+                          </div>
+                        )}
+
+                        {btnAutoAdjusted && (
+                          <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-100 dark:bg-[#1E1E1E] border border-slate-200 dark:border-[#333333] text-slate-700 dark:text-[#D4D4D4]">
+                            <Info className="h-4 w-4 shrink-0 text-[var(--primary)]" />
+                            <span>
+                              A cor de botões selecionada ({normalizedPreviewButton}) é clara demais para texto branco ({rawBtnRatio}:1). Nos botões do sistema, será automaticamente adaptada para <strong>{accessiblePreviewButtonBg}</strong> garantindo contraste acessível.
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* 3. IMAGENS DO SISTEMA (Referência: Imagens 2 e 3) */}
+          {/* CARD 2: IMAGENS DO SISTEMA (SEÇÃO INDEPENDENTE) */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Imagens do Sistema</CardTitle>
@@ -1707,9 +2798,12 @@ export default function AdminSettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 text-xs">
+              {imagesFeedback && <Alert variant="success">{imagesFeedback}</Alert>}
+              {imagesError && <Alert variant="destructive">{imagesError}</Alert>}
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* 1. Favicon (32x32px) */}
-                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col justify-between space-y-3">
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-[#333333] bg-white dark:bg-[#141414] flex flex-col justify-between space-y-3">
                   <div>
                     <h5 className="font-bold text-xs text-slate-800 dark:text-slate-200">
                       Favicon (32x32px)
@@ -1730,7 +2824,7 @@ export default function AdminSettingsPage() {
                       const file = e.dataTransfer.files?.[0];
                       if (file) handleUploadAsset("favicon", file);
                     }}
-                    className="p-3 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl text-center hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors"
+                    className="p-3 border-2 border-dashed border-slate-300 dark:border-[#333333] rounded-xl text-center hover:bg-slate-50 dark:hover:bg-[#1E1E1E] cursor-pointer transition-colors"
                   >
                     <label className="cursor-pointer block">
                       <input
@@ -1752,8 +2846,11 @@ export default function AdminSettingsPage() {
                   {faviconUrl && (
                     <button
                       type="button"
-                      onClick={() => setFaviconUrl(null)}
-                      className="text-[11px] text-red-500 hover:underline block text-center"
+                      onClick={() => {
+                        setFaviconUrl(null);
+                        setImagesFeedback('Favicon removido da prévia. Clique em "Salvar Alterações" para confirmar.');
+                      }}
+                      className="w-full py-1.5 px-3 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 dark:bg-red-500/15 dark:hover:bg-red-500/25 dark:text-red-400 dark:border-red-500/25 text-[11px] font-medium transition-colors cursor-pointer"
                     >
                       Remover favicon
                     </button>
@@ -1761,12 +2858,12 @@ export default function AdminSettingsPage() {
                 </div>
 
                 {/* 2. Logo (200x80px) */}
-                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col justify-between space-y-3">
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-[#333333] bg-white dark:bg-[#141414] flex flex-col justify-between space-y-3">
                   <div>
                     <h5 className="font-bold text-xs text-slate-800 dark:text-slate-200">
                       Logo (200x80px)
                     </h5>
-                    <div className="h-16 flex items-center justify-center my-2 p-1 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                    <div className="h-16 flex items-center justify-center my-2 p-1 bg-slate-50 dark:bg-[#1E1E1E] rounded-lg">
                       {logoUrl ? (
                         <img src={logoUrl} alt="Logo" className="h-full max-w-[200px] object-contain" />
                       ) : (
@@ -1782,7 +2879,7 @@ export default function AdminSettingsPage() {
                       const file = e.dataTransfer.files?.[0];
                       if (file) handleUploadAsset("logo", file);
                     }}
-                    className="p-3 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl text-center hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors"
+                    className="p-3 border-2 border-dashed border-slate-300 dark:border-[#333333] rounded-xl text-center hover:bg-slate-50 dark:hover:bg-[#1E1E1E] cursor-pointer transition-colors"
                   >
                     <label className="cursor-pointer block">
                       <input
@@ -1804,8 +2901,11 @@ export default function AdminSettingsPage() {
                   {logoUrl && (
                     <button
                       type="button"
-                      onClick={() => setLogoUrl(null)}
-                      className="text-[11px] text-red-500 hover:underline block text-center"
+                      onClick={() => {
+                        setLogoUrl(null);
+                        setImagesFeedback('Logo removido da prévia. Clique em "Salvar Alterações" para confirmar.');
+                      }}
+                      className="w-full py-1.5 px-3 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 dark:bg-red-500/15 dark:hover:bg-red-500/25 dark:text-red-400 dark:border-red-500/25 text-[11px] font-medium transition-colors cursor-pointer"
                     >
                       Remover logo
                     </button>
@@ -1813,12 +2913,12 @@ export default function AdminSettingsPage() {
                 </div>
 
                 {/* 3. Banner PC / Logo Horizontal (1400x140px) */}
-                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col justify-between space-y-3">
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-[#333333] bg-white dark:bg-[#141414] flex flex-col justify-between space-y-3">
                   <div>
                     <h5 className="font-bold text-xs text-slate-800 dark:text-slate-200">
                       Banner PC (1400x140px)
                     </h5>
-                    <div className="h-16 flex items-center justify-center my-2 p-1 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                    <div className="h-16 flex items-center justify-center my-2 p-1 bg-slate-50 dark:bg-[#1E1E1E] rounded-lg">
                       {logoHorizontalUrl ? (
                         <img src={logoHorizontalUrl} alt="Banner/Horizontal" className="h-full w-full object-contain" />
                       ) : (
@@ -1834,7 +2934,7 @@ export default function AdminSettingsPage() {
                       const file = e.dataTransfer.files?.[0];
                       if (file) handleUploadAsset("logoHorizontal", file);
                     }}
-                    className="p-3 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl text-center hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors"
+                    className="p-3 border-2 border-dashed border-slate-300 dark:border-[#333333] rounded-xl text-center hover:bg-slate-50 dark:hover:bg-[#1E1E1E] cursor-pointer transition-colors"
                   >
                     <label className="cursor-pointer block">
                       <input
@@ -1856,8 +2956,11 @@ export default function AdminSettingsPage() {
                   {logoHorizontalUrl && (
                     <button
                       type="button"
-                      onClick={() => setLogoHorizontalUrl(null)}
-                      className="text-[11px] text-red-500 hover:underline block text-center"
+                      onClick={() => {
+                        setLogoHorizontalUrl(null);
+                        setImagesFeedback('Banner removido da prévia. Clique em "Salvar Alterações" para confirmar.');
+                      }}
+                      className="w-full py-1.5 px-3 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 dark:bg-red-500/15 dark:hover:bg-red-500/25 dark:text-red-400 dark:border-red-500/25 text-[11px] font-medium transition-colors cursor-pointer"
                     >
                       Remover banner
                     </button>
@@ -1865,64 +2968,55 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
 
-              {/* Dicas para as imagens (Referência fiel da Imagem 3) */}
-              <div className="p-4 rounded-xl bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900/60 text-xs text-purple-900 dark:text-purple-200 space-y-2">
-                <p className="font-bold flex items-center gap-1.5 text-purple-950 dark:text-purple-100">
-                  <Info className="h-4 w-4" />
+              {/* Dicas para as imagens */}
+              <div className="p-4 rounded-xl bg-[#F8F8F8] dark:bg-[#181818] border border-[#E5E5E5] dark:border-[#2C2C2C] text-xs text-[#404040] dark:text-[#D0D0D0] space-y-2">
+                <p className="font-bold flex items-center gap-1.5 text-[#171717] dark:text-[#F5F5F5]">
+                  <Info className="h-4 w-4 text-[var(--primary)]" />
                   <span>Dicas para as imagens:</span>
                 </p>
-                <ul className="space-y-1.5 text-[11px] text-purple-900/80 dark:text-purple-200/90 pl-1">
+                <ul className="space-y-1.5 text-[11px] text-[#525252] dark:text-[#A6A6A6] pl-1">
                   <li className="flex items-start gap-1.5">
-                    <span className="text-purple-600 dark:text-purple-400 font-bold">•</span>
+                    <span className="text-[var(--primary)] font-bold">•</span>
                     <span><strong>Favicon:</strong> Use imagens quadradas no tamanho exato de 32x32 pixels</span>
                   </li>
                   <li className="flex items-start gap-1.5">
-                    <span className="text-purple-600 dark:text-purple-400 font-bold">•</span>
+                    <span className="text-[var(--primary)] font-bold">•</span>
                     <span><strong>Logo:</strong> Use PNG com fundo transparente no tamanho 200x80 pixels</span>
                   </li>
                   <li className="flex items-start gap-1.5">
-                    <span className="text-purple-600 dark:text-purple-400 font-bold">•</span>
+                    <span className="text-[var(--primary)] font-bold">•</span>
                     <span><strong>Banner Mobile:</strong> Use imagens no tamanho de 420x140 pixels</span>
                   </li>
                   <li className="flex items-start gap-1.5">
-                    <span className="text-purple-600 dark:text-purple-400 font-bold">•</span>
+                    <span className="text-[var(--primary)] font-bold">•</span>
                     <span><strong>Banner PC:</strong> Use imagens no tamanho de 1400x140 pixels</span>
                   </li>
                   <li className="flex items-start gap-1.5">
-                    <span className="text-purple-600 dark:text-purple-400 font-bold">•</span>
+                    <span className="text-[var(--primary)] font-bold">•</span>
                     <span><strong>Tamanho máximo por arquivo:</strong> 5MB</span>
                   </li>
                 </ul>
               </div>
 
-              {/* Ações da Aba Aparência */}
-              <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
+              {/* Botão independente de salvamento das Imagens do Sistema */}
+              <div className="flex items-center justify-end pt-4 border-t border-slate-200 dark:border-[#262626]">
                 <Button
                   type="button"
-                  variant="ghost"
-                  onClick={handleRestoreAppearanceDefaults}
-                  className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 gap-1.5"
-                >
-                  <RotateCcw className="h-3.5 w-3.5" />
-                  <span>Restaurar Padrão</span>
-                </Button>
-
-                <Button
-                  type="button"
-                  onClick={handleSaveAppearance}
-                  disabled={isSavingAppearance}
+                  onClick={handleSaveSystemImages}
+                  disabled={!isImagesDirty || isSavingImages || uploadingAsset !== null}
+                  isLoading={isSavingImages}
                   className="gap-2 text-xs"
                 >
-                  <Save className="h-4 w-4" />
-                  <span>{isSavingAppearance ? "Salvando..." : "Salvar e Aplicar Tema"}</span>
+                  {!isSavingImages && <Save className="h-4 w-4" />}
+                  <span>{isSavingImages ? "Salvando..." : "Salvar Alterações"}</span>
                 </Button>
               </div>
             </CardContent>
           </Card>
 
-          {/* CARD: IMAGENS & ANIMAÇÕES DO SITE (HERO DESKTOP, HERO MOBILE, SOBRE MIM) */}
-          <Card className="border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
-            <CardHeader className="pb-4 border-b border-slate-200 dark:border-slate-800">
+          {/* CARD 3: IMAGENS & ANIMAÇÕES DO SITE (HERO DESKTOP, HERO MOBILE, SOBRE MIM) */}
+          <Card className="border-slate-200 dark:border-[#333333] bg-white/50 dark:bg-[#141414]/80 backdrop-blur-sm">
+            <CardHeader className="pb-4 border-b border-slate-200 dark:border-[#333333]">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
                   <Film className="h-5 w-5" />
@@ -1938,17 +3032,19 @@ export default function AdminSettingsPage() {
               </div>
 
               {mediaFeedback && (
-                <div className="mt-3 p-3 rounded-lg text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <div className="mt-3 p-3 rounded-lg text-xs bg-slate-100 dark:bg-[#1E1E1E] border border-slate-200 dark:border-[#333333] flex items-center justify-between gap-2">
                   <span className="text-slate-800 dark:text-slate-200 font-medium">{mediaFeedback}</span>
                   <button
                     type="button"
+                    aria-label="Fechar aviso de mídia"
                     onClick={() => setMediaFeedback(null)}
-                    className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs ml-2"
+                    className="h-6 w-6 rounded-md bg-transparent hover:bg-black/10 dark:hover:bg-white/10 text-[#525252] dark:text-[#A6A6A6] flex items-center justify-center text-xs shrink-0 cursor-pointer transition-colors"
                   >
                     ✕
                   </button>
                 </div>
               )}
+              {mediaError && <div className="mt-3"><Alert variant="destructive">{mediaError}</Alert></div>}
             </CardHeader>
 
             <CardContent className="pt-6 space-y-5">
@@ -2018,15 +3114,16 @@ export default function AdminSettingsPage() {
                 />
               </div>
 
-              {/* Botão único de salvamento */}
-              <div className="flex items-center justify-end pt-4 border-t border-slate-200 dark:border-slate-800">
+              {/* Botão único de salvamento das Mídias do Site */}
+              <div className="flex items-center justify-end pt-4 border-t border-slate-200 dark:border-[#262626]">
                 <Button
                   type="button"
                   onClick={handleSaveMediaSettings}
-                  disabled={isSavingMedia || uploadingSlot !== null}
-                  className="gap-2 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white"
+                  disabled={!isMediaDirty || isSavingMedia || uploadingSlot !== null}
+                  isLoading={isSavingMedia}
+                  className="gap-2 text-xs"
                 >
-                  <Save className="h-4 w-4" />
+                  {!isSavingMedia && <Save className="h-4 w-4" />}
                   <span>{isSavingMedia ? "Salvando Mídias..." : "Salvar Mídias do Site"}</span>
                 </Button>
               </div>
@@ -2035,20 +3132,21 @@ export default function AdminSettingsPage() {
         </div>
       )}
 
-      {/* ================= ABA 3: CONSULTAS VIRTUAIS (TASK 9) ================= */}
+      {/* ================= ABA 3: CONSULTAS VIRTUAIS ================= */}
       {activeTab === "video" && (
         <div className="space-y-6">
           <div className="p-4 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-xs text-slate-800 dark:text-[#F5F5F5] space-y-1">
             <p className="font-semibold flex items-center gap-1.5">
               <Video className="h-4 w-4 text-[var(--primary)]" />
-              <span>Opções de Teleconsulta e Provedores de Vídeo (Task 9)</span>
+              <span>Opções de Teleconsulta e Provedores de Vídeo</span>
             </p>
             <p>
               O PSI oferece suporte arquitetural a 3 provedores de videoconferência. Apenas <strong>um provedor padrão ativo</strong> é selecionado por instalação. Alterar o padrão afeta novos atendimentos, preservando as consultas já agendadas com seus links originais.
             </p>
           </div>
 
-          {videoFeedback && <Alert variant="info">{videoFeedback}</Alert>}
+          {videoFeedback && <Alert variant="success">{videoFeedback}</Alert>}
+          {videoError && <Alert variant="destructive">{videoError}</Alert>}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {videoProviders.map((provider) => {
@@ -2060,12 +3158,12 @@ export default function AdminSettingsPage() {
                   className={`flex flex-col justify-between transition-all ${
                     isSelected
                       ? "border-[var(--primary)] ring-2 ring-[var(--primary)]/20 bg-[var(--primary)]/10"
-                      : "border-slate-200 dark:border-slate-800"
+                      : "border-slate-200 dark:border-[#333333]"
                   }`}
                 >
                   <div>
                     <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <CardTitle className="text-base">{provider.name}</CardTitle>
                         <Badge
                           variant={
@@ -2130,7 +3228,11 @@ export default function AdminSettingsPage() {
                             <Input
                               placeholder="meet.jit.si"
                               value={jitsiDomain}
-                              onChange={(e) => setJitsiDomain(e.target.value)}
+                              onChange={(e) => {
+                                setJitsiDomain(e.target.value);
+                                setVideoFeedback(null);
+                                setVideoError(null);
+                              }}
                             />
                             <p className="text-[10px] text-slate-400">
                               Padrão público <code>meet.jit.si</code> ou seu servidor Jitsi dedicado.
@@ -2144,7 +3246,7 @@ export default function AdminSettingsPage() {
                               size="sm"
                               onClick={handleTestJitsi}
                               disabled={isTestingJitsi || !jitsiDomain}
-                              className="w-full gap-2 text-xs border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                              className="w-full gap-2 text-xs"
                             >
                               <Activity className="h-3.5 w-3.5" />
                               <span>{isTestingJitsi ? "Testando Jitsi..." : "Testar Servidor Jitsi"}</span>
@@ -2221,7 +3323,7 @@ export default function AdminSettingsPage() {
                             </p>
                           </div>
 
-                          <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+                          <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-[#262626]">
                             <label className="font-semibold text-slate-700 dark:text-slate-300 text-[11px]">
                               Servidor TURN Opcional (Para NATs Restritivos e Firewalls)
                             </label>
@@ -2254,7 +3356,7 @@ export default function AdminSettingsPage() {
                               size="sm"
                               onClick={handleTestPeerJs}
                               disabled={isTestingPeerJs || !peerJsHost}
-                              className="w-full gap-2 text-xs border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                              className="w-full gap-2 text-xs"
                             >
                               <Activity className="h-3.5 w-3.5" />
                               <span>{isTestingPeerJs ? "Testando Sinalização..." : "Testar Servidor de Sinalização"}</span>
@@ -2308,7 +3410,7 @@ export default function AdminSettingsPage() {
                           </div>
 
                           {/* Caixa de Instruções Google Cloud Console */}
-                          <div className="p-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl space-y-2 text-[11px] text-slate-600 dark:text-slate-400">
+                          <div className="p-3 bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-[#333333] rounded-xl space-y-2 text-[11px] text-slate-600 dark:text-slate-400">
                             <div className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                               <Info className="h-3.5 w-3.5 text-[var(--primary)]" />
                               <span>Passo a passo no Google Cloud Console:</span>
@@ -2319,11 +3421,11 @@ export default function AdminSettingsPage() {
                               <li>Em <em>Tela de consentimento OAuth</em>, configure como <em>Externo</em> e inclua o escopo <code>calendar.events</code>.</li>
                               <li>Em <em>Credenciais</em>, crie um <strong>ID do cliente OAuth</strong> do tipo <em>Aplicativo da Web</em>.</li>
                               <li>Adicione em <strong>URIs de redirecionamento autorizados</strong>:
-                                <div className="mt-1 font-mono text-[10px] bg-white dark:bg-slate-800 p-1.5 rounded border border-slate-200 dark:border-slate-700 break-all select-all text-[var(--primary)]">
+                                <div className="mt-1 font-mono text-[10px] bg-white dark:bg-[#1E1E1E] p-1.5 rounded border border-slate-200 dark:border-[#333333] break-all select-all text-[var(--primary)]">
                                   {typeof window !== "undefined" ? `${window.location.origin}/api/admin/integrations/google/callback` : "http://localhost:3000/api/admin/integrations/google/callback"}
                                 </div>
                               </li>
-                              <li>Cole o Client ID e Client Secret nos campos acima, clique em <strong>Salvar Configurações</strong> e depois em <strong>Conectar Conta Google</strong>.</li>
+                              <li>Cole o Client ID e Client Secret nos campos acima, clique em <strong>Salvar Alterações</strong> e depois em <strong>Conectar Conta Google</strong>.</li>
                             </ol>
                           </div>
 
@@ -2349,11 +3451,11 @@ export default function AdminSettingsPage() {
                               <div className="pt-2 flex flex-col sm:flex-row gap-2">
                                 <Button
                                   type="button"
-                                  variant="outline"
+                                  variant="secondary"
                                   size="sm"
                                   onClick={handleTestGoogleMeet}
                                   disabled={isTestingGoogleMeet}
-                                  className="gap-1.5 text-xs border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40"
+                                  className="gap-1.5 text-xs"
                                 >
                                   <Calendar className="h-3.5 w-3.5" />
                                   <span>{isTestingGoogleMeet ? "Testando Google Meet..." : "Testar Emissão Google Meet"}</span>
@@ -2378,7 +3480,7 @@ export default function AdminSettingsPage() {
                                 type="button"
                                 onClick={handleConnectGoogle}
                                 disabled={!googleMeetClientId || (!googleMeetClientSecret && !provider.config?.hasClientSecret)}
-                                className="w-full gap-2 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white"
+                                className="w-full gap-2 text-xs"
                               >
                                 <Link2 className="h-3.5 w-3.5" />
                                 <span>Conectar Conta Google via OAuth</span>
@@ -2414,15 +3516,14 @@ export default function AdminSettingsPage() {
                   <div className="p-4 pt-0">
                     <Button
                       type="button"
-                      variant={isSelected ? "primary" : "outline"}
+                      variant={isSelected ? "primary" : "secondary"}
                       onClick={() => {
                         setActiveVideoKey(provider.key);
-                        setVideoFeedback(`Provedor padrão alterado para "${provider.name}". Clique em "Salvar Configurações de Teleconsulta" para persistir o padrão no servidor.`);
+                        setVideoError(null);
+                        setVideoFeedback(`Provedor padrão alterado para "${provider.name}". Clique em "Salvar Alterações" para persistir no servidor.`);
                       }}
                       disabled={!provider.isFunctional}
-                      className={`w-full text-xs gap-1.5 ${
-                        isSelected ? "bg-[var(--button-bg,var(--primary))] text-white font-semibold" : ""
-                      }`}
+                      className="w-full text-xs gap-1.5"
                     >
                       {isSelected ? (
                         <>
@@ -2453,17 +3554,18 @@ export default function AdminSettingsPage() {
             <Button
               type="button"
               onClick={handleSaveVideoProviders}
-              disabled={isSavingVideo}
-              className="gap-2 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white"
+              disabled={!isVideoDirty || isSavingVideo}
+              isLoading={isSavingVideo}
+              className="gap-2 text-xs"
             >
-              <Save className="h-4 w-4" />
-              <span>{isSavingVideo ? "Salvando..." : "Salvar Configurações de Teleconsulta"}</span>
+              {!isSavingVideo && <Save className="h-4 w-4" />}
+              <span>{isSavingVideo ? "Salvando..." : "Salvar Alterações"}</span>
             </Button>
           </div>
         </div>
       )}
 
-      {/* ================= ABA 4: GERAL & POLÍTICAS ================= */}
+      {/* ================= ABA 4: AGENDA & POLÍTICAS (SEÇÃO INDEPENDENTE COM PERSISTÊNCIA REAL) ================= */}
       {activeTab === "general" && (
         <Card>
           <CardHeader>
@@ -2475,6 +3577,7 @@ export default function AdminSettingsPage() {
 
           <CardContent className="space-y-4 text-xs">
             {generalFeedback && <Alert variant="success">{generalFeedback}</Alert>}
+            {generalError && <Alert variant="destructive">{generalError}</Alert>}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
@@ -2483,8 +3586,12 @@ export default function AdminSettingsPage() {
                 </label>
                 <select
                   value={timezone}
-                  onChange={(e) => setTimezone(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs"
+                  onChange={(e) => {
+                    setTimezone(e.target.value);
+                    setGeneralFeedback(null);
+                    setGeneralError(null);
+                  }}
+                  className="w-full rounded-lg border border-slate-300 dark:border-[#333333] bg-white dark:bg-[#141414] px-3 py-2 text-xs"
                 >
                   <option value="America/Sao_Paulo">Brasília (America/Sao_Paulo - GMT-3)</option>
                   <option value="America/Manaus">Manaus (America/Manaus - GMT-4)</option>
@@ -2500,8 +3607,13 @@ export default function AdminSettingsPage() {
                 </label>
                 <Input
                   type="number"
+                  min={0}
                   value={minNoticeHours}
-                  onChange={(e) => setMinNoticeHours(Number(e.target.value))}
+                  onChange={(e) => {
+                    setMinNoticeHours(Number(e.target.value));
+                    setGeneralFeedback(null);
+                    setGeneralError(null);
+                  }}
                 />
               </div>
 
@@ -2511,8 +3623,13 @@ export default function AdminSettingsPage() {
                 </label>
                 <Input
                   type="number"
+                  min={1}
                   value={horizonDays}
-                  onChange={(e) => setHorizonDays(Number(e.target.value))}
+                  onChange={(e) => {
+                    setHorizonDays(Number(e.target.value));
+                    setGeneralFeedback(null);
+                    setGeneralError(null);
+                  }}
                 />
               </div>
 
@@ -2522,8 +3639,13 @@ export default function AdminSettingsPage() {
                 </label>
                 <Input
                   type="number"
+                  min={0}
                   value={cancellationNoticeDays}
-                  onChange={(e) => setCancellationNoticeDays(Number(e.target.value))}
+                  onChange={(e) => {
+                    setCancellationNoticeDays(Number(e.target.value));
+                    setGeneralFeedback(null);
+                    setGeneralError(null);
+                  }}
                 />
                 <p className="text-[10px] text-slate-400">
                   Padrão do contrato terapêutico: 3 dias úteis de antecedência.
@@ -2531,13 +3653,16 @@ export default function AdminSettingsPage() {
               </div>
             </div>
 
-            <div className="flex justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex justify-end pt-3 border-t border-slate-200 dark:border-[#262626]">
               <Button
-                onClick={() => setGeneralFeedback("Políticas de agendamento salvas com sucesso!")}
-                className="gap-2 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white"
+                type="button"
+                onClick={handleSaveGeneralSettings}
+                disabled={!isGeneralDirty || isSavingGeneral}
+                isLoading={isSavingGeneral}
+                className="gap-2 text-xs"
               >
-                <Save className="h-4 w-4" />
-                <span>Salvar Políticas</span>
+                {!isSavingGeneral && <Save className="h-4 w-4" />}
+                <span>{isSavingGeneral ? "Salvando..." : "Salvar Alterações"}</span>
               </Button>
             </div>
           </CardContent>
@@ -2556,7 +3681,7 @@ export default function AdminSettingsPage() {
             </CardHeader>
 
             <CardContent className="space-y-4 text-xs">
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 space-y-3">
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-[#333333] space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-slate-800 dark:text-slate-200">
                     URL do Endpoint Operacional:
@@ -2568,7 +3693,7 @@ export default function AdminSettingsPage() {
                   <Input
                     readOnly
                     value={typeof window !== "undefined" ? `${window.location.origin}/api/technical/status` : ""}
-                    className="font-mono text-xs bg-white dark:bg-slate-900"
+                    className="font-mono text-xs bg-white dark:bg-[#1E1E1E]"
                   />
                   <Button
                     type="button"
@@ -2582,7 +3707,7 @@ export default function AdminSettingsPage() {
                     }}
                     className="shrink-0 gap-1.5 text-xs"
                   >
-                    {copiedUrl ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                    {copiedUrl ? <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
                     <span>{copiedUrl ? "Copiado!" : "Copiar URL"}</span>
                   </Button>
                 </div>

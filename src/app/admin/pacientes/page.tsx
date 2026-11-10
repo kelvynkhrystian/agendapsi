@@ -93,6 +93,13 @@ export default function AdminPatientsPage() {
   };
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const q = new URLSearchParams(window.location.search).get("q");
+      if (q) setSearch(q);
+    }
+  }, []);
+
+  useEffect(() => {
     fetchPatients();
   }, [search, statusFilter]);
 
@@ -248,10 +255,10 @@ export default function AdminPatientsPage() {
               key={tab.id}
               type="button"
               onClick={() => setStatusFilter(tab.id as typeof statusFilter)}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer select-none ${
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer select-none border ${
                 statusFilter === tab.id
-                  ? "bg-[var(--primary)] text-white shadow-xs"
-                  : "bg-white dark:bg-[#202020] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-[#393939] hover:bg-slate-50 dark:hover:bg-[#292929]"
+                  ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] border-transparent shadow-xs"
+                  : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border-[var(--primary)]/25 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:text-[#D0D0D0] dark:border-[#393939] dark:hover:bg-[#292929]"
               }`}
             >
               {tab.label}

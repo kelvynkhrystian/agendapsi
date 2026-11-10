@@ -1,23 +1,30 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { formatBRL, formatDate, formatTime, formatPaymentStatus, formatPaymentMethod } from "@/lib/utils";
+import { formatBRL, formatDate, formatPaymentStatus, formatPaymentMethod } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
 import { Modal } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
 import {
+  MiniSparkline,
+  PaymentMethodMetric,
+  PaymentMethodsDonutChart,
+  PaymentStatusMetric,
+  RevenueSeriesPoint,
+  StemPerformanceChart,
+} from "@/components/analytics/financial-charts";
+import {
   DollarSign,
   Clock,
   CheckCircle2,
   RefreshCw,
-  Search,
   Filter,
   RotateCcw,
-  AlertTriangle,
   Receipt,
+  TrendingUp,
 } from "lucide-react";
 
 interface PaymentItem {
@@ -47,12 +54,42 @@ interface PaymentItem {
   }>;
 }
 
+interface FinanceAnalytics {
+  refundedCents: number;
+  rejectedCancelledCents: number;
+  totalCount: number;
+  approvedCount: number;
+  pendingCount: number;
+  refundedCount: number;
+  approvalRate: number;
+  byMethod: PaymentMethodMetric[];
+  byStatus?: PaymentStatusMetric[];
+  series: {
+    d14: RevenueSeriesPoint[];
+    d30: RevenueSeriesPoint[];
+    m6: RevenueSeriesPoint[];
+  };
+}
+
 export default function AdminFinancePage() {
   const [payments, setPayments] = useState<PaymentItem[]>([]);
+  const [timezone, setTimezone] = useState<string>("America/Sao_Paulo");
   const [totals, setTotals] = useState({
     realApprovedCents: 0,
     simulatedApprovedCents: 0,
     pendingCents: 0,
+  });
+  const [analytics, setAnalytics] = useState<FinanceAnalytics>({
+    refundedCents: 0,
+    rejectedCancelledCents: 0,
+    totalCount: 0,
+    approvedCount: 0,
+    pendingCount: 0,
+    refundedCount: 0,
+    approvalRate: 0,
+    byMethod: [],
+    byStatus: [],
+    series: { d14: [], d30: [], m6: [] },
   });
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [methodFilter, setMethodFilter] = useState("ALL");
@@ -73,8 +110,10 @@ export default function AdminFinancePage() {
     fetch(url)
       .then((r) => r.json())
       .then((d) => {
+        if (d.timezone) setTimezone(d.timezone);
         setPayments(Array.isArray(d.payments) ? d.payments : []);
         if (d.totals) setTotals(d.totals);
+        if (d.analytics) setAnalytics(d.analytics);
         setIsLoading(false);
       })
       .catch((e) => {
@@ -121,6 +160,8 @@ export default function AdminFinancePage() {
         setIsRefunding(false);
         setActionMessage("Estorno processado com sucesso!");
         fetchPayments();
+      } else {
+        setIsRefunding(false);
       }
     } catch (e) {
       console.error(e);
@@ -128,84 +169,178 @@ export default function AdminFinancePage() {
     }
   };
 
+  const sparkReal = (analytics.series.d14 || []).slice(-7).map((p) => p.realCents);
+  const sparkSim = (analytics.series.d14 || []).slice(-7).map((p) => p.simulatedCents);
+  const sparkPend = (analytics.series.d14 || []).slice(-7).map((p) => p.pendingCents);
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Gestão Financeira</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          Controle de cobranças, recebimentos presenciais, estornos e simulador de pagamentos.
-        </p>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
+        <div>
+          <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
+            Gestão Financeira
+          </h1>
+          <p className="text-xs sm:text-sm text-[#525252] dark:text-[#A6A6A6] mt-1">
+            Controle de cobranças, evolução de recebimentos, estornos e separação clara de lançamentos simulados.
+          </p>
+        </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={fetchPayments}
+          className="self-start sm:self-auto gap-1.5"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 text-current ${isLoading ? "animate-spin" : ""}`} />
+          <span>Atualizar Dados</span>
+        </Button>
       </div>
 
       {actionMessage && <Alert variant="success">{actionMessage}</Alert>}
 
-      {/* Cards de Totais */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Receita Real Registrada */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500">
+      {/* 4 Cards Bento Harmonizados — Destaque Hero Laranja + 3 Cards Neutros com Sparklines */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {/* Receita Real Confirmada (Card Hero Laranja/Tema) */}
+        <div
+          className="relative overflow-hidden rounded-2xl p-5 bg-[var(--button-bg,#CA4C0A)] text-white shadow-[0_14px_34px_-12px_rgba(234,88,12,0.45)] flex flex-col justify-between min-h-[146px]"
+          style={{
+            background:
+              "linear-gradient(135deg, var(--button-bg, #CA4C0A) 0%, var(--primary, #EA580C) 100%)",
+          }}
+        >
+          <div
+            className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/15 blur-xl"
+            aria-hidden="true"
+          />
+          <div className="relative z-10 flex items-center justify-between gap-2">
+            <span className="text-xs font-medium text-white/95">
               Receita Real Confirmada
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-emerald-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-emerald-600">
-              {formatBRL(totals.realApprovedCents)}
+            </span>
+            <div className="h-8 w-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0">
+              <DollarSign className="h-4 w-4 text-white" />
             </div>
-            <p className="text-xs text-slate-500 mt-1">
-              Pagamentos presenciais confirmados pelo profissional
-            </p>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Receita Simulada (Fake Provider) */}
-        <Card className="border-purple-200 dark:border-purple-900 bg-purple-50/20 dark:bg-purple-950/10">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-300">
-                Receita Simulada
-              </CardTitle>
-              <Badge variant="simulated">SIMULADO</Badge>
+          <div className="relative z-10 mt-2 flex items-end justify-between gap-3">
+            <div>
+              <div className="font-heading text-2xl sm:text-3xl font-bold tracking-tight tabular-nums text-white">
+                {formatBRL(totals.realApprovedCents)}
+              </div>
+              <p className="text-[11px] text-white/90 mt-1.5 font-medium">
+                Pagamentos presenciais e WhatsApp
+              </p>
             </div>
-            <Receipt className="h-4 w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
-              {formatBRL(totals.simulatedApprovedCents)}
-            </div>
-            <p className="text-xs text-purple-600/80 mt-1">
-              Ambiente de testes (FakePaymentProvider)
-            </p>
-          </CardContent>
-        </Card>
+            <MiniSparkline values={sparkReal} variant="on-accent" className="w-16" />
+          </div>
+        </div>
 
-        {/* Pendentes */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500">
+        {/* Recebimentos a Confirmar */}
+        <Card className="bg-white dark:bg-[#1A1A1A] border-[#E5E5E5] dark:border-[#2C2C2C] flex flex-col justify-between min-h-[146px] p-5">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-medium text-[#525252] dark:text-[#A6A6A6]">
               Recebimentos a Confirmar
-            </CardTitle>
-            <Clock className="h-4 w-4 text-amber-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-amber-600">
+            </span>
+            <div className="h-8 w-8 rounded-xl bg-amber-500/10 text-amber-600 dark:bg-[#242424] dark:text-amber-400 dark:border dark:border-[#333333] flex items-center justify-center shrink-0">
+              <Clock className="h-4 w-4" />
+            </div>
+          </div>
+
+          <div className="mt-2 flex items-end justify-between gap-3">
+            <div className="font-heading text-2xl font-bold tracking-tight tabular-nums text-[#171717] dark:text-[#F5F5F5]">
               {formatBRL(totals.pendingCents)}
             </div>
-            <p className="text-xs text-slate-500 mt-1">
-              Aguardando confirmação manual ou pagamento online
-            </p>
-          </CardContent>
+            <MiniSparkline values={sparkPend} variant="amber" />
+          </div>
+
+          <p className="text-xs text-[#737373] dark:text-[#8C8C8C] mt-2">
+            {analytics.pendingCount} lançamento(s) aguardando confirmação
+          </p>
+        </Card>
+
+        {/* Receita Simulada */}
+        <Card className="bg-white dark:bg-[#1A1A1A] border-[#E5E5E5] dark:border-[#2C2C2C] flex flex-col justify-between min-h-[146px] p-5">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+              <span className="text-xs font-medium text-[#525252] dark:text-[#A6A6A6] whitespace-nowrap">
+                Receita Simulada
+              </span>
+              <Badge variant="simulated" size="sm" className="text-[9px] px-1.5 py-0">
+                SIMULADO
+              </Badge>
+            </div>
+            <div className="h-8 w-8 rounded-xl bg-[var(--primary)]/10 text-[var(--button-outline-fg,var(--primary))] dark:bg-[#242424] dark:text-[#D0D0D0] dark:border dark:border-[#333333] flex items-center justify-center shrink-0">
+              <Receipt className="h-4 w-4" />
+            </div>
+          </div>
+
+          <div className="mt-2 flex items-end justify-between gap-3">
+            <div className="font-heading text-2xl font-bold tracking-tight tabular-nums text-[#171717] dark:text-[#F5F5F5]">
+              {formatBRL(totals.simulatedApprovedCents)}
+            </div>
+            <MiniSparkline values={sparkSim} variant="primary" />
+          </div>
+
+          <p className="text-xs text-[#737373] dark:text-[#8C8C8C] mt-2">
+            Ambiente de testes isolado
+          </p>
+        </Card>
+
+        {/* Taxa de Aprovação & Estornos */}
+        <Card className="bg-white dark:bg-[#1A1A1A] border-[#E5E5E5] dark:border-[#2C2C2C] flex flex-col justify-between min-h-[146px] p-5">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-medium text-[#525252] dark:text-[#A6A6A6]">
+              Efetivação &amp; Estornos
+            </span>
+            <div className="h-8 w-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:bg-[#242424] dark:text-emerald-400 dark:border dark:border-[#333333] flex items-center justify-center shrink-0">
+              <TrendingUp className="h-4 w-4" />
+            </div>
+          </div>
+
+          <div className="mt-2 flex items-baseline gap-2.5">
+            <span className="font-heading text-2xl sm:text-3xl font-bold tracking-tight tabular-nums text-[#171717] dark:text-[#F5F5F5]">
+              {analytics.approvalRate}%
+            </span>
+            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+              {analytics.approvedCount} aprov.
+            </span>
+          </div>
+
+          <p className="text-xs text-[#737373] dark:text-[#8C8C8C] mt-2 tabular-nums">
+            {analytics.refundedCount} estorno(s) · {formatBRL(analytics.refundedCents)}
+          </p>
         </Card>
       </div>
 
+      {/* Gráficos Financeiros (Evolução Temporal + Distribuição por Meio/Status) */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
+        <div className="xl:col-span-8">
+          <StemPerformanceChart
+            title="Evolução Financeira"
+            subtitle="Receitas confirmadas, simuladas e pendentes nos últimos períodos"
+            series={analytics.series}
+            showAppointmentsCount={false}
+          />
+        </div>
+
+        <div className="xl:col-span-4">
+          <PaymentMethodsDonutChart
+            byMethod={analytics.byMethod}
+            byStatus={analytics.byStatus}
+            approvalRate={analytics.approvalRate}
+            totalCount={analytics.totalCount}
+            className="h-full"
+          />
+        </div>
+      </div>
+
       {/* Filtros */}
-      <div className="flex flex-wrap items-center gap-3 p-3.5 bg-white dark:bg-[#141414] rounded-xl border border-[#E5E5E5] dark:border-[#333333]">
+      <div className="flex flex-wrap items-center gap-3 p-3.5 bg-white dark:bg-[#141414] rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C]">
         <Filter className="h-4 w-4 text-[#737373] dark:text-[#A6A6A6]" />
         <div className="flex items-center gap-2">
           <span className="text-xs text-[#737373] dark:text-[#A6A6A6]">Status:</span>
           <select
-            className="h-9 sm:h-10 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] px-3 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30 cursor-pointer shadow-2xs"
+            className="h-9 sm:h-10 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#202020] px-3 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30 cursor-pointer shadow-2xs"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -221,7 +356,7 @@ export default function AdminFinancePage() {
         <div className="flex items-center gap-2">
           <span className="text-xs text-[#737373] dark:text-[#A6A6A6]">Método:</span>
           <select
-            className="h-9 sm:h-10 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] px-3 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30 cursor-pointer shadow-2xs"
+            className="h-9 sm:h-10 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#202020] px-3 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30 cursor-pointer shadow-2xs"
             value={methodFilter}
             onChange={(e) => setMethodFilter(e.target.value)}
           >
@@ -234,7 +369,7 @@ export default function AdminFinancePage() {
       </div>
 
       {/* Tabela de Lançamentos */}
-      <Card>
+      <Card className="bg-white dark:bg-[#1A1A1A] border-[#E5E5E5] dark:border-[#2C2C2C]">
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-8 text-center text-xs text-[#737373] animate-pulse">
@@ -243,7 +378,7 @@ export default function AdminFinancePage() {
           ) : payments.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#F8F8F8] dark:bg-[#141414] border-b border-[#E5E5E5] dark:border-[#333333] text-[#737373] dark:text-[#A6A6A6]">
+                <thead className="bg-[#F8F8F8] dark:bg-[#141414] border-b border-[#E5E5E5] dark:border-[#2C2C2C] text-[#737373] dark:text-[#A6A6A6]">
                   <tr>
                     <th className="py-3.5 px-4 sm:px-6 font-semibold">Paciente</th>
                     <th className="py-3.5 px-4 sm:px-6 font-semibold">Referência</th>
@@ -254,9 +389,9 @@ export default function AdminFinancePage() {
                     <th className="py-3.5 px-4 sm:px-6 font-semibold text-right">Ações</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E5E5E5] dark:divide-[#333333]">
+                <tbody className="divide-y divide-[#E5E5E5] dark:divide-[#2C2C2C]">
                   {payments.map((p) => (
-                    <tr key={p.id} className="hover:bg-[#F2F2F2]/50 dark:hover:bg-[#242424]/30 transition-colors">
+                    <tr key={p.id} className="hover:bg-[#F8F8F8] dark:hover:bg-[#242424]/50 transition-colors">
                       <td className="py-3.5 px-4 sm:px-6">
                         <span className="font-semibold block text-[#171717] dark:text-[#F5F5F5]">{p.patient.fullName}</span>
                         <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">{p.patient.phone}</span>
@@ -272,14 +407,14 @@ export default function AdminFinancePage() {
                         )}
                       </td>
 
-                      <td className="py-3.5 px-4 sm:px-6 font-bold font-mono text-sm text-[#171717] dark:text-[#F5F5F5]">
+                      <td className="py-3.5 px-4 sm:px-6 font-bold font-mono tabular-nums text-sm text-[#171717] dark:text-[#F5F5F5]">
                         {formatBRL(p.amountCents)}
                       </td>
 
                       <td className="py-3.5 px-4 sm:px-6">
                         <span>{formatPaymentMethod(p.method)}</span>
                         {p.isSimulated && (
-                          <Badge variant="simulated" className="ml-1.5 text-[9px]">
+                          <Badge variant="simulated" size="sm" className="ml-1.5">
                             Simulado
                           </Badge>
                         )}
@@ -301,18 +436,19 @@ export default function AdminFinancePage() {
                         </Badge>
                       </td>
 
-                      <td className="py-3.5 px-4 sm:px-6 text-[#737373] dark:text-[#A6A6A6]">
-                        {formatDate(p.createdAt)}
+                      <td className="py-3.5 px-4 sm:px-6 text-[#737373] dark:text-[#A6A6A6] tabular-nums">
+                        {formatDate(p.createdAt, timezone)}
                       </td>
 
                       <td className="py-3.5 px-4 sm:px-6 text-right space-x-2">
                         {p.status === "PENDING" && (
                           <Button
+                            variant="primary"
                             size="sm"
-                            className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700"
+                            className="h-8 text-xs gap-1"
                             onClick={() => handleConfirmManual(p.id)}
                           >
-                            <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                            <CheckCircle2 className="h-3.5 w-3.5 text-current" />
                             <span>Confirmar Pagamento</span>
                           </Button>
                         )}
@@ -321,10 +457,10 @@ export default function AdminFinancePage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-8 text-xs text-red-500 hover:text-red-700"
+                            className="h-8 text-xs text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:border-red-900/50 dark:hover:bg-red-950/40"
                             onClick={() => setRefundPayment(p)}
                           >
-                            <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                            <RotateCcw className="h-3.5 w-3.5 text-current" />
                             <span>Estornar</span>
                           </Button>
                         )}
@@ -335,7 +471,7 @@ export default function AdminFinancePage() {
               </table>
             </div>
           ) : (
-            <div className="p-12 text-center text-xs text-slate-400">
+            <div className="p-12 text-center text-xs text-[#737373] dark:text-[#A6A6A6]">
               Nenhum registro financeiro encontrado com os filtros selecionados.
             </div>
           )}

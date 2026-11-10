@@ -116,9 +116,9 @@ test("3. CTA Final (#cta-final): título branco e mais espesso, sem botão Whats
   assert.ok(
     ctaBlock.includes('href="/agendar"') &&
       ctaBlock.includes("bg-white") &&
-      ctaBlock.includes("text-slate-900") &&
+      ctaBlock.includes("text-[var(--button-outline-fg,var(--button-bg,var(--primary)))]") &&
       ctaBlock.includes("<ArrowRight") &&
       ctaBlock.includes("sm:whitespace-nowrap"),
-    "Botão único deve manter destino /agendar, fundo branco, texto escuro, ícone de seta e linha única no desktop"
+    "Botão único deve manter destino /agendar, fundo branco, texto com cor do tema acessível, ícone de seta e linha única no desktop"
   );
 });

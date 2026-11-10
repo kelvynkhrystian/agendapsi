@@ -171,7 +171,7 @@ export function MiniSiteMediaSlotCard({
           <div
             role="radiogroup"
             aria-label={`Velocidade de reprodução de ${title}`}
-            className="inline-flex items-center p-1 rounded-lg bg-slate-100 dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/10 gap-1"
+            className="inline-flex items-center p-1 rounded-lg bg-[#F4F4F5] dark:bg-[#1E1E1E] border border-[#E5E5E5] dark:border-[#2C2C2C] gap-1"
           >
             {SPEED_OPTIONS.map((option) => {
               const isSelected = playbackSpeed === option.value;
@@ -182,10 +182,10 @@ export function MiniSiteMediaSlotCard({
                   role="radio"
                   aria-checked={isSelected}
                   onClick={() => onChangePlaybackSpeed(option.value)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                     isSelected
-                      ? "bg-[var(--primary)] text-white shadow-2xs"
-                      : "text-slate-600 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-white/5"
+                      ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-2xs"
+                      : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:bg-[var(--primary)]/[0.04] dark:bg-transparent dark:border-transparent dark:text-[#C0C0C0] dark:hover:bg-[#292929]"
                   }`}
                 >
                   {option.label}

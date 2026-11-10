@@ -27,17 +27,17 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantStyles = {
       primary:
-        "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,var(--primary-foreground,#ffffff))] hover:brightness-105 active:brightness-95 dark:bg-[#424242] dark:text-[#FFFFFF] dark:hover:bg-[#4F4F4F] focus-visible:ring-[var(--primary)] dark:focus-visible:ring-[#525252] shadow-xs",
+        "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] hover:brightness-110 active:brightness-95 dark:bg-[var(--dark-accent,var(--button-bg,var(--primary)))] dark:text-[#FFFFFF] focus-visible:ring-[var(--primary)] shadow-xs",
       secondary:
-        "bg-[#F2F2F2] text-[#171717] hover:bg-[#E5E5E5] dark:bg-[#303030] dark:text-[#D0D0D0] dark:border dark:border-[#393939] dark:hover:bg-[#383838] focus-visible:ring-[#A6A6A6] dark:focus-visible:ring-[#525252] shadow-xs",
+        "bg-[var(--button-secondary-bg,#ffffff)] text-[var(--button-secondary-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/25 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#242424] dark:text-[#F5F5F5] dark:border-[#333333] dark:hover:bg-[#2C2C2C] focus-visible:ring-[var(--primary)] shadow-2xs",
       outline:
-        "border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#202020] hover:bg-[#F2F2F2] dark:hover:bg-[#292929] text-[#171717] dark:text-[#F5F5F5] focus-visible:ring-[var(--primary)] dark:focus-visible:ring-[#525252] shadow-xs",
+        "border border-[var(--primary)]/30 dark:border-[#333333] bg-[var(--button-outline-bg,#ffffff)] dark:bg-[#1E1E1E] hover:border-[var(--primary)]/60 hover:bg-[var(--primary)]/[0.04] dark:hover:bg-[#262626] text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] dark:text-[#F5F5F5] focus-visible:ring-[var(--primary)] shadow-2xs",
       ghost:
-        "bg-transparent hover:bg-[#F2F2F2] dark:hover:bg-[#292929] text-[#525252] dark:text-[#C0C0C0] hover:text-[#171717] dark:hover:text-[#FFFFFF] focus-visible:ring-[var(--primary)] dark:focus-visible:ring-[#525252]",
+        "bg-[var(--button-ghost-bg,transparent)] hover:bg-white hover:border-[var(--primary)]/20 border border-transparent dark:hover:bg-[#242424] dark:hover:border-[#333333] text-[var(--button-ghost-fg,var(--button-bg,var(--primary)))] dark:text-[#D0D0D0] dark:hover:text-[#FFFFFF] focus-visible:ring-[var(--primary)]",
       destructive:
         "bg-red-600 text-white hover:bg-red-700 dark:bg-[#DC2626] dark:hover:bg-[#B91C1C] focus-visible:ring-red-500 shadow-xs",
       link:
-        "bg-transparent text-[var(--primary)] dark:text-[#D0D0D0] hover:underline underline-offset-4 p-0 h-auto font-medium focus-visible:ring-[var(--primary)] dark:focus-visible:ring-[#525252]",
+        "bg-transparent text-[var(--button-outline-fg,var(--primary))] dark:text-[var(--dark-accent-vivid,var(--primary))] hover:underline underline-offset-4 p-0 h-auto font-medium focus-visible:ring-[var(--primary)]",
     };
 
     const sizeStyles = {

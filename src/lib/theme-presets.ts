@@ -140,3 +140,58 @@ export function calculateContrastRatio(hex1: string, hex2: string): number {
 export function isContrastAccessible(textColor: string, bgColor: string): boolean {
   return calculateContrastRatio(textColor, bgColor) >= 4.5;
 }
+
+/**
+ * Normaliza um valor hexadecimal de 6 dígitos (ex: #abc -> #aabbcc).
+ */
+export function normalizeHexColor(hex: string, fallback = "#16A34A"): string {
+  const clean = (hex || "").trim().replace(/^#/, "");
+  if (/^[0-9a-fA-F]{3}$/.test(clean)) {
+    const expanded = clean
+      .split("")
+      .map((c) => `${c}${c}`)
+      .join("");
+    return `#${expanded.toUpperCase()}`;
+  }
+  if (/^[0-9a-fA-F]{6}$/.test(clean)) {
+    return `#${clean.toUpperCase()}`;
+  }
+  return fallback;
+}
+
+/**
+ * Garante um fundo suficientemente contrastante para texto/ícones BRANCOS (#ffffff)
+ * em botões no Light Mode (WCAG AA >= minRatio), preservando o matiz do tema escolhido.
+ */
+export function resolveAccessibleButtonBg(hexColor: string, minRatio: number = 4.6): string {
+  const normalized = normalizeHexColor(hexColor, "#16A34A");
+  if (calculateContrastRatio("#ffffff", normalized) >= minRatio) {
+    return normalized;
+  }
+
+  const r0 = parseInt(normalized.slice(1, 3), 16);
+  const g0 = parseInt(normalized.slice(3, 5), 16);
+  const b0 = parseInt(normalized.slice(5, 7), 16);
+
+  // Busca binária do maior fator de luminância linear que atinge o contraste mínimo contra #ffffff
+  let low = 0;
+  let high = 1;
+  let bestHex = "#404040";
+
+  for (let i = 0; i < 24; i++) {
+    const mid = (low + high) / 2;
+    const r = Math.max(0, Math.min(255, Math.round(r0 * mid)));
+    const g = Math.max(0, Math.min(255, Math.round(g0 * mid)));
+    const b = Math.max(0, Math.min(255, Math.round(b0 * mid)));
+    const candidate = `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`.toUpperCase();
+
+    if (calculateContrastRatio("#ffffff", candidate) >= minRatio) {
+      bestHex = candidate;
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+
+  return bestHex;
+}

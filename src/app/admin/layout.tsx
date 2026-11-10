@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn, formatBRL } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/notifications/notification-bell";
@@ -25,23 +25,50 @@ import {
   BellRing,
   Share2,
   FileText,
+  Plus,
 } from "lucide-react";
 
-const navItems = [
-  { href: "/admin", label: "Painel Geral", icon: LayoutDashboard },
-  { href: "/admin/agenda", label: "Agenda", icon: Calendar },
-  { href: "/admin/pacientes", label: "Pacientes", icon: Users },
-  { href: "/admin/documentos", label: "Documentos", icon: FileText },
-  { href: "/admin/servicos", label: "Serviços", icon: Briefcase },
-  { href: "/admin/pacotes", label: "Pacotes", icon: Boxes },
-  { href: "/admin/financeiro", label: "Financeiro", icon: DollarSign },
-  { href: "/admin/minisite", label: "Site", icon: Globe },
-  { href: "/admin/paginas-informativas", label: "Páginas Info", icon: FileText },
-  { href: "/admin/lembretes", label: "Lembretes", icon: BellRing },
-  { href: "/admin/integracoes", label: "Integrações", icon: Share2 },
-  { href: "/admin/arquivos", label: "Backup", icon: HardDrive },
-  { href: "/admin/configuracoes", label: "Configurações", icon: Settings },
+interface NavGroup {
+  groupLabel: string;
+  items: Array<{
+    href: string;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }>;
+}
+
+const navGroups: NavGroup[] = [
+  {
+    groupLabel: "Atendimento",
+    items: [
+      { href: "/admin", label: "Painel Geral", icon: LayoutDashboard },
+      { href: "/admin/agenda", label: "Agenda", icon: Calendar },
+      { href: "/admin/pacientes", label: "Pacientes", icon: Users },
+      { href: "/admin/documentos", label: "Documentos", icon: FileText },
+    ],
+  },
+  {
+    groupLabel: "Gestão & Receita",
+    items: [
+      { href: "/admin/servicos", label: "Serviços", icon: Briefcase },
+      { href: "/admin/pacotes", label: "Pacotes", icon: Boxes },
+      { href: "/admin/financeiro", label: "Financeiro", icon: DollarSign },
+    ],
+  },
+  {
+    groupLabel: "Site & Sistema",
+    items: [
+      { href: "/admin/minisite", label: "Site", icon: Globe },
+      { href: "/admin/paginas-informativas", label: "Páginas Info", icon: FileText },
+      { href: "/admin/lembretes", label: "Lembretes", icon: BellRing },
+      { href: "/admin/integracoes", label: "Integrações", icon: Share2 },
+      { href: "/admin/arquivos", label: "Backup", icon: HardDrive },
+      { href: "/admin/configuracoes", label: "Configurações", icon: Settings },
+    ],
+  },
 ];
+
+const allNavItems = navGroups.flatMap((g) => g.items);
 
 function getAdminBreadcrumbLabel(pathname: string): string {
   if (pathname.startsWith("/admin/notificacoes")) return "Notificações";
@@ -49,15 +76,21 @@ function getAdminBreadcrumbLabel(pathname: string): string {
   if (pathname.startsWith("/admin/pacientes/")) return "Detalhes do Paciente";
   if (pathname.startsWith("/admin/prontuarios")) return "Prontuários";
 
-  const direct = navItems.find((n) => n.href === pathname);
+  const direct = allNavItems.find((n) => n.href === pathname);
   if (direct) return direct.label;
 
-  const parent = navItems
+  const parent = allNavItems
     .filter((n) => n.href !== "/admin")
     .find((n) => pathname.startsWith(n.href));
   if (parent) return parent.label;
 
   return "Painel Geral";
+}
+
+function getInitials(name: string): string {
+  const parts = (name || "PSI").trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] || ""}${parts[parts.length - 1][0] || ""}`.toUpperCase();
 }
 
 export default function AdminLayout({
@@ -68,6 +101,39 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [adminMeta, setAdminMeta] = useState<{
+    name: string;
+    todayCount: number;
+    todayCompletionPct: number;
+    monthRealCents: number;
+    timezone: string;
+  }>({
+    name: "Profissional",
+    todayCount: 0,
+    todayCompletionPct: 0,
+    monthRealCents: 0,
+    timezone: "America/Sao_Paulo",
+  });
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/admin/dashboard-stats")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!active || !d || d.error) return;
+        setAdminMeta({
+          name: d.adminDisplayName || "Profissional",
+          todayCount: d.todayAppointments?.length ?? 0,
+          todayCompletionPct: d.analytics?.todaySummary?.completionRatePct ?? 0,
+          monthRealCents: d.revenueMonth?.realCents ?? 0,
+          timezone: d.timezone || "America/Sao_Paulo",
+        });
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [pathname]);
 
   const handleLogout = async () => {
     try {
@@ -78,6 +144,23 @@ export default function AdminLayout({
       console.error(e);
     }
   };
+
+  let formattedTodayHeader = "";
+  try {
+    formattedTodayHeader = new Intl.DateTimeFormat("pt-BR", {
+      timeZone: adminMeta.timezone,
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+    }).format(new Date());
+  } catch {
+    formattedTodayHeader = "";
+  }
+
+  const ringRadius = 15;
+  const ringCircumference = 2 * Math.PI * ringRadius;
+  const ringOffset =
+    ringCircumference - (Math.min(100, Math.max(0, adminMeta.todayCompletionPct)) / 100) * ringCircumference;
 
   return (
     <div className="min-h-screen flex bg-[#F8F8F8] dark:bg-[#0C0C0C] text-[#171717] dark:text-[#F5F5F5] selection:bg-[var(--primary)] selection:text-white">
@@ -92,64 +175,150 @@ export default function AdminLayout({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 bottom-0 left-0 z-50 w-64 border-r border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#141414] flex flex-col transition-transform duration-200 md:translate-x-0 shadow-xs",
+          "fixed top-0 bottom-0 left-0 z-50 w-64 border-r border-[#E5E5E5] dark:border-[#242424] bg-white dark:bg-[#141414] flex flex-col transition-transform duration-200 md:translate-x-0 shadow-xs",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="h-16 px-6 border-b border-[#E5E5E5] dark:border-[#393939] flex items-center justify-between">
-          <Link href="/admin" className="flex items-center gap-2.5 font-bold text-[var(--primary)]">
-            <div className="h-9 w-9 rounded-xl bg-[var(--primary)]/10 dark:bg-[#202020] text-[var(--primary)] dark:text-[#F5F5F5] dark:border dark:border-[#393939] flex items-center justify-center shadow-xs">
-              <Stethoscope className="h-5 w-5" />
+        {/* Brand Header */}
+        <div className="h-16 px-5 border-b border-[#E5E5E5] dark:border-[#242424] flex items-center justify-between">
+          <Link href="/admin" className="flex items-center gap-2.5 group">
+            <div
+              className="h-9 w-9 rounded-xl text-white flex items-center justify-center shadow-sm transition-transform group-hover:scale-105"
+              style={{
+                background:
+                  "linear-gradient(135deg, var(--button-bg, #CA4C0A) 0%, var(--primary, #EA580C) 100%)",
+              }}
+            >
+              <Stethoscope className="h-5 w-5 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="font-heading text-sm font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">PSI Admin</span>
-              <span className="text-[10px] text-[#737373] dark:text-[#A6A6A6] font-medium">Gestão de Consultório</span>
+              <span className="font-heading text-sm font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
+                PSI Admin
+              </span>
+              <span className="text-[10px] text-[#737373] dark:text-[#8C8C8C] font-medium">
+                Gestão de Consultório
+              </span>
             </div>
           </Link>
           <button
             type="button"
             onClick={() => setSidebarOpen(false)}
-            className="md:hidden p-2 rounded-xl text-[#737373] hover:bg-slate-100 dark:hover:bg-[#202020] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#525252] transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
+            className="md:hidden p-2 rounded-xl bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/25 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1E1E1E] dark:border-[#2C2C2C] dark:text-[#C0C0C0] dark:hover:bg-[#242424] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
             aria-label="Fechar menu"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive =
-              pathname === item.href ||
-              (item.href !== "/admin" && pathname.startsWith(item.href));
+        {/* Atalho Rápido de Abertura (+ Novo) inspirado no painel de referência */}
+        <div className="px-3.5 pt-3.5 pb-1">
+          <Link href="/admin/agenda" onClick={() => setSidebarOpen(false)}>
+            <div className="w-full h-9 px-3 rounded-xl bg-white border border-[var(--primary)]/25 text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1B1B1B] dark:border-[#2C2C2C] dark:text-[#F5F5F5] dark:hover:bg-[#242424] flex items-center justify-between text-xs font-heading font-semibold transition-all shadow-2xs cursor-pointer">
+              <span className="flex items-center gap-2">
+                <Plus className="h-3.5 w-3.5 text-current" />
+                <span>Novo Agendamento</span>
+              </span>
+              <ChevronRight className="h-3.5 w-3.5 opacity-60" />
+            </div>
+          </Link>
+        </div>
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setSidebarOpen(false)}
-                className={cn(
-                  "flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-heading font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] dark:focus-visible:ring-[#525252]",
-                  isActive
-                    ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs border border-[var(--primary)]/20 dark:bg-[#292929] dark:text-[#FFFFFF] dark:border-[#393939]"
-                    : "text-[#525252] dark:text-[#D0D0D0] hover:bg-[#F2F2F2] dark:hover:bg-[#202020] hover:text-[#171717] dark:hover:text-[#FFFFFF]"
-                )}
-              >
-                <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-[var(--primary)] dark:text-[#FFFFFF]" : "text-[#737373] dark:text-[#C0C0C0]")} />
-                <span className="truncate">{item.label}</span>
-              </Link>
-            );
-          })}
+        {/* Grouped Navigation */}
+        <nav className="flex-1 px-3 py-2 space-y-2.5 overflow-y-auto">
+          {navGroups.map((group) => (
+            <div key={group.groupLabel} className="space-y-0.5">
+              <p className="px-3 pb-0.5 text-[10px] font-heading font-bold uppercase tracking-wider text-[#737373] dark:text-[#737373]">
+                {group.groupLabel}
+              </p>
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                const isActive =
+                  pathname === item.href ||
+                  (item.href !== "/admin" && pathname.startsWith(item.href));
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setSidebarOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-heading font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]",
+                      isActive
+                        ? "bg-[var(--button-bg,var(--primary))] dark:bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-sm dark:shadow-[0_8px_22px_-6px_rgba(234,88,12,0.5)]"
+                        : "text-[#525252] dark:text-[#B8B8B8] hover:bg-[#F4F4F5] dark:hover:bg-[#1E1E1E] hover:text-[#171717] dark:hover:text-[#FFFFFF]"
+                    )}
+                    style={
+                      isActive
+                        ? {
+                            background:
+                              "linear-gradient(135deg, var(--button-bg, #CA4C0A) 0%, var(--primary, #EA580C) 100%)",
+                          }
+                        : undefined
+                    }
+                  >
+                    <Icon
+                      className={cn(
+                        "h-4 w-4 shrink-0",
+                        isActive ? "text-white" : "text-[#737373] dark:text-[#8C8C8C]"
+                      )}
+                    />
+                    <span className="truncate">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
-        <div className="p-4 border-t border-[#E5E5E5] dark:border-[#393939]">
+        {/* Bottom Compact Summary + Logout */}
+        <div className="p-3.5 border-t border-[#E5E5E5] dark:border-[#242424] space-y-2.5">
+          <div className="p-3 rounded-xl bg-[#F8F8F8] dark:bg-[#1A1A1A] border border-[#E5E5E5] dark:border-[#2C2C2C] flex items-center gap-3">
+            <div className="relative h-9 w-9 shrink-0">
+              <svg width="36" height="36" viewBox="0 0 36 36" className="-rotate-90">
+                <circle
+                  cx="18"
+                  cy="18"
+                  r={ringRadius}
+                  fill="none"
+                  strokeWidth="3.5"
+                  className="stroke-[#E5E5E5] dark:stroke-[#2C2C2C]"
+                />
+                <circle
+                  cx="18"
+                  cy="18"
+                  r={ringRadius}
+                  fill="none"
+                  strokeWidth="3.5"
+                  stroke="var(--primary, #EA580C)"
+                  strokeDasharray={ringCircumference}
+                  strokeDashoffset={ringOffset}
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold tabular-nums text-[#171717] dark:text-[#F5F5F5]">
+                {adminMeta.todayCompletionPct}%
+              </span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-medium text-[#737373] dark:text-[#8C8C8C]">
+                Hoje no consultório
+              </p>
+              <p className="font-heading text-xs font-bold text-[#171717] dark:text-[#F5F5F5] tabular-nums truncate">
+                {formatBRL(adminMeta.monthRealCents)}/mês
+              </p>
+              <p className="text-[10px] text-[#737373] dark:text-[#A6A6A6] tabular-nums">
+                {adminMeta.todayCount} {adminMeta.todayCount === 1 ? "sessão hoje" : "sessões hoje"}
+              </p>
+            </div>
+          </div>
+
           <Button
             type="button"
             variant="ghost"
-            className="w-full justify-start text-red-600 dark:text-[#F87171] hover:bg-red-50 dark:hover:bg-[#321E1E] gap-2 rounded-xl"
+            className="w-full justify-start bg-white border border-red-200/80 text-red-600 hover:bg-red-50 hover:border-red-300 dark:bg-transparent dark:border-transparent dark:text-[#F87171] dark:hover:bg-[#2A1818] gap-2 rounded-xl h-9"
             onClick={handleLogout}
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-4 w-4 text-current" />
             <span>Sair do Sistema</span>
           </Button>
         </div>
@@ -157,34 +326,65 @@ export default function AdminLayout({
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col md:pl-64 min-w-0">
-        <header className="h-16 border-b border-[#E5E5E5] dark:border-[#393939] bg-white/90 dark:bg-[#141414]/95 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-8 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <header className="h-16 border-b border-[#E5E5E5] dark:border-[#242424] bg-white/95 dark:bg-[#141414]/95 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-8 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="md:hidden p-2 rounded-xl text-[#525252] dark:text-[#D0D0D0] hover:bg-slate-100 dark:hover:bg-[#202020] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#525252] transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
+              className="md:hidden p-2 rounded-xl bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/25 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1E1E1E] dark:border-[#2C2C2C] dark:text-[#D0D0D0] dark:hover:bg-[#242424] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
               aria-label="Abrir menu"
             >
               <Menu className="h-5 w-5" />
             </button>
-            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-[#737373] dark:text-[#A6A6A6]">
+            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-[#737373] dark:text-[#8C8C8C] truncate">
               <span>Admin</span>
-              <ChevronRight className="h-3.5 w-3.5 text-[#737373] dark:text-[#737373]" />
-              <span className="font-heading font-semibold text-[#171717] dark:text-[#F5F5F5]">
+              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[#737373] dark:text-[#525252]" />
+              <span className="font-heading font-semibold text-[#171717] dark:text-[#F5F5F5] truncate">
                 {getAdminBreadcrumbLabel(pathname)}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+            {formattedTodayHeader && (
+              <div className="hidden lg:inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#F8F8F8] dark:bg-[#1B1B1B] border border-[#E5E5E5] dark:border-[#2C2C2C] text-xs font-medium text-[#525252] dark:text-[#CCCCCC]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
+                <span className="capitalize">{formattedTodayHeader}</span>
+              </div>
+            )}
+
             <Link href="/" target="_blank" title="Abrir Site público em nova aba" aria-label="Abrir Site público em nova aba">
-              <Button variant="outline" size="sm" className="hidden sm:inline-flex text-xs gap-1.5 rounded-xl border-[#E5E5E5] dark:border-[#393939] text-[#171717] dark:text-[#F5F5F5] hover:bg-[#F2F2F2] dark:hover:bg-[#202020]">
-                <Globe className="h-3.5 w-3.5 text-[var(--primary)] dark:text-[#C0C0C0]" />
+              <Button variant="outline" size="sm" className="hidden sm:inline-flex text-xs gap-1.5 rounded-xl">
+                <Globe className="h-3.5 w-3.5 text-current" />
                 <span>Ver Site</span>
               </Button>
             </Link>
             <ThemeToggle />
             <NotificationBell role="ADMIN" />
+
+            <Link
+              href="/admin/configuracoes"
+              className="hidden md:flex items-center gap-2.5 pl-2 ml-0.5 border-l border-[#E5E5E5] dark:border-[#2C2C2C] hover:opacity-85 transition-opacity"
+              title="Configurações do perfil"
+            >
+              <div
+                className="h-8 w-8 rounded-full text-white flex items-center justify-center font-heading font-bold text-xs shrink-0 shadow-2xs"
+                style={{
+                  background:
+                    "linear-gradient(135deg, var(--button-bg, #CA4C0A) 0%, var(--primary, #EA580C) 100%)",
+                }}
+              >
+                {getInitials(adminMeta.name)}
+              </div>
+              <div className="hidden xl:flex flex-col leading-tight text-left">
+                <span className="text-xs font-heading font-semibold text-[#171717] dark:text-[#F5F5F5] max-w-[130px] truncate">
+                  {adminMeta.name}
+                </span>
+                <span className="text-[10px] text-[#737373] dark:text-[#8C8C8C]">
+                  Titular Admin
+                </span>
+              </div>
+            </Link>
           </div>
         </header>
 

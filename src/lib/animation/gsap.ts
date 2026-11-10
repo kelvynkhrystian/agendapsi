@@ -201,7 +201,7 @@ export function animateKpiEntrance(elements: Element[] | NodeListOf<Element> | H
     duration: TIMINGS.microStandard,
     stagger: TIMINGS.microStagger,
     ease: EASINGS.quick,
-    clearProps: "all",
+    clearProps: "opacity,transform",
   });
 }
 
@@ -216,7 +216,7 @@ export function animatePageEnter(container: HTMLElement | null): void {
     y: 6,
     duration: TIMINGS.microStandard,
     ease: EASINGS.micro,
-    clearProps: "all",
+    clearProps: "opacity,transform",
   });
 }
 
@@ -234,7 +234,7 @@ export function animateTabContent(content: HTMLElement | null): void {
       y: 0,
       duration: TIMINGS.microFast,
       ease: EASINGS.micro,
-      clearProps: "all",
+      clearProps: "opacity,transform",
     }
   );
 }

@@ -20,7 +20,6 @@ import {
   ChevronRight,
   Bell,
   HeartHandshake,
-  MessageCircle,
 } from "lucide-react";
 import { WhatsAppIcon } from "@/components/ui/whatsapp-icon";
 
@@ -87,14 +86,14 @@ export default function PatientLayout({
       {/* Left Sidebar (Desktop + Mobile Drawer) */}
       <aside
         className={cn(
-          "fixed top-0 bottom-0 left-0 z-50 w-64 border-r border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#141414] flex flex-col transition-transform duration-200 md:translate-x-0 shadow-xs",
+          "fixed top-0 bottom-0 left-0 z-50 w-64 border-r border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#141414] flex flex-col transition-transform duration-200 md:translate-x-0 shadow-xs",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {/* Sidebar Brand Header */}
-        <div className="h-16 px-6 border-b border-[#E5E5E5] dark:border-[#393939] flex items-center justify-between">
+        <div className="h-16 px-6 border-b border-[#E5E5E5] dark:border-[#2C2C2C] flex items-center justify-between">
           <Link href="/paciente" className="flex items-center gap-2.5 font-bold text-[var(--primary)]">
-            <div className="h-9 w-9 rounded-xl bg-[var(--primary)]/10 dark:bg-[#202020] text-[var(--primary)] dark:text-[#F5F5F5] dark:border dark:border-[#393939] flex items-center justify-center shadow-xs">
+            <div className="h-9 w-9 rounded-xl bg-[var(--button-bg,var(--primary))] text-white flex items-center justify-center shadow-xs">
               <HeartHandshake className="h-5 w-5" />
             </div>
             <div className="flex flex-col">
@@ -105,15 +104,15 @@ export default function PatientLayout({
           <button
             type="button"
             onClick={() => setSidebarOpen(false)}
-            className="md:hidden p-2 rounded-xl text-[#737373] hover:bg-slate-100 dark:hover:bg-[#202020] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#525252] transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
+            className="md:hidden p-2 rounded-xl bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/25 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1E1E1E] dark:border-[#2C2C2C] dark:text-[#C0C0C0] dark:hover:bg-[#292929] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] transition-colors min-h-[38px] min-w-[38px] flex items-center justify-center"
             aria-label="Fechar menu"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4.5 w-4.5" />
           </button>
         </div>
 
         {/* Patient Profile Card Snippet */}
-        <div className="px-4 py-3 mx-3 mt-3 rounded-xl bg-[#F2F2F2] dark:bg-[#202020] border border-[#E5E5E5] dark:border-[#393939]">
+        <div className="px-4 py-3 mx-3 mt-3 rounded-xl bg-[#F4F4F5] dark:bg-[#202020] border border-[#E5E5E5] dark:border-[#2C2C2C]">
           <p className="text-[10px] text-[#737373] dark:text-[#A6A6A6] uppercase tracking-wider font-semibold">Conectado como</p>
           <p className="font-heading text-xs font-semibold text-[#171717] dark:text-[#F5F5F5] truncate mt-0.5">{patientName}</p>
         </div>
@@ -132,13 +131,13 @@ export default function PatientLayout({
                 href={item.href}
                 onClick={() => setSidebarOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-heading font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] dark:focus-visible:ring-[#525252]",
+                  "flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-heading font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]",
                   isActive
-                    ? "bg-[var(--primary)]/10 text-[var(--primary)] font-bold shadow-xs border border-[var(--primary)]/20 dark:bg-[#292929] dark:text-[#FFFFFF] dark:border-[#393939]"
-                    : "text-[#525252] dark:text-[#D0D0D0] hover:bg-[#F2F2F2] dark:hover:bg-[#202020] hover:text-[#171717] dark:hover:text-[#FFFFFF]"
+                    ? "bg-[var(--button-bg,var(--primary))] dark:bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-sm dark:shadow-[0_8px_22px_-6px_rgba(234,88,12,0.5)]"
+                    : "text-[#525252] dark:text-[#C0C0C0] hover:bg-[#F2F2F2] dark:hover:bg-[#202020] hover:text-[#171717] dark:hover:text-[#FFFFFF]"
                 )}
               >
-                <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-[var(--primary)] dark:text-[#FFFFFF]" : "text-[#737373] dark:text-[#C0C0C0]")} />
+                <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-white" : "text-[#737373] dark:text-[#A6A6A6]")} />
                 <span className="truncate">{item.label}</span>
               </Link>
             );
@@ -146,13 +145,13 @@ export default function PatientLayout({
 
           {/* Ação de Suporte via WhatsApp */}
           {supportUrl && (
-            <div className="pt-2 mt-2 border-t border-[#E5E5E5] dark:border-[#393939]">
+            <div className="pt-2 mt-2 border-t border-[#E5E5E5] dark:border-[#2C2C2C]">
               <a
                 href={supportUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setSidebarOpen(false)}
-                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-heading font-medium text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-[#202020] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#525252] group"
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-heading font-medium text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-[#202020] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] group"
                 aria-label="Abrir suporte pelo WhatsApp"
               >
                 <WhatsAppIcon className="h-4.5 w-4.5 shrink-0 group-hover:scale-105 transition-transform" variant="original" />
@@ -163,11 +162,11 @@ export default function PatientLayout({
         </nav>
 
         {/* Logout Button */}
-        <div className="p-4 border-t border-[#E5E5E5] dark:border-[#393939]">
+        <div className="p-3.5 border-t border-[#E5E5E5] dark:border-[#2C2C2C]">
           <Button
             type="button"
             variant="ghost"
-            className="w-full justify-start text-red-600 dark:text-[#F87171] hover:bg-red-50 dark:hover:bg-[#321E1E] gap-2 rounded-xl"
+            className="w-full justify-start text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-[#F87171] dark:hover:bg-[#321E1E] gap-2 rounded-xl text-xs"
             onClick={handleLogout}
           >
             <LogOut className="h-4 w-4" />
@@ -179,19 +178,19 @@ export default function PatientLayout({
       {/* Main Content Area positioned on the right */}
       <div className="flex-1 flex flex-col md:pl-64 min-w-0">
         {/* Header */}
-        <header className="h-16 border-b border-[#E5E5E5] dark:border-[#393939] bg-white/90 dark:bg-[#141414]/95 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-8 flex items-center justify-between">
+        <header className="h-16 border-b border-[#E5E5E5] dark:border-[#2C2C2C] bg-white/90 dark:bg-[#141414]/95 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-8 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="md:hidden p-2 rounded-xl text-[#525252] dark:text-[#D0D0D0] hover:bg-slate-100 dark:hover:bg-[#202020] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#525252] transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
+              className="md:hidden p-2 rounded-xl bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/25 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1E1E1E] dark:border-[#2C2C2C] dark:text-[#D0D0D0] dark:hover:bg-[#292929] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] transition-colors min-h-[38px] min-w-[38px] flex items-center justify-center"
               aria-label="Abrir menu"
             >
               <Menu className="h-5 w-5" />
             </button>
             <div className="flex items-center gap-1.5 text-xs sm:text-sm text-[#737373] dark:text-[#A6A6A6]">
               <span>Paciente</span>
-              <ChevronRight className="h-3.5 w-3.5 text-[#737373] dark:text-[#737373]" />
+              <ChevronRight className="h-3.5 w-3.5 text-[#737373]" />
               <span className="font-heading font-semibold text-[#171717] dark:text-[#F5F5F5]">
                 {patientNavItems.find((n) => n.href === pathname)?.label ||
                   (pathname.startsWith("/paciente/notificacoes") ? "Notificações" : "Painel")}
@@ -201,7 +200,7 @@ export default function PatientLayout({
 
           <div className="flex items-center gap-3">
             <Link href="/agendar">
-              <Button size="sm" className="hidden sm:inline-flex text-xs gap-1.5 rounded-xl bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-[var(--button-fg,var(--primary-foreground,#ffffff))] dark:bg-[#424242] dark:text-[#FFFFFF] dark:hover:bg-[#4F4F4F] shadow-xs">
+              <Button variant="primary" size="sm" className="hidden sm:inline-flex text-xs gap-1.5 rounded-xl shadow-xs">
                 <Calendar className="h-3.5 w-3.5" />
                 <span>Agendar Consulta</span>
               </Button>

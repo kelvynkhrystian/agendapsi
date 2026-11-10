@@ -398,25 +398,25 @@ export default function BookingPage() {
                         <button
                           type="button"
                           onClick={() => setSelectedModality("ONLINE")}
-                          className={`p-3 rounded-lg border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                          className={`p-3 rounded-lg border text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
                             selectedModality === "ONLINE"
-                              ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
-                              : "border-slate-200"
+                              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] border-[var(--button-bg,var(--primary))] shadow-xs"
+                              : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border-[var(--primary)]/25 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04]"
                           }`}
                         >
-                          <Video className="h-4 w-4" />
+                          <Video className="h-4 w-4 text-current" />
                           <span>Online</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => setSelectedModality("PRESENTIAL")}
-                          className={`p-3 rounded-lg border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                          className={`p-3 rounded-lg border text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
                             selectedModality === "PRESENTIAL"
-                              ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
-                              : "border-slate-200"
+                              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] border-[var(--button-bg,var(--primary))] shadow-xs"
+                              : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border-[var(--primary)]/25 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04]"
                           }`}
                         >
-                          <MapPin className="h-4 w-4" />
+                          <MapPin className="h-4 w-4 text-current" />
                           <span>Presencial</span>
                         </button>
                       </div>
@@ -449,8 +449,8 @@ export default function BookingPage() {
                             !slot.available
                               ? "opacity-30 bg-slate-100 cursor-not-allowed text-slate-400"
                               : selectedSlot?.startAt === slot.startAt
-                              ? "bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] shadow-xs"
-                              : "border border-slate-200 hover:border-[var(--primary)] bg-white"
+                              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-xs"
+                              : "border border-[var(--primary)]/30 hover:border-[var(--primary)] text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] bg-white"
                           }`}
                         >
                           {slot.formattedTime}

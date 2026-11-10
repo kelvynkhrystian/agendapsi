@@ -554,7 +554,7 @@ export default async function HomePage() {
                 <Link href="/agendar" className="block w-full lg:w-auto">
                   <button
                     type="button"
-                    className="w-full lg:w-auto inline-flex items-center justify-center gap-2 lg:gap-2 h-[54px] lg:h-12 py-3.5 px-3 min-[360px]:px-6 sm:px-7 rounded-2xl font-heading font-semibold text-[17px] sm:text-[18px] lg:text-sm uppercase tracking-wide min-[360px]:tracking-wider shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] transition-all cursor-pointer bg-[var(--primary)] text-white whitespace-nowrap"
+                    className="w-full lg:w-auto inline-flex items-center justify-center gap-2 lg:gap-2 h-[54px] lg:h-12 py-3.5 px-3 min-[360px]:px-6 sm:px-7 rounded-2xl font-heading font-semibold text-[17px] sm:text-[18px] lg:text-sm uppercase tracking-wide min-[360px]:tracking-wider shadow-md hover:shadow-lg hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] whitespace-nowrap"
                   >
                     <Calendar className="h-5 w-5 lg:h-4 lg:w-4 text-white shrink-0" />
                     <span className="text-white whitespace-nowrap">Agende sua consulta</span>
@@ -1205,9 +1205,9 @@ export default async function HomePage() {
                     href={mapsDestinationUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-heading font-semibold shadow-xs transition-colors"
+                    className="inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white hover:bg-[var(--primary)]/[0.04] text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/30 hover:border-[var(--primary)]/60 text-xs font-heading font-semibold shadow-2xs transition-colors"
                   >
-                    <ExternalLink className="h-3.5 w-3.5" />
+                    <ExternalLink className="h-3.5 w-3.5 text-current" />
                     <span>Como Chegar via Google Maps</span>
                   </a>
                 )}
@@ -1307,7 +1307,7 @@ export default async function HomePage() {
                 <Link href="/agendar" className="block w-full sm:w-auto shrink-0">
                   <button
                     type="button"
-                    className="w-full sm:w-auto px-4 min-[360px]:px-6 sm:px-7 py-3.5 rounded-2xl bg-white text-slate-900 font-heading font-bold text-[13px] min-[360px]:text-sm tracking-tight sm:tracking-normal sm:whitespace-nowrap shadow-md hover:bg-slate-50 hover:shadow-lg active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2 text-center"
+                    className="w-full sm:w-auto px-4 min-[360px]:px-6 sm:px-7 py-3.5 rounded-2xl bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-white font-heading font-bold text-[13px] min-[360px]:text-sm tracking-tight sm:tracking-normal sm:whitespace-nowrap shadow-md hover:bg-white/95 hover:shadow-lg active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2 text-center"
                   >
                     {sections.chamadaFinal.mobileCtaLabel === "Agenda agora pelo app!" ? (
                       <span className="md:hidden">Agenda agora pelo app!</span>

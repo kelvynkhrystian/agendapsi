@@ -173,8 +173,8 @@ export default function AdminDocumentsPage() {
               onClick={() => setSelectedCategory(cat.id)}
               className={`px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer select-none whitespace-nowrap ${
                 selectedCategory === cat.id
-                  ? "bg-[var(--primary)] text-white shadow-xs"
-                  : "bg-white dark:bg-[#202020] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-[#393939] hover:bg-slate-50 dark:hover:bg-[#292929]"
+                  ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-xs"
+                  : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/25 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:text-slate-300 dark:border-[#393939] dark:hover:bg-[#292929]"
               }`}
             >
               {cat.label}

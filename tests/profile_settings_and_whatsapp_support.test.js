@@ -135,7 +135,7 @@ test("5. Suporte via WhatsApp na Área do Paciente", () => {
   const layoutContent = fs.readFileSync(layoutPath, "utf8");
 
   assert.ok(layoutContent.includes("/api/patient/support"), "Layout deve consumir API de suporte");
-  assert.ok(layoutContent.includes("MessageCircle"), "Layout deve exibir ícone de WhatsApp/MessageCircle");
+  assert.ok(layoutContent.includes("WhatsAppIcon") || layoutContent.includes("MessageCircle"), "Layout deve exibir ícone de WhatsApp/MessageCircle");
   assert.ok(layoutContent.includes("Suporte"), "Layout deve exibir ação nomeada 'Suporte'");
   assert.ok(layoutContent.includes('target="_blank"'), "Ação deve abrir em nova aba");
 });

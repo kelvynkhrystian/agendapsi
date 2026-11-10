@@ -3,7 +3,7 @@ import Script from "next/script";
 import { Plus_Jakarta_Sans, Inter, Playfair_Display, Manrope } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { prisma } from "@/lib/prisma";
-import { calculateContrastRatio } from "@/lib/theme-presets";
+import { calculateContrastRatio, resolveAccessibleButtonBg } from "@/lib/theme-presets";
 import "./globals.css";
 
 const headingFont = Plus_Jakarta_Sans({
@@ -70,6 +70,7 @@ export default async function RootLayout({
 
   const primary = site?.primaryColor || site?.buttonColor || "#16A34A";
   const buttonBg = site?.buttonColor || primary;
+  const accessibleButtonBg = resolveAccessibleButtonBg(buttonBg, 4.6);
   const secondary = site?.secondaryColor || "#DCFCE7";
   const accent = site?.accentColor || "#86EFAC";
   const bgColor = site?.backgroundColor || "#FDFCFB";
@@ -77,7 +78,9 @@ export default async function RootLayout({
 
   // Cálculo automático de contraste acessível (WCAG AA >= 4.5:1)
   const primaryForeground = calculateContrastRatio("#ffffff", primary) >= 4.5 ? "#ffffff" : "#111111";
-  const buttonForeground = calculateContrastRatio("#ffffff", buttonBg) >= 4.5 ? "#ffffff" : "#111111";
+  const buttonForeground = "#ffffff";
+  const darkAccentVivid = primary.toUpperCase() === "#525252" ? "#EA580C" : primary;
+  const darkAccentSafe = resolveAccessibleButtonBg(darkAccentVivid, 4.6);
 
   const dynamicCss = `
     :root {
@@ -85,13 +88,19 @@ export default async function RootLayout({
       --primary-foreground: ${primaryForeground};
       --secondary: ${secondary};
       --accent: ${accent};
-      --button-bg: ${buttonBg};
+      --button-bg: ${accessibleButtonBg};
       --button-fg: ${buttonForeground};
+      --button-secondary-bg: #ffffff;
+      --button-secondary-fg: ${accessibleButtonBg};
+      --button-outline-bg: #ffffff;
+      --button-outline-fg: ${accessibleButtonBg};
+      --button-ghost-bg: transparent;
+      --button-ghost-fg: ${accessibleButtonBg};
       --ring: ${primary};
       --theme-bg: ${bgColor};
       --theme-text: ${textColor};
       --color-primary: ${primary};
-      --color-primary-hover: ${buttonBg};
+      --color-primary-hover: ${accessibleButtonBg};
       --color-secondary: ${secondary};
       --color-accent: ${accent};
       --color-background: ${bgColor};
@@ -101,28 +110,36 @@ export default async function RootLayout({
       --color-border: #e5e5e5;
     }
     .dark, [data-theme="dark"] {
-      --primary: #424242;
+      --primary: ${darkAccentVivid};
       --primary-foreground: #ffffff;
-      --button-bg: #424242;
+      --button-bg: ${darkAccentSafe};
       --button-fg: #ffffff;
-      --button-hover: #4f4f4f;
-      --ring: #525252;
-      --color-primary: #424242;
-      --color-primary-hover: #4f4f4f;
-      --color-secondary: #303030;
-      --color-accent: #292929;
+      --button-hover: ${darkAccentVivid};
+      --button-secondary-bg: #242424;
+      --button-secondary-fg: #f5f5f5;
+      --button-outline-bg: #1e1e1e;
+      --button-outline-fg: #f5f5f5;
+      --button-ghost-bg: transparent;
+      --button-ghost-fg: #d0d0d0;
+      --dark-accent: ${darkAccentSafe};
+      --dark-accent-vivid: ${darkAccentVivid};
+      --ring: ${darkAccentVivid};
+      --color-primary: ${darkAccentVivid};
+      --color-primary-hover: ${darkAccentSafe};
+      --color-secondary: #242424;
+      --color-accent: #242424;
       --color-background: #0c0c0c;
       --color-surface: #202020;
       --color-elevated: #292929;
-      --color-hover: #383838;
+      --color-hover: #333333;
       --color-sidebar: #141414;
       --color-header: #141414;
-      --color-input: #1b1b1b;
+      --color-input: #141414;
       --color-text: #f5f5f5;
-      --color-text-secondary: #d0d0d0;
+      --color-text-secondary: #cccccc;
       --color-text-muted: #a6a6a6;
       --color-icons: #c0c0c0;
-      --color-border: #393939;
+      --color-border: #2c2c2c;
     }
   `;
 

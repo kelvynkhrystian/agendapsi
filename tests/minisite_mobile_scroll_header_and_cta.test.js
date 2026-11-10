@@ -84,5 +84,5 @@ test("2. CTA Final Mobile vs Desktop: textos simplificados apenas no mobile pres
   // Layout vertical no mobile e horizontal preservado no desktop
   assert.ok(ctaBlock.includes("flex flex-col md:flex-row items-center"));
   assert.ok(ctaBlock.includes('href="/agendar"') && ctaBlock.includes("<ArrowRight"));
-  assert.ok(ctaBlock.includes("bg-white text-slate-900"));
+  assert.ok(ctaBlock.includes("bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))]"));
 });

@@ -387,14 +387,14 @@ export default function AdminAgendaPage() {
           </div>
 
           {/* Seletor de visualização (Semana / Dia / Lista) */}
-          <div className="inline-flex items-center rounded-xl bg-[#F3F4F6] dark:bg-[#1B1B1B] p-1 border border-[#E5E5E5] dark:border-[#393939] text-xs font-heading font-medium">
+          <div className="inline-flex items-center rounded-xl bg-[#F3F4F6] dark:bg-[#141414] p-1 border border-[#E5E5E5] dark:border-[#2C2C2C] text-xs font-heading font-medium gap-1">
             <button
               type="button"
               onClick={() => setViewMode("week")}
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                 viewMode === "week"
-                  ? "bg-white dark:bg-[#292929] text-[#171717] dark:text-[#FFFFFF] font-semibold shadow-xs dark:border dark:border-[#393939]"
-                  : "text-[#737373] dark:text-[#A6A6A6] hover:text-[#171717] dark:hover:text-[#FFFFFF]"
+                  ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
+                  : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:bg-[var(--primary)]/[0.04] dark:bg-transparent dark:border-transparent dark:text-[#A6A6A6] dark:hover:text-[#FFFFFF]"
               }`}
             >
               Semana
@@ -404,8 +404,8 @@ export default function AdminAgendaPage() {
               onClick={() => setViewMode("day")}
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                 viewMode === "day"
-                  ? "bg-white dark:bg-[#292929] text-[#171717] dark:text-[#FFFFFF] font-semibold shadow-xs dark:border dark:border-[#393939]"
-                  : "text-[#737373] dark:text-[#A6A6A6] hover:text-[#171717] dark:hover:text-[#FFFFFF]"
+                  ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
+                  : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:bg-[var(--primary)]/[0.04] dark:bg-transparent dark:border-transparent dark:text-[#A6A6A6] dark:hover:text-[#FFFFFF]"
               }`}
             >
               Dia
@@ -415,8 +415,8 @@ export default function AdminAgendaPage() {
               onClick={() => setViewMode("list")}
               className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                 viewMode === "list"
-                  ? "bg-white dark:bg-[#292929] text-[#171717] dark:text-[#FFFFFF] font-semibold shadow-xs dark:border dark:border-[#393939]"
-                  : "text-[#737373] dark:text-[#A6A6A6] hover:text-[#171717] dark:hover:text-[#FFFFFF]"
+                  ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
+                  : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:bg-[var(--primary)]/[0.04] dark:bg-transparent dark:border-transparent dark:text-[#A6A6A6] dark:hover:text-[#FFFFFF]"
               }`}
             >
               Lista
@@ -432,16 +432,16 @@ export default function AdminAgendaPage() {
               variant="ghost"
               size="icon"
               onClick={handlePrevWeek}
-              className="h-8 w-8 text-[#737373] hover:text-[#171717] dark:text-[#C0C0C0] dark:hover:text-[#FFFFFF]"
+              className="h-8 w-8 dark:text-[#C0C0C0] dark:hover:text-[#FFFFFF]"
               aria-label="Semana anterior"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4 text-current" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={handleToday}
-              className="text-xs h-8 px-3 font-heading font-semibold text-[#171717] dark:text-[#F5F5F5]"
+              className="text-xs h-8 px-3 font-heading font-semibold dark:text-[#F5F5F5]"
             >
               Hoje
             </Button>
@@ -449,10 +449,10 @@ export default function AdminAgendaPage() {
               variant="ghost"
               size="icon"
               onClick={handleNextWeek}
-              className="h-8 w-8 text-[#737373] hover:text-[#171717] dark:text-[#C0C0C0] dark:hover:text-[#FFFFFF]"
+              className="h-8 w-8 dark:text-[#C0C0C0] dark:hover:text-[#FFFFFF]"
               aria-label="Próxima semana"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4 text-current" />
             </Button>
           </div>
 
@@ -531,7 +531,7 @@ export default function AdminAgendaPage() {
                           <span
                             className={`h-7 w-7 rounded-full flex items-center justify-center font-heading text-sm ${
                               isToday
-                                ? "bg-[var(--button-bg,var(--primary))] dark:bg-[#424242] text-[var(--button-fg,var(--primary-foreground,#ffffff))] font-bold shadow-2xs"
+                                ? "bg-[var(--button-bg,var(--primary))] dark:bg-[var(--dark-accent,var(--primary))] text-[var(--button-fg,var(--primary-foreground,#ffffff))] font-bold shadow-2xs"
                                 : "font-bold text-[#171717] dark:text-[#F5F5F5]"
                             }`}
                           >
@@ -583,22 +583,22 @@ export default function AdminAgendaPage() {
                                   {appt.service.name}
                                 </div>
 
-                                <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-black/5 dark:border-white/5">
-                                  <span className="text-[10px] text-[#737373] dark:text-[#A6A6A6] flex items-center gap-1">
+                                <div className="flex flex-wrap items-center justify-between gap-1 mt-2 pt-1.5 border-t border-black/5 dark:border-white/5">
+                                  <span className="text-[10px] text-[#737373] dark:text-[#A6A6A6] flex items-center gap-1 whitespace-nowrap">
                                     {appt.modality === "ONLINE" ? (
                                       <>
-                                        <Video className="h-3 w-3 text-[var(--primary)]" />
+                                        <Video className="h-3 w-3 text-[var(--primary)] shrink-0" />
                                         <span>Online</span>
                                       </>
                                     ) : (
                                       <>
-                                        <MapPin className="h-3 w-3 text-slate-400" />
+                                        <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
                                         <span>Presencial</span>
                                       </>
                                     )}
                                   </span>
                                   <span
-                                    className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${
+                                    className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold whitespace-nowrap ${
                                       appt.status === "CONFIRMED"
                                         ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20"
                                         : appt.status === "COMPLETED"
@@ -879,9 +879,9 @@ export default function AdminAgendaPage() {
                       onClick={() => handleSelectMiniCalDay(item.date)}
                       className={`h-8 w-8 mx-auto rounded-full flex items-center justify-center font-medium transition-all cursor-pointer ${
                         isSelected
-                          ? "bg-[var(--button-bg,var(--primary))] dark:bg-[#424242] text-[var(--button-fg,var(--primary-foreground,#ffffff))] font-bold shadow-xs"
+                          ? "bg-[var(--button-bg,var(--primary))] dark:bg-[var(--dark-accent,var(--primary))] text-[var(--button-fg,#ffffff)] font-bold shadow-xs"
                           : isCurrentToday
-                          ? "border border-[var(--primary)] dark:border-[#525252] text-[var(--primary)] dark:text-[#F5F5F5] font-bold"
+                          ? "border border-[var(--primary)] dark:border-[var(--primary)] text-[var(--button-outline-fg,var(--primary))] dark:text-[#F5F5F5] font-bold bg-white dark:bg-[#202020]"
                           : item.isCurrentMonth
                           ? "text-[#171717] dark:text-[#F5F5F5] hover:bg-[#F3F4F6] dark:hover:bg-[#292929]"
                           : "text-[#D1D5DB] dark:text-[#737373] hover:text-[#9CA3AF]"

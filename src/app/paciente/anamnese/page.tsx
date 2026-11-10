@@ -251,7 +251,7 @@ export default function PatientAnamnesisPage() {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-[var(--button-bg,var(--primary))] dark:bg-[#424242] hover:brightness-105 dark:hover:bg-[#4F4F4F] text-white gap-2 text-xs"
+                  className="gap-2 text-xs"
                 >
                   <Send className="h-3.5 w-3.5" />
                   <span>{isSubmitting ? "Enviando..." : "Enviar Ficha de Anamnese"}</span>

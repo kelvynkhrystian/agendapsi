@@ -206,8 +206,8 @@ export default function PatientDocumentsPage() {
                       </Button>
                     </a>
                     <a href={`/api/files/${doc.id}/download`} download>
-                      <Button size="sm" className="h-9 min-h-[36px] px-3.5 text-xs gap-1.5 bg-[var(--button-bg,var(--primary))] dark:bg-[#424242] hover:brightness-105 dark:hover:bg-[#4F4F4F] text-white cursor-pointer">
-                        <Download className="h-3.5 w-3.5" />
+                      <Button size="sm" className="h-9 min-h-[36px] px-3.5 text-xs gap-1.5 cursor-pointer">
+                        <Download className="h-3.5 w-3.5 text-current" />
                         <span>Baixar</span>
                       </Button>
                     </a>

@@ -80,10 +80,10 @@ export function TabsTrigger({
       disabled={disabled}
       onClick={() => context.onValueChange(value)}
       className={cn(
-        "inline-flex items-center justify-center whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] dark:focus-visible:ring-[#525252] disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
+        "inline-flex items-center justify-center whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
         isSelected
-          ? "bg-white dark:bg-[#292929] text-[#171717] dark:text-[#FFFFFF] shadow-xs font-semibold dark:border dark:border-[#393939]"
-          : "text-[#737373] dark:text-[#D0D0D0] hover:text-[#171717] dark:hover:text-[#FFFFFF]",
+          ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-xs font-semibold"
+          : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:bg-[var(--primary)]/[0.04] dark:bg-transparent dark:border-transparent dark:text-[#C0C0C0] dark:hover:bg-[#242424] dark:hover:text-[#FFFFFF]",
         className
       )}
       {...props}

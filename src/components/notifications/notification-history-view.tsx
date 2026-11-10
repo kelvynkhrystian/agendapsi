@@ -108,10 +108,10 @@ export function NotificationHistoryView({
             setFilter("all");
             setPage(1);
           }}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
             filter === "all"
-              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold dark:bg-[#292929] dark:text-[#FFFFFF] dark:border dark:border-[#393939]"
-              : "text-[#525252] dark:text-[#D0D0D0] hover:bg-[#F2F2F2] dark:hover:bg-[#202020] hover:text-[#171717] dark:hover:text-[#FFFFFF]"
+              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
+              : "bg-white border border-[var(--primary)]/20 text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] hover:bg-[var(--primary)]/[0.04] dark:bg-[#1C1C1C] dark:border-[#2C2C2C] dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#FFFFFF]"
           }`}
         >
           Todas
@@ -121,15 +121,15 @@ export function NotificationHistoryView({
             setFilter("unread");
             setPage(1);
           }}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
             filter === "unread"
-              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold dark:bg-[#292929] dark:text-[#FFFFFF] dark:border dark:border-[#393939]"
-              : "text-[#525252] dark:text-[#D0D0D0] hover:bg-[#F2F2F2] dark:hover:bg-[#202020] hover:text-[#171717] dark:hover:text-[#FFFFFF]"
+              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
+              : "bg-white border border-[var(--primary)]/20 text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] hover:bg-[var(--primary)]/[0.04] dark:bg-[#1C1C1C] dark:border-[#2C2C2C] dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#FFFFFF]"
           }`}
         >
           <span>Não lidas</span>
           {unreadCount > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] dark:bg-[#424242] dark:text-[#FFFFFF] text-[10px] font-bold">
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${filter === "unread" ? "bg-white/20 text-white" : "bg-[var(--primary)]/15 text-[var(--primary)] dark:bg-[#333333] dark:text-[#FFFFFF]"}`}>
               {unreadCount}
             </span>
           )}
@@ -139,10 +139,10 @@ export function NotificationHistoryView({
             setFilter("read");
             setPage(1);
           }}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
             filter === "read"
-              ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold dark:bg-[#292929] dark:text-[#FFFFFF] dark:border dark:border-[#393939]"
-              : "text-[#525252] dark:text-[#D0D0D0] hover:bg-[#F2F2F2] dark:hover:bg-[#202020] hover:text-[#171717] dark:hover:text-[#FFFFFF]"
+              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
+              : "bg-white border border-[var(--primary)]/20 text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] hover:bg-[var(--primary)]/[0.04] dark:bg-[#1C1C1C] dark:border-[#2C2C2C] dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#FFFFFF]"
           }`}
         >
           Lidas

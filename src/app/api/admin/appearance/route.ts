@@ -5,17 +5,20 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { THEME_PRESETS } from "@/lib/theme-presets";
 
+const hexColorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor hexadecimal inválida");
+
 const updateAppearanceSchema = z.object({
+  scope: z.enum(["theme", "images", "all"]).optional().default("all"),
   logoUrl: z.string().nullable().optional(),
   logoHorizontalUrl: z.string().nullable().optional(),
   faviconUrl: z.string().nullable().optional(),
   themeName: z.string().optional().default("VERDE"),
-  primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor primária inválida"),
-  secondaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor secundária inválida").optional().default("#0f766e"),
-  accentColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor de destaque inválida").optional().default("#f59e0b"),
-  buttonColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor de botões inválida").optional().default("#0d9488"),
-  backgroundColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor de fundo inválida").optional().default("#f8f8f8"),
-  textColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor do texto inválida").optional().default("#171717"),
+  primaryColor: hexColorSchema.optional(),
+  secondaryColor: hexColorSchema.optional(),
+  accentColor: hexColorSchema.optional(),
+  buttonColor: hexColorSchema.optional(),
+  backgroundColor: hexColorSchema.optional(),
+  textColor: hexColorSchema.optional(),
 });
 
 export async function GET() {
@@ -61,6 +64,7 @@ export async function PUT(req: NextRequest) {
     }
 
     const {
+      scope,
       logoUrl,
       logoHorizontalUrl,
       faviconUrl,
@@ -73,12 +77,45 @@ export async function PUT(req: NextRequest) {
       textColor,
     } = result.data;
 
-    let finalPrimary = primaryColor;
-    let finalButton = buttonColor;
-    let finalSecondary = secondaryColor;
-    let finalAccent = accentColor;
-    let finalBg = backgroundColor;
-    let finalTxt = textColor;
+    if (scope === "images") {
+      const updated = await prisma.siteSettings.upsert({
+        where: { id: "default" },
+        update: {
+          logoUrl: logoUrl ?? null,
+          logoHorizontalUrl: logoHorizontalUrl ?? null,
+          faviconUrl: faviconUrl ?? null,
+        },
+        create: {
+          id: "default",
+          aboutText: "Consultório de Psicologia & Psiquiatria",
+          logoUrl: logoUrl ?? null,
+          logoHorizontalUrl: logoHorizontalUrl ?? null,
+          faviconUrl: faviconUrl ?? null,
+        },
+      });
+
+      try {
+        revalidatePath("/", "layout");
+        revalidatePath("/");
+        revalidatePath("/agendar");
+      } catch (revalErr) {
+        console.warn("Aviso ao revalidar caminhos de cache:", revalErr);
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: "Imagens do sistema atualizadas com sucesso.",
+        appearance: updated,
+      });
+    }
+
+    const fallbackPreset = THEME_PRESETS.VERDE;
+    let finalPrimary = primaryColor || fallbackPreset.primaryColor;
+    let finalButton = buttonColor || finalPrimary;
+    let finalSecondary = secondaryColor || fallbackPreset.secondaryColor;
+    let finalAccent = accentColor || fallbackPreset.accentColor;
+    let finalBg = backgroundColor || fallbackPreset.backgroundColor;
+    let finalTxt = textColor || fallbackPreset.textColor;
 
     // Se o tema for um preset pré-definido, sincroniza os tokens oficiais autoritativos
     if (themeName && themeName !== "PERSONALIZADO" && THEME_PRESETS[themeName]) {
@@ -89,39 +126,53 @@ export async function PUT(req: NextRequest) {
       finalAccent = preset.accentColor;
       finalBg = preset.backgroundColor;
       finalTxt = preset.textColor;
-    } else if (themeName === "PERSONALIZADO" && (!buttonColor || buttonColor === primaryColor)) {
+    } else if (!primaryColor) {
+      return NextResponse.json(
+        { error: "Informe a cor primária para salvar o tema personalizado." },
+        { status: 400 }
+      );
+    } else if (themeName === "PERSONALIZADO" && !buttonColor) {
       finalButton = finalPrimary;
     }
 
-    const updated = await prisma.siteSettings.upsert({
-      where: { id: "default" },
-      update: {
-        logoUrl: logoUrl || null,
-        logoHorizontalUrl: logoHorizontalUrl || null,
-        faviconUrl: faviconUrl || null,
-        themeName,
-        primaryColor: finalPrimary,
-        secondaryColor: finalSecondary,
-        accentColor: finalAccent,
-        buttonColor: finalButton,
-        backgroundColor: finalBg,
-        textColor: finalTxt,
-      },
-      create: {
-        id: "default",
-        aboutText: "Consultório de Psicologia & Psiquiatria",
-        logoUrl: logoUrl || null,
-        logoHorizontalUrl: logoHorizontalUrl || null,
-        faviconUrl: faviconUrl || null,
-        themeName,
-        primaryColor: finalPrimary,
-        secondaryColor: finalSecondary,
-        accentColor: finalAccent,
-        buttonColor: finalButton,
-        backgroundColor: finalBg,
-        textColor: finalTxt,
-      },
-    });
+    const themeFields = {
+      themeName,
+      primaryColor: finalPrimary,
+      secondaryColor: finalSecondary,
+      accentColor: finalAccent,
+      buttonColor: finalButton,
+      backgroundColor: finalBg,
+      textColor: finalTxt,
+    };
+
+    const updated =
+      scope === "theme"
+        ? await prisma.siteSettings.upsert({
+            where: { id: "default" },
+            update: themeFields,
+            create: {
+              id: "default",
+              aboutText: "Consultório de Psicologia & Psiquiatria",
+              ...themeFields,
+            },
+          })
+        : await prisma.siteSettings.upsert({
+            where: { id: "default" },
+            update: {
+              logoUrl: logoUrl ?? null,
+              logoHorizontalUrl: logoHorizontalUrl ?? null,
+              faviconUrl: faviconUrl ?? null,
+              ...themeFields,
+            },
+            create: {
+              id: "default",
+              aboutText: "Consultório de Psicologia & Psiquiatria",
+              logoUrl: logoUrl ?? null,
+              logoHorizontalUrl: logoHorizontalUrl ?? null,
+              faviconUrl: faviconUrl ?? null,
+              ...themeFields,
+            },
+          });
 
     // Invalida o cache das páginas públicas para propagar as cores instantaneamente
     try {
@@ -132,7 +183,11 @@ export async function PUT(req: NextRequest) {
       console.warn("Aviso ao revalidar caminhos de cache:", revalErr);
     }
 
-    return NextResponse.json({ success: true, appearance: updated });
+    return NextResponse.json({
+      success: true,
+      message: scope === "theme" ? "Tema atualizado com sucesso." : "Aparência atualizada com sucesso.",
+      appearance: updated,
+    });
   } catch (error: unknown) {
     if (error instanceof Error && error.message === "FORBIDDEN") {
       return NextResponse.json({ error: "Acesso restrito ao administrador." }, { status: 403 });

@@ -108,7 +108,7 @@ export function NotificationBell({ role }: { role: "ADMIN" | "PATIENT" }) {
           setIsOpen(!isOpen);
           if (!isOpen) fetchNotifications();
         }}
-        className="relative p-2 rounded-xl text-[#737373] dark:text-[#C0C0C0] hover:bg-[#F2F2F2] dark:hover:bg-[#292929] transition-colors focus:outline-none focus:ring-2 focus:ring-[#525252]"
+        className="relative p-2 rounded-xl bg-white border border-[#E5E5E5] text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] hover:border-[var(--primary)]/40 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1E1E1E] dark:border-[#2C2C2C] dark:text-[#C0C0C0] dark:hover:bg-[#262626] dark:hover:text-[#F5F5F5] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
         title="Notificações"
         aria-label="Abrir notificações"
       >

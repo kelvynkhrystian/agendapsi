@@ -222,9 +222,9 @@ export default function PatientAppointmentsPage() {
                   size="sm"
                   variant="outline"
                   onClick={() => setSelectedInPersonAppt(nextAppointment)}
-                  className="gap-2 text-xs border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/10 dark:border-[#393939] dark:text-[#D0D0D0] dark:hover:bg-[#292929]"
+                  className="gap-2 text-xs"
                 >
-                  <Info className="h-3.5 w-3.5" />
+                  <Info className="h-3.5 w-3.5 text-current" />
                   <span>Informações da consulta</span>
                 </Button>
               ) : nextAppointment.meetingUrlSnapshot ? (
@@ -316,9 +316,9 @@ export default function PatientAppointmentsPage() {
                           size="sm"
                           variant="outline"
                           onClick={() => setSelectedInPersonAppt(appt)}
-                          className="gap-1.5 text-xs border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/10 dark:border-[#393939] dark:text-[#D0D0D0] dark:hover:bg-[#292929]"
+                          className="gap-1.5 text-xs"
                         >
-                          <Info className="h-3.5 w-3.5 text-[var(--primary)] dark:text-[#C0C0C0]" />
+                          <Info className="h-3.5 w-3.5 text-current" />
                           <span>Informações da consulta</span>
                         </Button>
                       ) : appt.meetingUrlSnapshot ? (
