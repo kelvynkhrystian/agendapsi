@@ -27,14 +27,15 @@ test("2. Mobile Header: Completamente transparente, sem cápsula, borda, sombra 
   const mobileBlock = src.split('id="hero-header-mobile"')[1].split("CABEÇALHO DESKTOP")[0];
   assert.ok(mobileBlock.includes("isMenuOpen"));
   assert.ok(mobileBlock.includes("bg-transparent border-0 rounded-none shadow-none backdrop-blur-none outline-none"));
-  assert.ok(mobileBlock.includes("h-11"), "Barra mobile deve alinhar logo 1.5x e hamburguer em 44px");
+  // Barra mobile transparente quando fechada, com respiro vertical balanceado (py-2 = 8px top/bottom)
+  assert.ok(mobileBlock.includes("min-h-11 py-2"), "Barra mobile deve aplicar respiro vertical py-2 (8px) mantendo altura mínima 44px");
   assert.equal(mobileBlock.includes("bg-white/40"), false, "Não deve manter cápsula translúcida bg-white/40");
   assert.equal(mobileBlock.includes("bg-white/95"), false, "Não deve aplicar cápsula branca ao rolar quando fechado");
   assert.equal(mobileBlock.includes("opacity-0"), false, "Não deve ocultar cabeçalho com opacity: 0");
 
-  // Drawer aberto mantém leitura nítida e top alinhado à barra mobile aberta (h-11 + 8px = 52px)
+  // Drawer aberto mantém leitura nítida e top alinhado à barra mobile aberta (8px + 44px + 16px py-2 + 2px border = 70px)
   const drawerBlock = src.split('id="mobile-navigation-menu"')[1];
-  assert.ok(drawerBlock.includes('top: "calc(52px + env(safe-area-inset-top, 0px))"'));
+  assert.ok(drawerBlock.includes('top: "calc(70px + env(safe-area-inset-top, 0px))"'));
 });
 
 test("3. Hero & CRP Mobile: CRP exibido no header mobile entre a logo e o menu, vídeo abaixo do CRP, nome em negrito com contorno e +15% no vídeo", () => {

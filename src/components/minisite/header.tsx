@@ -224,7 +224,6 @@ export function MiniSiteHeader({
     }
   };
 
-  const isAdmin = user?.role === "ADMIN";
   const hasDashboardAccess = user?.role === "ADMIN" || user?.role === "PATIENT";
   const firstName = user ? extractFirstName(user.name) : "";
   const initials = user ? getUserInitials(user.name) : "";
@@ -242,17 +241,21 @@ export function MiniSiteHeader({
   return (
     <header
       ref={headerRef}
-      className="fixed top-0 left-0 right-0 z-50 w-full bg-transparent border-none shadow-none pointer-events-none transition-all duration-300 py-0 md:py-3.5 lg:py-4"
+      className="fixed top-0 left-0 right-0 z-50 w-full bg-transparent border-none shadow-none pointer-events-none transition-all duration-300"
     >
-      {/* ================= 1. CABEÇALHO MOBILE (< 768px: TOTALMENTE TRANSPARENTE QUANDO FECHADO) ================= */}
+      {/* ================= 1. CABEÇALHO MOBILE (< 768px: TRANSPARENTE NO TOPO, BRANCO SÓLIDO NO SCROLL) ================= */}
       <div
         id="hero-header-mobile"
-        className="flex md:hidden w-full px-3 sm:px-4 pointer-events-none relative z-50"
+        className={`flex md:hidden w-full px-3 sm:px-4 relative z-50 transition-[background-color,box-shadow] duration-[250ms] ease-out ${
+          isScrolled && !isMenuOpen
+            ? "pb-2 bg-[#FFFFFF] shadow-[0_2px_16px_rgba(15,23,42,0.08)] backdrop-blur-none pointer-events-auto"
+            : `${isMenuOpen ? "pb-0" : "pb-2"} bg-transparent shadow-none backdrop-blur-none pointer-events-none`
+        }`}
         style={{ paddingTop: "calc(0.5rem + env(safe-area-inset-top, 0px))" }}
       >
         <div
           id="hero-header-mobile-bar"
-          className={`flex items-center justify-between gap-1.5 sm:gap-2 w-full h-11 pointer-events-auto transition-all duration-200 relative z-50 ${
+          className={`flex items-center justify-between gap-1.5 sm:gap-2 w-full min-h-11 py-2 pointer-events-auto transition-all duration-200 relative z-50 ${
             isMenuOpen
               ? "px-4 bg-white rounded-t-2xl rounded-b-none border border-slate-200/90 border-b-slate-100 shadow-none"
               : "px-1 bg-transparent border-0 rounded-none shadow-none backdrop-blur-none outline-none"
@@ -322,157 +325,167 @@ export function MiniSiteHeader({
         </div>
       </div>
 
-      {/* ================= 2. CABEÇALHO DESKTOP (>= 768px: PREMIUM PILL NAVIGATION) ================= */}
-      <div className="hidden md:grid grid-cols-[1fr_auto_1fr] items-center w-full max-w-6xl xl:max-w-7xl mx-auto px-4 lg:px-6 pointer-events-none">
-        {/* LADO ESQUERDO: Logo Horizontal Oficial Sem Rótulo "PSI" */}
-        <div id="hero-header-logo" ref={logoRef} className="flex items-center justify-start pointer-events-auto">
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 font-bold text-[var(--primary)] group shrink-0 focus:outline-none"
-            aria-label="Página inicial"
-          >
-            {logoHorizontalUrl ? (
-              <img
-                src={logoHorizontalUrl}
-                alt={neutralFallbackName}
-                className="h-8 md:h-9 lg:h-10 w-auto max-w-[200px] lg:max-w-[240px] object-contain transition-transform group-hover:scale-[1.02]"
-              />
-            ) : logoUrl ? (
-              <img
-                src={logoUrl}
-                alt={neutralFallbackName}
-                className="h-8 md:h-9 w-auto max-w-[160px] object-contain rounded-sm"
-              />
-            ) : (
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg bg-[var(--primary)]/10 lg:bg-white/15 flex items-center justify-center text-[var(--primary)] lg:text-white font-serif font-black text-lg">
-                  Ψ
+      {/* ================= 2. CABEÇALHO DESKTOP (>= 768px: TRANSPARENTE NO TOPO, BRANCO SÓLIDO NO SCROLL) ================= */}
+      <div
+        id="hero-header-desktop"
+        className={`hidden md:block w-full py-3.5 lg:py-4 transition-[background-color,box-shadow] duration-[250ms] ease-out ${
+          isScrolled
+            ? "bg-[#FFFFFF] shadow-[0_2px_16px_rgba(15,23,42,0.08)] backdrop-blur-none pointer-events-auto"
+            : "bg-transparent shadow-none backdrop-blur-none pointer-events-none"
+        }`}
+      >
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center w-full max-w-6xl xl:max-w-7xl mx-auto px-4 lg:px-6 pointer-events-none">
+          {/* LADO ESQUERDO: Logo Horizontal Oficial Sem Rótulo "PSI" */}
+          <div id="hero-header-logo" ref={logoRef} className="flex items-center justify-start pointer-events-auto">
+            <Link
+              href="/"
+              className="flex items-center gap-2.5 font-bold text-[var(--primary)] group shrink-0 focus:outline-none"
+              aria-label="Página inicial"
+            >
+              {logoHorizontalUrl ? (
+                <img
+                  src={logoHorizontalUrl}
+                  alt={neutralFallbackName}
+                  className="h-8 md:h-9 lg:h-10 w-auto max-w-[200px] lg:max-w-[240px] object-contain transition-transform group-hover:scale-[1.02]"
+                />
+              ) : logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt={neutralFallbackName}
+                  className="h-8 md:h-9 w-auto max-w-[160px] object-contain rounded-sm"
+                />
+              ) : (
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className={`w-8 h-8 md:w-9 md:h-9 rounded-lg flex items-center justify-center font-serif font-black text-lg transition-colors duration-[250ms] ${
+                      isScrolled
+                        ? "bg-[var(--primary)]/10 text-[var(--primary)]"
+                        : "bg-[var(--primary)]/10 lg:bg-white/15 text-[var(--primary)] lg:text-white"
+                    }`}
+                  >
+                    Ψ
+                  </div>
+                  <span
+                    className={`text-base lg:text-lg tracking-tight font-semibold transition-colors duration-[250ms] ${
+                      isScrolled ? "text-slate-900" : "text-slate-900 lg:text-white"
+                    }`}
+                  >
+                    {neutralFallbackName}
+                  </span>
                 </div>
-                <span className="text-base lg:text-lg tracking-tight font-semibold text-slate-900 lg:text-white">
-                  {neutralFallbackName}
-                </span>
-              </div>
-            )}
-          </Link>
-        </div>
+              )}
+            </Link>
+          </div>
 
-        {/* CENTRO: Cápsula de Navegação Flutuante Centralizada (Floating Pill Navigation) */}
-        <div id="hero-header-pill" ref={pillRef} className="flex items-center justify-center pointer-events-auto">
-          <nav
-            aria-label="Navegação principal"
-            className={`inline-flex items-center gap-0.5 lg:gap-1 p-1 md:p-1.5 lg:p-1.5 ${getDesktopGlassPillClass(isScrolled)}`}
-          >
-            <a
-              href="#inicio"
-              onClick={(e) => scrollToSection(e, "inicio")}
-              className={`h-full inline-flex items-center px-3.5 py-1.5 md:px-4 md:py-2 lg:px-5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] leading-5 lg:leading-6 tracking-normal whitespace-nowrap transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
-                activeSection === "inicio"
-                  ? "shadow-xs font-semibold text-white"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] lg:text-white/90 lg:hover:text-white lg:hover:bg-white/15"
-              }`}
-              style={activeSection === "inicio" ? { backgroundColor: "var(--primary)", color: "#ffffff" } : undefined}
+          {/* CENTRO: Cápsula de Navegação Flutuante Centralizada (Floating Pill Navigation) */}
+          <div id="hero-header-pill" ref={pillRef} className="flex items-center justify-center pointer-events-auto">
+            <nav
+              aria-label="Navegação principal"
+              className={`inline-flex items-center gap-0.5 lg:gap-1 p-1 md:p-1.5 lg:p-1.5 ${getDesktopGlassPillClass(isScrolled)}`}
             >
-              Início
-            </a>
-            <a
-              href="#sobre"
-              onClick={(e) => scrollToSection(e, "sobre")}
-              className={`h-full inline-flex items-center px-3.5 py-1.5 md:px-4 md:py-2 lg:px-5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] leading-5 lg:leading-6 tracking-normal whitespace-nowrap transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
-                activeSection === "sobre"
-                  ? "shadow-xs font-semibold text-white"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] lg:text-white/90 lg:hover:text-white lg:hover:bg-white/15"
-              }`}
-              style={activeSection === "sobre" ? { backgroundColor: "var(--primary)", color: "#ffffff" } : undefined}
-            >
-              Sobre Mim
-            </a>
-            <a
-              href="#como-funciona"
-              onClick={(e) => scrollToSection(e, "como-funciona")}
-              className={`h-full inline-flex items-center px-3.5 py-1.5 md:px-4 md:py-2 lg:px-5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] leading-5 lg:leading-6 tracking-normal whitespace-nowrap transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
-                activeSection === "como-funciona"
-                  ? "shadow-xs font-semibold text-white"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] lg:text-white/90 lg:hover:text-white lg:hover:bg-white/15"
-              }`}
-              style={activeSection === "como-funciona" ? { backgroundColor: "var(--primary)", color: "#ffffff" } : undefined}
-            >
-              Como Funciona
-            </a>
-            {shouldShowLocation && (
               <a
-                href="#localizacao"
-                onClick={(e) => scrollToSection(e, "localizacao")}
+                href="#inicio"
+                onClick={(e) => scrollToSection(e, "inicio")}
                 className={`h-full inline-flex items-center px-3.5 py-1.5 md:px-4 md:py-2 lg:px-5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] leading-5 lg:leading-6 tracking-normal whitespace-nowrap transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
-                  activeSection === "localizacao"
+                  activeSection === "inicio"
                     ? "shadow-xs font-semibold text-white"
                     : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] lg:text-white/90 lg:hover:text-white lg:hover:bg-white/15"
                 }`}
-                style={activeSection === "localizacao" ? { backgroundColor: "var(--primary)", color: "#ffffff" } : undefined}
+                style={activeSection === "inicio" ? { backgroundColor: "var(--primary)", color: "#ffffff" } : undefined}
               >
-                Localização
+                Início
               </a>
-            )}
-          </nav>
-        </div>
-
-        {/* LADO DIREITO: Autenticação (Pill arredondado unificado de Login ou Perfil Model 01) */}
-        <div id="hero-header-auth" ref={authRef} className="flex items-center justify-end gap-2.5 shrink-0 pointer-events-auto">
-          {user ? (
-            <div
-              data-testid="minisite-profile-pill"
-              className={`inline-flex items-center p-1 md:p-1.5 lg:p-1.5 max-w-[260px] ${getDesktopGlassPillClass(isScrolled)}`}
-            >
-              <Link
-                href={dashboardUrl}
-                title={firstName}
-                aria-label={`Acessar painel (${firstName})`}
-                className="group h-full inline-flex items-center gap-2 lg:gap-2.5 pl-0.5 pr-2.5 rounded-full hover:bg-black/[0.04] lg:hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/50 lg:focus-visible:ring-white/70 min-w-0 cursor-pointer"
+              <a
+                href="#sobre"
+                onClick={(e) => scrollToSection(e, "sobre")}
+                className={`h-full inline-flex items-center px-3.5 py-1.5 md:px-4 md:py-2 lg:px-5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] leading-5 lg:leading-6 tracking-normal whitespace-nowrap transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
+                  activeSection === "sobre"
+                    ? "shadow-xs font-semibold text-white"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] lg:text-white/90 lg:hover:text-white lg:hover:bg-white/15"
+                }`}
+                style={activeSection === "sobre" ? { backgroundColor: "var(--primary)", color: "#ffffff" } : undefined}
               >
-                <span
-                  aria-hidden="true"
-                  className="w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-[var(--primary)] text-white flex items-center justify-center font-heading font-bold text-xs tracking-tight shrink-0 shadow-xs select-none"
+                Sobre Mim
+              </a>
+              <a
+                href="#como-funciona"
+                onClick={(e) => scrollToSection(e, "como-funciona")}
+                className={`h-full inline-flex items-center px-3.5 py-1.5 md:px-4 md:py-2 lg:px-5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] leading-5 lg:leading-6 tracking-normal whitespace-nowrap transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
+                  activeSection === "como-funciona"
+                    ? "shadow-xs font-semibold text-white"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] lg:text-white/90 lg:hover:text-white lg:hover:bg-white/15"
+                }`}
+                style={activeSection === "como-funciona" ? { backgroundColor: "var(--primary)", color: "#ffffff" } : undefined}
+              >
+                Como Funciona
+              </a>
+              {shouldShowLocation && (
+                <a
+                  href="#localizacao"
+                  onClick={(e) => scrollToSection(e, "localizacao")}
+                  className={`h-full inline-flex items-center px-3.5 py-1.5 md:px-4 md:py-2 lg:px-5 lg:py-2 rounded-full font-heading font-medium text-xs md:text-sm lg:text-[16px] leading-5 lg:leading-6 tracking-normal whitespace-nowrap transition-all duration-200 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 ${
+                    activeSection === "localizacao"
+                      ? "shadow-xs font-semibold text-white"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04] lg:text-white/90 lg:hover:text-white lg:hover:bg-white/15"
+                  }`}
+                  style={activeSection === "localizacao" ? { backgroundColor: "var(--primary)", color: "#ffffff" } : undefined}
                 >
-                  {initials}
-                </span>
-                <span className="flex flex-col justify-center min-w-0">
-                  <span className="font-heading font-semibold text-xs md:text-[13px] lg:text-[14px] text-slate-800 lg:text-white truncate max-w-[92px] lg:max-w-[116px] xl:max-w-[132px] leading-none whitespace-nowrap">
-                    {firstName}
-                  </span>
-                  {hasDashboardAccess && (
-                    <span
-                      data-testid="minisite-profile-panel-action"
-                      className="mt-[3px] inline-flex items-center gap-1 self-start px-2 py-[2px] rounded-full bg-[var(--primary)] text-white font-heading font-semibold text-[10px] leading-none tracking-[0.02em] shrink-0 whitespace-nowrap group-hover:brightness-110 transition-[filter]"
-                    >
-                      <LayoutDashboard className="h-2.5 w-2.5 text-white shrink-0" aria-hidden="true" />
-                      <span>Painel</span>
-                    </span>
-                  )}
-                </span>
-              </Link>
+                  Localização
+                </a>
+              )}
+            </nav>
+          </div>
 
-              <span className="w-px h-5 bg-slate-300/70 lg:bg-white/20 mx-0.5 shrink-0" aria-hidden="true" />
-
-              <button
-                type="button"
-                onClick={handleLogout}
-                disabled={isLoggingOut}
-                title="Sair da conta"
-                aria-label="Sair da conta"
-                className="w-8 h-8 lg:w-9 lg:h-9 rounded-full inline-flex items-center justify-center text-slate-700 hover:bg-black/[0.06] active:bg-black/10 lg:text-white lg:hover:bg-white/15 lg:active:bg-white/25 disabled:opacity-60 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/50 lg:focus-visible:ring-white/70 shrink-0"
+          {/* LADO DIREITO: Autenticação (Pill compacto unificado: Avatar -> Painel + Sair, ou Login) */}
+          <div id="hero-header-auth" ref={authRef} className="flex items-center justify-end gap-2.5 shrink-0 pointer-events-auto">
+            {user ? (
+              <div
+                data-testid="minisite-profile-pill"
+                className={`inline-flex items-center justify-center gap-1.5 px-2 py-1 md:py-1.5 lg:py-1.5 ${getDesktopGlassPillClass(isScrolled)}`}
               >
-                <LogOut className="h-4 w-4 text-current" />
-              </button>
-            </div>
-          ) : (
-            <Link
-              href="/login"
-              data-testid="minisite-login-pill"
-              className={`inline-flex items-center justify-center gap-2 px-4 md:px-5 lg:px-5 font-heading font-semibold text-xs md:text-sm lg:text-[16px] leading-5 lg:leading-6 whitespace-nowrap cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 lg:focus-visible:ring-white/70 text-slate-700 hover:text-[var(--primary)] hover:border-[var(--primary)]/40 lg:text-white hover:lg:text-white hover:lg:border-white/35 ${getDesktopGlassPillClass(isScrolled)}`}
-            >
-              <LogIn className="h-4 w-4 md:h-4.5 md:w-4.5 text-slate-600 lg:text-white shrink-0" />
-              <span>Login</span>
-            </Link>
-          )}
+                {hasDashboardAccess ? (
+                  <Link
+                    href={dashboardUrl}
+                    title="Acessar painel"
+                    aria-label="Acessar painel"
+                    data-testid="minisite-profile-avatar-link"
+                    className="w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-[var(--primary)] text-white inline-flex items-center justify-center font-heading font-bold text-xs tracking-tight shrink-0 shadow-xs select-none hover:brightness-110 active:scale-[0.97] transition-[filter,transform] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/50 lg:focus-visible:ring-white/80 cursor-pointer"
+                  >
+                    <span aria-hidden="true">{initials}</span>
+                  </Link>
+                ) : (
+                  <span
+                    aria-hidden="true"
+                    className="w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-[var(--primary)] text-white inline-flex items-center justify-center font-heading font-bold text-xs tracking-tight shrink-0 shadow-xs select-none"
+                  >
+                    {initials}
+                  </span>
+                )}
+
+                <span className="w-px h-5 bg-slate-300/70 lg:bg-white/20 shrink-0" aria-hidden="true" />
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  title="Sair da conta"
+                  aria-label="Sair da conta"
+                  className="w-8 h-8 lg:w-9 lg:h-9 rounded-full inline-flex items-center justify-center text-slate-700 hover:bg-black/[0.06] active:bg-black/10 lg:text-white lg:hover:bg-white/15 lg:active:bg-white/25 disabled:opacity-60 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/50 lg:focus-visible:ring-white/70 shrink-0"
+                >
+                  <LogOut className="h-4 w-4 text-current" />
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                data-testid="minisite-login-pill"
+                className={`inline-flex items-center justify-center gap-2 px-4 md:px-5 lg:px-5 font-heading font-semibold text-xs md:text-sm lg:text-[16px] leading-5 lg:leading-6 whitespace-nowrap cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 lg:focus-visible:ring-white/70 text-slate-700 hover:text-[var(--primary)] hover:border-[var(--primary)]/40 lg:text-white hover:lg:text-white hover:lg:border-white/35 ${getDesktopGlassPillClass(isScrolled)}`}
+              >
+                <LogIn className="h-4 w-4 md:h-4.5 md:w-4.5 text-slate-600 lg:text-white shrink-0" />
+                <span>Login</span>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 
@@ -494,7 +507,7 @@ export function MiniSiteHeader({
             id="mobile-navigation-menu"
             className="fixed left-3 right-3 sm:left-4 sm:right-4 max-h-[calc(100vh-5.5rem)] bg-white rounded-b-2xl rounded-t-none border border-t-0 border-slate-200/90 shadow-2xl z-40 md:hidden animate-menu-drawer flex flex-col overflow-y-auto pointer-events-auto"
             style={{
-              top: "calc(52px + env(safe-area-inset-top, 0px))",
+              top: "calc(70px + env(safe-area-inset-top, 0px))",
               paddingBottom: "max(1.5rem, env(safe-area-inset-bottom, 0px))",
             }}
           >
@@ -539,28 +552,42 @@ export function MiniSiteHeader({
               >
                 {user ? (
                   <div className="space-y-2">
-                    <Link
-                      href={dashboardUrl}
-                      onClick={handleLinkClick}
-                      title={firstName}
-                      aria-label={`Acessar painel (${firstName})`}
-                      className="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold text-slate-800 bg-[var(--primary)]/8 hover:bg-[var(--primary)]/15 transition-colors cursor-pointer"
-                    >
-                      <span className="flex items-center gap-3 min-w-0">
+                    {hasDashboardAccess ? (
+                      <Link
+                        href={dashboardUrl}
+                        onClick={handleLinkClick}
+                        title="Acessar painel"
+                        aria-label={`Acessar painel (${firstName})`}
+                        className="group flex items-center justify-between gap-2 px-3.5 sm:px-4 py-3 rounded-xl text-sm font-bold text-slate-800 bg-[var(--primary)]/8 hover:bg-[var(--primary)]/15 transition-colors cursor-pointer"
+                      >
+                        <span className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                          <span
+                            aria-hidden="true"
+                            className="w-8 h-8 rounded-full bg-[var(--primary)] text-white flex items-center justify-center font-heading font-bold text-xs shrink-0"
+                          >
+                            {initials}
+                          </span>
+                          <span className="truncate text-slate-900">{firstName}</span>
+                        </span>
+                        <span
+                          data-testid="minisite-mobile-panel-action"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--primary)] text-white font-heading font-semibold text-xs leading-none tracking-[0.02em] shrink-0 whitespace-nowrap shadow-xs group-hover:brightness-110 transition-[filter]"
+                        >
+                          <LayoutDashboard className="h-3 w-3 text-white shrink-0" aria-hidden="true" />
+                          <span>Painel</span>
+                        </span>
+                      </Link>
+                    ) : (
+                      <div className="flex items-center gap-2.5 sm:gap-3 px-3.5 sm:px-4 py-3 rounded-xl text-sm font-bold text-slate-800 bg-[var(--primary)]/8">
                         <span
                           aria-hidden="true"
                           className="w-8 h-8 rounded-full bg-[var(--primary)] text-white flex items-center justify-center font-heading font-bold text-xs shrink-0"
                         >
                           {initials}
                         </span>
-                        <span className="truncate max-w-[170px] text-slate-900">{firstName}</span>
-                      </span>
-                      {isAdmin && (
-                        <span className="text-[10px] font-bold uppercase tracking-wider bg-[var(--primary)] text-white px-2.5 py-0.5 rounded-full shrink-0">
-                          ADMIN
-                        </span>
-                      )}
-                    </Link>
+                        <span className="truncate text-slate-900">{firstName}</span>
+                      </div>
+                    )}
 
                     <button
                       type="button"

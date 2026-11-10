@@ -66,18 +66,26 @@ test("3. CTA Final (#cta-final): título branco e mais espesso, sem botão Whats
   assert.ok(ctaStart > -1 && ctaEnd > ctaStart, "Seção #cta-final deve existir");
   const ctaBlock = pageSrc.slice(ctaStart, ctaEnd);
 
-  // 1) Título branco puro + weight 800 (ou >= 700)
+  // 1) Título branco puro + weight 800 (desktop preservado + mobile simplificado)
   assert.ok(
-    ctaBlock.includes("Agende sua consulta agora"),
-    "Texto do título do CTA final deve ser preservado"
+    ctaBlock.includes('<span className="hidden md:inline">Agende sua consulta agora</span>'),
+    "Texto do título desktop do CTA final deve ser preservado"
+  );
+  assert.ok(
+    ctaBlock.includes('<span className="md:hidden">Agende sua consulta!</span>'),
+    "Texto do título mobile do CTA final deve exibir 'Agende sua consulta!'"
   );
   assert.ok(
     ctaBlock.includes("font-extrabold") && ctaBlock.includes("text-white"),
     "Título do CTA final deve usar cor branca pura (text-white) e font-weight 800 (font-extrabold)"
   );
   assert.ok(
-    ctaBlock.includes("Dê o primeiro passo para o seu bem-estar emocional."),
-    "Descrição abaixo do título deve ser preservada sem alterações"
+    ctaBlock.includes('<span className="hidden md:inline">Dê o primeiro passo para o seu bem-estar emocional.</span>'),
+    "Descrição desktop abaixo do título deve ser preservada sem alterações"
+  );
+  assert.ok(
+    ctaBlock.includes('<span className="md:hidden">Bem-estar e independência emocional.</span>'),
+    "Subtítulo mobile abaixo do título deve exibir 'Bem-estar e independência emocional.'"
   );
 
   // 2) Remoção completa do botão secundário de WhatsApp no banner final
@@ -88,14 +96,18 @@ test("3. CTA Final (#cta-final): título branco e mais espesso, sem botão Whats
     "Banner #cta-final não deve renderizar nenhum botão ou ícone do WhatsApp"
   );
 
-  // 3) Botão principal único com rótulo exato, sem uppercase e sem quebra no desktop
+  // 3) Botão principal único com rótulos responsivos (mobile curto e desktop preservado), sem uppercase
   assert.ok(
     !ctaBlock.includes("Agendar Consulta"),
     "Rótulo antigo 'Agendar Consulta' deve ser removido do banner #cta-final"
   );
   assert.ok(
-    ctaBlock.includes("<span>Agendar agora sua consulta pelo app</span>"),
-    "Botão deve exibir exatamente o texto 'Agendar agora sua consulta pelo app'"
+    ctaBlock.includes('<span className="hidden md:inline">Agendar agora sua consulta pelo app</span>'),
+    "Botão desktop deve preservar exatamente o texto 'Agendar agora sua consulta pelo app'"
+  );
+  assert.ok(
+    ctaBlock.includes('<span className="md:hidden">Agenda agora pelo app!</span>'),
+    "Botão mobile deve exibir exatamente o texto 'Agenda agora pelo app!'"
   );
   assert.ok(
     !ctaBlock.includes("uppercase"),

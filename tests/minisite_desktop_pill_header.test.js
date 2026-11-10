@@ -102,6 +102,12 @@ test("5. Responsividade: Mobile mantém drawer e desktop recebe o novo visual de
   assert.strictEqual(content.includes("md:hidden"), true, "Deve conter cabeçalho e drawer para telas móveis");
   assert.strictEqual(content.includes("mobile-navigation-menu"), true, "Menu móvel deve permanecer disponível");
 
-  // Desktop pill
-  assert.strictEqual(content.includes("hidden md:grid"), true, "Layout pill desktop deve ser ativado em md: (>= 768px)");
+  // Desktop pill (ativado em md: via container #hero-header-desktop com grid de 3 áreas)
+  assert.strictEqual(
+    content.includes('id="hero-header-desktop"') &&
+      content.includes("hidden md:block") &&
+      content.includes("grid grid-cols-[1fr_auto_1fr]"),
+    true,
+    "Layout pill desktop deve ser ativado em md: (>= 768px)"
+  );
 });

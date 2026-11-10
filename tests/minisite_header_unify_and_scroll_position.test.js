@@ -23,7 +23,7 @@ test("1. Cabeçalho desktop: Navegação, Login e Perfil compartilham exatamente
   assert.ok(navBlock.includes("getDesktopGlassPillClass(isScrolled)"), "Navegação central deve usar getDesktopGlassPillClass");
   assert.ok(authBlock.includes("getDesktopGlassPillClass(isScrolled)"), "Bloco auth deve usar getDesktopGlassPillClass");
 
-  const profilePillBlock = authBlock.split('data-testid="minisite-profile-pill"')[1].split(") : (")[0];
+  const profilePillBlock = authBlock.split('data-testid="minisite-profile-pill"')[1].split('data-testid="minisite-login-pill"')[0];
   const loginPillBlock = authBlock.split('data-testid="minisite-login-pill"')[1].split("</Link>")[0];
 
   assert.ok(
@@ -46,7 +46,7 @@ test("1. Cabeçalho desktop: Navegação, Login e Perfil compartilham exatamente
   assert.ok(loginPillBlock.includes("<LogIn") && loginPillBlock.includes("<span>Login</span>"));
 });
 
-test("2. Cabeçalho autenticado: Substitui 'ADMIN' por ação funcional 'Painel' com ícone Lucide e redirecionamento por papel", () => {
+test("2. Cabeçalho autenticado: Desktop simplificado (avatar + logout) e mobile substitui 'ADMIN' por 'Painel' conforme papel", () => {
   const headerPath = path.join(process.cwd(), "src", "components", "minisite", "header.tsx");
   const src = fs.readFileSync(headerPath, "utf-8");
 
@@ -55,17 +55,24 @@ test("2. Cabeçalho autenticado: Substitui 'ADMIN' por ação funcional 'Painel'
 
   const desktopAuth = src.split('id="hero-header-auth"')[1].split("MENU MÓVEL EXPANSÍVEL")[0];
   assert.equal(desktopAuth.includes("ADMIN"), false, "Rótulo 'ADMIN' não deve aparecer no cabeçalho desktop autenticado");
+  assert.equal(desktopAuth.includes("Painel"), false, "Rótulo visível 'Painel' deve ser removido do cabeçalho desktop");
+  assert.equal(desktopAuth.includes("{firstName}"), false, "Primeiro nome visível deve ser removido do cabeçalho desktop");
   assert.equal(desktopAuth.includes("minisite-profile-admin-badge"), false);
 
-  assert.ok(desktopAuth.includes('data-testid="minisite-profile-panel-action"'));
-  assert.ok(desktopAuth.includes("<LayoutDashboard"));
-  assert.ok(desktopAuth.includes("<span>Painel</span>"));
-  assert.ok(desktopAuth.includes("bg-[var(--primary)] text-white"), "Destaque 'Painel' deve seguir cor oficial do tema");
+  // Avatar circular clicável com rótulo acessível e botão de sair separado na mesma pílula
+  const pillPart = desktopAuth.split('data-testid="minisite-profile-pill"')[1].split('data-testid="minisite-login-pill"')[0];
+  assert.ok(pillPart.includes('data-testid="minisite-profile-avatar-link"'));
+  assert.ok(pillPart.includes('title="Acessar painel"') && pillPart.includes('aria-label="Acessar painel"'));
+  assert.ok(pillPart.indexOf("{initials}") < pillPart.indexOf("</Link>"), "Avatar com iniciais deve estar no link do painel");
+  assert.ok(pillPart.indexOf("</Link>") < pillPart.indexOf("onClick={handleLogout}"), "Botão de sair deve permanecer separado do link do avatar");
 
-  // Link envolve perfil + Painel e o botão Sair fica fora do Link
-  const pillPart = desktopAuth.split('data-testid="minisite-profile-pill"')[1].split(") : (")[0];
-  assert.ok(pillPart.indexOf("<span>Painel</span>") < pillPart.indexOf("</Link>"), "'Painel' deve ser uma ação navegável de painel");
-  assert.ok(pillPart.indexOf("</Link>") < pillPart.indexOf("onClick={handleLogout}"), "Botão de sair deve permanecer separado da ação do painel");
+  // No drawer mobile, ADMIN é substituído por ação clicável 'Painel' usando var(--primary)
+  const mobileAuth = src.split("Autenticação no Mobile")[1];
+  assert.equal(mobileAuth.includes(">ADMIN<"), false, "Drawer mobile não deve mais exibir selo 'ADMIN'");
+  assert.ok(mobileAuth.includes('data-testid="minisite-mobile-panel-action"'));
+  assert.ok(mobileAuth.includes("<LayoutDashboard"));
+  assert.ok(mobileAuth.includes("<span>Painel</span>"));
+  assert.ok(mobileAuth.includes("bg-[var(--primary)] text-white"), "Destaque 'Painel' mobile deve seguir cor oficial do tema");
 });
 
 test("3. Menu desktop simplificado e cabeçalho mobile preservados", () => {

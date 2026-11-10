@@ -52,7 +52,7 @@ test("1. Lógica pura de Primeiro Nome e Iniciais (src/lib/header-profile.ts)", 
   assert.strictEqual(getUserInitials(null), "U");
 });
 
-test("2. Modelo 01 — Pílula Inteiriça & Glass: Estrutura unificada sem botão de sair separado", () => {
+test("2. Modelo 01 Simplificado — Pílula Inteiriça & Glass: Somente avatar circular com iniciais + divisor + logout", () => {
   const headerPath = path.join(process.cwd(), "src", "components", "minisite", "header.tsx");
   const src = fs.readFileSync(headerPath, "utf-8");
 
@@ -66,39 +66,44 @@ test("2. Modelo 01 — Pílula Inteiriça & Glass: Estrutura unificada sem botã
   assert.ok(src.includes("rounded-full") && src.includes("backdrop-blur-"));
   assert.ok(src.includes("lg:bg-black/35") && src.includes("lg:border-white/20"));
 
-  // Avatar circular à esquerda, divisor vertical e logout integrado no final
+  // Avatar circular à esquerda clicável ("Acessar painel"), divisor vertical e logout integrado à direita
   assert.ok(desktopAuthSection.includes("w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-[var(--primary)] text-white"));
   assert.ok(desktopAuthSection.includes("{initials}"));
-  assert.ok(desktopAuthSection.includes("{firstName}"));
-  assert.ok(desktopAuthSection.includes("truncate max-w-"));
-  assert.ok(desktopAuthSection.includes("whitespace-nowrap"));
+  assert.strictEqual(desktopAuthSection.includes("{firstName}"), false, "Desktop não deve exibir primeiro nome visível na pílula");
+  assert.strictEqual(desktopAuthSection.includes("Painel"), false, "Desktop não deve exibir rótulo visível 'Painel' na pílula");
+  assert.ok(desktopAuthSection.includes('title="Acessar painel"'));
+  assert.ok(desktopAuthSection.includes('aria-label="Acessar painel"'));
   assert.ok(desktopAuthSection.includes("w-px h-5") && desktopAuthSection.includes("lg:bg-white/20"));
 
   // O botão de logout é irmão do Link (evita navegação acidental) e está dentro da mesma pílula
-  const pillInner = desktopAuthSection.split('data-testid="minisite-profile-pill"')[1].split(") : (")[0];
+  const pillInner = desktopAuthSection.split('data-testid="minisite-profile-pill"')[1].split('data-testid="minisite-login-pill"')[0];
   assert.strictEqual((pillInner.match(/<LogOut/g) || []).length, 1, "Deve haver exatamente 1 botão de logout integrado dentro da pílula desktop");
   assert.ok(pillInner.includes("</Link>"), "Link do painel deve encerrar antes do divisor e botão de logout");
   assert.ok(pillInner.indexOf("</Link>") < pillInner.indexOf("onClick={handleLogout}"), "Botão de logout não pode ficar aninhado dentro do <Link>");
   assert.ok(pillInner.includes('aria-label="Sair da conta"'));
   assert.ok(pillInner.includes("w-8 h-8 lg:w-9 lg:h-9 rounded-full") && pillInner.includes("lg:hover:bg-white/15"));
 
-  // Garante que apenas o primeiro nome é exposto em labels/titles (sem vazar nome completo em atributos)
+  // Garante que nome completo nunca é exposto no cabeçalho
   assert.strictEqual(desktopAuthSection.includes("{user.name}"), false);
   assert.strictEqual(desktopAuthSection.includes("(${user.name})"), false);
 });
 
-test("3. Bloco desktop exibe ação 'Painel' (sem 'ADMIN') conforme papel autenticado", () => {
+test("3. Menu móvel substitui selo 'ADMIN' por ação clicável 'Painel' para Admin e Paciente sem expor papéis", () => {
   const headerPath = path.join(process.cwd(), "src", "components", "minisite", "header.tsx");
   const src = fs.readFileSync(headerPath, "utf-8");
 
-  assert.ok(src.includes('const isAdmin = user?.role === "ADMIN";'), "Status Admin deve derivar apenas de user?.role === 'ADMIN'");
   assert.ok(src.includes('const hasDashboardAccess = user?.role === "ADMIN" || user?.role === "PATIENT";'));
   assert.ok(!src.includes("localStorage"), "Cabeçalho do MiniSite não deve consultar localStorage para inferir papel");
 
   const desktopAuthSection = src.split('id="hero-header-auth"')[1].split("MENU MÓVEL EXPANSÍVEL")[0];
-  assert.strictEqual(desktopAuthSection.includes("ADMIN"), false, "Bloco desktop de autenticação não deve mais exibir selo ADMIN");
-  assert.ok(desktopAuthSection.includes("Painel"), "Bloco desktop autenticado deve exibir ação Painel");
-  assert.ok(desktopAuthSection.includes("<LayoutDashboard"), "Ação Painel deve acompanhar ícone layout-dashboard");
+  assert.strictEqual(desktopAuthSection.includes("ADMIN"), false, "Bloco desktop de autenticação não deve exibir selo ADMIN");
+
+  const mobileDrawerAuth = src.split("Autenticação no Mobile")[1];
+  assert.strictEqual(mobileDrawerAuth.includes(">ADMIN<"), false, "Menu mobile não deve exibir selo ADMIN");
+  assert.ok(mobileDrawerAuth.includes('data-testid="minisite-mobile-panel-action"'));
+  assert.ok(mobileDrawerAuth.includes("<span>Painel</span>"), "Menu mobile deve exibir ação clicável 'Painel'");
+  assert.ok(mobileDrawerAuth.includes("<LayoutDashboard"), "Ação 'Painel' mobile deve incluir ícone LayoutDashboard");
+  assert.ok(mobileDrawerAuth.includes("bg-[var(--primary)] text-white"), "Destaque 'Painel' deve seguir cor oficial var(--primary)");
 
   // Não deve exibir selos "Paciente", "Usuário" ou "Cliente" no cabeçalho
   assert.strictEqual(src.includes('"Paciente"'), false, "Não deve exibir badge 'Paciente' no header");
@@ -111,7 +116,7 @@ test("3. Bloco desktop exibe ação 'Painel' (sem 'ADMIN') conforme papel autent
   assert.strictEqual(src.includes("bg-orange-"), false, "Avatar e destaque Painel devem seguir var(--primary)");
 });
 
-test("4. Responsividade preservada no cabeçalho mobile (< 768px) e navegação central", () => {
+test("4. Responsividade preservada no cabeçalho mobile (< 768px) e bloco de conta no drawer", () => {
   const headerPath = path.join(process.cwd(), "src", "components", "minisite", "header.tsx");
   const src = fs.readFileSync(headerPath, "utf-8");
 
@@ -121,7 +126,8 @@ test("4. Responsividade preservada no cabeçalho mobile (< 768px) e navegação 
   assert.ok(mobileTopBar.includes("id=\"hero-header-mobile-toggle\""));
 
   const mobileDrawerAuth = src.split("Autenticação no Mobile")[1];
-  assert.ok(mobileDrawerAuth.includes("{firstName}"), "Drawer mobile deve exibir apenas o primeiro nome");
-  assert.ok(mobileDrawerAuth.includes("{initials}"), "Drawer mobile deve exibir avatar com iniciais");
-  assert.ok(mobileDrawerAuth.includes("isAdmin &&"), "Drawer mobile deve restringir rótulo ADMIN a administradores");
+  assert.ok(mobileDrawerAuth.includes("{firstName}"), "Drawer mobile deve preservar o primeiro nome");
+  assert.ok(mobileDrawerAuth.includes("{initials}"), "Drawer mobile deve preservar avatar com iniciais");
+  assert.ok(mobileDrawerAuth.includes("hasDashboardAccess"), "Drawer mobile deve restringir ação 'Painel' aos papéis autorizados");
+  assert.ok(mobileDrawerAuth.includes("Sair da conta"), "Drawer mobile deve preservar botão 'Sair da conta'");
 });

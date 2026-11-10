@@ -1039,21 +1039,23 @@ export default async function HomePage() {
         <div className="max-w-4xl mx-auto">
           <div
             id="cta-final-box"
-            className="p-6 min-[375px]:p-8 sm:p-10 rounded-3xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)]"
+            className="p-6 min-[375px]:p-7 sm:p-10 rounded-3xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-5 md:gap-6 relative overflow-hidden bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)]"
           >
             {/* Brilho decorativo sutil */}
             <div className="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-white/10 blur-xl pointer-events-none" aria-hidden="true" />
 
-            <div className="flex items-center gap-4 text-center md:text-left relative z-10">
-              <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0 shadow-xs">
-                <Calendar className="h-7 w-7 text-white" />
+            <div className="flex flex-col md:flex-row items-center gap-3.5 md:gap-4 text-center md:text-left relative z-10 w-full md:w-auto">
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0 shadow-xs">
+                <Calendar className="h-6 w-6 md:h-7 md:w-7 text-white" />
               </div>
-              <div className="space-y-1">
-                <h3 className="font-heading text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-                  Agende sua consulta agora
+              <div className="space-y-1.5 md:space-y-1 max-w-full">
+                <h3 className="font-heading text-lg min-[360px]:text-xl md:text-2xl font-extrabold text-white tracking-tight leading-snug">
+                  <span className="md:hidden">Agende sua consulta!</span>
+                  <span className="hidden md:inline">Agende sua consulta agora</span>
                 </h3>
-                <p className="text-xs sm:text-sm text-white/90 leading-relaxed">
-                  Dê o primeiro passo para o seu bem-estar emocional.
+                <p className="text-[13px] min-[360px]:text-sm text-white/95 md:text-white/90 leading-relaxed">
+                  <span className="md:hidden">Bem-estar e independência emocional.</span>
+                  <span className="hidden md:inline">Dê o primeiro passo para o seu bem-estar emocional.</span>
                 </p>
               </div>
             </div>
@@ -1062,9 +1064,10 @@ export default async function HomePage() {
               <Link href="/agendar" className="block w-full sm:w-auto shrink-0">
                 <button
                   type="button"
-                  className="w-full sm:w-auto px-5 min-[375px]:px-6 sm:px-7 py-3.5 rounded-2xl bg-white text-slate-900 font-heading font-bold text-[12px] min-[375px]:text-[13px] sm:text-sm tracking-tight sm:tracking-normal sm:whitespace-nowrap shadow-md hover:bg-slate-50 hover:shadow-lg active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto px-4 min-[360px]:px-6 sm:px-7 py-3.5 rounded-2xl bg-white text-slate-900 font-heading font-bold text-[13px] min-[360px]:text-sm tracking-tight sm:tracking-normal sm:whitespace-nowrap shadow-md hover:bg-slate-50 hover:shadow-lg active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2 text-center"
                 >
-                  <span>Agendar agora sua consulta pelo app</span>
+                  <span className="md:hidden">Agenda agora pelo app!</span>
+                  <span className="hidden md:inline">Agendar agora sua consulta pelo app</span>
                   <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                 </button>
               </Link>
