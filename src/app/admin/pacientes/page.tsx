@@ -454,7 +454,7 @@ export default function AdminPatientsPage() {
               ) : (
                 /* CENÁRIO 2: Paciente sem dependências protegidas - Exclusão Permanente Permitida */
                 <div className="space-y-3">
-                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                  <p className="text-xs text-[#525252] dark:text-[#D0D0D0] leading-relaxed">
                     {deletionInfo.explanation}
                   </p>
 

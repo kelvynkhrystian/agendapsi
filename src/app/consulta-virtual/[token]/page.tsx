@@ -85,10 +85,10 @@ export default function VirtualConsultationPage({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+      <div className="min-h-screen flex items-center justify-center bg-[#F8F8F8] dark:bg-[#0C0C0C]">
         <div className="text-center space-y-3">
           <div className="w-12 h-12 rounded-full border-4 border-[var(--primary)] border-t-transparent animate-spin mx-auto" />
-          <p className="text-sm text-slate-500">Conectando à sala segura de teleconsulta...</p>
+          <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">Conectando à sala segura de teleconsulta...</p>
         </div>
       </div>
     );
@@ -96,7 +96,7 @@ export default function VirtualConsultationPage({
 
   if (error || !meeting) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-[#F8F8F8] dark:bg-[#0C0C0C]">
         <Card className="max-w-md w-full text-center p-6 space-y-4">
           <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto">
             <AlertTriangle className="h-6 w-6" />
@@ -129,9 +129,9 @@ export default function VirtualConsultationPage({
   const { appointment } = meeting;
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+    <div className="min-h-screen flex flex-col bg-[#F8F8F8] dark:bg-[#0C0C0C] text-[#171717] dark:text-[#F5F5F5]">
       {/* Header */}
-      <header className="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-4 py-3 flex items-center justify-between">
+      <header className="border-b border-[#E5E5E5] dark:border-[#2C2C2C] bg-white/90 dark:bg-[#141414]/95 backdrop-blur-md px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2 font-bold text-[var(--primary)]">
           <Stethoscope className="h-5 w-5" />
           <span className="text-sm">PSI Teleconsulta Segura</span>
@@ -152,14 +152,14 @@ export default function VirtualConsultationPage({
             />
           ) : (
             /* Chamada Ativa (Iframe Jitsi Meet) */
-            <div className="w-full h-[80vh] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xl bg-black relative flex flex-col">
+            <div className="w-full h-[80vh] rounded-2xl overflow-hidden border border-[#E5E5E5] dark:border-[#2C2C2C] shadow-xl bg-black relative flex flex-col">
               <iframe
                 src={`https://${meeting.domain}/${meeting.roomName}#config.prejoinPageEnabled=false&config.startWithAudioMuted=false`}
                 allow="camera; microphone; fullscreen; display-capture; autoplay"
                 className="w-full flex-1 border-0"
                 title="Sessão de Teleconsulta PSI"
               />
-              <div className="p-3 bg-slate-900 text-white text-xs flex items-center justify-between">
+              <div className="p-3 bg-[#141414] text-white text-xs flex items-center justify-between border-t border-[#2C2C2C]">
                 <span>Sessão em andamento com {appointment.professionalName}</span>
                 <Button
                   variant="destructive"

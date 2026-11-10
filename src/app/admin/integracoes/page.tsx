@@ -206,14 +206,14 @@ export default function AdminIntegrationsPage() {
   };
 
   if (isLoading) {
-    return <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />;
+    return <div className="h-64 bg-[#E5E5E5] dark:bg-[#242424] rounded-xl animate-pulse" />;
   }
 
   return (
     <div className="space-y-8 max-w-5xl">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Integrações Externas</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">
           Configure independentemente os canais de transporte de E-mail (SMTP) e WhatsApp para disparo de notificações.
         </p>
       </div>

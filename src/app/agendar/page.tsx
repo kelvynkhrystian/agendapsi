@@ -535,18 +535,26 @@ export default function BookingPage() {
                     </div>
                   ) : (
                     <div className="space-y-4 text-xs">
-                      <div className="flex gap-2 p-1 bg-slate-100 rounded-lg">
+                      <div className="flex gap-2 p-1 bg-[#F8F8F8] border border-[#E5E5E5] rounded-xl">
                         <button
                           type="button"
                           onClick={() => setAuthMode("login")}
-                          className={`flex-1 py-1.5 rounded-md font-semibold ${authMode === "login" ? "bg-white shadow-xs" : ""}`}
+                          className={`flex-1 py-2 px-3 rounded-lg font-semibold transition-all cursor-pointer ${
+                            authMode === "login"
+                              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-xs"
+                              : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45"
+                          }`}
                         >
                           Já sou paciente
                         </button>
                         <button
                           type="button"
                           onClick={() => setAuthMode("register")}
-                          className={`flex-1 py-1.5 rounded-md font-semibold ${authMode === "register" ? "bg-white shadow-xs" : ""}`}
+                          className={`flex-1 py-2 px-3 rounded-lg font-semibold transition-all cursor-pointer ${
+                            authMode === "register"
+                              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-xs"
+                              : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45"
+                          }`}
                         >
                           Novo paciente
                         </button>

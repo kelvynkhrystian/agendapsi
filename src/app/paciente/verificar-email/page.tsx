@@ -66,7 +66,7 @@ function EmailVerificationContent() {
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center p-4">
-      <Card className="max-w-md w-full shadow-lg border-slate-200 dark:border-slate-800">
+      <Card className="max-w-md w-full shadow-lg border-[#E5E5E5] dark:border-[#2C2C2C]">
         <CardHeader className="text-center pb-2">
           {isLoading && (
             <div className="mx-auto w-12 h-12 flex items-center justify-center rounded-full bg-[var(--primary)]/10 text-[var(--primary)] mb-3">
@@ -75,13 +75,13 @@ function EmailVerificationContent() {
           )}
 
           {!isLoading && success && (
-            <div className="mx-auto w-12 h-12 flex items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 mb-3">
+            <div className="mx-auto w-12 h-12 flex items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 mb-3">
               <CheckCircle2 className="w-6 h-6" />
             </div>
           )}
 
           {!isLoading && !success && (
-            <div className="mx-auto w-12 h-12 flex items-center justify-center rounded-full bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 mb-3">
+            <div className="mx-auto w-12 h-12 flex items-center justify-center rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 mb-3">
               <AlertTriangle className="w-6 h-6" />
             </div>
           )}
@@ -105,13 +105,13 @@ function EmailVerificationContent() {
         <CardContent className="space-y-4 text-center pt-2">
           {!isLoading && success && (
             <div className="space-y-3">
-              <p className="text-sm text-slate-600 dark:text-slate-300">
+              <p className="text-sm text-[#525252] dark:text-[#D0D0D0]">
                 O novo endereço de acesso da sua conta é:
               </p>
-              <div className="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg font-mono text-xs font-semibold text-slate-900 dark:text-slate-100">
+              <div className="p-2.5 bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] rounded-lg font-mono text-xs font-semibold text-[#171717] dark:text-[#F5F5F5]">
                 {newEmail}
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-[#737373] dark:text-[#A6A6A6]">
                 Sua senha permanece a mesma. Utilize o novo e-mail para seus próximos acessos ao sistema.
               </p>
               <div className="pt-2">
@@ -127,7 +127,7 @@ function EmailVerificationContent() {
               <div className="p-3 bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 rounded-lg text-xs text-left">
                 {errorMessage}
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-[#737373] dark:text-[#A6A6A6]">
                 Por motivos de segurança, links de verificação são de uso único e expiram em 15 minutos. Caso necessário, solicite um novo link a partir do seu perfil.
               </p>
               <div className="pt-2">
@@ -151,7 +151,7 @@ export default function EmailVerificationPage() {
     <Suspense
       fallback={
         <div className="min-h-[70vh] flex items-center justify-center p-4">
-          <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#A3A3A3] dark:text-[#737373]" />
         </div>
       }
     >

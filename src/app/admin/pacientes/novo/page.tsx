@@ -155,13 +155,13 @@ export default function AdminNovoPacientePage() {
             variant="ghost"
             size="sm"
             onClick={handleCancel}
-            className="gap-1.5 text-xs text-[#737373] hover:text-[#171717] dark:text-[#A6A6A6] dark:hover:text-[#F5F5F5]"
+            className="gap-1.5 text-xs"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Voltar para Pacientes</span>
           </Button>
 
-          <span className="text-slate-300 dark:text-slate-700">|</span>
+          <span className="text-[#D4D4D4] dark:text-[#404040]">|</span>
 
           <nav className="text-xs text-[#737373] dark:text-[#A6A6A6] flex items-center gap-1.5">
             <Link href="/admin/pacientes" className="hover:underline">

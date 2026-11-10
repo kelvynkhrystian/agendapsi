@@ -602,7 +602,7 @@ export default function AdminAgendaPage() {
                                       appt.status === "CONFIRMED"
                                         ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20"
                                         : appt.status === "COMPLETED"
-                                        ? "bg-slate-200/60 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                                        ? "bg-[#F2F2F2] text-[#525252] border border-[#E5E5E5] dark:bg-[#242424] dark:text-[#D0D0D0] dark:border-[#393939]"
                                         : appt.status === "NO_SHOW"
                                         ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20"
                                         : "bg-red-500/10 text-red-700 dark:text-red-300 border border-red-500/20"
@@ -834,7 +834,7 @@ export default function AdminAgendaPage() {
                   <button
                     type="button"
                     onClick={handleMiniCalPrevMonth}
-                    className="p-1 rounded-lg text-[#737373] hover:text-[#171717] dark:text-[#A6A6A6] dark:hover:text-[#F5F5F5] hover:bg-white dark:hover:bg-[#292929] transition-colors cursor-pointer"
+                    className="p-1.5 rounded-lg bg-white text-[var(--button-outline-fg,var(--primary))] border border-[var(--primary)]/20 hover:bg-[var(--primary)]/[0.06] dark:bg-[#1E1E1E] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:text-[#F5F5F5] dark:hover:bg-[#292929] transition-colors cursor-pointer"
                     aria-label="Mês anterior"
                   >
                     <ChevronLeft className="h-4 w-4" />
@@ -842,7 +842,7 @@ export default function AdminAgendaPage() {
                   <button
                     type="button"
                     onClick={handleMiniCalNextMonth}
-                    className="p-1 rounded-lg text-[#737373] hover:text-[#171717] dark:text-[#A6A6A6] dark:hover:text-[#F5F5F5] hover:bg-white dark:hover:bg-[#292929] transition-colors cursor-pointer"
+                    className="p-1.5 rounded-lg bg-white text-[var(--button-outline-fg,var(--primary))] border border-[var(--primary)]/20 hover:bg-[var(--primary)]/[0.06] dark:bg-[#1E1E1E] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:text-[#F5F5F5] dark:hover:bg-[#292929] transition-colors cursor-pointer"
                     aria-label="Próximo mês"
                   >
                     <ChevronRight className="h-4 w-4" />

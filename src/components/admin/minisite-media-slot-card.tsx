@@ -147,7 +147,7 @@ export function MiniSiteMediaSlotCard({
             <Upload className="h-4 w-4 text-[var(--primary)] shrink-0" />
           )}
 
-          <span className="text-xs font-medium text-slate-700 dark:text-slate-200">
+          <span className="text-xs font-medium text-[#404040] dark:text-[#E5E5E5]">
             {isUploading
               ? "Enviando e processando..."
               : hasMedia
@@ -156,15 +156,15 @@ export function MiniSiteMediaSlotCard({
           </span>
         </label>
 
-        <p className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+        <p className="text-[11px] leading-relaxed text-[#737373] dark:text-[#A6A6A6]">
           Envie uma imagem, vídeo ou animação ZIP (JPG, PNG, WebP, MP4, WebM ou ZIP).
         </p>
       </div>
 
       {/* Seletor de Velocidade (somente para Vídeo e Animação ZIP) */}
       {supportsPlaybackSpeed && (
-        <div className="pt-3 border-t border-slate-100 dark:border-white/10 flex flex-wrap items-center justify-between gap-2">
-          <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+        <div className="pt-3 border-t border-[#E5E5E5] dark:border-[#2C2C2C] flex flex-wrap items-center justify-between gap-2">
+          <span className="text-xs font-medium text-[#404040] dark:text-[#D0D0D0]">
             Velocidade
           </span>
 

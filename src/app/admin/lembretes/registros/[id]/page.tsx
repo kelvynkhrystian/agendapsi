@@ -165,7 +165,7 @@ export default function AdminMessageDetailPage({
         );
       case "SIMULATED":
         return (
-          <Badge variant="outline" className="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700 text-xs gap-1.5 py-1 px-3">
+          <Badge variant="outline" className="bg-[#F8F8F8] text-[#404040] dark:bg-[#242424] dark:text-[#D0D0D0] border-[#E5E5E5] dark:border-[#393939] text-xs gap-1.5 py-1 px-3">
             <Info className="h-3.5 w-3.5" />
             <span>Simulado no Sistema</span>
           </Badge>
@@ -182,8 +182,8 @@ export default function AdminMessageDetailPage({
   if (isLoading) {
     return (
       <div className="space-y-6 max-w-4xl">
-        <div className="h-8 w-40 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-        <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+        <div className="h-8 w-40 bg-[#E5E5E5] dark:bg-[#242424] rounded animate-pulse" />
+        <div className="h-64 bg-[#E5E5E5] dark:bg-[#242424] rounded-xl animate-pulse" />
       </div>
     );
   }
@@ -237,7 +237,7 @@ export default function AdminMessageDetailPage({
 
       {/* Cartão Principal: Detalhes do Disparo */}
       <Card>
-        <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-4">
+        <CardHeader className="border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
@@ -261,45 +261,45 @@ export default function AdminMessageDetailPage({
 
         <CardContent className="pt-6 space-y-6 text-xs">
           {/* Grid de Metadados de Envio */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C]">
             <div>
-              <span className="text-slate-500 font-medium block">Canal</span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200 text-sm mt-0.5 block">
+              <span className="text-[#737373] dark:text-[#A6A6A6] font-medium block">Canal</span>
+              <span className="font-semibold text-[#171717] dark:text-[#F5F5F5] text-sm mt-0.5 block">
                 {isEmail ? "E-mail (SMTP)" : "WhatsApp"}
               </span>
             </div>
 
             <div>
-              <span className="text-slate-500 font-medium block">Destinatário (Mascarado)</span>
-              <span className="font-mono text-slate-800 dark:text-slate-200 text-sm mt-0.5 block">
+              <span className="text-[#737373] dark:text-[#A6A6A6] font-medium block">Destinatário (Mascarado)</span>
+              <span className="font-mono text-[#171717] dark:text-[#F5F5F5] text-sm mt-0.5 block">
                 {log.maskedRecipient}
               </span>
             </div>
 
             <div>
-              <span className="text-slate-500 font-medium block">Provedor</span>
-              <span className="font-mono text-slate-800 dark:text-slate-200 text-sm mt-0.5 block">
+              <span className="text-[#737373] dark:text-[#A6A6A6] font-medium block">Provedor</span>
+              <span className="font-mono text-[#171717] dark:text-[#F5F5F5] text-sm mt-0.5 block">
                 {log.provider}
               </span>
             </div>
 
             <div>
-              <span className="text-slate-500 font-medium block">Tipo da Mensagem</span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5 block">
+              <span className="text-[#737373] dark:text-[#A6A6A6] font-medium block">Tipo da Mensagem</span>
+              <span className="font-semibold text-[#171717] dark:text-[#F5F5F5] mt-0.5 block">
                 {log.messageType || log.templateType}
               </span>
             </div>
 
             <div>
-              <span className="text-slate-500 font-medium block">Tentativas de Envio</span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5 block">
+              <span className="text-[#737373] dark:text-[#A6A6A6] font-medium block">Tentativas de Envio</span>
+              <span className="font-semibold text-[#171717] dark:text-[#F5F5F5] mt-0.5 block">
                 {log.attemptCount} tentativa(s)
               </span>
             </div>
 
             <div>
-              <span className="text-slate-500 font-medium block">Data de Registro</span>
-              <span className="font-mono text-slate-800 dark:text-slate-200 mt-0.5 block">
+              <span className="text-[#737373] dark:text-[#A6A6A6] font-medium block">Data de Registro</span>
+              <span className="font-mono text-[#171717] dark:text-[#F5F5F5] mt-0.5 block">
                 {formatDate(log.sentAt)} às {formatTime(log.sentAt)}
               </span>
             </div>
@@ -307,29 +307,29 @@ export default function AdminMessageDetailPage({
 
           {/* Message-ID do Provedor (se disponível) */}
           {log.providerMessageId && (
-            <div className="p-3 rounded-lg bg-slate-100 dark:bg-slate-800/80 font-mono text-[11px] flex items-center justify-between gap-2">
-              <span className="text-slate-500">ID de Rastreio do Provedor:</span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200 break-all">
+            <div className="p-3 rounded-lg bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] font-mono text-[11px] flex items-center justify-between gap-2">
+              <span className="text-[#737373] dark:text-[#A6A6A6]">ID de Rastreio do Provedor:</span>
+              <span className="font-semibold text-[#171717] dark:text-[#F5F5F5] break-all">
                 {log.providerMessageId}
               </span>
             </div>
           )}
 
           {/* Linha do Tempo de Eventos de Entrega */}
-          <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-            <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-2">
+          <div className="space-y-3 pt-2 border-t border-[#E5E5E5] dark:border-[#2C2C2C]">
+            <h3 className="font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] flex items-center gap-2">
               <Clock className="h-4 w-4 text-[var(--primary)]" />
               <span>Linha do Tempo de Entrega</span>
             </h3>
 
-            <div className="space-y-2 pl-2 border-l-2 border-slate-200 dark:border-slate-700 ml-2">
+            <div className="space-y-2 pl-2 border-l-2 border-[#E5E5E5] dark:border-[#333333] ml-2">
               {/* Evento 1: Criado */}
               <div className="relative pl-4 pb-2">
-                <div className="absolute -left-[9px] top-1 h-3 w-3 rounded-full bg-slate-400 border-2 border-white dark:border-slate-900" />
-                <p className="font-semibold text-slate-800 dark:text-slate-200">
+                <div className="absolute -left-[9px] top-1 h-3 w-3 rounded-full bg-[#A3A3A3] dark:bg-[#737373] border-2 border-white dark:border-[#1A1A1A]" />
+                <p className="font-semibold text-[#171717] dark:text-[#F5F5F5]">
                   Disparo registrado no sistema
                 </p>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                   {formatDate(log.sentAt)} às {formatTime(log.sentAt)}
                 </p>
               </div>
@@ -337,11 +337,11 @@ export default function AdminMessageDetailPage({
               {/* Evento 2: Tentativa */}
               {log.attemptedAt && (
                 <div className="relative pl-4 pb-2">
-                  <div className="absolute -left-[9px] top-1 h-3 w-3 rounded-full bg-blue-500 border-2 border-white dark:border-slate-900" />
-                  <p className="font-semibold text-slate-800 dark:text-slate-200">
+                  <div className="absolute -left-[9px] top-1 h-3 w-3 rounded-full bg-blue-500 border-2 border-white dark:border-[#1A1A1A]" />
+                  <p className="font-semibold text-[#171717] dark:text-[#F5F5F5]">
                     Tentativa de envio processada
                   </p>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                     {formatDate(log.attemptedAt)} às {formatTime(log.attemptedAt)}
                   </p>
                 </div>
@@ -350,11 +350,11 @@ export default function AdminMessageDetailPage({
               {/* Evento 3: Aceito pelo Provedor */}
               {log.acceptedAt && (
                 <div className="relative pl-4 pb-2">
-                  <div className="absolute -left-[9px] top-1 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900" />
+                  <div className="absolute -left-[9px] top-1 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white dark:border-[#1A1A1A]" />
                   <p className="font-semibold text-emerald-800 dark:text-emerald-300">
                     Aceito pelo servidor / provedor ({log.provider})
                   </p>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                     {formatDate(log.acceptedAt)} às {formatTime(log.acceptedAt)} — Submissão concluída com sucesso.
                   </p>
                 </div>
@@ -363,11 +363,11 @@ export default function AdminMessageDetailPage({
               {/* Evento 4: Entrega Confirmada (Webhook) */}
               {log.deliveredAt && (
                 <div className="relative pl-4 pb-2">
-                  <div className="absolute -left-[9px] top-1 h-3 w-3 rounded-full bg-[var(--primary)] border-2 border-white dark:border-slate-900" />
+                  <div className="absolute -left-[9px] top-1 h-3 w-3 rounded-full bg-[var(--primary)] border-2 border-white dark:border-[#1A1A1A]" />
                   <p className="font-semibold text-[var(--primary)]">
                     Entrega confirmada no destino (Webhook verificado)
                   </p>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                     {formatDate(log.deliveredAt)} às {formatTime(log.deliveredAt)}
                   </p>
                 </div>
@@ -376,11 +376,11 @@ export default function AdminMessageDetailPage({
               {/* Evento 5: Falha */}
               {log.failedAt && (
                 <div className="relative pl-4 pb-2">
-                  <div className="absolute -left-[9px] top-1 h-3 w-3 rounded-full bg-red-500 border-2 border-white dark:border-slate-900" />
+                  <div className="absolute -left-[9px] top-1 h-3 w-3 rounded-full bg-red-500 border-2 border-white dark:border-[#1A1A1A]" />
                   <p className="font-semibold text-red-700 dark:text-red-400">
                     Falha na entrega
                   </p>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                     {formatDate(log.failedAt)} às {formatTime(log.failedAt)}
                   </p>
                 </div>
@@ -390,7 +390,7 @@ export default function AdminMessageDetailPage({
 
           {/* Erro Sanitizado (se houver) */}
           {log.errorDetails && (
-            <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div className="space-y-1.5 pt-2 border-t border-[#E5E5E5] dark:border-[#2C2C2C]">
               <span className="font-semibold text-red-700 dark:text-red-400 block">
                 Detalhes Técnicos da Falha
               </span>
@@ -403,16 +403,16 @@ export default function AdminMessageDetailPage({
 
           {/* Consulta Vinculada (se aplicável) */}
           {log.relatedAppointment && (
-            <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-              <span className="font-semibold text-slate-900 dark:text-slate-100 block">
+            <div className="space-y-2 pt-2 border-t border-[#E5E5E5] dark:border-[#2C2C2C]">
+              <span className="font-semibold text-[#171717] dark:text-[#F5F5F5] block">
                 Consulta Relacionada
               </span>
-              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="p-3.5 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <p className="font-semibold text-slate-800 dark:text-slate-200">
+                  <p className="font-semibold text-[#171717] dark:text-[#F5F5F5]">
                     {log.relatedAppointment.patientName} — {log.relatedAppointment.serviceName}
                   </p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
+                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] mt-0.5">
                     Data da Consulta: {formatDate(log.relatedAppointment.startAt)} às {formatTime(log.relatedAppointment.startAt)} ({log.relatedAppointment.modality})
                   </p>
                 </div>

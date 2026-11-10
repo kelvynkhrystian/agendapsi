@@ -91,8 +91,8 @@ export default function AdminInformationPagesPage() {
       {/* ================= CABEÇALHO PRINCIPAL ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Páginas Informativas</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Páginas Informativas</h1>
+          <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">
             Gerencie os termos de uso, políticas de privacidade, proteção de dados (LGPD) e o compromisso de ética profissional do consultório.
           </p>
         </div>
@@ -108,7 +108,7 @@ export default function AdminInformationPagesPage() {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-44 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+            <div key={i} className="h-44 bg-[#E5E5E5] dark:bg-[#242424] rounded-xl animate-pulse" />
           ))}
         </div>
       ) : (
@@ -118,7 +118,7 @@ export default function AdminInformationPagesPage() {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 shrink-0">
+                    <div className="p-2.5 rounded-xl bg-[#F8F8F8] dark:bg-[#242424] border border-[#E5E5E5] dark:border-[#333333] shrink-0">
                       {getPageIcon(page.id)}
                     </div>
                     <div>
@@ -134,7 +134,7 @@ export default function AdminInformationPagesPage() {
                           </Badge>
                         )}
                       </div>
-                      <span className="text-[11px] text-slate-400 font-mono">
+                      <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6] font-mono">
                         Versão {page.version} • URL: {page.publicSlug}
                       </span>
                     </div>
@@ -147,9 +147,9 @@ export default function AdminInformationPagesPage() {
               </CardHeader>
 
               <CardContent className="space-y-3 pt-0">
-                <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 dark:border-slate-800 pt-2.5">
+                <div className="flex items-center justify-between text-xs text-[#737373] dark:text-[#A6A6A6] border-t border-[#E5E5E5] dark:border-[#2C2C2C] pt-2.5">
                   <div className="flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5 text-slate-400" />
+                    <Clock className="h-3.5 w-3.5 text-[#737373] dark:text-[#A6A6A6]" />
                     <span>Última revisão: {formatDate(page.updatedAt)}</span>
                   </div>
 
@@ -168,7 +168,7 @@ export default function AdminInformationPagesPage() {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleTogglePublish(page.id)}
-                    className="h-8 px-2 text-xs gap-1.5 text-slate-600 dark:text-slate-400"
+                    className="h-8 px-2.5 text-xs gap-1.5"
                   >
                     {page.isPublished ? (
                       <>
@@ -197,11 +197,11 @@ export default function AdminInformationPagesPage() {
       )}
 
       {/* ================= NOTA EXPLICATIVA SOBRE COOKIES E GOVERNANÇA ================= */}
-      <Card className="bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800">
-        <CardContent className="p-5 flex items-start gap-3 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+      <Card className="bg-[#F8F8F8] dark:bg-[#141414] border-[#E5E5E5] dark:border-[#2C2C2C]">
+        <CardContent className="p-5 flex items-start gap-3 text-xs text-[#525252] dark:text-[#A6A6A6] leading-relaxed">
           <Info className="h-5 w-5 text-[var(--primary)] shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <p className="font-semibold text-slate-900 dark:text-slate-100">
+            <p className="font-semibold text-[#171717] dark:text-[#F5F5F5]">
               Governança de Cookies e Privacidade Integrada
             </p>
             <p>

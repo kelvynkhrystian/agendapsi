@@ -1971,14 +1971,14 @@ export default function AdminSettingsPage() {
   const accessiblePreviewButtonBg = resolveAccessibleButtonBg(normalizedPreviewButton, 4.6);
 
   if (isLoading) {
-    return <div className="h-64 bg-slate-200 dark:bg-[#202020] rounded-xl animate-pulse" />;
+    return <div className="h-64 bg-[#E5E5E5] dark:bg-[#202020] rounded-xl animate-pulse" />;
   }
 
   return (
     <div className="space-y-6 max-w-5xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Configurações do Consultório</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Configurações do Consultório</h1>
+        <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">
           Personalize a identidade visual da clínica, teleconsulta, agenda e políticas operacionais.
         </p>
       </div>
@@ -2054,7 +2054,7 @@ export default function AdminSettingsPage() {
       {/* ================= ABA 0: PERFIL & IDENTIDADE CENTRALIZADA (3 SEÇÕES INDEPENDENTES) ================= */}
       {activeTab === "profile" && (
         <div className="space-y-6">
-          <div className="p-4 rounded-xl bg-slate-100 dark:bg-[#141414] border border-slate-200 dark:border-[#333333] text-xs text-slate-700 dark:text-[#D4D4D4] space-y-1">
+          <div className="p-4 rounded-xl bg-[#F4F4F5] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] text-xs text-[#404040] dark:text-[#D4D4D4] space-y-1">
             <p className="font-bold flex items-center gap-1.5 text-[#171717] dark:text-[#F5F5F5]">
               <UserCircle className="h-4 w-4 text-[var(--primary)]" />
               <span>Fonte Centralizada de Perfil e Contato</span>
@@ -2126,7 +2126,7 @@ export default function AdminSettingsPage() {
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-[#262626]">
+                <div className="flex justify-end pt-4 border-t border-[#E5E5E5] dark:border-[#262626]">
                   <Button
                     type="submit"
                     disabled={!isAppDirty || isSavingApp}
@@ -2180,7 +2180,7 @@ export default function AdminSettingsPage() {
                       }}
                       placeholder="Ex: Dra. Helena Martins"
                     />
-                    <p className="text-[11px] text-slate-400 mt-1">
+                    <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] mt-1">
                       Nome social ou profissional exibido no Site público e crachás. Se vazio, utiliza o nome completo.
                     </p>
                   </div>
@@ -2232,7 +2232,7 @@ export default function AdminSettingsPage() {
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-[#262626]">
+                <div className="flex justify-end pt-4 border-t border-[#E5E5E5] dark:border-[#262626]">
                   <Button
                     type="submit"
                     disabled={!isProfDirty || isSavingProf}
@@ -2276,7 +2276,7 @@ export default function AdminSettingsPage() {
                       placeholder="Ex: (11) 99123-4567 ou 5511991234567"
                       required
                     />
-                    <p className="text-[11px] text-slate-400 mt-1">
+                    <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] mt-1">
                       Normalizado automaticamente no formato internacional com DDI 55 para links diretos de WhatsApp.
                     </p>
                   </div>
@@ -2304,7 +2304,7 @@ export default function AdminSettingsPage() {
                       }}
                       placeholder="contato@consultorio.com.br"
                     />
-                    <p className="text-[11px] text-slate-400 mt-1">
+                    <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] mt-1">
                       E-mail público exibido no rodapé do Site (separado do e-mail de acesso administrativo).
                     </p>
                   </div>
@@ -2319,13 +2319,13 @@ export default function AdminSettingsPage() {
                       }}
                       placeholder="@dra.helenamartins"
                     />
-                    <p className="text-[11px] text-slate-400 mt-1">
+                    <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] mt-1">
                       Perfil oficial para links de redes sociais na página pública do consultório.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-[#262626]">
+                <div className="flex justify-end pt-4 border-t border-[#E5E5E5] dark:border-[#262626]">
                   <Button
                     type="submit"
                     disabled={!isContactDirty || isSavingContact}
@@ -2345,7 +2345,7 @@ export default function AdminSettingsPage() {
       {/* ================= ABA 1: APARÊNCIA & CORES ================= */}
       {activeTab === "appearance" && (
         <div className="space-y-6">
-          <div className="p-4 rounded-xl bg-slate-100 dark:bg-[#141414] border border-slate-200 dark:border-[#333333] text-xs text-slate-700 dark:text-[#D4D4D4] space-y-1">
+          <div className="p-4 rounded-xl bg-[#F4F4F5] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] text-xs text-[#404040] dark:text-[#D4D4D4] space-y-1">
             <p className="font-bold flex items-center gap-1.5 text-[#171717] dark:text-[#F5F5F5]">
               <Palette className="h-4 w-4 text-[var(--primary)]" />
               <span>Sistema Global de Aparência e Temas</span>
@@ -2368,7 +2368,7 @@ export default function AdminSettingsPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#737373] dark:text-[#A6A6A6] mb-3">
                   Tema do Sistema
                 </h4>
                 <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2.5">
@@ -2441,7 +2441,7 @@ export default function AdminSettingsPage() {
 
               {/* PREVIEW DO TEMA + BLOCO DE AÇÃO "SALVAR TEMA" DIRETAMENTE AO LADO */}
               <div className="pt-2 space-y-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#737373] dark:text-[#A6A6A6]">
                   Preview do Tema
                 </h4>
 
@@ -2449,7 +2449,7 @@ export default function AdminSettingsPage() {
                   {/* Caixa de Preview em Tempo Real refletindo todos os 6 tokens do rascunho */}
                   <div
                     data-testid="theme-preview-box"
-                    className="flex-1 min-w-0 p-5 rounded-2xl border border-slate-200 dark:border-[#333333] space-y-4 shadow-2xs transition-colors"
+                    className="flex-1 min-w-0 p-5 rounded-2xl border border-[#E5E5E5] dark:border-[#333333] space-y-4 shadow-2xs transition-colors"
                     style={{ backgroundColor: normalizedPreviewBg }}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -2528,7 +2528,7 @@ export default function AdminSettingsPage() {
                       ].map((token) => (
                         <span
                           key={token.label}
-                          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/85 dark:bg-[#171717]/90 text-slate-800 dark:text-[#E5E5E5] border border-black/10 dark:border-white/10"
+                          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/85 dark:bg-[#171717]/90 text-[#171717] dark:text-[#E5E5E5] border border-black/10 dark:border-white/10"
                         >
                           <span
                             className="h-2.5 w-2.5 rounded-full border border-black/15 shrink-0"
@@ -2541,17 +2541,17 @@ export default function AdminSettingsPage() {
                   </div>
 
                   {/* AÇÃO DE SALVAMENTO DO TEMA DIRETAMENTE AO LADO DO PREVIEW */}
-                  <div className="w-full md:w-72 shrink-0 p-5 rounded-2xl bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-[#333333] flex flex-col justify-between gap-4">
+                  <div className="w-full md:w-72 shrink-0 p-5 rounded-2xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] flex flex-col justify-between gap-4">
                     <div className="space-y-2.5 text-xs">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-semibold text-slate-800 dark:text-[#F5F5F5]">
+                        <span className="font-semibold text-[#171717] dark:text-[#F5F5F5]">
                           Publicação do Tema
                         </span>
                         <Badge variant={isThemeDirty ? "warning" : "success"} className="text-[10px]">
                           {isThemeDirty ? "Rascunho não salvo" : "Aplicado"}
                         </Badge>
                       </div>
-                      <p className="text-[11px] text-slate-500 dark:text-[#A6A6A6] leading-relaxed">
+                      <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] leading-relaxed">
                         {isThemeDirty
                           ? "Você alterou a prévia. Clique em \"Salvar Tema\" para aplicar a nova paleta em todo o sistema."
                           : "O tema exibido acima corresponde exatamente ao que está publicado atualmente no PSI."}
@@ -2591,15 +2591,15 @@ export default function AdminSettingsPage() {
               {themeName === "PERSONALIZADO" && (
                 <div
                   data-testid="custom-colors-section"
-                  className="animate-custom-colors-enter pt-5 border-t border-slate-200 dark:border-[#333333] space-y-5 text-xs"
+                  className="animate-custom-colors-enter pt-5 border-t border-[#E5E5E5] dark:border-[#2C2C2C] space-y-5 text-xs"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
-                      <h4 className="text-sm font-semibold text-slate-900 dark:text-[#F5F5F5] flex items-center gap-1.5">
+                      <h4 className="text-sm font-semibold text-[#171717] dark:text-[#F5F5F5] flex items-center gap-1.5">
                         <Sparkles className="h-4 w-4 text-[var(--primary)]" />
                         <span>Cores Personalizadas</span>
                       </h4>
-                      <p className="text-[11px] text-slate-500 dark:text-[#A6A6A6] mt-0.5">
+                      <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] mt-0.5">
                         Ajuste os 6 tokens hexadecimais da paleta. As mudanças refletem na prévia acima até você clicar em &quot;Salvar Tema&quot;.
                       </p>
                     </div>
@@ -2610,10 +2610,10 @@ export default function AdminSettingsPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {/* Cor Primária */}
-                    <div className="p-3 rounded-xl border border-slate-200 dark:border-[#333333] space-y-2">
+                    <div className="p-3 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#FAFAFA] dark:bg-[#141414] space-y-2">
                       <div>
-                        <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor Primária</span>
-                        <span className="text-[11px] text-slate-400">Destaques, títulos e vínculos</span>
+                        <span className="font-semibold block text-[#171717] dark:text-[#F5F5F5]">Cor Primária</span>
+                        <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">Destaques, títulos e vínculos</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <input
@@ -2633,10 +2633,10 @@ export default function AdminSettingsPage() {
                     </div>
 
                     {/* Cor Secundária */}
-                    <div className="p-3 rounded-xl border border-slate-200 dark:border-[#333333] space-y-2">
+                    <div className="p-3 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#FAFAFA] dark:bg-[#141414] space-y-2">
                       <div>
-                        <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor Secundária</span>
-                        <span className="text-[11px] text-slate-400">Superfícies suaves e badges</span>
+                        <span className="font-semibold block text-[#171717] dark:text-[#F5F5F5]">Cor Secundária</span>
+                        <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">Superfícies suaves e badges</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <input
@@ -2656,10 +2656,10 @@ export default function AdminSettingsPage() {
                     </div>
 
                     {/* Cor de Destaque */}
-                    <div className="p-3 rounded-xl border border-slate-200 dark:border-[#333333] space-y-2">
+                    <div className="p-3 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#FAFAFA] dark:bg-[#141414] space-y-2">
                       <div>
-                        <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor de Destaque</span>
-                        <span className="text-[11px] text-slate-400">Realces e marcações ativas</span>
+                        <span className="font-semibold block text-[#171717] dark:text-[#F5F5F5]">Cor de Destaque</span>
+                        <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">Realces e marcações ativas</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <input
@@ -2679,10 +2679,10 @@ export default function AdminSettingsPage() {
                     </div>
 
                     {/* Cor dos Botões */}
-                    <div className="p-3 rounded-xl border border-slate-200 dark:border-[#333333] space-y-2">
+                    <div className="p-3 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#FAFAFA] dark:bg-[#141414] space-y-2">
                       <div>
-                        <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor dos Botões</span>
-                        <span className="text-[11px] text-slate-400">Botões principais com texto branco</span>
+                        <span className="font-semibold block text-[#171717] dark:text-[#F5F5F5]">Cor dos Botões</span>
+                        <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">Botões principais com texto branco</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <input
@@ -2702,10 +2702,10 @@ export default function AdminSettingsPage() {
                     </div>
 
                     {/* Cor de Fundo */}
-                    <div className="p-3 rounded-xl border border-slate-200 dark:border-[#333333] space-y-2">
+                    <div className="p-3 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#FAFAFA] dark:bg-[#141414] space-y-2">
                       <div>
-                        <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor de Fundo</span>
-                        <span className="text-[11px] text-slate-400">Superfície base do Site e tema</span>
+                        <span className="font-semibold block text-[#171717] dark:text-[#F5F5F5]">Cor de Fundo</span>
+                        <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">Superfície base do Site e tema</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <input
@@ -2725,10 +2725,10 @@ export default function AdminSettingsPage() {
                     </div>
 
                     {/* Cor do Texto */}
-                    <div className="p-3 rounded-xl border border-slate-200 dark:border-[#333333] space-y-2">
+                    <div className="p-3 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#FAFAFA] dark:bg-[#141414] space-y-2">
                       <div>
-                        <span className="font-semibold block text-slate-800 dark:text-slate-200">Cor do Texto</span>
-                        <span className="text-[11px] text-slate-400">Tipografia e títulos principais</span>
+                        <span className="font-semibold block text-[#171717] dark:text-[#F5F5F5]">Cor do Texto</span>
+                        <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">Tipografia e títulos principais</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <input
@@ -2774,7 +2774,7 @@ export default function AdminSettingsPage() {
                         )}
 
                         {btnAutoAdjusted && (
-                          <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-100 dark:bg-[#1E1E1E] border border-slate-200 dark:border-[#333333] text-slate-700 dark:text-[#D4D4D4]">
+                          <div className="flex items-center gap-2 p-3 rounded-xl bg-[#F4F4F5] dark:bg-[#1E1E1E] border border-[#E5E5E5] dark:border-[#333333] text-[#404040] dark:text-[#D4D4D4]">
                             <Info className="h-4 w-4 shrink-0 text-[var(--primary)]" />
                             <span>
                               A cor de botões selecionada ({normalizedPreviewButton}) é clara demais para texto branco ({rawBtnRatio}:1). Nos botões do sistema, será automaticamente adaptada para <strong>{accessiblePreviewButtonBg}</strong> garantindo contraste acessível.
@@ -2803,16 +2803,16 @@ export default function AdminSettingsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* 1. Favicon (32x32px) */}
-                <div className="p-4 rounded-xl border border-slate-200 dark:border-[#333333] bg-white dark:bg-[#141414] flex flex-col justify-between space-y-3">
+                <div className="p-4 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#141414] flex flex-col justify-between space-y-3">
                   <div>
-                    <h5 className="font-bold text-xs text-slate-800 dark:text-slate-200">
+                    <h5 className="font-bold text-xs text-[#171717] dark:text-[#F5F5F5]">
                       Favicon (32x32px)
                     </h5>
                     <div className="h-16 flex items-center justify-center my-2">
                       {faviconUrl ? (
                         <img src={faviconUrl} alt="Favicon" className="h-8 w-8 object-contain" />
                       ) : (
-                        <span className="text-[10px] text-slate-400">Sem favicon cadastrado</span>
+                        <span className="text-[10px] text-[#737373] dark:text-[#A6A6A6]">Sem favicon cadastrado</span>
                       )}
                     </div>
                   </div>
@@ -2824,7 +2824,7 @@ export default function AdminSettingsPage() {
                       const file = e.dataTransfer.files?.[0];
                       if (file) handleUploadAsset("favicon", file);
                     }}
-                    className="p-3 border-2 border-dashed border-slate-300 dark:border-[#333333] rounded-xl text-center hover:bg-slate-50 dark:hover:bg-[#1E1E1E] cursor-pointer transition-colors"
+                    className="p-3 border-2 border-dashed border-[#D4D4D4] dark:border-[#333333] rounded-xl text-center hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.03] dark:hover:bg-[#1E1E1E] cursor-pointer transition-colors"
                   >
                     <label className="cursor-pointer block">
                       <input
@@ -2835,11 +2835,11 @@ export default function AdminSettingsPage() {
                           if (e.target.files?.[0]) handleUploadAsset("favicon", e.target.files[0]);
                         }}
                       />
-                      <Upload className="h-5 w-5 text-slate-400 mx-auto mb-1" />
-                      <p className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
+                      <Upload className="h-5 w-5 text-[var(--button-outline-fg,var(--primary))] dark:text-[#A6A6A6] mx-auto mb-1" />
+                      <p className="font-semibold text-[var(--button-outline-fg,var(--primary))] dark:text-[#E5E5E5] text-xs">
                         {uploadingAsset === "favicon" ? "Enviando..." : "Clique para upload ou arraste aqui"}
                       </p>
-                      <p className="text-[10px] text-slate-400">ICO, PNG, JPG (32x32px)</p>
+                      <p className="text-[10px] text-[#737373] dark:text-[#A6A6A6]">ICO, PNG, JPG (32x32px)</p>
                     </label>
                   </div>
 
@@ -2858,16 +2858,16 @@ export default function AdminSettingsPage() {
                 </div>
 
                 {/* 2. Logo (200x80px) */}
-                <div className="p-4 rounded-xl border border-slate-200 dark:border-[#333333] bg-white dark:bg-[#141414] flex flex-col justify-between space-y-3">
+                <div className="p-4 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#141414] flex flex-col justify-between space-y-3">
                   <div>
-                    <h5 className="font-bold text-xs text-slate-800 dark:text-slate-200">
+                    <h5 className="font-bold text-xs text-[#171717] dark:text-[#F5F5F5]">
                       Logo (200x80px)
                     </h5>
-                    <div className="h-16 flex items-center justify-center my-2 p-1 bg-slate-50 dark:bg-[#1E1E1E] rounded-lg">
+                    <div className="h-16 flex items-center justify-center my-2 p-1 bg-[#F8F8F8] dark:bg-[#1E1E1E] rounded-lg">
                       {logoUrl ? (
                         <img src={logoUrl} alt="Logo" className="h-full max-w-[200px] object-contain" />
                       ) : (
-                        <span className="text-[10px] text-slate-400">Sem logo cadastrado</span>
+                        <span className="text-[10px] text-[#737373] dark:text-[#A6A6A6]">Sem logo cadastrado</span>
                       )}
                     </div>
                   </div>
@@ -2879,7 +2879,7 @@ export default function AdminSettingsPage() {
                       const file = e.dataTransfer.files?.[0];
                       if (file) handleUploadAsset("logo", file);
                     }}
-                    className="p-3 border-2 border-dashed border-slate-300 dark:border-[#333333] rounded-xl text-center hover:bg-slate-50 dark:hover:bg-[#1E1E1E] cursor-pointer transition-colors"
+                    className="p-3 border-2 border-dashed border-[#D4D4D4] dark:border-[#333333] rounded-xl text-center hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.03] dark:hover:bg-[#1E1E1E] cursor-pointer transition-colors"
                   >
                     <label className="cursor-pointer block">
                       <input
@@ -2890,11 +2890,11 @@ export default function AdminSettingsPage() {
                           if (e.target.files?.[0]) handleUploadAsset("logo", e.target.files[0]);
                         }}
                       />
-                      <Upload className="h-5 w-5 text-slate-400 mx-auto mb-1" />
-                      <p className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
+                      <Upload className="h-5 w-5 text-[var(--button-outline-fg,var(--primary))] dark:text-[#A6A6A6] mx-auto mb-1" />
+                      <p className="font-semibold text-[var(--button-outline-fg,var(--primary))] dark:text-[#E5E5E5] text-xs">
                         {uploadingAsset === "logo" ? "Enviando..." : "Clique para upload ou arraste aqui"}
                       </p>
-                      <p className="text-[10px] text-slate-400">PNG com fundo transparente (200x80px)</p>
+                      <p className="text-[10px] text-[#737373] dark:text-[#A6A6A6]">PNG com fundo transparente (200x80px)</p>
                     </label>
                   </div>
 
@@ -2913,16 +2913,16 @@ export default function AdminSettingsPage() {
                 </div>
 
                 {/* 3. Banner PC / Logo Horizontal (1400x140px) */}
-                <div className="p-4 rounded-xl border border-slate-200 dark:border-[#333333] bg-white dark:bg-[#141414] flex flex-col justify-between space-y-3">
+                <div className="p-4 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#141414] flex flex-col justify-between space-y-3">
                   <div>
-                    <h5 className="font-bold text-xs text-slate-800 dark:text-slate-200">
+                    <h5 className="font-bold text-xs text-[#171717] dark:text-[#F5F5F5]">
                       Banner PC (1400x140px)
                     </h5>
-                    <div className="h-16 flex items-center justify-center my-2 p-1 bg-slate-50 dark:bg-[#1E1E1E] rounded-lg">
+                    <div className="h-16 flex items-center justify-center my-2 p-1 bg-[#F8F8F8] dark:bg-[#1E1E1E] rounded-lg">
                       {logoHorizontalUrl ? (
                         <img src={logoHorizontalUrl} alt="Banner/Horizontal" className="h-full w-full object-contain" />
                       ) : (
-                        <span className="text-[10px] text-slate-400">Sem banner cadastrado</span>
+                        <span className="text-[10px] text-[#737373] dark:text-[#A6A6A6]">Sem banner cadastrado</span>
                       )}
                     </div>
                   </div>
@@ -2934,7 +2934,7 @@ export default function AdminSettingsPage() {
                       const file = e.dataTransfer.files?.[0];
                       if (file) handleUploadAsset("logoHorizontal", file);
                     }}
-                    className="p-3 border-2 border-dashed border-slate-300 dark:border-[#333333] rounded-xl text-center hover:bg-slate-50 dark:hover:bg-[#1E1E1E] cursor-pointer transition-colors"
+                    className="p-3 border-2 border-dashed border-[#D4D4D4] dark:border-[#333333] rounded-xl text-center hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.03] dark:hover:bg-[#1E1E1E] cursor-pointer transition-colors"
                   >
                     <label className="cursor-pointer block">
                       <input
@@ -2945,11 +2945,11 @@ export default function AdminSettingsPage() {
                           if (e.target.files?.[0]) handleUploadAsset("logoHorizontal", e.target.files[0]);
                         }}
                       />
-                      <Upload className="h-5 w-5 text-slate-400 mx-auto mb-1" />
-                      <p className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
+                      <Upload className="h-5 w-5 text-[var(--button-outline-fg,var(--primary))] dark:text-[#A6A6A6] mx-auto mb-1" />
+                      <p className="font-semibold text-[var(--button-outline-fg,var(--primary))] dark:text-[#E5E5E5] text-xs">
                         {uploadingAsset === "logoHorizontal" ? "Enviando..." : "Clique para upload ou arraste aqui"}
                       </p>
-                      <p className="text-[10px] text-slate-400">JPG, PNG (1400x140px)</p>
+                      <p className="text-[10px] text-[#737373] dark:text-[#A6A6A6]">JPG, PNG (1400x140px)</p>
                     </label>
                   </div>
 
@@ -2999,7 +2999,7 @@ export default function AdminSettingsPage() {
               </div>
 
               {/* Botão independente de salvamento das Imagens do Sistema */}
-              <div className="flex items-center justify-end pt-4 border-t border-slate-200 dark:border-[#262626]">
+              <div className="flex items-center justify-end pt-4 border-t border-[#E5E5E5] dark:border-[#262626]">
                 <Button
                   type="button"
                   onClick={handleSaveSystemImages}
@@ -3015,8 +3015,8 @@ export default function AdminSettingsPage() {
           </Card>
 
           {/* CARD 3: IMAGENS & ANIMAÇÕES DO SITE (HERO DESKTOP, HERO MOBILE, SOBRE MIM) */}
-          <Card className="border-slate-200 dark:border-[#333333] bg-white/50 dark:bg-[#141414]/80 backdrop-blur-sm">
-            <CardHeader className="pb-4 border-b border-slate-200 dark:border-[#333333]">
+          <Card className="border-[#E5E5E5] dark:border-[#2C2C2C] bg-white/80 dark:bg-[#141414] backdrop-blur-sm">
+            <CardHeader className="pb-4 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
                   <Film className="h-5 w-5" />
@@ -3032,8 +3032,8 @@ export default function AdminSettingsPage() {
               </div>
 
               {mediaFeedback && (
-                <div className="mt-3 p-3 rounded-lg text-xs bg-slate-100 dark:bg-[#1E1E1E] border border-slate-200 dark:border-[#333333] flex items-center justify-between gap-2">
-                  <span className="text-slate-800 dark:text-slate-200 font-medium">{mediaFeedback}</span>
+                <div className="mt-3 p-3 rounded-lg text-xs bg-[#F4F4F5] dark:bg-[#1E1E1E] border border-[#E5E5E5] dark:border-[#333333] flex items-center justify-between gap-2">
+                  <span className="text-[#171717] dark:text-[#F5F5F5] font-medium">{mediaFeedback}</span>
                   <button
                     type="button"
                     aria-label="Fechar aviso de mídia"
@@ -3115,7 +3115,7 @@ export default function AdminSettingsPage() {
               </div>
 
               {/* Botão único de salvamento das Mídias do Site */}
-              <div className="flex items-center justify-end pt-4 border-t border-slate-200 dark:border-[#262626]">
+              <div className="flex items-center justify-end pt-4 border-t border-[#E5E5E5] dark:border-[#262626]">
                 <Button
                   type="button"
                   onClick={handleSaveMediaSettings}
@@ -3135,7 +3135,7 @@ export default function AdminSettingsPage() {
       {/* ================= ABA 3: CONSULTAS VIRTUAIS ================= */}
       {activeTab === "video" && (
         <div className="space-y-6">
-          <div className="p-4 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-xs text-slate-800 dark:text-[#F5F5F5] space-y-1">
+          <div className="p-4 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-xs text-[#171717] dark:text-[#F5F5F5] space-y-1">
             <p className="font-semibold flex items-center gap-1.5">
               <Video className="h-4 w-4 text-[var(--primary)]" />
               <span>Opções de Teleconsulta e Provedores de Vídeo</span>
@@ -3158,7 +3158,7 @@ export default function AdminSettingsPage() {
                   className={`flex flex-col justify-between transition-all ${
                     isSelected
                       ? "border-[var(--primary)] ring-2 ring-[var(--primary)]/20 bg-[var(--primary)]/10"
-                      : "border-slate-200 dark:border-[#333333]"
+                      : "border-[#E5E5E5] dark:border-[#2C2C2C]"
                   }`}
                 >
                   <div>
@@ -3222,7 +3222,7 @@ export default function AdminSettingsPage() {
                       {provider.key === "JITSI" && (
                         <div className="space-y-3">
                           <div className="space-y-1">
-                            <label className="font-medium text-slate-700 dark:text-slate-300">
+                            <label className="font-medium text-[#404040] dark:text-[#D0D0D0]">
                               Domínio Jitsi Meet
                             </label>
                             <Input
@@ -3234,7 +3234,7 @@ export default function AdminSettingsPage() {
                                 setVideoError(null);
                               }}
                             />
-                            <p className="text-[10px] text-slate-400">
+                            <p className="text-[10px] text-[#737373] dark:text-[#A6A6A6]">
                               Padrão público <code>meet.jit.si</code> ou seu servidor Jitsi dedicado.
                             </p>
                           </div>
@@ -3268,7 +3268,7 @@ export default function AdminSettingsPage() {
                         <div className="space-y-3">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div className="space-y-1">
-                              <label className="font-medium text-slate-700 dark:text-slate-300">
+                              <label className="font-medium text-[#404040] dark:text-[#D0D0D0]">
                                 Host do Servidor PeerJS
                               </label>
                               <Input
@@ -3278,7 +3278,7 @@ export default function AdminSettingsPage() {
                               />
                             </div>
                             <div className="space-y-1">
-                              <label className="font-medium text-slate-700 dark:text-slate-300">Porta</label>
+                              <label className="font-medium text-[#404040] dark:text-[#D0D0D0]">Porta</label>
                               <Input
                                 type="number"
                                 value={peerJsPort}
@@ -3289,7 +3289,7 @@ export default function AdminSettingsPage() {
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div className="space-y-1">
-                              <label className="font-medium text-slate-700 dark:text-slate-300">Caminho (Path)</label>
+                              <label className="font-medium text-[#404040] dark:text-[#D0D0D0]">Caminho (Path)</label>
                               <Input
                                 placeholder="/peerjs"
                                 value={peerJsPath}
@@ -3297,12 +3297,12 @@ export default function AdminSettingsPage() {
                               />
                             </div>
                             <div className="space-y-1 flex flex-col justify-end">
-                              <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700 dark:text-slate-300 pb-2">
+                              <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-[#404040] dark:text-[#D0D0D0] pb-2">
                                 <input
                                   type="checkbox"
                                   checked={peerJsSecure}
                                   onChange={(e) => setPeerJsSecure(e.target.checked)}
-                                  className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]"
+                                  className="rounded border-[#D4D4D4] dark:border-[#404040] text-[var(--primary)] focus:ring-[var(--primary)]"
                                 />
                                 <span>Conexão Segura SSL/TLS (HTTPS/WSS)</span>
                               </label>
@@ -3310,7 +3310,7 @@ export default function AdminSettingsPage() {
                           </div>
 
                           <div className="space-y-1">
-                            <label className="font-medium text-slate-700 dark:text-slate-300">
+                            <label className="font-medium text-[#404040] dark:text-[#D0D0D0]">
                               Servidor STUN (Público ou Dedicado)
                             </label>
                             <Input
@@ -3318,13 +3318,13 @@ export default function AdminSettingsPage() {
                               value={peerJsStunServer}
                               onChange={(e) => setPeerJsStunServer(e.target.value)}
                             />
-                            <p className="text-[10px] text-slate-400">
+                            <p className="text-[10px] text-[#737373] dark:text-[#A6A6A6]">
                               Utilizado para descoberta de IP reflexivo através de NAT.
                             </p>
                           </div>
 
-                          <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-[#262626]">
-                            <label className="font-semibold text-slate-700 dark:text-slate-300 text-[11px]">
+                          <div className="space-y-2 pt-1 border-t border-[#E5E5E5] dark:border-[#262626]">
+                            <label className="font-semibold text-[#404040] dark:text-[#D0D0D0] text-[11px]">
                               Servidor TURN Opcional (Para NATs Restritivos e Firewalls)
                             </label>
                             <div className="space-y-1">
@@ -3384,7 +3384,7 @@ export default function AdminSettingsPage() {
                       {provider.key === "GOOGLE_MEET" && (
                         <div className="space-y-3">
                           <div className="space-y-1">
-                            <label className="font-medium text-slate-700 dark:text-slate-300">
+                            <label className="font-medium text-[#404040] dark:text-[#D0D0D0]">
                               Client ID Google Cloud (OAuth 2.0)
                             </label>
                             <Input
@@ -3395,7 +3395,7 @@ export default function AdminSettingsPage() {
                           </div>
 
                           <div className="space-y-1">
-                            <label className="font-medium text-slate-700 dark:text-slate-300">
+                            <label className="font-medium text-[#404040] dark:text-[#D0D0D0]">
                               Client Secret Google Cloud
                             </label>
                             <Input
@@ -3404,14 +3404,14 @@ export default function AdminSettingsPage() {
                               value={googleMeetClientSecret}
                               onChange={(e) => setGoogleMeetClientSecret(e.target.value)}
                             />
-                            <p className="text-[10px] text-slate-400">
+                            <p className="text-[10px] text-[#737373] dark:text-[#A6A6A6]">
                               Armazenado com segurança no servidor. Nunca exposto na interface do usuário.
                             </p>
                           </div>
 
                           {/* Caixa de Instruções Google Cloud Console */}
-                          <div className="p-3 bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-[#333333] rounded-xl space-y-2 text-[11px] text-slate-600 dark:text-slate-400">
-                            <div className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                          <div className="p-3 bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] rounded-xl space-y-2 text-[11px] text-[#525252] dark:text-[#A6A6A6]">
+                            <div className="font-semibold text-[#171717] dark:text-[#F5F5F5] flex items-center gap-1.5">
                               <Info className="h-3.5 w-3.5 text-[var(--primary)]" />
                               <span>Passo a passo no Google Cloud Console:</span>
                             </div>
@@ -3421,7 +3421,7 @@ export default function AdminSettingsPage() {
                               <li>Em <em>Tela de consentimento OAuth</em>, configure como <em>Externo</em> e inclua o escopo <code>calendar.events</code>.</li>
                               <li>Em <em>Credenciais</em>, crie um <strong>ID do cliente OAuth</strong> do tipo <em>Aplicativo da Web</em>.</li>
                               <li>Adicione em <strong>URIs de redirecionamento autorizados</strong>:
-                                <div className="mt-1 font-mono text-[10px] bg-white dark:bg-[#1E1E1E] p-1.5 rounded border border-slate-200 dark:border-[#333333] break-all select-all text-[var(--primary)]">
+                                <div className="mt-1 font-mono text-[10px] bg-white dark:bg-[#1E1E1E] p-1.5 rounded border border-[#E5E5E5] dark:border-[#333333] break-all select-all text-[var(--primary)]">
                                   {typeof window !== "undefined" ? `${window.location.origin}/api/admin/integrations/google/callback` : "http://localhost:3000/api/admin/integrations/google/callback"}
                                 </div>
                               </li>
@@ -3581,7 +3581,7 @@ export default function AdminSettingsPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="font-semibold block text-slate-800 dark:text-slate-200">
+                <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">
                   Fuso Horário Padrão do Consultório
                 </label>
                 <select
@@ -3591,7 +3591,7 @@ export default function AdminSettingsPage() {
                     setGeneralFeedback(null);
                     setGeneralError(null);
                   }}
-                  className="w-full rounded-lg border border-slate-300 dark:border-[#333333] bg-white dark:bg-[#141414] px-3 py-2 text-xs"
+                  className="w-full h-10 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3 py-2 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] transition-all shadow-2xs cursor-pointer"
                 >
                   <option value="America/Sao_Paulo">Brasília (America/Sao_Paulo - GMT-3)</option>
                   <option value="America/Manaus">Manaus (America/Manaus - GMT-4)</option>
@@ -3602,7 +3602,7 @@ export default function AdminSettingsPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="font-semibold block text-slate-800 dark:text-slate-200">
+                <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">
                   Antecedência Mínima para Reserva (Horas)
                 </label>
                 <Input
@@ -3618,7 +3618,7 @@ export default function AdminSettingsPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="font-semibold block text-slate-800 dark:text-slate-200">
+                <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">
                   Horizonte Máximo de Agendamento (Dias à frente)
                 </label>
                 <Input
@@ -3634,7 +3634,7 @@ export default function AdminSettingsPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="font-semibold block text-slate-800 dark:text-slate-200">
+                <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">
                   Prazo Limite para Cancelamento sem Penalidade (Dias)
                 </label>
                 <Input
@@ -3647,13 +3647,13 @@ export default function AdminSettingsPage() {
                     setGeneralError(null);
                   }}
                 />
-                <p className="text-[10px] text-slate-400">
+                <p className="text-[10px] text-[#737373] dark:text-[#A6A6A6]">
                   Padrão do contrato terapêutico: 3 dias úteis de antecedência.
                 </p>
               </div>
             </div>
 
-            <div className="flex justify-end pt-3 border-t border-slate-200 dark:border-[#262626]">
+            <div className="flex justify-end pt-3 border-t border-[#E5E5E5] dark:border-[#262626]">
               <Button
                 type="button"
                 onClick={handleSaveGeneralSettings}
@@ -3681,9 +3681,9 @@ export default function AdminSettingsPage() {
             </CardHeader>
 
             <CardContent className="space-y-4 text-xs">
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#141414] border border-slate-200 dark:border-[#333333] space-y-3">
+              <div className="p-4 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  <span className="font-semibold text-[#171717] dark:text-[#F5F5F5]">
                     URL do Endpoint Operacional:
                   </span>
                   <Badge variant="success">Pull Only (GET)</Badge>
@@ -3712,7 +3712,7 @@ export default function AdminSettingsPage() {
                   </Button>
                 </div>
 
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                   O painel externo independente deve enviar o cabeçalho <code>Authorization: Bearer &lt;TOKEN&gt;</code> configurado na variável <code>TECHNICAL_STATUS_BEARER_TOKEN</code>. Nenhum token é exposto nesta URL.
                 </p>
               </div>

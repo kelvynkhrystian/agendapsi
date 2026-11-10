@@ -45,30 +45,31 @@ export function IconPickerModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+      <div className="bg-white dark:bg-[#1A1A1A] border border-[#E5E5E5] dark:border-[#2C2C2C] rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div className="p-4 border-b border-[#E5E5E5] dark:border-[#2C2C2C] flex items-center justify-between">
           <div>
-            <h3 className="font-bold text-sm sm:text-base text-slate-800 dark:text-slate-100">
+            <h3 className="font-bold text-sm sm:text-base text-[#171717] dark:text-[#F5F5F5]">
               Biblioteca de Ícones Integrada
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-[#737373] dark:text-[#A6A6A6]">
               Escolha um ícone compatível com o tema visual global do consultório
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+            aria-label="Fechar biblioteca de ícones"
+            className="p-1.5 rounded-lg bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/25 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:text-[#F5F5F5] dark:hover:bg-[#292929] transition-colors cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Barra de Busca e Categorias */}
-        <div className="p-4 border-b border-slate-100 dark:border-slate-800/80 space-y-3 bg-slate-50/50 dark:bg-slate-900/50">
+        <div className="p-4 border-b border-[#E5E5E5] dark:border-[#2C2C2C] space-y-3 bg-[#F8F8F8] dark:bg-[#141414]">
           <div className="relative">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#737373] dark:text-[#A6A6A6]" />
             <Input
               type="text"
               placeholder="Buscar ícone por nome (ex: coração, cérebro, flor, agenda)..."
@@ -95,7 +96,7 @@ export function IconPickerModal({
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer border ${
                   selectedCategory === cat.id
                     ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] border-transparent shadow-xs"
-                    : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border-[var(--primary)]/25 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700"
+                    : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border-[var(--primary)]/25 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:bg-[#292929] dark:hover:text-[#F5F5F5]"
                 }`}
               >
                 {cat.label}
@@ -119,7 +120,7 @@ export function IconPickerModal({
                 className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-2 text-center transition-all cursor-pointer relative group ${
                   isSelected
                     ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] shadow-xs ring-2 ring-[var(--primary)]/20"
-                    : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300"
+                    : "bg-white border-[#E5E5E5] hover:border-[var(--primary)]/45 hover:bg-[var(--primary)]/[0.03] text-[#404040] dark:bg-[#141414] dark:border-[#2C2C2C] dark:hover:border-[#444444] dark:hover:bg-[#202020] dark:text-[#D0D0D0]"
                 }`}
               >
                 {isSelected && (
@@ -127,7 +128,7 @@ export function IconPickerModal({
                     <Check className="h-2.5 w-2.5" />
                   </div>
                 )}
-                <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:scale-110 transition-transform">
+                <div className="p-2 rounded-lg bg-[#F8F8F8] dark:bg-[#202020] group-hover:scale-110 transition-transform">
                   <ThemeIcon iconName={icon.key} className="h-6 w-6 text-[var(--primary)]" />
                 </div>
                 <span className="text-[10px] font-medium line-clamp-2 leading-tight">
@@ -138,14 +139,14 @@ export function IconPickerModal({
           })}
 
           {filteredIcons.length === 0 && (
-            <div className="col-span-full py-8 text-center text-slate-400 text-xs">
+            <div className="col-span-full py-8 text-center text-[#737373] dark:text-[#A6A6A6] text-xs">
               Nenhum ícone encontrado para a busca &quot;{search}&quot;.
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex justify-end">
+        <div className="p-3 border-t border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#F8F8F8] dark:bg-[#141414] flex justify-end">
           <Button variant="ghost" size="sm" onClick={onClose} className="text-xs">
             Fechar
           </Button>

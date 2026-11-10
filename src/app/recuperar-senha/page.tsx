@@ -49,7 +49,7 @@ export default function RecoverPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between p-4 sm:p-6 bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen flex flex-col justify-between p-4 sm:p-6 bg-[#F8F8F8] dark:bg-[#0C0C0C]">
       <div className="flex justify-between items-center max-w-5xl w-full mx-auto">
         <Link href="/" className="flex items-center gap-2 font-bold text-lg text-[var(--primary)]">
           <Stethoscope className="h-6 w-6" />
@@ -59,7 +59,7 @@ export default function RecoverPasswordPage() {
       </div>
 
       <div className="max-w-md w-full mx-auto my-8">
-        <Card className="border-slate-200 dark:border-slate-800 shadow-md">
+        <Card className="border-[#E5E5E5] dark:border-[#2C2C2C] shadow-md">
           <CardHeader className="text-center space-y-2">
             <div className="mx-auto w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] mb-2">
               <KeyRound className="h-6 w-6" />
@@ -114,7 +114,7 @@ export default function RecoverPasswordPage() {
             <div className="text-center pt-2">
               <Link
                 href="/login"
-                className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[var(--primary)] transition-colors"
+                className="inline-flex items-center gap-1.5 text-sm text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] dark:text-[#D0D0D0] hover:underline transition-colors"
               >
                 <ArrowLeft className="h-4 w-4" />
                 <span>Voltar para o Login</span>
@@ -124,7 +124,7 @@ export default function RecoverPasswordPage() {
         </Card>
       </div>
 
-      <footer className="text-center text-xs text-slate-400 py-4">
+      <footer className="text-center text-xs text-[#737373] dark:text-[#A6A6A6] py-4">
         &copy; {new Date().getFullYear()} PSI — Sistema de Gestão de Consultórios.
       </footer>
     </div>

@@ -103,7 +103,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between p-4 sm:p-6 bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen flex flex-col justify-between p-4 sm:p-6 bg-[#F8F8F8] dark:bg-[#0C0C0C]">
       <div className="flex justify-between items-center max-w-5xl w-full mx-auto">
         <Link href="/" className="flex items-center gap-2 font-bold text-lg text-[var(--primary)]">
           <Stethoscope className="h-6 w-6" />
@@ -113,7 +113,7 @@ export default function RegisterPage() {
       </div>
 
       <div className="max-w-xl w-full mx-auto my-8">
-        <Card className="border-slate-200 dark:border-slate-800 shadow-md">
+        <Card className="border-[#E5E5E5] dark:border-[#2C2C2C] shadow-md">
           <CardHeader className="text-center space-y-2">
             <div className="mx-auto w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] mb-2">
               <UserCheck className="h-6 w-6" />
@@ -180,11 +180,11 @@ export default function RegisterPage() {
                 />
 
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  <label className="block text-sm font-medium text-[#404040] dark:text-[#E5E5E5]">
                     Gênero
                   </label>
                   <select
-                    className="flex h-10 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+                    className="flex h-10 w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3 py-2 text-sm text-[#171717] dark:text-[#F5F5F5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
                     value={gender}
                     onChange={(e) => setGender(e.target.value)}
                   >
@@ -199,15 +199,15 @@ export default function RegisterPage() {
               </div>
 
               {/* Toggle de Menor de Idade */}
-              <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+              <div className="pt-2 border-t border-[#E5E5E5] dark:border-[#2C2C2C]">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={isMinor}
                     onChange={(e) => setIsMinor(e.target.checked)}
-                    className="rounded border-slate-300 accent-[var(--primary)] h-4 w-4"
+                    className="rounded border-[#CCCCCC] dark:border-[#525252] accent-[var(--primary)] h-4 w-4"
                   />
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  <span className="text-sm font-medium text-[#404040] dark:text-[#E5E5E5]">
                     O paciente é menor de 18 anos
                   </span>
                 </label>
@@ -253,11 +253,11 @@ export default function RegisterPage() {
                       onChange={(e) => setGuardianEmail(e.target.value)}
                     />
                     <div className="space-y-1.5">
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                      <label className="block text-sm font-medium text-[#404040] dark:text-[#E5E5E5]">
                         Grau de Parentesco *
                       </label>
                       <select
-                        className="flex h-10 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
+                        className="flex h-10 w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3 py-2 text-sm text-[#171717] dark:text-[#F5F5F5]"
                         value={guardianRelationship}
                         onChange={(e) => setGuardianRelationship(e.target.value)}
                       >
@@ -273,12 +273,12 @@ export default function RegisterPage() {
 
               {/* Termos e LGPD */}
               <div className="pt-2">
-                <label className="flex items-start gap-2.5 cursor-pointer text-xs text-slate-600 dark:text-slate-400">
+                <label className="flex items-start gap-2.5 cursor-pointer text-xs text-[#525252] dark:text-[#A6A6A6]">
                   <input
                     type="checkbox"
                     checked={acceptTerms}
                     onChange={(e) => setAcceptTerms(e.target.checked)}
-                    className="mt-0.5 rounded border-slate-300 accent-[var(--primary)] h-4 w-4"
+                    className="mt-0.5 rounded border-[#CCCCCC] dark:border-[#525252] accent-[var(--primary)] h-4 w-4"
                   />
                   <span>
                     Concordo com os{" "}
@@ -304,7 +304,7 @@ export default function RegisterPage() {
               </Button>
             </form>
 
-            <div className="text-center text-sm text-slate-500 pt-2">
+            <div className="text-center text-sm text-[#737373] dark:text-[#A6A6A6] pt-2">
               Já possui uma conta?{" "}
               <Link href="/login" className="text-[var(--primary)] font-semibold hover:underline">
                 Fazer Login
@@ -314,7 +314,7 @@ export default function RegisterPage() {
         </Card>
       </div>
 
-      <footer className="text-center text-xs text-slate-400 py-4">
+      <footer className="text-center text-xs text-[#737373] dark:text-[#A6A6A6] py-4">
         &copy; {new Date().getFullYear()} PSI — Sistema de Gestão de Consultórios.
       </footer>
     </div>

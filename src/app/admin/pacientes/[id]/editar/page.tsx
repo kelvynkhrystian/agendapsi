@@ -183,8 +183,8 @@ export default function AdminEditarPacientePage({
   if (isLoading) {
     return (
       <div className="space-y-4 max-w-4xl mx-auto py-8">
-        <div className="h-8 w-48 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
-        <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-2xl animate-pulse" />
+        <div className="h-8 w-48 bg-[#E5E5E5] dark:bg-[#242424] rounded-xl animate-pulse" />
+        <div className="h-64 bg-[#E5E5E5] dark:bg-[#242424] rounded-2xl animate-pulse" />
       </div>
     );
   }
@@ -193,7 +193,7 @@ export default function AdminEditarPacientePage({
     return (
       <div className="max-w-2xl mx-auto py-12 text-center space-y-4">
         <h2 className="text-xl font-bold">Paciente não encontrado</h2>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-[#737373] dark:text-[#A6A6A6]">
           O registro solicitado não existe ou você não possui autorização para visualizá-lo.
         </p>
         <Link href="/admin/pacientes">
@@ -213,13 +213,13 @@ export default function AdminEditarPacientePage({
             variant="ghost"
             size="sm"
             onClick={handleCancel}
-            className="gap-1.5 text-xs text-[#737373] hover:text-[#171717] dark:text-[#A6A6A6] dark:hover:text-[#F5F5F5]"
+            className="gap-1.5 text-xs"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Voltar para a Ficha do Paciente</span>
           </Button>
 
-          <span className="text-slate-300 dark:text-slate-700">|</span>
+          <span className="text-[#D4D4D4] dark:text-[#404040]">|</span>
 
           <nav className="text-xs text-[#737373] dark:text-[#A6A6A6] flex items-center gap-1.5 truncate">
             <Link href="/admin/pacientes" className="hover:underline">

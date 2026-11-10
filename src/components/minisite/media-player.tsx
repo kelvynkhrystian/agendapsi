@@ -507,11 +507,11 @@ export function MiniSiteMediaPlayer({
       {/* 4. PLACEHOLDER NEUTRO QUANDO SEM MÍDIA CONFIGURADA */}
       {!mediaUrl && (!frames || frames.length === 0) ? (
         previewMode ? (
-          <div className="w-full h-full flex flex-col items-center justify-center p-5 text-center space-y-2 text-slate-400">
+          <div className="w-full h-full flex flex-col items-center justify-center p-5 text-center space-y-2 text-[#737373] dark:text-[#A6A6A6]">
             <div className="w-11 h-11 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] text-xl font-serif">
               Ψ
             </div>
-            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+            <span className="text-xs font-medium text-[#737373] dark:text-[#A6A6A6]">
               {slot === "hero_mobile"
                 ? "Sem mídia exclusiva (usa o Hero Desktop)"
                 : "Nenhuma mídia enviada"}

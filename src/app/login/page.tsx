@@ -46,7 +46,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between p-4 sm:p-6 bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen flex flex-col justify-between p-4 sm:p-6 bg-[#F8F8F8] dark:bg-[#0C0C0C]">
       <div className="flex justify-between items-center max-w-5xl w-full mx-auto">
         <Link href="/" className="flex items-center gap-2 font-bold text-lg text-[var(--primary)]">
           <Stethoscope className="h-6 w-6" />
@@ -56,7 +56,7 @@ export default function LoginPage() {
       </div>
 
       <div className="max-w-md w-full mx-auto my-8">
-        <Card className="border-slate-200 dark:border-slate-800 shadow-md">
+        <Card className="border-[#E5E5E5] dark:border-[#2C2C2C] shadow-md">
           <CardHeader className="text-center space-y-2">
             <div className="mx-auto w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] mb-2">
               <ShieldCheck className="h-6 w-6" />
@@ -113,10 +113,10 @@ export default function LoginPage() {
 
             <div className="relative my-4">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-slate-200 dark:border-slate-800" />
+                <span className="w-full border-t border-[#E5E5E5] dark:border-[#2C2C2C]" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white dark:bg-slate-900 px-2 text-slate-500">
+                <span className="bg-white dark:bg-[#1A1A1A] px-2 text-[#737373] dark:text-[#A6A6A6]">
                   Primeira vez aqui?
                 </span>
               </div>
@@ -133,12 +133,12 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        <p className="text-center text-xs text-slate-500 dark:text-slate-400 mt-6">
+        <p className="text-center text-xs text-[#737373] dark:text-[#A6A6A6] mt-6">
           Ambiente em conformidade com as diretrizes do CFP e LGPD.
         </p>
       </div>
 
-      <footer className="text-center text-xs text-slate-400 py-4">
+      <footer className="text-center text-xs text-[#737373] dark:text-[#A6A6A6] py-4">
         &copy; {new Date().getFullYear()} PSI — Sistema de Gestão de Consultórios. Todos os direitos reservados.
       </footer>
     </div>

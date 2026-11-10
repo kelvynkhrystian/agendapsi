@@ -305,7 +305,7 @@ export default function PeerJsRoom({
   };
 
   return (
-    <div className="w-full h-[82vh] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-2xl bg-slate-950 relative flex flex-col">
+    <div className="w-full h-[82vh] rounded-2xl overflow-hidden border border-[#E5E5E5] dark:border-[#2C2C2C] shadow-2xl bg-[#0C0C0C] relative flex flex-col">
       {/* Top Bar com Status */}
       <div className="absolute top-0 left-0 right-0 z-20 p-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent flex items-center justify-between text-white">
         <div className="flex items-center gap-2">
@@ -331,19 +331,19 @@ export default function PeerJsRoom({
               ? "Erro de Conexão"
               : "Iniciando"}
           </Badge>
-          <span className="text-xs text-slate-300 hidden sm:inline">
+          <span className="text-xs text-[#D0D0D0] hidden sm:inline">
             {config.role === "doctor" ? `Paciente: ${patientName}` : `Profissional: ${professionalName}`}
           </span>
         </div>
 
-        <div className="flex items-center gap-2 text-[11px] text-slate-300">
+        <div className="flex items-center gap-2 text-[11px] text-[#D0D0D0]">
           <ShieldCheck className="h-3.5 w-3.5 text-[var(--primary)]" />
           <span className="hidden sm:inline">Sem gravação no servidor</span>
         </div>
       </div>
 
       {/* Main Video Viewport (Remote Peer) */}
-      <div className="flex-1 relative flex items-center justify-center bg-slate-950 overflow-hidden">
+      <div className="flex-1 relative flex items-center justify-center bg-[#0C0C0C] overflow-hidden">
         {status === "CONNECTED" ? (
           <video
             ref={remoteVideoRef}
@@ -359,12 +359,12 @@ export default function PeerJsRoom({
                   <AlertTriangle className="h-8 w-8" />
                 </div>
                 <h3 className="text-base font-semibold text-white">Falha na Conexão WebRTC</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">{errorMessage}</p>
+                <p className="text-xs text-[#A6A6A6] leading-relaxed">{errorMessage}</p>
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => window.location.reload()}
-                  className="gap-2 text-xs border-slate-700 text-white hover:bg-slate-800"
+                  className="gap-2 text-xs !bg-[#1A1A1A] !border-[#393939] !text-white hover:!bg-[#262626]"
                 >
                   <RefreshCw className="h-3.5 w-3.5" />
                   <span>Tentar Novamente</span>
@@ -376,7 +376,7 @@ export default function PeerJsRoom({
                   <User className="h-8 w-8 animate-pulse" />
                 </div>
                 <h3 className="text-base font-semibold text-white">{statusMessage}</h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-[#A6A6A6]">
                   {config.role === "doctor"
                     ? `A sala permanecerá aberta até o paciente conectar.`
                     : `Seu profissional de saúde se conectará em instantes.`}
@@ -386,7 +386,7 @@ export default function PeerJsRoom({
                     size="sm"
                     variant="outline"
                     onClick={tryCallTargetPeer}
-                    className="gap-2 text-xs border-slate-800 text-slate-300 hover:bg-slate-800/60"
+                    className="gap-2 text-xs !bg-[#1A1A1A] !border-[#393939] !text-[#F5F5F5] hover:!bg-[#262626]"
                   >
                     <RefreshCw className="h-3 w-3" />
                     <span>Reconectar Sinalização</span>
@@ -398,7 +398,7 @@ export default function PeerJsRoom({
         )}
 
         {/* Local Self-View PiP (Picture in Picture) */}
-        <div className="absolute bottom-20 right-4 z-20 w-32 h-24 sm:w-48 sm:h-36 rounded-xl overflow-hidden border-2 border-[var(--primary)]/60 shadow-xl bg-slate-900">
+        <div className="absolute bottom-20 right-4 z-20 w-32 h-24 sm:w-48 sm:h-36 rounded-xl overflow-hidden border-2 border-[var(--primary)]/60 shadow-xl bg-[#141414]">
           <video
             ref={localVideoRef}
             autoPlay
@@ -409,7 +409,7 @@ export default function PeerJsRoom({
             }`}
           />
           {!isVideoEnabled && (
-            <div className="absolute inset-0 flex items-center justify-center bg-slate-800 text-slate-400">
+            <div className="absolute inset-0 flex items-center justify-center bg-[#1A1A1A] text-[#A6A6A6]">
               <VideoOff className="h-6 w-6" />
             </div>
           )}
@@ -420,7 +420,7 @@ export default function PeerJsRoom({
       </div>
 
       {/* Bottom Controls Bar */}
-      <div className="p-3 bg-slate-900 border-t border-slate-800 flex items-center justify-between z-20">
+      <div className="p-3 bg-[#141414] border-t border-[#2C2C2C] flex items-center justify-between z-20">
         <div className="flex items-center gap-2">
           {/* Microfone */}
           <Button
@@ -428,7 +428,7 @@ export default function PeerJsRoom({
             variant={isAudioEnabled ? "outline" : "destructive"}
             onClick={toggleAudio}
             className={`h-9 px-3 gap-2 text-xs rounded-full ${
-              isAudioEnabled ? "border-slate-700 text-white hover:bg-slate-800" : ""
+              isAudioEnabled ? "!bg-[#202020] !border-[#393939] !text-white hover:!bg-[#292929]" : ""
             }`}
           >
             {isAudioEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
@@ -441,7 +441,7 @@ export default function PeerJsRoom({
             variant={isVideoEnabled ? "outline" : "destructive"}
             onClick={toggleVideo}
             className={`h-9 px-3 gap-2 text-xs rounded-full ${
-              isVideoEnabled ? "border-slate-700 text-white hover:bg-slate-800" : ""
+              isVideoEnabled ? "!bg-[#202020] !border-[#393939] !text-white hover:!bg-[#292929]" : ""
             }`}
           >
             {isVideoEnabled ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}

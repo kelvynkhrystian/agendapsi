@@ -693,8 +693,8 @@ export default function AdminPatientDetailPage({
   if (isLoading || !patient) {
     return (
       <div className="space-y-4">
-        <div className="h-8 w-48 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-        <div className="h-40 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+        <div className="h-8 w-48 bg-[#E5E5E5] dark:bg-[#242424] rounded animate-pulse" />
+        <div className="h-40 bg-[#E5E5E5] dark:bg-[#242424] rounded-xl animate-pulse" />
       </div>
     );
   }
@@ -708,9 +708,9 @@ export default function AdminPatientDetailPage({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <Link
           href="/admin/pacientes"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[var(--primary)] transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[var(--primary)]/25 text-xs font-semibold text-[var(--button-outline-fg,var(--primary))] hover:border-[var(--primary)]/60 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1A1A1A] dark:border-[#2C2C2C] dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5] transition-colors w-fit"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4 text-current" />
           <span>Voltar para Lista de Pacientes</span>
         </Link>
 
@@ -771,7 +771,7 @@ export default function AdminPatientDetailPage({
                   {patient.isMinor && <Badge variant="warning">Menor de Idade</Badge>}
                   {!patient.isActive && <Badge variant="destructive">Inativo</Badge>}
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-[#737373] dark:text-[#A6A6A6] mt-1">
                   {patient.email} • {patient.phone} • Cadastrado em {formatDate(patient.createdAt)}
                 </p>
               </div>
@@ -801,13 +801,13 @@ export default function AdminPatientDetailPage({
             {pendingChanges.map((change) => (
               <div
                 key={change.id}
-                className="flex items-center justify-between p-2 rounded-lg bg-white dark:bg-slate-900 border border-amber-200 text-xs"
+                className="flex items-center justify-between p-2 rounded-lg bg-white dark:bg-[#1A1A1A] border border-amber-200 dark:border-amber-800/60 text-xs"
               >
                 <div>
                   <span className="font-semibold capitalize">Campo: {change.field}</span>
-                  <div className="text-slate-500">
+                  <div className="text-[#737373] dark:text-[#A6A6A6]">
                     De: <span className="line-through">{change.oldValue || "(vazio)"}</span> ➜ Para:{" "}
-                    <strong className="text-slate-900 dark:text-slate-100">{change.newValue}</strong>
+                    <strong className="text-[#171717] dark:text-[#F5F5F5]">{change.newValue}</strong>
                   </div>
                 </div>
                 <div className="flex gap-1.5">
@@ -836,7 +836,7 @@ export default function AdminPatientDetailPage({
       )}
 
       {/* Navegação por Abas Internas */}
-      <div className="border-b border-slate-200 dark:border-slate-800 flex gap-1 overflow-x-auto">
+      <div className="inline-flex flex-wrap items-center gap-1.5 rounded-2xl bg-[#F4F4F5] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] p-1.5 max-w-full overflow-x-auto text-xs font-medium">
         {[
           { key: "overview", label: "Visão Geral", icon: User },
           { key: "records", label: "Prontuário Clínico", icon: FileText, count: patient.clinicalRecords.length },
@@ -850,17 +850,24 @@ export default function AdminPatientDetailPage({
           return (
             <button
               key={tab.key}
+              type="button"
               onClick={() => setActiveTab(tab.key as typeof activeTab)}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all whitespace-nowrap shrink-0 cursor-pointer ${
                 isActive
-                  ? "border-[var(--primary)] text-[var(--primary)] font-bold"
-                  : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-100"
+                  ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
+                  : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1C1C1C] dark:border-transparent dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5]"
               }`}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-4 w-4 text-current shrink-0" />
               <span>{tab.label}</span>
               {typeof tab.count === "number" && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
+                    isActive
+                      ? "bg-white/20 text-white"
+                      : "bg-[var(--primary)]/10 text-[var(--button-outline-fg,var(--primary))] dark:bg-[#292929] dark:text-[#D0D0D0]"
+                  }`}
+                >
                   {tab.count}
                 </span>
               )}
@@ -876,37 +883,37 @@ export default function AdminPatientDetailPage({
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
               <CardTitle className="text-base">Dados Cadastrais do Paciente</CardTitle>
               <Link href={`/admin/pacientes/${patient.id}/editar`}>
-                <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-[var(--primary)] hover:text-[var(--primary)]">
+                <Button variant="outline" size="sm" className="gap-1.5 text-xs">
                   <Pencil className="h-3.5 w-3.5" />
                   <span>Editar</span>
                 </Button>
               </Link>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="grid grid-cols-2 gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-                <span className="text-slate-500">Nome:</span>
+              <div className="grid grid-cols-2 gap-2 pb-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
+                <span className="text-[#737373] dark:text-[#A6A6A6]">Nome:</span>
                 <span className="font-semibold">{patient.fullName}</span>
               </div>
-              <div className="grid grid-cols-2 gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-                <span className="text-slate-500">E-mail:</span>
+              <div className="grid grid-cols-2 gap-2 pb-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
+                <span className="text-[#737373] dark:text-[#A6A6A6]">E-mail:</span>
                 <span className="font-semibold">{patient.email}</span>
               </div>
-              <div className="grid grid-cols-2 gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-                <span className="text-slate-500">Telefone:</span>
+              <div className="grid grid-cols-2 gap-2 pb-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
+                <span className="text-[#737373] dark:text-[#A6A6A6]">Telefone:</span>
                 <span className="font-semibold">{patient.phone}</span>
               </div>
-              <div className="grid grid-cols-2 gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-                <span className="text-slate-500">CPF:</span>
+              <div className="grid grid-cols-2 gap-2 pb-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
+                <span className="text-[#737373] dark:text-[#A6A6A6]">CPF:</span>
                 <span className="font-semibold">{patient.cpf || "Não informado"}</span>
               </div>
-              <div className="grid grid-cols-2 gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-                <span className="text-slate-500">Data de Nasc.:</span>
+              <div className="grid grid-cols-2 gap-2 pb-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
+                <span className="text-[#737373] dark:text-[#A6A6A6]">Data de Nasc.:</span>
                 <span className="font-semibold">
                   {patient.birthDate ? formatDate(patient.birthDate) : "Não informada"}
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <span className="text-slate-500">Gênero:</span>
+                <span className="text-[#737373] dark:text-[#A6A6A6]">Gênero:</span>
                 <span className="font-semibold">{patient.gender || "Não informado"}</span>
               </div>
             </CardContent>
@@ -916,10 +923,10 @@ export default function AdminPatientDetailPage({
             <CardHeader>
               <CardTitle className="text-base">Sigilo e Guarda de Prontuário</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-xs text-slate-500">
-              <div className="p-3 bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-xl space-y-2 text-slate-800 dark:text-[#F5F5F5]">
+            <CardContent className="space-y-3 text-xs text-[#737373] dark:text-[#A6A6A6]">
+              <div className="p-3 bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-xl space-y-2 text-[#171717] dark:text-[#F5F5F5]">
                 <div className="flex items-center gap-2 font-semibold">
-                  <ShieldCheck className="h-4 w-4" />
+                  <ShieldCheck className="h-4 w-4 text-[var(--primary)]" />
                   <span>Área Privativa e Sigilosa (CFP & CFM)</span>
                 </div>
                 <p>
@@ -936,8 +943,8 @@ export default function AdminPatientDetailPage({
 
       {/* 2. PRONTUÁRIO CLÍNICO (PRIVADO DO CLIENTE) */}
       {activeTab === "records" && (
-        <Card className="border-slate-200 dark:border-[#444444] shadow-xs">
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+        <Card className="border-[#E5E5E5] dark:border-[#2C2C2C] shadow-xs">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
             <div>
               <div className="flex items-center gap-2">
                 <CardTitle className="text-base font-bold">Prontuário & Evolução Clínica</CardTitle>
@@ -970,12 +977,12 @@ export default function AdminPatientDetailPage({
                   return (
                     <Card
                       key={record.id}
-                      className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-xs"
+                      className="border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#141414] shadow-xs"
                     >
                       <CardHeader className="flex flex-row items-start justify-between pb-3">
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-sm text-slate-900 dark:text-slate-100">
+                            <span className="font-bold text-sm text-[#171717] dark:text-[#F5F5F5]">
                               Sessão em {formatDate(record.sessionDate)} às {formatTime(record.sessionDate)}
                             </span>
                             {record.appointment && (
@@ -985,7 +992,7 @@ export default function AdminPatientDetailPage({
                             )}
                           </div>
                           {record.summary && (
-                            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-1">
+                            <p className="text-xs text-[#525252] dark:text-[#A6A6A6] font-medium mt-1">
                               Resumo: {record.summary}
                             </p>
                           )}
@@ -1014,22 +1021,23 @@ export default function AdminPatientDetailPage({
 
                       <CardContent className="space-y-3 pt-0 text-xs">
                         <div
-                          className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 leading-relaxed"
+                          className="p-4 rounded-xl bg-[#F8F8F8] dark:bg-[#1B1B1B] border border-[#E5E5E5] dark:border-[#2C2C2C] prose dark:prose-invert max-w-none text-[#404040] dark:text-[#D0D0D0] leading-relaxed"
                           dangerouslySetInnerHTML={{ __html: record.noteRichText }}
                         />
 
                         {record.revisions && record.revisions.length > 0 && (
-                          <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-400">
+                          <div className="flex items-center justify-between pt-2 border-t border-[#E5E5E5] dark:border-[#2C2C2C] text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                             <div className="flex items-center gap-1.5">
                               <History className="h-3.5 w-3.5" />
                               <span>{record.revisions.length} revisão(ões) anterior(es) registrada(s)</span>
                             </div>
                             <button
+                              type="button"
                               onClick={() => {
                                 setViewingRecord(record);
                                 setIsRevisionsModalOpen(true);
                               }}
-                              className="text-[var(--primary)] hover:underline cursor-pointer"
+                              className="font-semibold text-[var(--button-outline-fg,var(--primary))] dark:text-[var(--dark-accent-vivid,var(--primary))] hover:underline cursor-pointer"
                             >
                               Ver histórico completo
                             </button>
@@ -1041,15 +1049,15 @@ export default function AdminPatientDetailPage({
                 })}
               </div>
             ) : (
-              <div className="p-12 text-center text-slate-500 space-y-3">
-                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
+              <div className="p-12 text-center text-[#737373] dark:text-[#A6A6A6] space-y-3">
+                <div className="w-12 h-12 rounded-full bg-[#F4F4F5] dark:bg-[#202020] flex items-center justify-center mx-auto text-[#737373] dark:text-[#A6A6A6]">
                   <FileText className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-800 dark:text-slate-200">
+                  <p className="font-semibold text-[#171717] dark:text-[#F5F5F5]">
                     Nenhum prontuário registrado para este paciente.
                   </p>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-[#737373] dark:text-[#A6A6A6] mt-1">
                     Os apontamentos clínicos são confidenciais e cadastrados privadamente por aqui.
                   </p>
                 </div>
@@ -1069,8 +1077,8 @@ export default function AdminPatientDetailPage({
 
       {/* 3. ANAMNESE (TASK 5 & 6) */}
       {activeTab === "anamnesis" && (
-        <Card className="border-slate-200 dark:border-slate-800 shadow-xs">
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+        <Card className="border-[#E5E5E5] dark:border-[#2C2C2C] shadow-xs">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
             <div>
               <CardTitle className="text-base font-bold">Fichas de Anamnese do Paciente</CardTitle>
               <CardDescription className="text-xs">
@@ -1081,7 +1089,7 @@ export default function AdminPatientDetailPage({
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 text-xs text-amber-700 dark:text-amber-300 border-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/50 cursor-pointer"
+                className="gap-1.5 text-xs text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-600/40 hover:bg-amber-50 dark:hover:bg-amber-950/40 cursor-pointer"
                 onClick={() => setIsResetAnamnesisModalOpen(true)}
               >
                 <RotateCcw className="h-3.5 w-3.5" />
@@ -1095,16 +1103,16 @@ export default function AdminPatientDetailPage({
                 {patient.anamnesisSubmits.map((sub) => (
                   <div
                     key={sub.id}
-                    className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:border-[var(--primary)]/50 transition-colors"
+                    className="p-4 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#141414] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:border-[var(--primary)]/50 transition-colors"
                   >
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-slate-900 dark:text-slate-100">
+                        <span className="font-bold text-sm text-[#171717] dark:text-[#F5F5F5]">
                           {sub.template.title}
                         </span>
                         {getAnamnesisStatusBadge(sub.status)}
                       </div>
-                      <div className="text-slate-500 mt-1 flex items-center gap-2">
+                      <div className="text-[#737373] dark:text-[#A6A6A6] mt-1 flex items-center gap-2">
                         <span>Enviada em {formatDate(sub.createdAt)} às {formatTime(sub.createdAt)}</span>
                         {sub.reviewedAt && (
                           <>
@@ -1129,19 +1137,19 @@ export default function AdminPatientDetailPage({
                         setIsViewAnamnesisModalOpen(true);
                       }}
                     >
-                      <Eye className="h-3.5 w-3.5 text-[var(--primary)]" />
+                      <Eye className="h-3.5 w-3.5 text-current" />
                       <span>Visualizar respostas</span>
                     </Button>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="p-12 text-center text-slate-500 space-y-2">
-                <ClipboardList className="h-8 w-8 mx-auto text-slate-400" />
-                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+              <div className="p-12 text-center text-[#737373] dark:text-[#A6A6A6] space-y-2">
+                <ClipboardList className="h-8 w-8 mx-auto text-[#737373] dark:text-[#A6A6A6]" />
+                <p className="text-sm font-semibold text-[#171717] dark:text-[#F5F5F5]">
                   Nenhuma anamnese preenchida até o momento.
                 </p>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-[#737373] dark:text-[#A6A6A6]">
                   Quando o paciente responder à ficha de anamnese na Área do Paciente, ela aparecerá aqui para sua revisão.
                 </p>
               </div>
@@ -1158,14 +1166,14 @@ export default function AdminPatientDetailPage({
           </CardHeader>
           <CardContent>
             {patient.appointments.length > 0 ? (
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              <div className="divide-y divide-[#E5E5E5] dark:divide-[#2C2C2C]">
                 {patient.appointments.map((appt) => (
                   <div key={appt.id} className="py-3 flex items-center justify-between text-xs">
                     <div>
-                      <span className="font-bold text-sm block">
+                      <span className="font-bold text-sm block text-[#171717] dark:text-[#F5F5F5]">
                         {formatDate(appt.startAt)} às {formatTime(appt.startAt)}
                       </span>
-                      <span className="text-slate-500">
+                      <span className="text-[#737373] dark:text-[#A6A6A6]">
                         {appt.service.name} • {formatModality(appt.modality)}
                       </span>
                     </div>
@@ -1184,7 +1192,7 @@ export default function AdminPatientDetailPage({
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-slate-500 py-8 text-center">
+              <p className="text-xs text-[#737373] dark:text-[#A6A6A6] py-8 text-center">
                 Nenhum agendamento registrado.
               </p>
             )}
@@ -1194,8 +1202,8 @@ export default function AdminPatientDetailPage({
 
       {/* 5. DOCUMENTOS COMPARTILHADOS (TASK 2 & 3) */}
       {activeTab === "documents" && (
-        <Card className="border-slate-200 dark:border-slate-800 shadow-xs">
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+        <Card className="border-[#E5E5E5] dark:border-[#2C2C2C] shadow-xs">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
             <div>
               <CardTitle className="text-base font-bold flex items-center gap-2">
                 <FolderLock className="h-4 w-4 text-[var(--primary)]" />
@@ -1227,14 +1235,14 @@ export default function AdminPatientDetailPage({
                   return (
                     <div
                       key={share.id}
-                      className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
+                      className="p-4 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#141414] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:border-[#D0D0D0] dark:hover:border-[#404040] transition-colors"
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-bold text-sm text-slate-900 dark:text-slate-100">
+                          <span className="font-bold text-sm text-[#171717] dark:text-[#F5F5F5]">
                             {share.file.title || share.file.originalName}
                           </span>
-                          <span className="text-[11px] text-slate-400 font-mono">
+                          <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6] font-mono">
                             ({share.file.originalName})
                           </span>
 
@@ -1250,12 +1258,12 @@ export default function AdminPatientDetailPage({
                         </div>
 
                         {share.file.description && (
-                          <p className="text-xs text-slate-600 dark:text-slate-400">
+                          <p className="text-xs text-[#525252] dark:text-[#A6A6A6]">
                             {share.file.description}
                           </p>
                         )}
 
-                        <div className="text-slate-500 text-[11px] flex flex-wrap items-center gap-2 pt-0.5">
+                        <div className="text-[#737373] dark:text-[#A6A6A6] text-[11px] flex flex-wrap items-center gap-2 pt-0.5">
                           <span>Liberado em {formatDate(share.sharedAt)}</span>
                           <span>•</span>
                           <span>Tamanho: {(share.file.sizeBytes / 1024).toFixed(1)} KB</span>
@@ -1300,7 +1308,7 @@ export default function AdminPatientDetailPage({
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-7 text-xs text-[var(--primary)] border-[var(--primary)]/30 hover:bg-[var(--primary)]/10 cursor-pointer"
+                            className="h-7 text-xs text-[var(--button-outline-fg,var(--primary))] border-[var(--primary)]/30 hover:bg-[var(--primary)]/10 cursor-pointer"
                             onClick={() => handleReactivateShare(share.id)}
                           >
                             Reativar (+30d)
@@ -1323,13 +1331,13 @@ export default function AdminPatientDetailPage({
                 })}
               </div>
             ) : (
-              <div className="p-12 text-center text-slate-500 space-y-3">
-                <FolderLock className="h-8 w-8 mx-auto text-slate-400" />
+              <div className="p-12 text-center text-[#737373] dark:text-[#A6A6A6] space-y-3">
+                <FolderLock className="h-8 w-8 mx-auto text-[#737373] dark:text-[#A6A6A6]" />
                 <div>
-                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                  <p className="text-sm font-semibold text-[#171717] dark:text-[#F5F5F5]">
                     Nenhum documento compartilhado com este paciente.
                   </p>
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="text-xs text-[#737373] dark:text-[#A6A6A6] mt-1">
                     Utilize o botão acima para enviar relatórios, atestados ou declarações diretamente para a Área do Paciente.
                   </p>
                 </div>
@@ -1355,14 +1363,14 @@ export default function AdminPatientDetailPage({
           </CardHeader>
           <CardContent>
             {patient.payments.length > 0 ? (
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              <div className="divide-y divide-[#E5E5E5] dark:divide-[#2C2C2C]">
                 {patient.payments.map((p) => (
                   <div key={p.id} className="py-3 flex items-center justify-between text-xs">
                     <div>
-                      <span className="font-bold text-sm block">
+                      <span className="font-bold text-sm block text-[#171717] dark:text-[#F5F5F5]">
                         {formatBRL(p.amountCents)}
                       </span>
-                      <span className="text-slate-500">
+                      <span className="text-[#737373] dark:text-[#A6A6A6]">
                         {formatPaymentMethod(p.method)} • {formatDate(p.createdAt)}
                       </span>
                     </div>
@@ -1376,7 +1384,7 @@ export default function AdminPatientDetailPage({
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-slate-500 py-8 text-center">
+              <p className="text-xs text-[#737373] dark:text-[#A6A6A6] py-8 text-center">
                 Nenhum pagamento registrado.
               </p>
             )}
@@ -1395,7 +1403,7 @@ export default function AdminPatientDetailPage({
         <form onSubmit={handleCreateRecord} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+              <label className="text-xs font-semibold text-[#404040] dark:text-[#E5E5E5] block mb-1">
                 Data e Horário da Sessão:
               </label>
               <Input
@@ -1407,11 +1415,11 @@ export default function AdminPatientDetailPage({
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+              <label className="text-xs font-semibold text-[#404040] dark:text-[#E5E5E5] block mb-1">
                 Vincular a Consulta (Opcional):
               </label>
               <select
-                className="flex h-10 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs"
+                className="flex h-10 w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3 py-2 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] transition-all shadow-2xs"
                 value={selectedAppointmentId}
                 onChange={(e) => setSelectedAppointmentId(e.target.value)}
               >
@@ -1427,7 +1435,7 @@ export default function AdminPatientDetailPage({
 
           {/* Escala de Humor */}
           <div>
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1.5">
+            <label className="text-xs font-semibold text-[#404040] dark:text-[#E5E5E5] block mb-1.5">
               Escala de Humor / Estado Geral do Paciente (1 a 10):
             </label>
             <div className="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
@@ -1440,7 +1448,7 @@ export default function AdminPatientDetailPage({
                   className={`p-2 rounded-xl text-center border transition-all cursor-pointer ${
                     newMood === m.val
                       ? "border-[var(--primary)] bg-[var(--primary)]/10 font-bold text-[var(--primary)] ring-2 ring-[var(--primary)]/30"
-                      : "border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800"
+                      : "border-[#E5E5E5] bg-white hover:border-[var(--primary)]/40 hover:bg-[var(--primary)]/[0.04] dark:border-[#333333] dark:bg-[#1A1A1A] dark:hover:bg-[#242424]"
                   }`}
                 >
                   <div className="text-base">{m.emoji}</div>
@@ -1452,7 +1460,7 @@ export default function AdminPatientDetailPage({
 
           {/* Modelos Rápidos */}
           <div>
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mb-1.5">
+            <div className="flex items-center gap-1.5 text-xs text-[#737373] dark:text-[#A6A6A6] font-medium mb-1.5">
               <Sparkles className="h-3.5 w-3.5 text-[var(--primary)]" />
               <span>Inserir Modelo Clínico Rápido:</span>
             </div>
@@ -1540,7 +1548,7 @@ export default function AdminPatientDetailPage({
           </div>
 
           {editingRecord && (
-            <div className="text-xs text-slate-500">
+            <div className="text-xs text-[#737373] dark:text-[#A6A6A6]">
               Sessão realizada em: <strong>{formatDate(editingRecord.sessionDate)}</strong>
             </div>
           )}
@@ -1559,7 +1567,7 @@ export default function AdminPatientDetailPage({
                   className={`p-2 rounded-xl text-center border transition-all cursor-pointer ${
                     editMood === m.val
                       ? "border-[var(--primary)] bg-[var(--primary)]/10 font-bold text-[var(--primary)] ring-2 ring-[var(--primary)]/30"
-                      : "border-[#E5E5E5] dark:border-[#333333] hover:bg-[#F5F5F5] dark:hover:bg-[#242424]"
+                      : "border-[#E5E5E5] bg-white hover:border-[var(--primary)]/40 hover:bg-[var(--primary)]/[0.04] dark:border-[#333333] dark:bg-[#1A1A1A] dark:hover:bg-[#242424]"
                   }`}
                 >
                   <div className="text-base">{m.emoji}</div>
@@ -1632,9 +1640,9 @@ export default function AdminPatientDetailPage({
             viewingRecord.revisions.map((rev, idx) => (
               <div
                 key={rev.id}
-                className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 space-y-2 text-xs"
+                className="p-4 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#F8F8F8] dark:bg-[#141414] space-y-2 text-xs"
               >
-                <div className="flex items-center justify-between font-semibold text-slate-700 dark:text-slate-300">
+                <div className="flex items-center justify-between font-semibold text-[#404040] dark:text-[#D0D0D0]">
                   <span>
                     Versão #{viewingRecord.revisions!.length - idx} arquivada em {formatDate(rev.revisedAt)} às {formatTime(rev.revisedAt)}
                   </span>
@@ -1643,13 +1651,13 @@ export default function AdminPatientDetailPage({
                   )}
                 </div>
                 <div
-                  className="p-3 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 prose dark:prose-invert max-w-none text-slate-600 dark:text-slate-300"
+                  className="p-3 rounded-lg bg-white dark:bg-[#1A1A1A] border border-[#E5E5E5] dark:border-[#333333] prose dark:prose-invert max-w-none text-[#525252] dark:text-[#D0D0D0]"
                   dangerouslySetInnerHTML={{ __html: rev.contentSnapshot }}
                 />
               </div>
             ))
           ) : (
-            <p className="text-xs text-slate-500 py-4 text-center">
+            <p className="text-xs text-[#737373] dark:text-[#A6A6A6] py-4 text-center">
               Nenhuma revisão anterior encontrada.
             </p>
           )}
@@ -1785,10 +1793,10 @@ export default function AdminPatientDetailPage({
         <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-1 text-xs">
           {selectedSubmission && (
             <>
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
+              <div className="p-3 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <span className="text-slate-500">Data de Envio: </span>
-                  <strong className="text-slate-900 dark:text-slate-100">
+                  <span className="text-[#737373] dark:text-[#A6A6A6]">Data de Envio: </span>
+                  <strong className="text-[#171717] dark:text-[#F5F5F5]">
                     {formatDate(selectedSubmission.createdAt)} às {formatTime(selectedSubmission.createdAt)}
                   </strong>
                 </div>
@@ -1824,17 +1832,17 @@ export default function AdminPatientDetailPage({
                       return (
                         <div
                           key={q.id || idx}
-                          className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 space-y-1.5"
+                          className="p-3.5 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#141414] space-y-1.5"
                         >
-                          <div className="font-semibold text-slate-800 dark:text-slate-200 flex items-start gap-1.5">
+                          <div className="font-semibold text-[#171717] dark:text-[#F5F5F5] flex items-start gap-1.5">
                             <span className="text-[var(--primary)] font-bold">{idx + 1}.</span>
                             <span>{q.label}</span>
                           </div>
-                          <div className="pl-4 text-slate-700 dark:text-slate-300 leading-relaxed">
+                          <div className="pl-4 text-[#404040] dark:text-[#D0D0D0] leading-relaxed">
                             {hasAnswer ? (
                               <p className="whitespace-pre-wrap font-medium">{String(ans)}</p>
                             ) : (
-                              <p className="italic text-slate-400">(Não respondido)</p>
+                              <p className="italic text-[#737373] dark:text-[#A6A6A6]">(Não respondido)</p>
                             )}
                           </div>
                         </div>
@@ -1846,12 +1854,12 @@ export default function AdminPatientDetailPage({
                   return Object.entries(answers).map(([key, val], idx) => (
                     <div
                       key={key}
-                      className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 space-y-1"
+                      className="p-3 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#141414] space-y-1"
                     >
-                      <span className="font-semibold text-slate-700 dark:text-slate-300 capitalize">
+                      <span className="font-semibold text-[#404040] dark:text-[#D0D0D0] capitalize">
                         {idx + 1}. {key}
                       </span>
-                      <p className="pl-4 text-slate-900 dark:text-slate-100 whitespace-pre-wrap">
+                      <p className="pl-4 text-[#171717] dark:text-[#F5F5F5] whitespace-pre-wrap">
                         {String(val) || "(Não respondido)"}
                       </p>
                     </div>
@@ -1861,7 +1869,7 @@ export default function AdminPatientDetailPage({
             </>
           )}
 
-          <div className="flex justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex justify-end pt-3 border-t border-[#E5E5E5] dark:border-[#2C2C2C]">
             <Button
               size="sm"
               variant="outline"
@@ -1898,7 +1906,7 @@ export default function AdminPatientDetailPage({
             </p>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex justify-end gap-2 pt-2 border-t border-[#E5E5E5] dark:border-[#2C2C2C]">
             <Button
               type="button"
               variant="outline"
@@ -1927,22 +1935,22 @@ export default function AdminPatientDetailPage({
         title="Excluir Documento"
       >
         <div className="space-y-4 pt-1">
-          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+          <p className="text-xs text-[#525252] dark:text-[#D0D0D0] leading-relaxed">
             Tem certeza que deseja excluir este documento? Esta ação poderá ser irreversível.
           </p>
 
           {docToDelete && (
-            <div className="p-3.5 bg-slate-100 dark:bg-[#1B1B1B] border border-slate-200 dark:border-[#393939] rounded-xl space-y-1">
-              <div className="text-xs font-bold text-slate-900 dark:text-[#F5F5F5]">
+            <div className="p-3.5 bg-[#F8F8F8] dark:bg-[#1B1B1B] border border-[#E5E5E5] dark:border-[#393939] rounded-xl space-y-1">
+              <div className="text-xs font-bold text-[#171717] dark:text-[#F5F5F5]">
                 {docToDelete.title || docToDelete.originalName}
               </div>
-              <div className="text-[11px] text-slate-500 font-mono">
+              <div className="text-[11px] text-[#737373] dark:text-[#A6A6A6] font-mono">
                 {docToDelete.originalName} • {(docToDelete.sizeBytes / 1024).toFixed(1)} KB
               </div>
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-[#393939]">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E5E5E5] dark:border-[#393939]">
             <Button
               type="button"
               variant="outline"
@@ -1976,38 +1984,38 @@ export default function AdminPatientDetailPage({
       >
         <div className="space-y-4 pt-1">
           {isLoadingCheck ? (
-            <div className="py-8 text-center text-xs text-slate-500">
+            <div className="py-8 text-center text-xs text-[#737373] dark:text-[#A6A6A6]">
               Verificando histórico clínico e dependências do paciente...
             </div>
           ) : deletionInfo ? (
             <>
-              <div className="p-3 bg-slate-50 dark:bg-[#1B1B1B] border border-slate-200 dark:border-[#393939] rounded-xl space-y-1">
-                <div className="font-bold text-sm text-slate-900 dark:text-[#F5F5F5]">
+              <div className="p-3 bg-[#F8F8F8] dark:bg-[#1B1B1B] border border-[#E5E5E5] dark:border-[#393939] rounded-xl space-y-1">
+                <div className="font-bold text-sm text-[#171717] dark:text-[#F5F5F5]">
                   {patient.fullName}
                 </div>
-                <div className="text-xs text-slate-500">{patient.email}</div>
+                <div className="text-xs text-[#737373] dark:text-[#A6A6A6]">{patient.email}</div>
               </div>
 
               {/* Resumo de Dependências */}
               <div className="grid grid-cols-3 gap-2 text-xs">
-                <div className="p-2.5 rounded-lg border border-slate-200 dark:border-[#393939] bg-white dark:bg-[#202020]">
-                  <div className="text-slate-500 text-[11px] flex items-center gap-1">
+                <div className="p-2.5 rounded-lg border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#202020]">
+                  <div className="text-[#737373] dark:text-[#A6A6A6] text-[11px] flex items-center gap-1">
                     <FileText className="h-3 w-3" />
                     <span>Prontuários</span>
                   </div>
                   <div className="font-bold text-sm mt-0.5">{deletionInfo.dependencies.clinicalRecordsCount}</div>
                 </div>
 
-                <div className="p-2.5 rounded-lg border border-slate-200 dark:border-[#393939] bg-white dark:bg-[#202020]">
-                  <div className="text-slate-500 text-[11px] flex items-center gap-1">
+                <div className="p-2.5 rounded-lg border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#202020]">
+                  <div className="text-[#737373] dark:text-[#A6A6A6] text-[11px] flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
                     <span>Consultas</span>
                   </div>
                   <div className="font-bold text-sm mt-0.5">{deletionInfo.dependencies.appointmentsCount}</div>
                 </div>
 
-                <div className="p-2.5 rounded-lg border border-slate-200 dark:border-[#393939] bg-white dark:bg-[#202020]">
-                  <div className="text-slate-500 text-[11px] flex items-center gap-1">
+                <div className="p-2.5 rounded-lg border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#202020]">
+                  <div className="text-[#737373] dark:text-[#A6A6A6] text-[11px] flex items-center gap-1">
                     <DollarSign className="h-3 w-3" />
                     <span>Pagamentos</span>
                   </div>
@@ -2028,7 +2036,7 @@ export default function AdminPatientDetailPage({
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-[#393939]">
+                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E5E5E5] dark:border-[#393939]">
                     <Button
                       type="button"
                       variant="outline"
@@ -2054,7 +2062,7 @@ export default function AdminPatientDetailPage({
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                  <p className="text-xs text-[#525252] dark:text-[#D0D0D0] leading-relaxed">
                     {deletionInfo.explanation}
                   </p>
 
@@ -2070,7 +2078,7 @@ export default function AdminPatientDetailPage({
                     />
                   </div>
 
-                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-[#393939]">
+                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E5E5E5] dark:border-[#393939]">
                     <Button
                       type="button"
                       variant="outline"

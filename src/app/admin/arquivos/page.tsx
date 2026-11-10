@@ -78,7 +78,7 @@ export default function AdminStoragePage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Armazenamento & Backups</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">
             Monitoramento de espaço em disco, arquivos privados e cópias de segurança do consultório.
           </p>
         </div>
@@ -99,12 +99,12 @@ export default function AdminStoragePage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500">Arquivos em Disco</CardTitle>
+            <CardTitle className="text-sm font-medium text-[#737373] dark:text-[#A6A6A6]">Arquivos em Disco</CardTitle>
             <FolderLock className="h-4 w-4 text-[var(--primary)]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{storageStats.fileCount}</div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-[#737373] dark:text-[#A6A6A6] mt-1">
               Documentos privados fora da raiz web pública
             </p>
           </CardContent>
@@ -112,14 +112,14 @@ export default function AdminStoragePage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500">Volume Utilizado</CardTitle>
+            <CardTitle className="text-sm font-medium text-[#737373] dark:text-[#A6A6A6]">Volume Utilizado</CardTitle>
             <HardDrive className="h-4 w-4 text-[var(--primary)]" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {(storageStats.totalBytes / (1024 * 1024)).toFixed(2)} MB
             </div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-[#737373] dark:text-[#A6A6A6] mt-1">
               Sem limite artificial ou cota arbitrária restritiva
             </p>
           </CardContent>
@@ -127,12 +127,12 @@ export default function AdminStoragePage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500">Backups Criados</CardTitle>
-            <Database className="h-4 w-4 text-emerald-600" />
+            <CardTitle className="text-sm font-medium text-[#737373] dark:text-[#A6A6A6]">Backups Criados</CardTitle>
+            <Database className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{backups.length}</div>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-[#737373] dark:text-[#A6A6A6] mt-1">
               Cópias completas com verificação de integridade SHA256
             </p>
           </CardContent>
@@ -150,21 +150,21 @@ export default function AdminStoragePage() {
 
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-8 text-center text-xs text-slate-500">Carregando backups...</div>
+            <div className="p-8 text-center text-xs text-[#737373] dark:text-[#A6A6A6]">Carregando backups...</div>
           ) : backups.length > 0 ? (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            <div className="divide-y divide-[#E5E5E5] dark:divide-[#2C2C2C]">
               {backups.map((b) => (
                 <div key={b.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                   <div className="space-y-1">
-                    <span className="font-bold text-sm block font-mono text-slate-900 dark:text-slate-100">
+                    <span className="font-bold text-sm block font-mono text-[#171717] dark:text-[#F5F5F5]">
                       {b.filename}
                     </span>
-                    <div className="text-slate-500 flex flex-wrap gap-2 text-[11px]">
+                    <div className="text-[#737373] dark:text-[#A6A6A6] flex flex-wrap gap-2 text-[11px]">
                       <span>Gerado em: {formatDate(b.createdAt)}</span>
                       <span>•</span>
                       <span>Tamanho: {(b.sizeBytes / 1024).toFixed(1)} KB</span>
                       <span>•</span>
-                      <span className="font-mono text-[10px] text-slate-400">
+                      <span className="font-mono text-[10px] text-[#737373] dark:text-[#A6A6A6]">
                         SHA256: {b.checksumSha256.slice(0, 16)}...
                       </span>
                     </div>
@@ -177,7 +177,7 @@ export default function AdminStoragePage() {
               ))}
             </div>
           ) : (
-            <div className="p-8 text-center text-xs text-slate-400">
+            <div className="p-8 text-center text-xs text-[#737373] dark:text-[#A6A6A6]">
               Nenhum backup gerado até o momento. Clique em &quot;Gerar Novo Backup&quot;.
             </div>
           )}

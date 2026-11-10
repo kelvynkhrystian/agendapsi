@@ -176,7 +176,7 @@ export function CookieBanner() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowPreferencesModal(true)}
-                className="text-xs gap-1.5 flex-1 sm:flex-initial text-slate-700 hover:text-slate-900"
+                className="text-xs gap-1.5 flex-1 sm:flex-initial"
               >
                 <SlidersHorizontal className="h-3.5 w-3.5" />
                 <span>Personalizar</span>

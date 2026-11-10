@@ -174,7 +174,7 @@ export default function AdminDocumentsPage() {
               className={`px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer select-none whitespace-nowrap ${
                 selectedCategory === cat.id
                   ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-xs"
-                  : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/25 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:text-slate-300 dark:border-[#393939] dark:hover:bg-[#292929]"
+                  : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/25 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:text-[#D0D0D0] dark:border-[#393939] dark:hover:bg-[#292929]"
               }`}
             >
               {cat.label}
@@ -187,11 +187,11 @@ export default function AdminDocumentsPage() {
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-20 bg-slate-100 dark:bg-[#202020] rounded-2xl animate-pulse" />
+            <div key={i} className="h-20 bg-[#E5E5E5] dark:bg-[#202020] rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : documents.length > 0 ? (
-        <div className="divide-y divide-slate-100 dark:divide-[#393939] bg-white dark:bg-[#202020] rounded-2xl border border-slate-200 dark:border-[#393939] overflow-hidden shadow-xs">
+        <div className="divide-y divide-[#E5E5E5] dark:divide-[#333333] bg-white dark:bg-[#1A1A1A] rounded-2xl border border-[#E5E5E5] dark:border-[#333333] overflow-hidden shadow-xs">
           {documents.map((doc) => {
             const isProtected = !!doc.clinicalRecordId || doc.category === "CLINICAL_NOTE_EXPORT";
             const patient = doc.shares[0]?.patient;
@@ -218,7 +218,7 @@ export default function AdminDocumentsPage() {
                   </div>
 
                   {doc.description && (
-                    <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2">
+                    <p className="text-xs text-[#525252] dark:text-[#A6A6A6] line-clamp-2">
                       {doc.description}
                     </p>
                   )}
@@ -293,16 +293,16 @@ export default function AdminDocumentsPage() {
         title="Excluir Documento"
       >
         <div className="space-y-4 pt-1">
-          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+          <p className="text-xs text-[#525252] dark:text-[#D0D0D0] leading-relaxed">
             Tem certeza que deseja excluir este documento? Esta ação poderá ser irreversível.
           </p>
 
           {documentToDelete && (
-            <div className="p-3.5 bg-slate-100 dark:bg-[#1B1B1B] border border-slate-200 dark:border-[#393939] rounded-xl space-y-1">
-              <div className="text-xs font-bold text-slate-900 dark:text-[#F5F5F5]">
+            <div className="p-3.5 bg-[#F8F8F8] dark:bg-[#1B1B1B] border border-[#E5E5E5] dark:border-[#393939] rounded-xl space-y-1">
+              <div className="text-xs font-bold text-[#171717] dark:text-[#F5F5F5]">
                 {documentToDelete.title || documentToDelete.originalName}
               </div>
-              <div className="text-[11px] text-slate-500 font-mono">
+              <div className="text-[11px] text-[#737373] dark:text-[#A6A6A6] font-mono">
                 {documentToDelete.originalName} • {(documentToDelete.sizeBytes / 1024).toFixed(1)} KB
               </div>
             </div>

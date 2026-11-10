@@ -173,8 +173,8 @@ export default function AdminPackagesPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Pacotes de Sessões & Recorrência</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Pacotes de Sessões & Recorrência</h1>
+          <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">
             Proponha pacotes com datas pré-fixadas e proteção atômica de agenda.
           </p>
         </div>
@@ -186,7 +186,7 @@ export default function AdminPackagesPage() {
       </div>
 
       {isLoading ? (
-        <div className="h-48 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+        <div className="h-48 bg-[#E5E5E5] dark:bg-[#242424] rounded-xl animate-pulse" />
       ) : packages.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {packages.map((pkg) => (
@@ -223,8 +223,8 @@ export default function AdminPackagesPage() {
                   <p className="text-slate-500">{pkg.description}</p>
                 )}
 
-                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-1">
-                  <span className="font-semibold text-slate-700 dark:text-slate-300 block">
+                <div className="p-3 bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] rounded-xl space-y-1">
+                  <span className="font-semibold text-[#404040] dark:text-[#E5E5E5] block">
                     Horários Definidos:
                   </span>
                   {pkg.status === "ACCEPTED" ? (

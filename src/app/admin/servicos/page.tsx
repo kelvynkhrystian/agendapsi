@@ -262,8 +262,8 @@ export default function AdminServicesPage() {
       {/* ================= CABEÇALHO PRINCIPAL ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Serviços & Políticas</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Serviços & Políticas</h1>
+          <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">
             Gerencie o catálogo de atendimentos clínicos e configure as políticas operacionais de agendamento.
           </p>
         </div>
@@ -277,19 +277,25 @@ export default function AdminServicesPage() {
       </div>
 
       {/* ================= NAVEGAÇÃO INTERNA EM ABAS ================= */}
-      <div className="border-b border-slate-200 dark:border-slate-800 flex gap-2 overflow-x-auto">
+      <div className="flex items-center gap-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-3 overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveTab("services")}
-          className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all whitespace-nowrap cursor-pointer ${
             activeTab === "services"
-              ? "border-[var(--primary)] text-[var(--primary)] font-bold"
-              : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-100"
+              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] border-transparent shadow-xs"
+              : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border-[var(--primary)]/25 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1B1B1B] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5]"
           }`}
         >
           <Briefcase className="h-4 w-4" />
           <span>Serviços</span>
-          <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-semibold">
+          <span
+            className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${
+              activeTab === "services"
+                ? "bg-white/20 text-white"
+                : "bg-[var(--primary)]/10 text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] dark:bg-[#292929] dark:text-[#D0D0D0]"
+            }`}
+          >
             {services.length}
           </span>
         </button>
@@ -297,10 +303,10 @@ export default function AdminServicesPage() {
         <button
           type="button"
           onClick={() => setActiveTab("general")}
-          className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all whitespace-nowrap cursor-pointer ${
             activeTab === "general"
-              ? "border-[var(--primary)] text-[var(--primary)] font-bold"
-              : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-100"
+              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] border-transparent shadow-xs"
+              : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border-[var(--primary)]/25 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1B1B1B] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5]"
           }`}
         >
           <Settings className="h-4 w-4" />
@@ -316,7 +322,7 @@ export default function AdminServicesPage() {
           {isLoadingServices ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-40 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+                <div key={i} className="h-40 bg-[#E5E5E5] dark:bg-[#242424] rounded-xl animate-pulse" />
               ))}
             </div>
           ) : services.length > 0 ? (
@@ -324,7 +330,7 @@ export default function AdminServicesPage() {
               {services.map((service) => (
                 <Card
                   key={service.id}
-                  className={`transition-all ${!service.isActive ? "opacity-60 bg-slate-50/50 dark:bg-slate-900/50" : "hover:border-[var(--primary)]/50"}`}
+                  className={`transition-all ${!service.isActive ? "opacity-60 bg-[#F8F8F8] dark:bg-[#141414]" : "hover:border-[var(--primary)]/50"}`}
                 >
                   <CardHeader className="flex flex-row items-start justify-between pb-3">
                     <div className="space-y-1">
@@ -353,21 +359,21 @@ export default function AdminServicesPage() {
                   </CardHeader>
 
                   <CardContent className="space-y-3 pt-0">
-                    <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-400 border-t border-b border-slate-100 dark:border-slate-800 py-2.5">
+                    <div className="grid grid-cols-2 gap-2 text-xs text-[#525252] dark:text-[#D0D0D0] border-t border-b border-[#E5E5E5] dark:border-[#2C2C2C] py-2.5">
                       <div className="flex items-center gap-1.5 font-medium">
-                        <Clock className="h-3.5 w-3.5 text-slate-400" />
+                        <Clock className="h-3.5 w-3.5 text-[#737373] dark:text-[#A6A6A6]" />
                         <span>Duração: <strong>{service.durationMinutes} minutos</strong></span>
                       </div>
                       <div>
                         <span>Modalidade: <strong>{formatModality(service.modality)}</strong></span>
                       </div>
-                      <div className="col-span-2 text-[11px] text-slate-500">
+                      <div className="col-span-2 text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                         <span>Confirmação: <strong>{formatConfirmationPolicy(service.confirmationPolicy)}</strong></span>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between pt-1">
-                      <span className="text-[11px] text-slate-500">
+                      <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                         {service.isActive ? "Visível no agendamento público" : "Oculto na agenda pública"}
                       </span>
 
@@ -432,10 +438,10 @@ export default function AdminServicesPage() {
                 />
 
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium">Descrição Detalhada</label>
+                  <label className="block text-sm font-medium text-[#171717] dark:text-[#F5F5F5]">Descrição Detalhada</label>
                   <textarea
                     rows={3}
-                    className="flex w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+                    className="flex w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3 py-2 text-sm text-[#171717] dark:text-[#F5F5F5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
                     placeholder="Explique o objetivo e o formato deste atendimento..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -456,9 +462,9 @@ export default function AdminServicesPage() {
                         type="checkbox"
                         checked={isFree}
                         onChange={(e) => setIsFree(e.target.checked)}
-                        className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)] h-4 w-4"
+                        className="rounded border-[#CCCCCC] dark:border-[#525252] text-[var(--primary)] focus:ring-[var(--primary)] h-4 w-4"
                       />
-                      <span className="text-xs text-slate-600 dark:text-slate-400">
+                      <span className="text-xs text-[#525252] dark:text-[#A6A6A6]">
                         Serviço gratuito por padrão
                       </span>
                     </label>
@@ -475,15 +481,15 @@ export default function AdminServicesPage() {
                   />
                 </div>
 
-                <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                <div className="pt-2 border-t border-[#E5E5E5] dark:border-[#2C2C2C]">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={isActive}
                       onChange={(e) => setIsActive(e.target.checked)}
-                      className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)] h-4 w-4"
+                      className="rounded border-[#CCCCCC] dark:border-[#525252] text-[var(--primary)] focus:ring-[var(--primary)] h-4 w-4"
                     />
-                    <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                    <span className="text-sm font-medium text-[#171717] dark:text-[#E5E5E5]">
                       Serviço ativo e visível para agendamento público
                     </span>
                   </label>

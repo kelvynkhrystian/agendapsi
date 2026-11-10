@@ -195,10 +195,10 @@ export default function PatientProfilePage() {
   if (isLoading || !profile) {
     return (
       <div className="space-y-6 max-w-4xl">
-        <div className="h-8 w-60 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+        <div className="h-8 w-60 bg-[#E5E5E5] dark:bg-[#242424] rounded animate-pulse" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="h-72 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
-          <div className="h-72 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+          <div className="h-72 bg-[#E5E5E5] dark:bg-[#242424] rounded-xl animate-pulse" />
+          <div className="h-72 bg-[#E5E5E5] dark:bg-[#242424] rounded-xl animate-pulse" />
         </div>
       </div>
     );
@@ -207,8 +207,8 @@ export default function PatientProfilePage() {
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Meu Perfil de Paciente</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Meu Perfil de Paciente</h1>
+        <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">
           Gerencie suas informações cadastrais, canais de contato e credenciais de segurança.
         </p>
       </div>
@@ -358,24 +358,24 @@ export default function PatientProfilePage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-4 border border-slate-200 dark:border-slate-800">
+          <div className="p-4 bg-[#F8F8F8] dark:bg-[#141414] rounded-xl space-y-4 border border-[#E5E5E5] dark:border-[#2C2C2C]">
             {/* E-MAIL DE ACESSO */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-700/60">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <span className="text-xs font-semibold text-[#404040] dark:text-[#E5E5E5]">
                     E-mail de Login:
                   </span>
                   <Badge variant="outline" className="font-mono text-[11px]">
                     {profile.email}
                   </Badge>
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                   Utilizado para autenticação no sistema. A alteração de e-mail é tratada em fluxo de segurança dedicado (Fase 2).
                 </p>
               </div>
 
-              <Badge variant="outline" className="text-[11px] text-slate-500 dark:text-slate-400 self-start sm:self-center">
+              <Badge variant="outline" className="text-[11px] text-[#737373] dark:text-[#A6A6A6] self-start sm:self-center">
                 Edição desabilitada nesta etapa
               </Badge>
             </div>
@@ -383,10 +383,10 @@ export default function PatientProfilePage() {
             {/* SENHA DE ACESSO */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="space-y-0.5">
-                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <span className="text-xs font-semibold text-[#404040] dark:text-[#E5E5E5]">
                   Senha de Acesso:
                 </span>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                   Protegida com criptografia de ponta a ponta. Você pode redefini-la fornecendo sua senha atual.
                 </p>
               </div>
@@ -402,7 +402,7 @@ export default function PatientProfilePage() {
                   setIsPasswordModalOpen(true);
                 }}
               >
-                <KeyRound className="h-3.5 w-3.5 text-amber-500" />
+                <KeyRound className="h-3.5 w-3.5" />
                 <span>Alterar Senha</span>
               </Button>
             </div>

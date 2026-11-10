@@ -516,7 +516,7 @@ export function MiniSiteHeader({
         <>
           {/* Fundo Escurecido com Fechamento ao Tocar (abaixo do header flutuante z-30) */}
           <div
-            className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-30 md:hidden animate-backdrop-fade pointer-events-auto cursor-pointer"
+            className="fixed inset-0 bg-black/45 backdrop-blur-xs z-30 md:hidden animate-backdrop-fade pointer-events-auto cursor-pointer"
             onClick={() => {
               setIsMenuOpen(false);
               document.body.style.overflow = "";

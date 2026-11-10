@@ -225,17 +225,17 @@ export default function AdminMessageLogsPage() {
       </div>
 
       {/* Subnavegação de Lembretes & Registros */}
-      <div className="flex items-center gap-2 border-b border-[#E5E5E5] dark:border-[#393939] pb-3 text-xs font-medium">
+      <div className="flex flex-wrap items-center gap-2 p-1.5 rounded-2xl bg-[#F4F4F5] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] w-fit text-xs font-heading font-semibold">
         <Link
           href="/admin/lembretes"
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-[#737373] dark:text-[#D0D0D0] hover:bg-[#F2F2F2] dark:hover:bg-[#202020] transition-colors"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1E1E1E] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:text-[#F5F5F5] dark:hover:bg-[#262626] transition-colors"
         >
           <BellRing className="h-4 w-4" />
           <span>Configurações de Lembretes</span>
         </Link>
         <Link
           href="/admin/lembretes/registros"
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] font-semibold shadow-xs dark:bg-[#292929] dark:text-[#FFFFFF] dark:border dark:border-[#393939]"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-xs"
         >
           <History className="h-4 w-4" />
           <span>Registros de Mensagens</span>

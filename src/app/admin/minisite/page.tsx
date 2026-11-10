@@ -445,7 +445,7 @@ export default function AdminMiniSitePage() {
   }. Todos os direitos reservados.`;
 
   if (isLoading) {
-    return <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />;
+    return <div className="h-64 bg-[#E5E5E5] dark:bg-[#202020] rounded-xl animate-pulse" />;
   }
 
   return (
@@ -456,7 +456,7 @@ export default function AdminMiniSitePage() {
           <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
             Site & Presença Digital
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">
             Configure o Site na mesma sequência exibida aos visitantes, da abertura ao rodapé.
           </p>
         </div>
@@ -472,15 +472,15 @@ export default function AdminMiniSitePage() {
       {/* Mapa rápido da ordem das 9 seções do Site */}
       <nav
         aria-label="Seções do Site"
-        className="flex flex-wrap items-center gap-1.5 p-2 rounded-xl bg-white dark:bg-[#141414] border border-slate-200 dark:border-[#393939]"
+        className="flex flex-wrap items-center gap-1.5 p-2 rounded-xl bg-white dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C]"
       >
         {SECTION_NAV_ITEMS.map((item) => (
           <a
             key={item.id}
             href={`#${item.id}`}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#202020] hover:text-[var(--primary)] dark:hover:text-[#F5F5F5] transition-colors"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white text-[var(--button-outline-fg,var(--primary))] border border-[var(--button-outline-border,rgba(244,81,8,0.22))] hover:bg-[var(--button-outline-hover-bg,#fff7ed)] dark:bg-[#1C1C1C] dark:border-[#2C2C2C] dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5] transition-colors"
           >
-            <span className="w-4 h-4 rounded-full bg-[var(--primary)]/12 text-[var(--primary)] dark:bg-[#292929] dark:text-[#F5F5F5] dark:border dark:border-[#393939] font-bold text-[10px] inline-flex items-center justify-center tabular-nums">
+            <span className="w-4 h-4 rounded-full bg-[var(--primary)]/12 text-[var(--button-outline-fg,var(--primary))] dark:bg-[#292929] dark:text-[#F5F5F5] dark:border dark:border-[#393939] font-bold text-[10px] inline-flex items-center justify-center tabular-nums">
               {item.number}
             </span>
             <span>{item.label}</span>
@@ -493,8 +493,8 @@ export default function AdminMiniSitePage() {
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* ================= 1. INÍCIO / HERO ================= */}
-        <Card id="sec-1" className="scroll-mt-24 border-slate-200 dark:border-[#393939]">
-          <CardHeader className="border-b border-slate-100 dark:border-slate-800/80 pb-4">
+        <Card id="sec-1" className="scroll-mt-24 border-[#E5E5E5] dark:border-[#2C2C2C]">
+          <CardHeader className="border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-4">
             <CardTitle className="text-base flex items-center gap-2">
               <Badge variant="outline" className="text-[11px] font-bold px-2 py-0.5 tabular-nums">
                 1
@@ -509,8 +509,8 @@ export default function AdminMiniSitePage() {
 
           <CardContent className="pt-5 space-y-5">
             {/* Fonte Centralizada de Perfil & Mídias do Hero */}
-            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-              <div className="space-y-1 text-slate-600 dark:text-slate-300">
+            <div className="p-3.5 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="space-y-1 text-[#525252] dark:text-[#D0D0D0]">
                 <div className="flex items-center gap-2">
                   <Info className="h-4 w-4 text-[var(--primary)] dark:text-[#D0D0D0] shrink-0" />
                   <span>
@@ -521,7 +521,7 @@ export default function AdminMiniSitePage() {
                     <strong>Configurações Gerais → Perfil</strong>.
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 pl-6">
+                <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] pl-6">
                   Mídias (Hero Desktop, Hero Mobile e cor de fundo automática) são gerenciadas em{" "}
                   <Link
                     href="/admin/configuracoes?tab=appearance"
@@ -563,24 +563,24 @@ export default function AdminMiniSitePage() {
             />
 
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium">Subtítulo do Hero</label>
+              <label className="block text-sm font-medium text-[#171717] dark:text-[#E5E5E5]">Subtítulo do Hero</label>
               <textarea
                 rows={2}
-                className="flex w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm"
+                className="flex w-full rounded-lg border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] text-[#171717] dark:text-[#F5F5F5] px-3 py-2 text-sm"
                 value={heroSubtitle}
                 onChange={(e) => setHeroSubtitle(e.target.value)}
               />
             </div>
 
             {/* Sub-bloco: 3 Benefícios & Ícones do Hero */}
-            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-4">
+            <div className="pt-4 border-t border-[#E5E5E5] dark:border-[#2C2C2C] space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <h3 className="text-sm font-semibold flex items-center gap-2 text-slate-800 dark:text-slate-100">
+                  <h3 className="text-sm font-semibold flex items-center gap-2 text-[#171717] dark:text-[#F5F5F5]">
                     <Sparkles className="h-4 w-4 text-[var(--primary)] dark:text-[#D0D0D0]" />
                     <span>Indicadores de Benefícios do Hero</span>
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-xs text-[#737373] dark:text-[#A6A6A6]">
                     Os 3 destaques exibidos abaixo dos botões de ação no topo do Site. Os ícones herdam as cores do tema ativo.
                   </p>
                 </div>
@@ -590,7 +590,7 @@ export default function AdminMiniSitePage() {
                   variant="ghost"
                   size="sm"
                   onClick={handleRestoreDefaultBenefits}
-                  className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 gap-1.5 self-start sm:self-auto"
+                  className="text-xs gap-1.5 self-start sm:self-auto"
                 >
                   <RotateCcw className="h-3.5 w-3.5" />
                   <span>Restaurar Padrão</span>
@@ -601,14 +601,14 @@ export default function AdminMiniSitePage() {
                 {benefits.map((item, index) => (
                   <div
                     key={item.id || index}
-                    className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-3.5 flex flex-col justify-between"
+                    className="p-4 rounded-2xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#FAFAFA] dark:bg-[#141414] space-y-3.5 flex flex-col justify-between"
                   >
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+                        <span className="font-bold text-xs text-[#404040] dark:text-[#D0D0D0] uppercase tracking-wider">
                           Benefício #{index + 1}
                         </span>
-                        <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+                        <label className="flex items-center gap-1.5 text-xs text-[#525252] dark:text-[#A6A6A6] cursor-pointer">
                           <input
                             type="checkbox"
                             checked={item.isVisible}
@@ -619,7 +619,7 @@ export default function AdminMiniSitePage() {
                         </label>
                       </div>
 
-                      <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-center space-y-1.5 shadow-xs">
+                      <div className="p-3.5 rounded-xl bg-white dark:bg-[#1A1A1A] border border-[#E5E5E5] dark:border-[#2C2C2C] flex flex-col items-center justify-center text-center space-y-1.5 shadow-xs">
                         <div className="w-11 h-11 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] dark:bg-[#292929] dark:text-[#F5F5F5] flex items-center justify-center">
                           <ThemeIcon
                             iconName={item.icon}
@@ -628,7 +628,7 @@ export default function AdminMiniSitePage() {
                             alt={item.title}
                           />
                         </div>
-                        <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                        <span className="text-[11px] font-semibold text-[#404040] dark:text-[#D0D0D0]">
                           {item.customIconUrl ? "Ícone Customizado (Upload)" : `Ícone: ${item.icon}`}
                         </span>
                       </div>
@@ -641,7 +641,7 @@ export default function AdminMiniSitePage() {
                           onClick={() => setIconPickerTarget({ type: "benefit", index })}
                           className="text-[11px] gap-1 px-2"
                         >
-                          <Compass className="h-3.5 w-3.5 text-[var(--primary)] dark:text-[#D0D0D0]" />
+                          <Compass className="h-3.5 w-3.5" />
                           <span>Biblioteca</span>
                         </Button>
 
@@ -656,8 +656,8 @@ export default function AdminMiniSitePage() {
                               }
                             }}
                           />
-                          <div className="h-8 px-2 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-[11px] font-medium flex items-center justify-center gap-1 text-slate-700 dark:text-slate-300 transition-colors">
-                            <Upload className="h-3.5 w-3.5 text-[var(--primary)] dark:text-[#D0D0D0]" />
+                          <div className="h-8 px-2 rounded-md border border-[var(--button-outline-border,rgba(244,81,8,0.34))] dark:border-[#333333] bg-[var(--button-outline-bg,#ffffff)] hover:bg-[var(--button-outline-hover-bg,#fff7ed)] text-[var(--button-outline-fg,var(--primary))] dark:bg-[#1E1E1E] dark:hover:bg-[#292929] dark:text-[#F5F5F5] text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors">
+                            <Upload className="h-3.5 w-3.5" />
                             <span>{uploadingKey === `benefit-${index}` ? "Enviando..." : "Upload"}</span>
                           </div>
                         </label>
@@ -667,7 +667,7 @@ export default function AdminMiniSitePage() {
                         <button
                           type="button"
                           onClick={() => handleUpdateBenefit(index, { customIconUrl: null })}
-                          className="text-[10px] text-red-500 hover:underline flex items-center justify-center gap-1 w-full"
+                          className="text-[10px] text-red-500 dark:text-rose-400 hover:underline flex items-center justify-center gap-1 w-full cursor-pointer"
                         >
                           <Trash2 className="h-3 w-3" />
                           <span>Remover upload e voltar para biblioteca</span>
@@ -676,7 +676,7 @@ export default function AdminMiniSitePage() {
 
                       <div className="space-y-2 pt-1">
                         <div className="space-y-1">
-                          <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                          <label className="text-[11px] font-semibold text-[#404040] dark:text-[#D0D0D0]">
                             Título Principal *
                           </label>
                           <Input
@@ -689,7 +689,7 @@ export default function AdminMiniSitePage() {
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                          <label className="text-[11px] font-semibold text-[#404040] dark:text-[#D0D0D0]">
                             Subtítulo / Descrição (Opcional)
                           </label>
                           <Input
@@ -702,7 +702,7 @@ export default function AdminMiniSitePage() {
                       </div>
                     </div>
 
-                    <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500">
+                    <div className="pt-2 border-t border-[#E5E5E5] dark:border-[#2C2C2C] flex items-center justify-between text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                       <span>Ordem de exibição:</span>
                       <input
                         type="number"
@@ -710,7 +710,7 @@ export default function AdminMiniSitePage() {
                         max="10"
                         value={item.order || index + 1}
                         onChange={(e) => handleUpdateBenefit(index, { order: Number(e.target.value) })}
-                        className="w-12 p-1 text-center border rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-xs"
+                        className="w-12 p-1 text-center border rounded bg-white dark:bg-[#1A1A1A] border-[#E5E5E5] dark:border-[#333333] text-[#171717] dark:text-[#F5F5F5] text-xs"
                       />
                     </div>
                   </div>
@@ -721,8 +721,8 @@ export default function AdminMiniSitePage() {
         </Card>
 
         {/* ================= 2. ATENDIMENTOS ================= */}
-        <Card id="sec-2" className="scroll-mt-24 border-slate-200 dark:border-[#393939]">
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-4">
+        <Card id="sec-2" className="scroll-mt-24 border-[#E5E5E5] dark:border-[#2C2C2C]">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-4">
             <div>
               <CardTitle className="text-base flex items-center gap-2">
                 <Badge variant="outline" className="text-[11px] font-bold px-2 py-0.5 tabular-nums">
@@ -736,7 +736,7 @@ export default function AdminMiniSitePage() {
               </CardDescription>
             </div>
 
-            <label className="flex items-center gap-2 cursor-pointer self-start sm:self-auto bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+            <label className="flex items-center gap-2 cursor-pointer self-start sm:self-auto bg-white dark:bg-[#1E1E1E] px-3 py-1.5 rounded-xl border border-[#E5E5E5] dark:border-[#333333]">
               <input
                 type="checkbox"
                 checked={sectionsConfig.atendimentos.isVisible}
@@ -748,7 +748,7 @@ export default function AdminMiniSitePage() {
                 }
                 className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
               />
-              <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+              <span className="text-xs font-semibold text-[#171717] dark:text-[#F5F5F5]">
                 Exibir seção no Site
               </span>
             </label>
@@ -803,10 +803,10 @@ export default function AdminMiniSitePage() {
               />
             </div>
 
-            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-              <div className="space-y-1 text-slate-600 dark:text-slate-300">
+            <div className="p-3.5 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="space-y-1 text-[#525252] dark:text-[#D0D0D0]">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span>
                     <strong>{activeServices.length} serviço(s) ativo(s)</strong> exibidos automaticamente nesta seção
                     {activeServices.length > 0
@@ -817,7 +817,7 @@ export default function AdminMiniSitePage() {
                       : "."}
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 pl-6">
+                <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] pl-6">
                   Valores, durações e modalidades são gerenciados em uma fonte única no módulo Serviços.
                 </p>
               </div>
@@ -833,8 +833,8 @@ export default function AdminMiniSitePage() {
         </Card>
 
         {/* ================= 3. SOBRE MIM ================= */}
-        <Card id="sec-3" className="scroll-mt-24 border-slate-200 dark:border-[#393939]">
-          <CardHeader className="border-b border-slate-100 dark:border-slate-800/80 pb-4">
+        <Card id="sec-3" className="scroll-mt-24 border-[#E5E5E5] dark:border-[#2C2C2C]">
+          <CardHeader className="border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-4">
             <CardTitle className="text-base flex items-center gap-2">
               <Badge variant="outline" className="text-[11px] font-bold px-2 py-0.5 tabular-nums">
                 3
@@ -848,8 +848,8 @@ export default function AdminMiniSitePage() {
           </CardHeader>
 
           <CardContent className="pt-5 space-y-4">
-            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-              <div className="space-y-1 text-slate-600 dark:text-slate-300">
+            <div className="p-3.5 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <div className="space-y-1 text-[#525252] dark:text-[#D0D0D0]">
                 <div className="flex items-center gap-2">
                   <Info className="h-4 w-4 text-[var(--primary)] dark:text-[#D0D0D0] shrink-0" />
                   <span>
@@ -857,7 +857,7 @@ export default function AdminMiniSitePage() {
                     <strong>Configurações Gerais → Perfil</strong>.
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 pl-6">
+                <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] pl-6">
                   A imagem, vídeo ou animação do consultório desta seção é enviada em{" "}
                   <Link
                     href="/admin/configuracoes?tab=appearance"
@@ -913,10 +913,12 @@ export default function AdminMiniSitePage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium">Biografia / Abordagem Terapêutica</label>
+              <label className="block text-sm font-medium text-[#171717] dark:text-[#E5E5E5]">
+                Biografia / Abordagem Terapêutica
+              </label>
               <textarea
                 rows={4}
-                className="flex w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm"
+                className="flex w-full rounded-lg border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] text-[#171717] dark:text-[#F5F5F5] px-3 py-2 text-sm"
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 placeholder="Descreva sua trajetória, linha terapêutica e metodologia de acolhimento clínico..."
@@ -924,12 +926,12 @@ export default function AdminMiniSitePage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium">
+              <label className="block text-sm font-medium text-[#171717] dark:text-[#E5E5E5]">
                 Apresentação Geral do Consultório (Fallback Institucional)
               </label>
               <textarea
                 rows={2}
-                className="flex w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm"
+                className="flex w-full rounded-lg border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] text-[#171717] dark:text-[#F5F5F5] px-3 py-2 text-sm"
                 value={aboutText}
                 onChange={(e) => setAboutText(e.target.value)}
                 placeholder="Exibido automaticamente se a biografia estiver em branco."
@@ -939,8 +941,8 @@ export default function AdminMiniSitePage() {
         </Card>
 
         {/* ================= 4. DIFERENCIAIS ================= */}
-        <Card id="sec-4" className="scroll-mt-24 border-slate-200 dark:border-[#393939]">
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-4">
+        <Card id="sec-4" className="scroll-mt-24 border-[#E5E5E5] dark:border-[#2C2C2C]">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-4">
             <div>
               <CardTitle className="text-base flex items-center gap-2">
                 <Badge variant="outline" className="text-[11px] font-bold px-2 py-0.5 tabular-nums">
@@ -965,13 +967,13 @@ export default function AdminMiniSitePage() {
                     diferenciais: cloneDefaultSiteSectionsConfig().diferenciais,
                   }))
                 }
-                className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 gap-1"
+                className="text-xs gap-1"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 <span>Restaurar Padrão</span>
               </Button>
 
-              <label className="flex items-center gap-2 cursor-pointer bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+              <label className="flex items-center gap-2 cursor-pointer bg-white dark:bg-[#1E1E1E] px-3 py-1.5 rounded-xl border border-[#E5E5E5] dark:border-[#333333]">
                 <input
                   type="checkbox"
                   checked={sectionsConfig.diferenciais.isVisible}
@@ -983,7 +985,7 @@ export default function AdminMiniSitePage() {
                   }
                   className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
                 />
-                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                <span className="text-xs font-semibold text-[#171717] dark:text-[#F5F5F5]">
                   Exibir seção no Site
                 </span>
               </label>
@@ -1019,13 +1021,13 @@ export default function AdminMiniSitePage() {
               {sectionsConfig.diferenciais.items.map((item, idx) => (
                 <div
                   key={item.id || idx}
-                  className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-3"
+                  className="p-4 rounded-2xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#FAFAFA] dark:bg-[#141414] space-y-3"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#404040] dark:text-[#D0D0D0]">
                       Diferencial #{idx + 1}
                     </span>
-                    <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+                    <label className="flex items-center gap-1.5 text-xs text-[#525252] dark:text-[#A6A6A6] cursor-pointer">
                       <input
                         type="checkbox"
                         checked={item.isVisible}
@@ -1060,7 +1062,7 @@ export default function AdminMiniSitePage() {
                         onClick={() => setIconPickerTarget({ type: "diferencial", index: idx })}
                         className="text-[11px] gap-1 h-8 px-2.5"
                       >
-                        <Compass className="h-3.5 w-3.5 text-[var(--primary)] dark:text-[#D0D0D0]" />
+                        <Compass className="h-3.5 w-3.5" />
                         <span>Escolher Ícone ({item.icon})</span>
                       </Button>
 
@@ -1075,8 +1077,8 @@ export default function AdminMiniSitePage() {
                             }
                           }}
                         />
-                        <div className="h-8 px-2.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-[11px] font-medium flex items-center justify-center gap-1 text-slate-700 dark:text-slate-300">
-                          <Upload className="h-3.5 w-3.5 text-[var(--primary)] dark:text-[#D0D0D0]" />
+                        <div className="h-8 px-2.5 rounded-md border border-[var(--button-outline-border,rgba(244,81,8,0.34))] dark:border-[#333333] bg-[var(--button-outline-bg,#ffffff)] hover:bg-[var(--button-outline-hover-bg,#fff7ed)] text-[var(--button-outline-fg,var(--primary))] dark:bg-[#1E1E1E] dark:hover:bg-[#292929] dark:text-[#F5F5F5] text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors">
+                          <Upload className="h-3.5 w-3.5" />
                           <span>{uploadingKey === `diferencial-${idx}` ? "Enviando..." : "Upload"}</span>
                         </div>
                       </label>
@@ -1094,7 +1096,7 @@ export default function AdminMiniSitePage() {
                           diferenciais: { ...prev.diferenciais, items },
                         }));
                       }}
-                      className="text-[10px] text-red-500 hover:underline inline-flex items-center gap-1"
+                      className="text-[10px] text-red-500 dark:text-rose-400 hover:underline inline-flex items-center gap-1 cursor-pointer"
                     >
                       <Trash2 className="h-3 w-3" />
                       <span>Remover ícone customizado</span>
@@ -1117,12 +1119,12 @@ export default function AdminMiniSitePage() {
                   />
 
                   <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                    <label className="text-xs font-medium text-[#404040] dark:text-[#D0D0D0]">
                       Descrição
                     </label>
                     <textarea
                       rows={2}
-                      className="flex w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs"
+                      className="flex w-full rounded-lg border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#1A1A1A] text-[#171717] dark:text-[#F5F5F5] px-3 py-2 text-xs"
                       value={item.description}
                       onChange={(e) => {
                         const items = [...sectionsConfig.diferenciais.items];
@@ -1141,8 +1143,8 @@ export default function AdminMiniSitePage() {
         </Card>
 
         {/* ================= 5. COMO FUNCIONA ================= */}
-        <Card id="sec-5" className="scroll-mt-24 border-slate-200 dark:border-[#393939]">
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-4">
+        <Card id="sec-5" className="scroll-mt-24 border-[#E5E5E5] dark:border-[#2C2C2C]">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-4">
             <div>
               <CardTitle className="text-base flex items-center gap-2">
                 <Badge variant="outline" className="text-[11px] font-bold px-2 py-0.5 tabular-nums">
@@ -1167,13 +1169,13 @@ export default function AdminMiniSitePage() {
                     comoFunciona: cloneDefaultSiteSectionsConfig().comoFunciona,
                   }))
                 }
-                className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 gap-1"
+                className="text-xs gap-1"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 <span>Restaurar Padrão</span>
               </Button>
 
-              <label className="flex items-center gap-2 cursor-pointer bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+              <label className="flex items-center gap-2 cursor-pointer bg-white dark:bg-[#1E1E1E] px-3 py-1.5 rounded-xl border border-[#E5E5E5] dark:border-[#333333]">
                 <input
                   type="checkbox"
                   checked={sectionsConfig.comoFunciona.isVisible}
@@ -1185,7 +1187,7 @@ export default function AdminMiniSitePage() {
                   }
                   className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
                 />
-                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                <span className="text-xs font-semibold text-[#171717] dark:text-[#F5F5F5]">
                   Exibir seção no Site
                 </span>
               </label>
@@ -1229,10 +1231,12 @@ export default function AdminMiniSitePage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium">Subtítulo Introdutório</label>
+              <label className="block text-sm font-medium text-[#171717] dark:text-[#E5E5E5]">
+                Subtítulo Introdutório
+              </label>
               <textarea
                 rows={2}
-                className="flex w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm"
+                className="flex w-full rounded-lg border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] text-[#171717] dark:text-[#F5F5F5] px-3 py-2 text-sm"
                 value={sectionsConfig.comoFunciona.subtitle}
                 onChange={(e) =>
                   setSectionsConfig((prev) => ({
@@ -1247,7 +1251,7 @@ export default function AdminMiniSitePage() {
               {sectionsConfig.comoFunciona.steps.map((step, idx) => (
                 <div
                   key={step.id || idx}
-                  className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-3"
+                  className="p-4 rounded-2xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#FAFAFA] dark:bg-[#141414] space-y-3"
                 >
                   <div className="flex items-center justify-between">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-[var(--primary)]/12 text-[var(--primary)] dark:bg-[#292929] dark:text-[#F5F5F5] dark:border dark:border-[#393939] font-bold text-xs tabular-nums">
@@ -1260,7 +1264,7 @@ export default function AdminMiniSitePage() {
                       onClick={() => setIconPickerTarget({ type: "comoFunciona", index: idx })}
                       className="text-[11px] gap-1 h-7 px-2"
                     >
-                      <ThemeIcon iconName={step.icon} className="h-3.5 w-3.5 text-[var(--primary)] dark:text-[#D0D0D0]" />
+                      <ThemeIcon iconName={step.icon} className="h-3.5 w-3.5" />
                       <span>{step.icon}</span>
                     </Button>
                   </div>
@@ -1281,13 +1285,13 @@ export default function AdminMiniSitePage() {
                   />
 
                   <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                    <label className="text-xs font-medium text-[#404040] dark:text-[#D0D0D0]">
                       Descrição *
                     </label>
                     <textarea
                       rows={3}
                       required
-                      className="flex w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs"
+                      className="flex w-full rounded-lg border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#1A1A1A] text-[#171717] dark:text-[#F5F5F5] px-3 py-2 text-xs"
                       value={step.description}
                       onChange={(e) => {
                         const steps = [...sectionsConfig.comoFunciona.steps];
@@ -1306,8 +1310,8 @@ export default function AdminMiniSitePage() {
         </Card>
 
         {/* ================= 6. DEPOIMENTOS ================= */}
-        <Card id="sec-6" className="scroll-mt-24 border-slate-200 dark:border-[#393939]">
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-4">
+        <Card id="sec-6" className="scroll-mt-24 border-[#E5E5E5] dark:border-[#2C2C2C]">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-4">
             <div>
               <CardTitle className="text-base flex items-center gap-2">
                 <Badge variant="outline" className="text-[11px] font-bold px-2 py-0.5 tabular-nums">
@@ -1333,7 +1337,7 @@ export default function AdminMiniSitePage() {
                 <span>Adicionar</span>
               </Button>
 
-              <label className="flex items-center gap-2 cursor-pointer bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+              <label className="flex items-center gap-2 cursor-pointer bg-white dark:bg-[#1E1E1E] px-3 py-1.5 rounded-xl border border-[#E5E5E5] dark:border-[#333333]">
                 <input
                   type="checkbox"
                   checked={sectionsConfig.depoimentos.isVisible}
@@ -1345,7 +1349,7 @@ export default function AdminMiniSitePage() {
                   }
                   className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
                 />
-                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                <span className="text-xs font-semibold text-[#171717] dark:text-[#F5F5F5]">
                   Exibir seção no Site
                 </span>
               </label>
@@ -1353,7 +1357,7 @@ export default function AdminMiniSitePage() {
           </CardHeader>
 
           <CardContent className="pt-5 space-y-5">
-            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-300">
+            <div className="p-3.5 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] flex items-start gap-2.5 text-xs text-[#525252] dark:text-[#D0D0D0]">
               <ShieldCheck className="h-4 w-4 text-[var(--primary)] dark:text-[#D0D0D0] shrink-0 mt-0.5" />
               <span>
                 <strong>Conformidade Ética (CFP):</strong> Apenas depoimentos com a caixa de{" "}
@@ -1386,8 +1390,8 @@ export default function AdminMiniSitePage() {
             </div>
 
             {sectionsConfig.depoimentos.items.length === 0 ? (
-              <div className="p-6 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 text-center space-y-2">
-                <p className="text-xs text-slate-500">
+              <div className="p-6 rounded-2xl border border-dashed border-[#D4D4D4] dark:border-[#333333] text-center space-y-2">
+                <p className="text-xs text-[#737373] dark:text-[#A6A6A6]">
                   Nenhum depoimento cadastrado nesta lista. Clique em &quot;Adicionar&quot; para incluir um relato autorizado.
                 </p>
               </div>
@@ -1396,11 +1400,11 @@ export default function AdminMiniSitePage() {
                 {sectionsConfig.depoimentos.items.map((dep, idx) => (
                   <div
                     key={dep.id || idx}
-                    className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-3"
+                    className="p-4 rounded-2xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#FAFAFA] dark:bg-[#141414] space-y-3"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                        <span className="text-xs font-bold uppercase tracking-wider text-[#404040] dark:text-[#D0D0D0]">
                           Depoimento #{idx + 1}
                         </span>
                         {!dep.consentConfirmed && (
@@ -1411,7 +1415,7 @@ export default function AdminMiniSitePage() {
                       </div>
 
                       <div className="flex items-center gap-3">
-                        <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+                        <label className="flex items-center gap-1.5 text-xs text-[#525252] dark:text-[#A6A6A6] cursor-pointer">
                           <input
                             type="checkbox"
                             checked={dep.isVisible}
@@ -1432,7 +1436,7 @@ export default function AdminMiniSitePage() {
                           <button
                             type="button"
                             onClick={() => handleRemoveDepoimento(idx)}
-                            className="text-xs text-rose-600 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                            className="text-xs text-rose-600 dark:text-rose-400 hover:underline inline-flex items-center gap-1 cursor-pointer"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                             <span>Remover</span>
@@ -1472,10 +1476,10 @@ export default function AdminMiniSitePage() {
                         className="text-xs"
                       />
                       <div className="space-y-1">
-                        <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
+                        <label className="block text-xs font-medium text-[#404040] dark:text-[#D0D0D0]">
                           Avaliação (1 a 5 estrelas)
                         </label>
-                        <div className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900">
+                        <div className="flex items-center gap-1.5 h-10 px-3 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#1B1B1B]">
                           {[1, 2, 3, 4, 5].map((star) => (
                             <button
                               key={star}
@@ -1495,7 +1499,7 @@ export default function AdminMiniSitePage() {
                                 className={`h-4 w-4 ${
                                   star <= dep.rating
                                     ? "text-amber-400 fill-amber-400"
-                                    : "text-slate-300 dark:text-slate-600"
+                                    : "text-[#D4D4D4] dark:text-[#525252]"
                                 }`}
                               />
                             </button>
@@ -1505,13 +1509,13 @@ export default function AdminMiniSitePage() {
                     </div>
 
                     <div className="space-y-1">
-                      <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
+                      <label className="block text-xs font-medium text-[#404040] dark:text-[#D0D0D0]">
                         Texto do Depoimento *
                       </label>
                       <textarea
                         rows={2}
                         required
-                        className="flex w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs"
+                        className="flex w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#1B1B1B] px-3 py-2 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] transition-all shadow-2xs"
                         value={dep.quote}
                         onChange={(e) => {
                           const items = [...sectionsConfig.depoimentos.items];
@@ -1524,7 +1528,7 @@ export default function AdminMiniSitePage() {
                       />
                     </div>
 
-                    <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer pt-1">
+                    <label className="flex items-center gap-2 text-xs text-[#404040] dark:text-[#D0D0D0] cursor-pointer pt-1">
                       <input
                         type="checkbox"
                         checked={dep.consentConfirmed}
@@ -1550,8 +1554,8 @@ export default function AdminMiniSitePage() {
         </Card>
 
         {/* ================= 7. LOCALIZAÇÃO ================= */}
-        <Card id="sec-7" className="scroll-mt-24 border-slate-200 dark:border-[#393939]">
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-4">
+        <Card id="sec-7" className="scroll-mt-24 border-[#E5E5E5] dark:border-[#2C2C2C]">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-4">
             <div>
               <CardTitle className="text-base flex items-center gap-2">
                 <Badge variant="outline" className="text-[11px] font-bold px-2 py-0.5 tabular-nums">
@@ -1565,14 +1569,14 @@ export default function AdminMiniSitePage() {
               </CardDescription>
             </div>
 
-            <label className="flex items-center gap-2 cursor-pointer self-start sm:self-auto bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+            <label className="flex items-center gap-2 cursor-pointer self-start sm:self-auto bg-white dark:bg-[#1E1E1E] px-3 py-1.5 rounded-xl border border-[#E5E5E5] dark:border-[#333333]">
               <input
                 type="checkbox"
                 checked={showLocation}
                 onChange={(e) => setShowLocation(e.target.checked)}
                 className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
               />
-              <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+              <span className="text-xs font-semibold text-[#171717] dark:text-[#F5F5F5]">
                 Exibir seção no Site
               </span>
             </label>
@@ -1679,8 +1683,8 @@ export default function AdminMiniSitePage() {
               />
             </div>
 
-            <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-4">
-              <h4 className="font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300">
+            <div className="pt-4 border-t border-[#E5E5E5] dark:border-[#2C2C2C] space-y-4">
+              <h4 className="font-bold text-xs uppercase tracking-wider text-[#404040] dark:text-[#D0D0D0]">
                 Configurações de Mapa e Rota
               </h4>
 
@@ -1691,7 +1695,7 @@ export default function AdminMiniSitePage() {
                   onChange={(e) => setGoogleMapsUrl(e.target.value)}
                   placeholder="Ex: https://maps.app.goo.gl/..."
                 />
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                   Se deixado em branco, o sistema gera automaticamente a rota com base no endereço preenchido acima.
                 </p>
               </div>
@@ -1703,15 +1707,15 @@ export default function AdminMiniSitePage() {
                   onChange={(e) => setGoogleMapsEmbedUrl(e.target.value)}
                   placeholder="Ex: https://www.google.com/maps/embed?pb=..."
                 />
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                   Gere o código em Google Maps → Compartilhar → Incorporar um mapa. Caso não preenchido, o sistema incorpora uma prévia segura sem necessidade de chaves privadas de API.
                 </p>
               </div>
 
               {fullAddressPreview && (
-                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
+                <div className="p-4 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] space-y-2">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300">
+                    <span className="font-semibold text-[#404040] dark:text-[#D0D0D0]">
                       Prévia do Endereço Formatado:
                     </span>
                     {destinationMapsUrlPreview && (
@@ -1726,7 +1730,7 @@ export default function AdminMiniSitePage() {
                       </a>
                     )}
                   </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 font-mono">
+                  <p className="text-xs text-[#525252] dark:text-[#D0D0D0] font-mono">
                     {fullAddressPreview}
                   </p>
                 </div>
@@ -1734,28 +1738,28 @@ export default function AdminMiniSitePage() {
             </div>
 
             {/* Integração com WhatsApp & Contatos exibidos em Localização / Flutuante */}
-            <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-4">
+            <div className="pt-4 border-t border-[#E5E5E5] dark:border-[#2C2C2C] space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <h4 className="font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                  <MessageCircle className="h-3.5 w-3.5 text-emerald-600" />
+                <h4 className="font-bold text-xs uppercase tracking-wider text-[#404040] dark:text-[#D0D0D0] flex items-center gap-1.5">
+                  <MessageCircle className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                   <span>Contato Direto & WhatsApp no Site</span>
                 </h4>
 
-                <label className="flex items-center gap-2 cursor-pointer self-start sm:self-auto bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                <label className="flex items-center gap-2 cursor-pointer self-start sm:self-auto bg-white dark:bg-[#1E1E1E] px-3 py-1.5 rounded-xl border border-[#E5E5E5] dark:border-[#333333]">
                   <input
                     type="checkbox"
                     checked={showFloatingWhatsApp}
                     onChange={(e) => setShowFloatingWhatsApp(e.target.checked)}
                     className="rounded text-emerald-600 focus:ring-emerald-500"
                   />
-                  <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                  <span className="text-xs font-semibold text-[#171717] dark:text-[#F5F5F5]">
                     Botão Flutuante Ativo
                   </span>
                 </label>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+              <div className="p-3.5 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2 text-[#525252] dark:text-[#D0D0D0]">
                   <Info className="h-4 w-4 text-[var(--primary)] dark:text-[#D0D0D0] shrink-0" />
                   <span>
                     O número de WhatsApp, telefone comercial, e-mail público e Instagram são centralizados em{" "}
@@ -1777,12 +1781,12 @@ export default function AdminMiniSitePage() {
                 </label>
                 <textarea
                   rows={2}
-                  className="flex w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm"
+                  className="flex w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3.5 py-2.5 text-sm text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] transition-all shadow-2xs"
                   value={whatsappDefaultMessage}
                   onChange={(e) => setWhatsappDefaultMessage(e.target.value)}
                   placeholder="Olá! Conheci seu trabalho pelo site..."
                 />
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                   Pré-preenchida no WhatsApp quando o visitante clica para falar com o consultório (Hero e botão flutuante).
                 </p>
               </div>
@@ -1815,8 +1819,8 @@ export default function AdminMiniSitePage() {
         </Card>
 
         {/* ================= 8. CHAMADA FINAL ================= */}
-        <Card id="sec-8" className="scroll-mt-24 border-slate-200 dark:border-[#393939]">
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-4">
+        <Card id="sec-8" className="scroll-mt-24 border-[#E5E5E5] dark:border-[#2C2C2C]">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-4">
             <div>
               <CardTitle className="text-base flex items-center gap-2">
                 <Badge variant="outline" className="text-[11px] font-bold px-2 py-0.5 tabular-nums">
@@ -1841,13 +1845,13 @@ export default function AdminMiniSitePage() {
                     chamadaFinal: cloneDefaultSiteSectionsConfig().chamadaFinal,
                   }))
                 }
-                className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 gap-1"
+                className="text-xs gap-1.5"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 <span>Restaurar Padrão</span>
               </Button>
 
-              <label className="flex items-center gap-2 cursor-pointer bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+              <label className="flex items-center gap-2 cursor-pointer bg-white dark:bg-[#1E1E1E] px-3 py-1.5 rounded-xl border border-[#E5E5E5] dark:border-[#333333]">
                 <input
                   type="checkbox"
                   checked={sectionsConfig.chamadaFinal.isVisible}
@@ -1859,7 +1863,7 @@ export default function AdminMiniSitePage() {
                   }
                   className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
                 />
-                <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                <span className="text-xs font-semibold text-[#171717] dark:text-[#F5F5F5]">
                   Exibir seção no Site
                 </span>
               </label>
@@ -1868,8 +1872,8 @@ export default function AdminMiniSitePage() {
 
           <CardContent className="pt-5 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 block">
+              <div className="p-4 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#FAFAFA] dark:bg-[#141414] space-y-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#404040] dark:text-[#D0D0D0] block">
                   Versão Desktop
                 </span>
                 <Input
@@ -1906,8 +1910,8 @@ export default function AdminMiniSitePage() {
                 />
               </div>
 
-              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 block">
+              <div className="p-4 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#FAFAFA] dark:bg-[#141414] space-y-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#404040] dark:text-[#D0D0D0] block">
                   Versão Mobile (Compacta)
                 </span>
                 <Input
@@ -1945,7 +1949,7 @@ export default function AdminMiniSitePage() {
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs text-slate-600 dark:text-slate-300">
+            <div className="p-3 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] flex items-center justify-between text-xs text-[#525252] dark:text-[#D0D0D0]">
               <span>
                 Destino fixo do botão de agendamento: <code className="font-mono font-semibold">/agendar</code>
               </span>
@@ -1957,8 +1961,8 @@ export default function AdminMiniSitePage() {
         </Card>
 
         {/* ================= 9. RODAPÉ / FOOTER (SEMPRE POR ÚLTIMO) ================= */}
-        <Card id="sec-9" className="scroll-mt-24 border-slate-200 dark:border-[#393939]">
-          <CardHeader className="border-b border-slate-100 dark:border-slate-800/80 pb-4">
+        <Card id="sec-9" className="scroll-mt-24 border-[#E5E5E5] dark:border-[#2C2C2C]">
+          <CardHeader className="border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-4">
             <CardTitle className="text-base flex items-center gap-2">
               <Badge variant="outline" className="text-[11px] font-bold px-2 py-0.5 tabular-nums">
                 9
@@ -1973,9 +1977,9 @@ export default function AdminMiniSitePage() {
 
           <CardContent className="pt-5 space-y-5">
             {/* Identificação do Profissional / Consultório no Rodapé (Somente Leitura) */}
-            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-              <div className="space-y-1 text-slate-600 dark:text-slate-300">
-                <span className="font-semibold text-slate-800 dark:text-slate-100 block">
+            <div className="p-3.5 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="space-y-1 text-[#525252] dark:text-[#D0D0D0]">
+                <span className="font-semibold text-[#171717] dark:text-[#F5F5F5] block">
                   Identificação exibida no Rodapé (Somente leitura)
                 </span>
                 <p>
@@ -1984,7 +1988,7 @@ export default function AdminMiniSitePage() {
                   {email ? ` • ${email}` : ""}
                   {instagram ? ` • ${instagram}` : ""}
                 </p>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                   Nome público, registro e canais de contato são gerenciados em <strong>Configurações Gerais → Perfil</strong>.
                 </p>
               </div>
@@ -2000,10 +2004,10 @@ export default function AdminMiniSitePage() {
             {/* Descrição Opcional & Copyright */}
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-2">
-                <label className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                <label className="text-sm font-medium text-[#171717] dark:text-[#F5F5F5]">
                   Descrição Opcional do Rodapé
                 </label>
-                <label className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300 cursor-pointer">
+                <label className="flex items-center gap-2 text-xs font-medium text-[#525252] dark:text-[#D0D0D0] cursor-pointer">
                   <input
                     type="checkbox"
                     checked={sectionsConfig.rodape.showDescription}
@@ -2022,7 +2026,7 @@ export default function AdminMiniSitePage() {
               <textarea
                 rows={2}
                 disabled={!sectionsConfig.rodape.showDescription}
-                className="flex w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm disabled:opacity-50"
+                className="flex w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3.5 py-2.5 text-sm text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] transition-all shadow-2xs disabled:opacity-50"
                 value={sectionsConfig.rodape.description}
                 onChange={(e) =>
                   setSectionsConfig((prev) => ({
@@ -2045,9 +2049,9 @@ export default function AdminMiniSitePage() {
                   }
                   placeholder={defaultCopyrightPreview}
                 />
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                   Deixe em branco para manter o padrão automático:{" "}
-                  <span className="font-medium text-slate-500 dark:text-slate-300">
+                  <span className="font-medium text-[#525252] dark:text-[#D0D0D0]">
                     {defaultCopyrightPreview}
                   </span>
                 </p>
@@ -2055,14 +2059,14 @@ export default function AdminMiniSitePage() {
             </div>
 
             {/* Visibilidade das Páginas Informativas & Cookies */}
-            <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3">
+            <div className="pt-4 border-t border-[#E5E5E5] dark:border-[#2C2C2C] space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <h4 className="font-semibold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                  <h4 className="font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] flex items-center gap-1.5">
                     <FileText className="h-4 w-4 text-[var(--primary)] dark:text-[#D0D0D0]" />
                     <span>Visibilidade de Links Legais no Rodapé</span>
                   </h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-xs text-[#737373] dark:text-[#A6A6A6]">
                     Escolha quais páginas informativas publicadas devem aparecer no rodapé. O texto completo dos documentos permanece em <strong>Páginas Info</strong>.
                   </p>
                 </div>
@@ -2084,9 +2088,9 @@ export default function AdminMiniSitePage() {
                   return (
                     <label
                       key={item.id}
-                      className="flex items-center justify-between gap-2 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 cursor-pointer hover:border-[var(--primary)]/40 dark:hover:border-[#525252] transition-colors"
+                      className="flex items-center justify-between gap-2 p-3 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#FAFAFA] dark:bg-[#141414] cursor-pointer hover:border-[var(--primary)]/40 dark:hover:border-[#525252] transition-colors"
                     >
-                      <span className="flex items-center gap-2 text-xs font-medium text-slate-800 dark:text-slate-200">
+                      <span className="flex items-center gap-2 text-xs font-medium text-[#171717] dark:text-[#F5F5F5]">
                         <input
                           type="checkbox"
                           checked={checked}
@@ -2117,8 +2121,8 @@ export default function AdminMiniSitePage() {
               </div>
 
               {/* Preferências de Cookies */}
-              <label className="flex items-center justify-between gap-3 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 cursor-pointer hover:border-[var(--primary)]/40 dark:hover:border-[#525252] transition-colors">
-                <span className="flex items-center gap-2.5 text-xs font-medium text-slate-800 dark:text-slate-200">
+              <label className="flex items-center justify-between gap-3 p-3.5 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#FAFAFA] dark:bg-[#141414] cursor-pointer hover:border-[var(--primary)]/40 dark:hover:border-[#525252] transition-colors">
+                <span className="flex items-center gap-2.5 text-xs font-medium text-[#171717] dark:text-[#F5F5F5]">
                   <input
                     type="checkbox"
                     checked={sectionsConfig.rodape.showCookiePreferences}
@@ -2133,27 +2137,27 @@ export default function AdminMiniSitePage() {
                   <Cookie className="h-4 w-4 text-[var(--primary)] dark:text-[#D0D0D0] shrink-0" />
                   <span>Exibir link &quot;Preferências de cookies&quot; no rodapé (LGPD)</span>
                 </span>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400 shrink-0">
+                <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6] shrink-0">
                   Consentimento ativo
                 </span>
               </label>
             </div>
 
             {/* Atribuição Fixa da Plataforma (Somente Leitura / Não Editável) */}
-            <div className="p-3.5 rounded-xl bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-              <div className="flex items-start gap-2 text-slate-600 dark:text-slate-300">
-                <Lock className="h-4 w-4 text-slate-500 shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-xl bg-[#F4F4F5] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <div className="flex items-start gap-2 text-[#525252] dark:text-[#D0D0D0]">
+                <Lock className="h-4 w-4 text-[#737373] dark:text-[#A6A6A6] shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200 block">
+                  <span className="font-semibold text-[#171717] dark:text-[#F5F5F5] block">
                     Crédito fixo da aplicação (não editável)
                   </span>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                  <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                     {DEVELOPER_ATTRIBUTION.prefix}{" "}
                     <a
                       href={DEVELOPER_ATTRIBUTION.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-medium underline text-slate-700 dark:text-[#F5F5F5] hover:text-[var(--primary)] dark:hover:text-white"
+                      className="font-medium underline text-[#404040] dark:text-[#F5F5F5] hover:text-[var(--primary)] dark:hover:text-white"
                     >
                       {DEVELOPER_ATTRIBUTION.brandName}
                     </a>
@@ -2173,7 +2177,7 @@ export default function AdminMiniSitePage() {
             type="submit"
             size="lg"
             disabled={isSaving}
-            className="gap-2 bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white"
+            className="gap-2 bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-[var(--button-fg,#ffffff)]"
           >
             <Save className="h-4 w-4" />
             <span>{isSaving ? "Salvando Alterações..." : "Salvar Alterações do Site"}</span>
