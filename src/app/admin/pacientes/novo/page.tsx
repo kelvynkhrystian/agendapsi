@@ -400,7 +400,7 @@ export default function AdminNovoPacientePage() {
                   </CardDescription>
                 </div>
 
-                <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-[#141414] px-3 py-1.5 rounded-xl border border-[#E5E5E5] dark:border-[#333333]">
+                <label className="flex items-center gap-2 cursor-pointer bg-[#F8F8F8] dark:bg-[#141414] px-3 py-1.5 rounded-xl border border-[#E5E5E5] dark:border-[#333333]">
                   <input
                     type="checkbox"
                     checked={isMinor}

@@ -360,7 +360,7 @@ export default function AdminRemindersPage() {
                       key={v}
                       type="button"
                       onClick={() => setEditedBody((prev) => `${prev} ${v}`)}
-                      className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#202020] border border-[#E5E5E5] dark:border-[#393939] font-mono text-[11px] text-[#404040] dark:text-[#D0D0D0] hover:bg-[var(--primary)]/10 dark:hover:bg-[#292929] hover:border-[var(--primary)]/30 dark:hover:border-[#525252] transition-colors"
+                      className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#202020] border border-[var(--primary)]/25 dark:border-[#393939] font-mono text-[11px] font-medium text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] dark:text-[#D0D0D0] hover:bg-[var(--primary)]/[0.05] dark:hover:bg-[#292929] hover:border-[var(--primary)]/50 dark:hover:border-[#525252] transition-colors cursor-pointer"
                       title="Clique para adicionar ao texto"
                     >
                       {v}

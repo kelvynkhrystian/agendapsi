@@ -64,10 +64,10 @@ export function MiniSiteMediaSlotCard({
   };
 
   return (
-    <div className="p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#141414] flex flex-col gap-4 transition-colors">
+    <div className="p-4 sm:p-5 rounded-2xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#141414] flex flex-col gap-4 transition-colors">
       {/* Cabeçalho da área */}
       <div className="flex items-center justify-between gap-2 min-h-[32px]">
-        <h4 className="font-semibold text-sm text-slate-900 dark:text-[#F5F5F5] tracking-tight">
+        <h4 className="font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] tracking-tight">
           {title}
         </h4>
 
@@ -88,7 +88,7 @@ export function MiniSiteMediaSlotCard({
       </div>
 
       {/* Prévia ao vivo */}
-      <div className="relative h-52 w-full rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 flex items-center justify-center bg-slate-100 dark:bg-[#1A1A1A]">
+      <div className="relative h-52 w-full rounded-xl overflow-hidden border border-[#E5E5E5] dark:border-[#2C2C2C] flex items-center justify-center bg-[#F8F8F8] dark:bg-[#1A1A1A]">
         <MiniSiteMediaPlayer
           slot={slot}
           mediaType={mediaType}
@@ -124,8 +124,8 @@ export function MiniSiteMediaSlotCard({
           }}
           className={`flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-xl border border-dashed text-center cursor-pointer transition-all ${
             isDragging
-              ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
-              : "border-slate-300 dark:border-white/15 bg-slate-50/70 dark:bg-white/[0.02] hover:border-[var(--primary)]/60 hover:bg-[var(--primary)]/[0.04]"
+              ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--button-outline-fg,var(--primary))]"
+              : "border-[var(--primary)]/30 dark:border-[#333333] bg-white dark:bg-[#1A1A1A] hover:border-[var(--primary)]/60 hover:bg-[var(--primary)]/[0.04] dark:hover:bg-[#242424] shadow-2xs"
           } ${isUploading ? "opacity-60 pointer-events-none" : ""}`}
         >
           <input
@@ -142,12 +142,12 @@ export function MiniSiteMediaSlotCard({
           />
 
           {isUploading ? (
-            <Loader2 className="h-4 w-4 text-[var(--primary)] animate-spin shrink-0" />
+            <Loader2 className="h-4 w-4 text-[var(--button-outline-fg,var(--primary))] dark:text-[var(--primary)] animate-spin shrink-0" />
           ) : (
-            <Upload className="h-4 w-4 text-[var(--primary)] shrink-0" />
+            <Upload className="h-4 w-4 text-[var(--button-outline-fg,var(--primary))] dark:text-[var(--primary)] shrink-0" />
           )}
 
-          <span className="text-xs font-medium text-[#404040] dark:text-[#E5E5E5]">
+          <span className="text-xs font-semibold text-[var(--button-outline-fg,var(--primary))] dark:text-[#E5E5E5]">
             {isUploading
               ? "Enviando e processando..."
               : hasMedia
