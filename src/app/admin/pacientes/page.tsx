@@ -306,7 +306,7 @@ export default function AdminPatientsPage() {
                         type="button"
                         onClick={(e) => handleOpenDeleteModal(e, patient)}
                         title="Excluir ou arquivar cliente"
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg text-[#737373] dark:text-[#A6A6A6] hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -317,7 +317,7 @@ export default function AdminPatientsPage() {
                           type="button"
                           onClick={(e) => handleRestorePatient(e, patient.id)}
                           title="Restaurar paciente ativo"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg text-[#737373] dark:text-[#A6A6A6] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors cursor-pointer"
                         >
                           <RotateCcw className="h-4 w-4" />
                         </button>
@@ -373,43 +373,43 @@ export default function AdminPatientsPage() {
       >
         <div className="space-y-4 pt-1">
           {isLoadingCheck ? (
-            <div className="py-8 text-center text-xs text-slate-500">
+            <div className="py-8 text-center text-xs text-[#737373] dark:text-[#A6A6A6]">
               Verificando histórico clínico e dependências do paciente...
             </div>
           ) : deletionInfo ? (
             <>
               {/* Identificação do Paciente */}
-              <div className="p-3 bg-slate-50 dark:bg-[#1B1B1B] border border-slate-200 dark:border-[#393939] rounded-xl space-y-1">
-                <div className="font-bold text-sm text-slate-900 dark:text-[#F5F5F5]">
+              <div className="p-3 bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] rounded-xl space-y-1">
+                <div className="font-bold text-sm text-[#171717] dark:text-[#F5F5F5]">
                   {deletionInfo.patient.fullName}
                 </div>
-                <div className="text-xs text-slate-500">{deletionInfo.patient.email}</div>
+                <div className="text-xs text-[#737373] dark:text-[#A6A6A6]">{deletionInfo.patient.email}</div>
               </div>
 
               {/* Resumo de Dependências */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                <div className="p-2.5 rounded-lg border border-slate-200 dark:border-[#393939] bg-white dark:bg-[#202020]">
-                  <div className="text-slate-500 text-[11px] flex items-center gap-1">
+                <div className="p-2.5 rounded-lg border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#1A1A1A]">
+                  <div className="text-[#737373] dark:text-[#A6A6A6] text-[11px] flex items-center gap-1">
                     <FileText className="h-3 w-3" />
                     <span>Prontuários</span>
                   </div>
-                  <div className="font-bold text-sm mt-0.5">{deletionInfo.dependencies.clinicalRecordsCount}</div>
+                  <div className="font-bold text-sm mt-0.5 text-[#171717] dark:text-[#F5F5F5]">{deletionInfo.dependencies.clinicalRecordsCount}</div>
                 </div>
 
-                <div className="p-2.5 rounded-lg border border-slate-200 dark:border-[#393939] bg-white dark:bg-[#202020]">
-                  <div className="text-slate-500 text-[11px] flex items-center gap-1">
+                <div className="p-2.5 rounded-lg border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#1A1A1A]">
+                  <div className="text-[#737373] dark:text-[#A6A6A6] text-[11px] flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
                     <span>Consultas</span>
                   </div>
-                  <div className="font-bold text-sm mt-0.5">{deletionInfo.dependencies.appointmentsCount}</div>
+                  <div className="font-bold text-sm mt-0.5 text-[#171717] dark:text-[#F5F5F5]">{deletionInfo.dependencies.appointmentsCount}</div>
                 </div>
 
-                <div className="p-2.5 rounded-lg border border-slate-200 dark:border-[#393939] bg-white dark:bg-[#202020]">
-                  <div className="text-slate-500 text-[11px] flex items-center gap-1">
+                <div className="p-2.5 rounded-lg border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#1A1A1A]">
+                  <div className="text-[#737373] dark:text-[#A6A6A6] text-[11px] flex items-center gap-1">
                     <DollarSign className="h-3 w-3" />
                     <span>Pagamentos</span>
                   </div>
-                  <div className="font-bold text-sm mt-0.5">{deletionInfo.dependencies.paymentsCount}</div>
+                  <div className="font-bold text-sm mt-0.5 text-[#171717] dark:text-[#F5F5F5]">{deletionInfo.dependencies.paymentsCount}</div>
                 </div>
               </div>
 
