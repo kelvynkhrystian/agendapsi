@@ -2528,7 +2528,7 @@ export default function AdminSettingsPage() {
                       ].map((token) => (
                         <span
                           key={token.label}
-                          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/85 dark:bg-[#171717]/90 text-[#171717] dark:text-[#E5E5E5] border border-black/10 dark:border-white/10"
+                          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/90 text-[#171717] border border-black/10"
                         >
                           <span
                             className="h-2.5 w-2.5 rounded-full border border-black/15 shrink-0"

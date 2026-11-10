@@ -216,13 +216,13 @@ export default function AdminDashboardPage() {
       <div className="space-y-6 animate-pulse">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-2">
-            <div className="h-4 w-32 bg-slate-200 dark:bg-[#202020] rounded-lg" />
-            <div className="h-8 w-64 bg-slate-200 dark:bg-[#242424] rounded-xl" />
-            <div className="h-4 w-80 bg-slate-200 dark:bg-[#202020] rounded-lg" />
+            <div className="h-4 w-32 bg-[#E5E5E5] dark:bg-[#202020] rounded-lg" />
+            <div className="h-8 w-64 bg-[#E5E5E5] dark:bg-[#242424] rounded-xl" />
+            <div className="h-4 w-80 bg-[#E5E5E5] dark:bg-[#202020] rounded-lg" />
           </div>
           <div className="flex gap-2">
-            <div className="h-10 w-36 bg-slate-200 dark:bg-[#242424] rounded-xl" />
-            <div className="h-10 w-36 bg-slate-200 dark:bg-[#242424] rounded-xl" />
+            <div className="h-10 w-36 bg-[#E5E5E5] dark:bg-[#242424] rounded-xl" />
+            <div className="h-10 w-36 bg-[#E5E5E5] dark:bg-[#242424] rounded-xl" />
           </div>
         </div>
 
@@ -267,6 +267,7 @@ export default function AdminDashboardPage() {
     key: b.dateKey || b.monthKey || String(idx),
     label: b.label,
     valueCents: pickBucketValue(b),
+    secondaryValueCents: seriesFilter === "all" ? b.simulatedCents : 0,
     count: b.sessionsCount,
     countLabel: b.sessionsCount === 1 ? "sessão" : "sessões",
   }));
@@ -465,7 +466,7 @@ export default function AdminDashboardPage() {
       {/* ================= 3. ASYMMETRIC BENTO CHARTS (LOLLIPOP + WALLET + RADIAL TARGET) ================= */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
         {/* Esquerda (8 cols): Gráfico Lollipop Interativo "Desempenho & Receita" */}
-        <Card className="xl:col-span-8 bg-white dark:bg-[#1A1A1A] border-[#E5E5E5] dark:border-[#2C2C2C] p-5 sm:p-6 flex flex-col justify-between">
+        <Card className="xl:col-span-8 bg-white dark:bg-[#1A1A1A] border-[#E5E5E5] dark:border-[#2C2C2C] p-5 sm:p-6 flex flex-col">
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
               <div>
@@ -575,8 +576,9 @@ export default function AdminDashboardPage() {
           <div className="pt-5">
             <LollipopPerformanceChart
               data={chartData}
-              height={235}
+              height={360}
               targetLabel="Média"
+              secondarySeriesLabel={seriesFilter === "all" ? "Simulado" : undefined}
               emptyMessage="Nenhuma receita real confirmada neste recorte temporal."
             />
           </div>
