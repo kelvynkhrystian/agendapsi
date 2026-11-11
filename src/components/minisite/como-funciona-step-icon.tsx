@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import type { IconHandle } from "pulsoicon-react";
+import type { IconHandle, PulsoIcon } from "pulsoicon-react";
 import {
   Activity,
   Award,
@@ -33,17 +33,7 @@ import {
   Video,
 } from "pulsoicon-react";
 
-type AnimatedPulsoComponent = React.ForwardRefExoticComponent<
-  {
-    className?: string;
-    strokeWidth?: number;
-    size?: number | string;
-    animated?: boolean;
-    autoAnimated?: boolean;
-  } & React.RefAttributes<IconHandle>
->;
-
-const STEP_ICON_MAP: Record<string, AnimatedPulsoComponent> = {
+const STEP_ICON_MAP: Record<string, PulsoIcon> = {
   Calendar,
   CalendarDays,
   ClipboardCheck,
