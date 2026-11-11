@@ -114,6 +114,10 @@ export const ACTIVITY_ACTION_MAP: Record<string, string> = {
 
   // Integrações, Páginas e Sistema
   BACKUP_GENERATED: "Backup do sistema gerado com sucesso",
+  BACKUP_IMPORTED: "Arquivo de backup importado",
+  BACKUP_DELETED: "Backup excluído do histórico",
+  BACKUP_RESTORED: "Backup restaurado no sistema",
+  BACKUP_RESTORE_FAILED: "Falha na restauração de backup",
   GOOGLE_MEET_CONNECTED: "Conta do Google Meet conectada",
   GOOGLE_MEET_DISCONNECTED: "Conta do Google Meet desconectada",
   TEST_EMAIL_DISPATCHED: "E-mail de teste disparado",
@@ -316,8 +320,11 @@ export function formatConfirmationPolicy(policy?: string | null): string {
 }
 
 export const BACKUP_STATUS_MAP: Record<string, string> = {
+  COMPLETED: "Concluído",
   SUCCESS: "Concluído",
   PENDING: "Em andamento",
+  PROCESSING: "Processando",
+  RESTORING: "Restaurando",
   FAILED: "Falhou",
 };
 
