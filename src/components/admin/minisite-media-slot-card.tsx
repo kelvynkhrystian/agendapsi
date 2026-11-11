@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Upload, Trash2, Loader2 } from "lucide-react";
+import { Upload, Trash2, Loader2 } from "pulsoicon-react";
 import { MiniSiteMediaPlayer } from "@/components/minisite/media-player";
 import { Button } from "@/components/ui/button";
 

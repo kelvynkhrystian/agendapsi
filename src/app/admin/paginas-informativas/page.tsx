@@ -19,7 +19,7 @@ import {
   Eye,
   EyeOff,
   Info,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 interface InformationPageItem {
   id: "terms" | "privacy" | "lgpd" | "ethics";

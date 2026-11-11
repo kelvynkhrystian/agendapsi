@@ -16,7 +16,7 @@ import {
   AlertCircle,
   FileSpreadsheet,
   FileImage,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 interface PatientDocument {
   id: string;

@@ -49,7 +49,7 @@ import {
   Cookie,
   FileText,
   Star,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 interface LegalPageSummary {
   id: string;
@@ -458,11 +458,11 @@ export default function AdminMiniSitePage() {
   }. Todos os direitos reservados.`;
 
   if (isLoading) {
-    return <div className="h-64 bg-[#E5E5E5] dark:bg-[#202020] rounded-xl animate-pulse" />;
+    return <div className="h-64 max-w-5xl mx-auto w-full bg-[#E5E5E5] dark:bg-[#202020] rounded-xl animate-pulse" />;
   }
 
   return (
-    <div className="space-y-6 max-w-5xl pb-16">
+    <div className="space-y-6 max-w-5xl mx-auto w-full pb-16">
       {/* Cabeçalho Principal */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

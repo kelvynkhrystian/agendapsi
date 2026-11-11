@@ -25,7 +25,7 @@ import {
   RotateCcw,
   Receipt,
   TrendingUp,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 interface PaymentItem {
   id: string;

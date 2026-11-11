@@ -86,13 +86,46 @@ test("Analytics & Charts — 2. Admin Dashboard e Financeiro integram gráficos 
 
   // UI utiliza componentes de gráfico e mantém Light Mode branco+laranja e Dark Mode fosco com destaque laranja
   assert.ok(adminSrc.includes("LollipopPerformanceChart"), "Dashboard deve incluir gráfico interativo Lollipop");
-  assert.ok(adminSrc.includes("RadialArcProgress"), "Dashboard deve incluir medidor radial de acompanhamento");
+  assert.ok(!adminSrc.includes("RadialArcProgress"), "Dashboard não deve exibir medidor radial Acompanhamento do Mês");
+  assert.ok(!adminSrc.includes("Acompanhamento do Mês"), "Card Acompanhamento do Mês deve ser removido do Painel Geral");
+  assert.ok(!adminSrc.includes("Resumo Financeiro"), "Card Resumo Financeiro deve ser removido do Painel Geral");
   assert.ok(adminSrc.includes("MiniSparkline"), "Dashboard deve incluir sparklines reais nos KPIs");
   assert.ok(!adminSrc.includes("Ao Vivo"), "Dashboard não deve exibir badge Ao Vivo");
   assert.ok(!adminSrc.includes("text-white dark:text-[#C0C0C0]"), "Ícones de botões outline em Light Mode não devem usar text-white");
   assert.ok(
     adminSrc.includes("bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))]"),
     "Controles não preenchidos do Dashboard devem usar botão branco com letra laranja no Light Mode"
+  );
+  assert.ok(adminSrc.includes("height={240}"), "Gráfico Desempenho & Receita deve utilizar altura compacta de 240px no Dashboard");
+  assert.ok(adminSrc.includes("useGSAP") && adminSrc.includes("isDashboardReady"), "Dashboard deve executar animação única de entrada sem flicker");
+  assert.ok(
+    adminLayoutSrc.includes('pathname !== "/admin" && "admin-page-stage"'),
+    "AdminLayout deve evitar dupla animação CSS/GSAP no Painel Geral (/admin)"
+  );
+
+  const analyticsChartsSrc = fs.readFileSync(path.join(process.cwd(), "src/components/admin/analytics-charts.tsx"), "utf8");
+  assert.ok(
+    analyticsChartsSrc.includes("DEFAULT_Y_AXIS_MAX_CENTS = 50000") &&
+      analyticsChartsSrc.includes("FIXED_Y_TICKS_CENTS = [0, 10000, 25000]"),
+    "Eixo Y do Lollipop deve usar marcos R$ 0, R$ 100, R$ 250 e teto mínimo R$ 500 (50000 centavos)"
+  );
+  assert.ok(
+    analyticsChartsSrc.includes("cents / axisMaxCents") && analyticsChartsSrc.includes("formatAxisBRL"),
+    "Eixo Y deve calcular posição estritamente proporcional ao máximo exibido e formatar valores em pt-BR"
+  );
+
+  const gsapSrc = fs.readFileSync(path.join(process.cwd(), "src/lib/animation/gsap.ts"), "utf8");
+  assert.ok(
+    gsapSrc.includes("gsap.killTweensOf") && gsapSrc.includes("gsap.fromTo("),
+    "Utilitários GSAP de painel interno devem cancelar tweens anteriores e usar fromTo idempotente"
+  );
+
+  const siteHeaderSrc = fs.readFileSync(path.join(process.cwd(), "src/components/minisite/header.tsx"), "utf8");
+  const inicioAriaMatches = siteHeaderSrc.match(/aria-label="Voltar ao início"/g) || [];
+  assert.equal(inicioAriaMatches.length, 2, "Logos desktop e mobile do Site devem possuir aria-label acessível 'Voltar ao início'");
+  assert.ok(
+    siteHeaderSrc.includes("handleLogoClick") && siteHeaderSrc.includes('document.getElementById("inicio")'),
+    "Logo do Site deve rolar suavemente ao Hero (#inicio) quando já estiver na home ou navegar para /"
   );
 
   assert.ok(financeSrc.includes("StemPerformanceChart"), "Financeiro deve incluir gráfico de evolução temporal");

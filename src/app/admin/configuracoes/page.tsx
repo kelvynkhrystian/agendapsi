@@ -38,7 +38,7 @@ import {
   Lock,
   MessageCircle,
   Sparkles,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 interface VideoProviderItem {
   key: "JITSI" | "PEERJS" | "GOOGLE_MEET";
@@ -1903,11 +1903,11 @@ export default function AdminSettingsPage() {
   const accessiblePreviewButtonBg = resolveAccessibleButtonBg(normalizedPreviewButton, 4.6);
 
   if (isLoading) {
-    return <div className="h-64 bg-[#E5E5E5] dark:bg-[#202020] rounded-xl animate-pulse" />;
+    return <div className="h-64 max-w-5xl mx-auto w-full bg-[#E5E5E5] dark:bg-[#202020] rounded-xl animate-pulse" />;
   }
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6 max-w-5xl mx-auto w-full">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Configurações do Consultório</h1>
         <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">

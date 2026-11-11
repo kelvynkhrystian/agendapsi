@@ -1,7 +1,7 @@
 "use client";
 
 import { useTheme } from "@/components/theme-provider";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "pulsoicon-react";
 import { Button } from "./button";
 
 export function ThemeToggle() {

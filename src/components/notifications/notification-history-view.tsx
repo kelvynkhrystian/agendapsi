@@ -5,7 +5,7 @@ import { formatDate, formatTime } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Check, CheckCheck, Clock, ExternalLink, Filter } from "lucide-react";
+import { Bell, Check, CheckCheck, Clock, ExternalLink, Filter } from "pulsoicon-react";
 import Link from "next/link";
 
 interface NotificationItem {
@@ -80,7 +80,7 @@ export function NotificationHistoryView({
   };
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-4xl mx-auto w-full">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">{title}</h1>

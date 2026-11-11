@@ -19,7 +19,7 @@ import {
   Globe,
   Radio,
   Lock,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 export default function AdminIntegrationsPage() {
   // Email State
@@ -206,11 +206,11 @@ export default function AdminIntegrationsPage() {
   };
 
   if (isLoading) {
-    return <div className="h-64 bg-[#E5E5E5] dark:bg-[#242424] rounded-xl animate-pulse" />;
+    return <div className="h-64 max-w-5xl mx-auto w-full bg-[#E5E5E5] dark:bg-[#242424] rounded-xl animate-pulse" />;
   }
 
   return (
-    <div className="space-y-8 max-w-5xl">
+    <div className="space-y-8 max-w-5xl mx-auto w-full">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Integrações Externas</h1>
         <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">

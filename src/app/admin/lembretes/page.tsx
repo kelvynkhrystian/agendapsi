@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Alert } from "@/components/ui/alert";
-import { Sparkles, Eye, Save, RotateCcw, BellRing, History } from "lucide-react";
+import { Sparkles, Eye, Save, RotateCcw, BellRing, History } from "pulsoicon-react";
 
 interface NotificationTemplate {
   id: string;
@@ -125,7 +125,7 @@ export default function AdminRemindersPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 max-w-5xl">
+      <div className="space-y-6 max-w-5xl mx-auto w-full">
         <div className="h-8 w-60 bg-[#E5E5E5] dark:bg-[#242424] rounded animate-pulse" />
         <div className="h-20 bg-[#E5E5E5] dark:bg-[#242424] rounded-xl animate-pulse" />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -158,7 +158,7 @@ export default function AdminRemindersPage() {
     .replace("{link_consulta}", "https://consultorio.psi.br/consulta-virtual/demo");
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6 max-w-5xl mx-auto w-full">
       <div>
         <div className="flex items-center gap-2">
           <BellRing className="h-6 w-6 text-[var(--primary)]" />

@@ -28,7 +28,7 @@ import {
   Calendar,
   MapPin,
   HeartHandshake,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 export default function AdminNovoPacientePage() {
   const router = useRouter();

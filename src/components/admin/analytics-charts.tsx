@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useId } from "react";
+import React, { useState, useId, useRef, useLayoutEffect } from "react";
 import { formatBRL } from "@/lib/utils";
 
 export function MiniSparkline({
@@ -83,9 +83,12 @@ export interface LollipopDatum {
   countLabel?: string;
 }
 
+const DEFAULT_Y_AXIS_MAX_CENTS = 50000; // R$ 500,00
+const FIXED_Y_TICKS_CENTS = [0, 10000, 25000]; // R$ 0, R$ 100, R$ 250
+
 export function LollipopPerformanceChart({
   data,
-  height = 228,
+  height = 240,
   targetLabel = "Média",
   emptyMessage = "Sem movimentações neste período",
   secondarySeriesLabel,
@@ -97,8 +100,29 @@ export function LollipopPerformanceChart({
   secondarySeriesLabel?: string;
 }) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState<number>(0);
   const stemGradId = useId().replace(/:/g, "");
   const secStemGradId = useId().replace(/:/g, "");
+
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const updateWidth = () => {
+      const nextWidth = Math.round(el.clientWidth);
+      if (nextWidth > 0) {
+        setContainerWidth((prev) => (prev === nextWidth ? prev : nextWidth));
+      }
+    };
+
+    updateWidth();
+
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const safeData =
     data.length > 0
@@ -106,9 +130,15 @@ export function LollipopPerformanceChart({
       : [{ key: "empty", label: "—", valueCents: 0, secondaryValueCents: 0, count: 0 }];
 
   const maxPrimary = Math.max(...safeData.map((d) => d.valueCents), 0);
-  const maxSecondary = Math.max(...safeData.map((d) => d.secondaryValueCents || 0), 0);
-  const rawMax = Math.max(maxPrimary, maxSecondary, 10000); // piso visual R$ 100,00 se zerado
-  const niceMax = Math.ceil(rawMax / 5000) * 5000;
+  const maxSecondary = secondarySeriesLabel
+    ? Math.max(...safeData.map((d) => d.secondaryValueCents || 0), 0)
+    : 0;
+  const displayedMaxCents = Math.max(maxPrimary, maxSecondary);
+  const axisMaxCents =
+    displayedMaxCents > DEFAULT_Y_AXIS_MAX_CENTS
+      ? displayedMaxCents
+      : DEFAULT_Y_AXIS_MAX_CENTS;
+  const yTicksCents = [...FIXED_Y_TICKS_CENTS, axisMaxCents];
 
   const nonZeroVals = safeData.filter((d) => d.valueCents > 0).map((d) => d.valueCents);
   const meanCents =
@@ -116,36 +146,61 @@ export function LollipopPerformanceChart({
       ? Math.round(nonZeroVals.reduce((a, b) => a + b, 0) / nonZeroVals.length)
       : 0;
 
-  const vw = 680;
-  const padLeft = 58;
+  const formatAxisBRL = (cents: number) => {
+    const hasCents = cents % 100 !== 0;
+    const brl = cents / 100;
+    return `R$ ${brl.toLocaleString("pt-BR", {
+      minimumFractionDigits: hasCents ? 2 : 0,
+      maximumFractionDigits: hasCents ? 2 : 0,
+    })}`;
+  };
+
+  const renderedHeight =
+    containerWidth > 0 && containerWidth < 640 ? Math.min(height, 212) : height;
+  const vw =
+    containerWidth > 0
+      ? Math.max(420, Math.round(containerWidth * (height / renderedHeight)))
+      : 740;
+  const topLabelLen = formatAxisBRL(axisMaxCents).length;
+  const padLeft = Math.max(66, Math.ceil(18 + topLabelLen * 6.5));
   const padRight = 18;
   const padTop = 20;
-  const padBottom = 30;
+  const padBottom = 26;
   const plotW = vw - padLeft - padRight;
   const plotH = height - padTop - padBottom;
 
   const valueToY = (cents: number) => {
-    const ratio = Math.max(0, Math.min(1, cents / niceMax));
+    const ratio =
+      axisMaxCents > 0 ? Math.max(0, Math.min(1, cents / axisMaxCents)) : 0;
     return padTop + (1 - ratio) * plotH;
   };
 
-  const formatCompactBRL = (cents: number) => {
-    const brl = cents / 100;
-    if (brl >= 1000) {
-      return `R$ ${(brl / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}k`;
+  const yBottom = valueToY(0);
+  const yTop = valueToY(axisMaxCents);
+  const shownLabelYs: number[] = [yBottom, yTop];
+  const tickDescriptors = yTicksCents.map((tickVal, idx) => {
+    const y = valueToY(tickVal);
+    const isBoundary = idx === 0 || idx === yTicksCents.length - 1;
+    let showLabel = isBoundary;
+    if (!isBoundary) {
+      showLabel = shownLabelYs.every((usedY) => Math.abs(usedY - y) >= 11);
+      if (showLabel) {
+        shownLabelYs.push(y);
+      }
     }
-    return `R$ ${brl.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`;
-  };
+    return { tickVal, y, isZero: tickVal === 0, showLabel };
+  });
 
   const stepLabelInterval = safeData.length > 18 ? 4 : safeData.length > 12 ? 2 : 1;
   const activeItem = hoveredIdx !== null && safeData[hoveredIdx] ? safeData[hoveredIdx] : null;
   const hasAnyValue = safeData.some((d) => d.valueCents > 0 || (d.secondaryValueCents || 0) > 0);
 
   return (
-    <div className="relative w-full select-none" data-testid="lollipop-chart">
+    <div ref={containerRef} className="relative w-full select-none" data-testid="lollipop-chart">
       <svg
         viewBox={`0 0 ${vw} ${height}`}
-        className="w-full h-auto overflow-visible"
+        className="w-full overflow-visible"
+        style={{ height: renderedHeight }}
         role="img"
         aria-label="Gráfico de evolução financeira e sessões"
       >
@@ -174,32 +229,30 @@ export function LollipopPerformanceChart({
           </linearGradient>
         </defs>
 
-        {/* Grid horizontais */}
-        {[0, 0.33, 0.66, 1].map((tick, i) => {
-          const tickVal = Math.round(niceMax * tick);
-          const y = valueToY(tickVal);
-          return (
-            <g key={i}>
-              <line
-                x1={padLeft}
-                y1={y}
-                x2={vw - padRight}
-                y2={y}
-                className="stroke-[#E5E5E5] dark:stroke-[#2A2A2A]"
-                strokeWidth="1"
-                strokeDasharray={tick === 0 ? undefined : "3 4"}
-              />
+        {/* Grid horizontais proporcionais: R$ 0, R$ 100, R$ 250 e R$ 500 (ou máximo dinâmico) */}
+        {tickDescriptors.map(({ tickVal, y, isZero, showLabel }, i) => (
+          <g key={`${tickVal}-${i}`}>
+            <line
+              x1={padLeft}
+              y1={y}
+              x2={vw - padRight}
+              y2={y}
+              className="stroke-[#E5E5E5] dark:stroke-[#2A2A2A]"
+              strokeWidth="1"
+              strokeDasharray={isZero ? undefined : "3 4"}
+            />
+            {showLabel && (
               <text
                 x={padLeft - 8}
                 y={y + 3.5}
                 textAnchor="end"
                 className="fill-[#737373] dark:fill-[#8C8C8C] text-[10px] font-mono tabular-nums"
               >
-                {formatCompactBRL(tickVal)}
+                {formatAxisBRL(tickVal)}
               </text>
-            </g>
-          );
-        })}
+            )}
+          </g>
+        ))}
 
         {/* Linha de média / meta */}
         {meanCents > 0 && (
@@ -215,7 +268,7 @@ export function LollipopPerformanceChart({
               strokeDasharray="5 4"
             />
             <rect
-              x={4}
+              x={Math.max(4, padLeft - 56)}
               y={valueToY(meanCents) - 9}
               width={48}
               height={18}
@@ -223,7 +276,7 @@ export function LollipopPerformanceChart({
               fill="var(--button-bg, #CA4C0A)"
             />
             <text
-              x={28}
+              x={Math.max(4, padLeft - 56) + 24}
               y={valueToY(meanCents) + 3.5}
               textAnchor="middle"
               className="fill-white text-[9px] font-bold"

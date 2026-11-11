@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { KeyRound, Stethoscope, ArrowLeft } from "lucide-react";
+import { KeyRound, Stethoscope, ArrowLeft } from "pulsoicon-react";
 
 export default function RecoverPasswordPage() {
   const [email, setEmail] = useState("");

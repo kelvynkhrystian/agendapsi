@@ -26,7 +26,7 @@ import {
   Loader2,
   Circle,
   XCircle,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 const ACTIVE_BACKUP_JOB_STORAGE_KEY = "psi_active_backup_job_id";
 
@@ -833,7 +833,7 @@ export default function AdminStoragePage() {
     (storageStats.breakdown?.publicUploads.count ?? 0);
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6 max-w-5xl mx-auto w-full">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">

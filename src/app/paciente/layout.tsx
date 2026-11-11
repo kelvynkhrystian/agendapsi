@@ -20,7 +20,7 @@ import {
   ChevronRight,
   Bell,
   HeartHandshake,
-} from "lucide-react";
+} from "pulsoicon-react";
 import { WhatsAppIcon } from "@/components/ui/whatsapp-icon";
 
 const patientNavItems = [

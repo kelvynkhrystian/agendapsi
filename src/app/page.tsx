@@ -10,6 +10,7 @@ import { MiniSiteHeader } from "@/components/minisite/header";
 import { MiniSiteFloatingControls } from "@/components/minisite/floating-controls";
 import { MiniSiteMotionController } from "@/components/minisite/motion-controller";
 import { ThemeIcon } from "@/components/minisite/theme-icon";
+import { ComoFuncionaStepIcon } from "@/components/minisite/como-funciona-step-icon";
 import { HeroScrollIndicator } from "@/components/minisite/hero-scroll-indicator";
 import { CookieBanner } from "@/components/cookie-consent/cookie-banner";
 import { CookiePreferencesTrigger } from "@/components/cookie-consent/cookie-preferences-trigger";
@@ -38,9 +39,6 @@ import {
   Flower2,
   ChevronRight,
   Target,
-  CalendarDays,
-  MessagesSquare,
-  HandHeart,
   CheckCircle2,
   Compass,
   MessageCircle,
@@ -49,7 +47,7 @@ import {
   User,
   Star,
   Quote,
-} from "lucide-react";
+} from "@/components/ui/pulso-server-icons";
 
 function hexToRgbTriplet(hex: string): string {
   const match = /^#([0-9A-Fa-f]{6})$/.exec(hex.trim());
@@ -91,12 +89,6 @@ const DEFAULT_COMO_FUNCIONA_FALLBACK_STEPS = [
       "Sua jornada de cuidado, com sessões contínuas e um plano terapêutico personalizado, no seu ritmo e de forma consistente.",
   },
 ] as const;
-
-const COMO_FUNCIONA_ICON_COMPONENTS = {
-  CalendarDays,
-  MessagesSquare,
-  HandHeart,
-} as const;
 
 export default async function HomePage() {
   let site, profile, services, session, publishedLegalPages;
@@ -851,209 +843,68 @@ export default async function HomePage() {
       {/* ================= 5. COMO FUNCIONA (Referência Visual) ================= */}
       {sections.comoFunciona.isVisible && (
         <section id="como-funciona" className="py-16 px-4 bg-[#F8F5EE] scroll-mt-20">
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <div
               id="como-funciona-card"
-              className="relative overflow-hidden rounded-[32px] sm:rounded-[40px] bg-[#FFFDF9] border border-[#EFE6DA] shadow-[0_12px_36px_-18px_rgba(62,32,20,0.08)] px-5 py-10 sm:px-10 sm:py-14 md:px-14 md:py-16"
+              className="p-6 sm:p-10 rounded-3xl bg-white border border-[#EFE9DF] shadow-xs space-y-8"
             >
-              {/* Elemento decorativo discreto: ramo de folhas bege/dourado no canto superior esquerdo */}
-              <svg
-                id="como-funciona-decor-leaves"
-                aria-hidden="true"
-                viewBox="0 0 180 140"
-                fill="none"
-                className="pointer-events-none select-none absolute -top-1 -left-1 w-24 sm:w-40 md:w-48 h-auto opacity-85 z-0"
-              >
-                <defs>
-                  <linearGradient id="como-funciona-leaf-grad" x1="0%" y1="100%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#B9905B" stopOpacity="0.62" />
-                    <stop offset="55%" stopColor="#CFB082" stopOpacity="0.46" />
-                    <stop offset="100%" stopColor="#E6CFAF" stopOpacity="0.28" />
-                  </linearGradient>
-                </defs>
-                {/* Caule orgânico principal */}
-                <path
-                  d="M-6 110 C 28 96, 72 64, 122 18"
-                  stroke="#C39E6B"
-                  strokeOpacity="0.45"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-                {/* Ramo secundário inferior esquerdo */}
-                <path
-                  d="M36 86 C 50 96, 62 100, 74 102"
-                  stroke="#C39E6B"
-                  strokeOpacity="0.35"
-                  strokeWidth="1.2"
-                  strokeLinecap="round"
-                />
-                {/* Folha 1 inferior esquerda */}
-                <path
-                  d="M20 96 C 14 112, 22 126, 40 120 C 38 106, 30 98, 20 96 Z"
-                  fill="url(#como-funciona-leaf-grad)"
-                />
-                {/* Folha 2 superior esquerda */}
-                <path
-                  d="M42 82 C 30 62, 36 36, 56 32 C 62 50, 56 70, 42 82 Z"
-                  fill="url(#como-funciona-leaf-grad)"
-                />
-                {/* Folha 3 inferior direita do caule */}
-                <path
-                  d="M52 80 C 66 74, 86 78, 96 90 C 80 96, 62 92, 52 80 Z"
-                  fill="url(#como-funciona-leaf-grad)"
-                />
-                {/* Folha 4 superior central */}
-                <path
-                  d="M74 58 C 68 38, 76 14, 96 6 C 98 28, 90 46, 74 58 Z"
-                  fill="url(#como-funciona-leaf-grad)"
-                />
-                {/* Folha 5 direita */}
-                <path
-                  d="M84 54 C 102 48, 124 48, 138 56 C 122 66, 100 66, 84 54 Z"
-                  fill="url(#como-funciona-leaf-grad)"
-                />
-                {/* Folha 6 apical (ponta) */}
-                <path
-                  d="M104 34 C 114 16, 134 6, 152 8 C 142 26, 122 36, 104 34 Z"
-                  fill="url(#como-funciona-leaf-grad)"
-                />
-              </svg>
-
-              {/* Elemento decorativo discreto: forma orgânica suave no canto inferior direito */}
-              <svg
-                id="como-funciona-decor-wave"
-                aria-hidden="true"
-                viewBox="0 0 400 160"
-                preserveAspectRatio="none"
-                fill="none"
-                className="pointer-events-none select-none absolute bottom-0 right-0 w-44 sm:w-72 md:w-[380px] h-24 sm:h-36 md:h-40 z-0"
-              >
-                <path
-                  d="M16 160 C 92 158, 146 126, 214 88 C 276 54, 338 36, 400 18 L 400 160 Z"
-                  fill="#F7EAE0"
-                  fillOpacity="0.82"
-                />
-              </svg>
-
-              <div className="relative z-10">
-                {/* Cabeçalho centralizado */}
-                <div id="como-funciona-header" className="text-center max-w-2xl mx-auto space-y-3 sm:space-y-4">
-                  <div
+              <div id="como-funciona-header" className="text-center space-y-2">
+                {sections.comoFunciona.eyebrow && (
+                  <span
                     id="como-funciona-eyebrow"
-                    className="inline-flex items-center justify-center gap-3 text-[11px] sm:text-xs font-heading font-semibold uppercase tracking-[0.24em] text-[#C24A0E]"
+                    className="text-xs font-heading font-bold uppercase tracking-[0.25em] text-[var(--primary)]"
                   >
-                    <span className="w-3.5 h-[1.5px] bg-[#D96528]/70 rounded-full" aria-hidden="true" />
-                    <span>{sections.comoFunciona.eyebrow || DEFAULT_COMO_FUNCIONA_HEADER_FALLBACK.eyebrow}</span>
-                    <span className="w-3.5 h-[1.5px] bg-[#D96528]/70 rounded-full" aria-hidden="true" />
-                  </div>
-
-                  <h2
-                    id="como-funciona-title"
-                    style={{ fontFamily: "var(--font-playfair), var(--font-display), Georgia, serif" }}
-                    className="text-[32px] min-[375px]:text-[36px] sm:text-[42px] md:text-[46px] font-medium text-[#2E1A10] tracking-[-0.012em] leading-[1.14]"
-                  >
-                    {sections.comoFunciona.title || DEFAULT_COMO_FUNCIONA_HEADER_FALLBACK.title}
-                  </h2>
-
-                  {(sections.comoFunciona.subtitle ?? DEFAULT_COMO_FUNCIONA_HEADER_FALLBACK.subtitle) && (
-                    <p
-                      id="como-funciona-subtitle"
-                      className="text-[13.5px] sm:text-[15.5px] text-[#66574E] max-w-[540px] mx-auto leading-[1.65] font-normal"
-                    >
-                      {sections.comoFunciona.subtitle ?? DEFAULT_COMO_FUNCIONA_HEADER_FALLBACK.subtitle}
-                    </p>
-                  )}
-                </div>
-
-                {/* Timeline Horizontal (Desktop) / Vertical à esquerda (Mobile) */}
-                <div
-                  id="como-funciona-steps"
-                  className="mt-10 sm:mt-12 md:mt-14 [--cf-gap:2rem] lg:[--cf-gap:2.5rem] flex flex-col gap-7 md:grid md:grid-cols-3 md:gap-8 lg:gap-10 relative"
+                    — {sections.comoFunciona.eyebrow} —
+                  </span>
+                )}
+                <h2
+                  id="como-funciona-title"
+                  className="font-heading text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight"
                 >
-                  {comoFuncionaSteps.map((step, index) => {
-                    const DirectIcon =
-                      COMO_FUNCIONA_ICON_COMPONENTS[
-                        step.icon as keyof typeof COMO_FUNCIONA_ICON_COMPONENTS
-                      ];
-                    const hasNext = index < comoFuncionaSteps.length - 1;
-                    return (
-                      <div
-                        key={step.id || step.number}
-                        data-step={step.number}
-                        className="como-funciona-step group relative flex flex-row items-start text-left gap-4 md:flex-col md:items-center md:text-center md:gap-0 min-w-0"
-                      >
-                        {/* Linha conectora horizontal (Desktop >= md) */}
-                        {hasNext && (
-                          <div
-                            aria-hidden="true"
-                            style={{
-                              left: "calc(50% + 58px)",
-                              width: "calc(100% + var(--cf-gap) - 116px)",
-                            }}
-                            className="hidden md:flex items-center absolute top-[44px] -translate-y-1/2 pointer-events-none z-0"
-                          >
-                            <span className="como-funciona-line flex-1 h-[1.5px] bg-[#E8AD84]/80 rounded-full origin-left" />
-                            <span className="como-funciona-dot w-2.5 h-2.5 rounded-full border-[1.75px] border-[#DF6B2B] bg-[#FFFDF9] mx-1.5 shrink-0" />
-                            <span className="como-funciona-line flex-1 h-[1.5px] bg-[#E8AD84]/80 rounded-full origin-left" />
-                          </div>
-                        )}
-
-                        {/* Linha conectora vertical à esquerda (Mobile < md) */}
-                        {hasNext && (
-                          <div
-                            aria-hidden="true"
-                            className="md:hidden absolute top-[62px] min-[375px]:top-[70px] bottom-[-22px] left-[28px] min-[375px]:left-[32px] -translate-x-1/2 flex flex-col items-center pointer-events-none z-0"
-                          >
-                            <span className="como-funciona-mobile-line w-[1.5px] flex-1 bg-[#E8AD84]/80 rounded-full origin-top" />
-                            <span className="como-funciona-mobile-dot w-2 h-2 rounded-full border-[1.5px] border-[#DF6B2B] bg-[#FFFDF9] my-1 shrink-0" />
-                            <span className="como-funciona-mobile-line w-[1.5px] flex-1 bg-[#E8AD84]/80 rounded-full origin-top" />
-                          </div>
-                        )}
-
-                        {/* Círculo bege-claro (~88px desktop, proporcional mobile) com ícone outline marrom escuro */}
-                        <div className="como-funciona-icon-wrap relative z-10 w-14 h-14 min-[375px]:w-16 min-[375px]:h-16 md:w-[88px] md:h-[88px] rounded-full bg-[#FCEFE4] border border-[#F7DFCC]/70 flex items-center justify-center shrink-0">
-                          {DirectIcon ? (
-                            <DirectIcon
-                              className="w-6 h-6 min-[375px]:w-7 min-[375px]:h-7 md:w-[34px] md:h-[34px] text-[#462516]"
-                              strokeWidth={1.65}
-                            />
-                          ) : (
-                            <ThemeIcon
-                              iconName={step.icon}
-                              className="w-6 h-6 min-[375px]:w-7 min-[375px]:h-7 md:w-[34px] md:h-[34px] text-[#462516]"
-                              strokeWidth={1.65}
-                              alt={step.title}
-                            />
-                          )}
-                        </div>
-
-                        {/* Conteúdo da etapa (cápsula numérica + título + descrição) */}
-                        <div className="flex-1 min-w-0 md:mt-4 flex flex-col items-start md:items-center">
-                          <span className="inline-flex items-center justify-center px-3 py-0.5 rounded-full bg-[#FDE4CF] text-[#B8470A] font-heading font-bold text-[11px] tracking-wider tabular-nums mb-2">
-                            {step.number}
-                          </span>
-                          <h3 className="font-heading font-bold text-[15px] sm:text-base text-[#2E1A10] leading-snug mb-1.5">
-                            {step.title}
-                          </h3>
-                          <p className="text-[13px] sm:text-[13.5px] text-[#6A5A50] leading-[1.6] md:max-w-[250px] md:mx-auto">
-                            {step.description}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Botão de Agendamento Online centralizado abaixo da timeline */}
-                <div id="como-funciona-cta" className="mt-10 sm:mt-12 text-center">
-                  <Link
-                    href="/agendar"
-                    className="group inline-flex w-full sm:w-auto max-w-full items-center justify-center gap-2.5 rounded-full bg-[#F45108] hover:bg-[#DC4606] active:scale-[0.98] text-white font-heading font-semibold text-sm sm:text-[15px] px-7 sm:px-9 py-3.5 sm:py-4 shadow-[0_8px_20px_-6px_rgba(244,81,8,0.38)] hover:shadow-[0_12px_24px_-6px_rgba(244,81,8,0.46)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F45108] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FFFDF9] transition-all duration-200"
+                  {sections.comoFunciona.title || DEFAULT_COMO_FUNCIONA_HEADER_FALLBACK.title}
+                </h2>
+                {(sections.comoFunciona.subtitle ?? DEFAULT_COMO_FUNCIONA_HEADER_FALLBACK.subtitle) && (
+                  <p
+                    id="como-funciona-subtitle"
+                    className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto leading-relaxed"
                   >
-                    <span>{sections.comoFunciona.ctaLabel || "Iniciar Agendamento Online"}</span>
-                    <ArrowRight className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
-                  </Link>
-                </div>
+                    {sections.comoFunciona.subtitle ?? DEFAULT_COMO_FUNCIONA_HEADER_FALLBACK.subtitle}
+                  </p>
+                )}
+              </div>
+
+              {/* 3 Passos Conectados */}
+              <div id="como-funciona-steps" className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+                {comoFuncionaSteps.map((step, index) => (
+                  <div
+                    key={step.id || step.number || index}
+                    data-step={step.number}
+                    data-icon-trigger
+                    className="como-funciona-step group flex flex-col items-center text-center space-y-2.5 p-3 rounded-2xl hover:bg-[#FAF8F5] transition-colors"
+                  >
+                    <ComoFuncionaStepIcon
+                      iconName={step.icon}
+                      stepIndex={index}
+                      className="h-6 w-6"
+                    />
+                    <h3 className="font-heading font-bold text-sm text-slate-900">
+                      {index + 1}. {step.title}
+                    </h3>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      {step.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div id="como-funciona-cta" className="text-center pt-2">
+                <Link
+                  href="/agendar"
+                  className="inline-flex items-center justify-center gap-2 text-xs sm:text-sm px-8 py-3 min-h-[46px] rounded-2xl bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] hover:brightness-110 active:brightness-95 active:scale-[0.98] font-heading font-semibold shadow-xs transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-white select-none"
+                >
+                  <span>{sections.comoFunciona.ctaLabel || "Iniciar Agendamento Online"}</span>
+                  <ArrowRight className="h-4 w-4 shrink-0" />
+                </Link>
               </div>
             </div>
           </div>

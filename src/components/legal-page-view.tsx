@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { sanitizeCustomHtml } from "@/lib/sanitize";
 import { CookieBanner } from "@/components/cookie-consent/cookie-banner";
 import { CookiePreferencesTrigger } from "@/components/cookie-consent/cookie-preferences-trigger";
-import { Stethoscope, ArrowLeft, AlertTriangle } from "lucide-react";
+import { Stethoscope, ArrowLeft, AlertTriangle } from "@/components/ui/pulso-server-icons";
 
 interface LegalPageViewProps {
   slug: "privacy" | "terms" | "cookies" | "lgpd" | "ethics";
@@ -38,7 +38,7 @@ export async function LegalPageView({ slug, defaultTitle }: LegalPageViewProps) 
       {/* ================= CABEÇALHO PÚBLICO (SEMPRE LIGHT MODE) ================= */}
       <header className="border-b border-[#E5E5E5] bg-white/95 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 font-bold text-lg text-[var(--primary)] hover:opacity-90 transition-opacity">
+          <Link href="/" aria-label="Voltar ao início" className="flex items-center gap-2.5 font-bold text-lg text-[var(--primary)] hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/50 rounded-lg">
             {site?.logoHorizontalUrl ? (
               <img
                 src={site.logoHorizontalUrl}

@@ -3,118 +3,91 @@ const assert = require("node:assert");
 const fs = require("node:fs");
 const path = require("node:path");
 
-test("1. Seção Como Funciona: textos exatos, hierarquia visual, Playfair Display e ornamentos discretos", () => {
+test("1. Seção Como Funciona restaurada para o card branco limpo pré-folhas com suporte a seções dinâmicas", () => {
   const pageSrc = fs.readFileSync(path.join(process.cwd(), "src", "app", "page.tsx"), "utf-8");
 
   assert.ok(
     pageSrc.includes('id="como-funciona" className="py-16 px-4 bg-[#F8F5EE] scroll-mt-20"'),
-    "Deve preservar id='como-funciona' e fundo bege #F8F5EE"
+    "Deve preservar id='como-funciona' e fundo bege #F8F5EE com scroll-mt-20"
   );
   assert.ok(
-    pageSrc.includes('id="como-funciona-card"') && pageSrc.includes("bg-[#FFFDF9]") && pageSrc.includes("rounded-[32px]"),
-    "Deve criar container branco-creme com cantos bastante arredondados"
+    pageSrc.includes('id="como-funciona-card"') &&
+      pageSrc.includes("rounded-3xl bg-white border border-[#EFE9DF] shadow-xs space-y-8"),
+    "Deve restaurar container branco limpo (rounded-3xl bg-white border-[#EFE9DF])"
   );
   assert.ok(
-    pageSrc.includes('id="como-funciona-decor-leaves"') && pageSrc.includes('id="como-funciona-decor-wave"'),
-    "Deve incluir elementos decorativos discretos (ramo de folhas topo-esquerdo e forma orgânica inferior-direita)"
+    !pageSrc.includes("como-funciona-decor-leaves") &&
+      !pageSrc.includes("como-funciona-decor-wave") &&
+      !pageSrc.includes("como-funciona-line") &&
+      !pageSrc.includes("como-funciona-mobile-line"),
+    "Não deve renderizar folhas decorativas, onda orgânica ou conectores de timeline"
   );
   assert.ok(
-    pageSrc.includes("PASSO A PASSO") &&
-      pageSrc.includes("Como Funciona?") &&
-      pageSrc.includes(
-        "Um processo simples, acolhedor e seguro, pensado para ajudar você a cuidar da sua saúde emocional com clareza e consistência."
-      ),
-    "Cabeçalho deve conter exatamente eyebrow, título e subtítulo solicitados"
-  );
-  assert.ok(
-    pageSrc.includes("--font-playfair"),
-    "Título Como Funciona? deve utilizar fonte serifada elegante Playfair Display"
-  );
-});
-
-test("2. Timeline Como Funciona: 3 etapas com ícones Lucide, círculo ~88px, cápsulas 01-03, conector horizontal/vertical e CTA #F45108", () => {
-  const pageSrc = fs.readFileSync(path.join(process.cwd(), "src", "app", "page.tsx"), "utf-8");
-
-  // Ícones obrigatórios
-  for (const icon of ["CalendarDays", "MessagesSquare", "HandHeart", "ArrowRight"]) {
-    assert.ok(pageSrc.includes(icon), `Deve importar e usar o ícone Lucide ${icon}`);
-  }
-
-  // Conteúdo exato das 3 etapas
-  for (const text of [
-    '"01"',
-    "Agende sua consulta",
-    "Escolha o horário e a modalidade ideal diretamente pelo nosso sistema online com praticidade e segurança.",
-    '"02"',
-    "Realize sua avaliação inicial",
-    "Primeira conversa para compreender suas necessidades, histórico e objetivos terapêuticos, em um espaço de escuta acolhedora.",
-    '"03"',
-    "Inicie seu acompanhamento",
-    "Sua jornada de cuidado, com sessões contínuas e um plano terapêutico personalizado, no seu ritmo e de forma consistente.",
-  ]) {
-    assert.ok(pageSrc.includes(text), `Deve conter o conteúdo exato da etapa: ${text}`);
-  }
-
-  // Círculo ~88px, cápsulas laranja-claro, botão #F45108 e rota /agendar
-  assert.ok(
-    pageSrc.includes("md:w-[88px] md:h-[88px]") &&
-      pageSrc.includes("bg-[#FCEFE4]") &&
-      pageSrc.includes("text-[#462516]"),
-    "Deve renderizar ícone outline marrom escuro dentro de círculo bege-claro de 88px no desktop"
-  );
-  assert.ok(
-    pageSrc.includes("bg-[#FDE4CF]"),
-    "Numeração 01, 02 e 03 deve estar em cápsulas laranja-claro"
+    pageSrc.includes("max-w-4xl mx-auto") &&
+      pageSrc.includes("sections.comoFunciona.isVisible") &&
+      pageSrc.includes("sections.comoFunciona.title") &&
+      pageSrc.includes("sections.comoFunciona.subtitle"),
+    "Deve manter largura max-w-4xl e leitura dinâmica de sections.comoFunciona"
   );
   assert.ok(
     pageSrc.includes('href="/agendar"') &&
-      pageSrc.includes("bg-[#F45108]") &&
-      pageSrc.includes("rounded-full") &&
-      pageSrc.includes("Iniciar Agendamento Online"),
-    "Botão de agendamento deve preservar /agendar, formato pill, fundo #F45108 e texto exato"
-  );
-
-  // Conectores responsivos desktop e mobile
-  assert.ok(
-    pageSrc.includes("md:grid-cols-3") &&
-      pageSrc.includes("como-funciona-line") &&
-      pageSrc.includes("como-funciona-dot"),
-    "Desktop deve distribuir 3 etapas horizontalmente conectadas por linha e círculos"
-  );
-  assert.ok(
-    pageSrc.includes("flex-row items-start") &&
-      pageSrc.includes("como-funciona-mobile-line") &&
-      pageSrc.includes("como-funciona-mobile-dot"),
-    "Mobile deve transformar a timeline em vertical com ícones/linha à esquerda e textos à direita"
+      pageSrc.includes("Iniciar Agendamento Online") &&
+      pageSrc.includes("ArrowRight"),
+    "Deve preservar CTA de agendamento online para /agendar"
   );
 });
 
-test("3. Animações GSAP de Como Funciona: ScrollTrigger sequencial, desenho progressivo, hover nos ícones e reduced-motion", () => {
+test("2. Passos de Como Funciona usam ícones animados pulsoicon-react com data-icon-trigger e prefers-reduced-motion", () => {
+  const pageSrc = fs.readFileSync(path.join(process.cwd(), "src", "app", "page.tsx"), "utf-8");
+  const stepIconSrc = fs.readFileSync(
+    path.join(process.cwd(), "src", "components", "minisite", "como-funciona-step-icon.tsx"),
+    "utf-8"
+  );
+
+  assert.ok(
+    pageSrc.includes("<ComoFuncionaStepIcon") && pageSrc.includes("data-icon-trigger"),
+    "Cada passo deve usar ComoFuncionaStepIcon dentro de card com data-icon-trigger"
+  );
+  assert.ok(
+    pageSrc.includes("{index + 1}. {step.title}"),
+    "Títulos dos passos devem seguir o formato clássico numerado (1., 2., 3.)"
+  );
+  assert.ok(
+    stepIconSrc.includes('from "pulsoicon-react"') &&
+      stepIconSrc.includes("startAnimation") &&
+      stepIconSrc.includes("stopAnimation") &&
+      stepIconSrc.includes("IntersectionObserver") &&
+      stepIconSrc.includes("prefers-reduced-motion"),
+    "ComoFuncionaStepIcon deve animar ícones pulsoicon-react via IntersectionObserver/ciclo/hover respeitando reduced-motion"
+  );
+  assert.ok(
+    stepIconSrc.includes("w-13 h-13 rounded-2xl bg-[var(--primary)]/10 text-[var(--primary)]"),
+    "Caixa dos ícones deve manter o estilo original rounded-2xl com bg-[var(--primary)]/10"
+  );
+});
+
+test("3. MotionController de Como Funciona restaura entrada limpa no ScrollTrigger + hover sutil no wrap", () => {
   const controllerSrc = fs.readFileSync(
     path.join(process.cwd(), "src", "components", "minisite", "motion-controller.tsx"),
     "utf-8"
   );
 
   assert.ok(
-    controllerSrc.includes('trigger: "#como-funciona"'),
-    "Deve manter ScrollTrigger em #como-funciona"
+    controllerSrc.includes('trigger: "#como-funciona"') &&
+      controllerSrc.includes('"#como-funciona-header"') &&
+      controllerSrc.includes('"#como-funciona-steps > div"'),
+    "Deve animar cabeçalho e cards de passo via ScrollTrigger"
+  );
+  assert.ok(
+    controllerSrc.includes(".como-funciona-icon-wrap") && controllerSrc.includes("y: -5"),
+    "Deve aplicar hover sutil vertical no container do ícone"
+  );
+  assert.ok(
+    !controllerSrc.includes(".como-funciona-line") && !controllerSrc.includes(".como-funciona-dot"),
+    "Não deve referenciar conectores removidos da timeline"
   );
   assert.ok(
     controllerSrc.includes("if (isReducedMotion()) return;"),
     "Deve respeitar prefers-reduced-motion"
-  );
-  assert.ok(
-    controllerSrc.includes("#como-funciona-title") &&
-      controllerSrc.includes("#como-funciona-subtitle") &&
-      controllerSrc.includes(".como-funciona-step"),
-    "Deve animar título, subtítulo e etapas sequencialmente"
-  );
-  assert.ok(
-    controllerSrc.includes("scaleX: 0") && controllerSrc.includes("scaleY: 0"),
-    "Deve desenhar a linha da timeline progressivamente no desktop (scaleX) e mobile (scaleY)"
-  );
-  assert.ok(
-    controllerSrc.includes(".como-funciona-icon-wrap") && controllerSrc.includes("y: -5"),
-    "Deve aplicar hover discreto com leve movimento vertical nos ícones"
   );
 });

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
 import { Modal } from "@/components/ui/modal";
-import { User, Phone, KeyRound, CheckCircle2, AlertTriangle, ShieldCheck, Info } from "lucide-react";
+import { User, Phone, KeyRound, CheckCircle2, AlertTriangle, ShieldCheck, Info } from "pulsoicon-react";
 
 interface GuardianInfo {
   id: string;

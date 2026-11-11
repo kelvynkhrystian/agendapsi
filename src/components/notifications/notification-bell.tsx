@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bell, Check, CheckCheck, ExternalLink, Clock } from "lucide-react";
+import { Bell, Check, CheckCheck, ExternalLink, Clock } from "pulsoicon-react";
 import { formatDate, formatTime } from "@/lib/utils";
 
 export interface NotificationItem {

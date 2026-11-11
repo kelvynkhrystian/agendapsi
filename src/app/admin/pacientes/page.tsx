@@ -23,7 +23,7 @@ import {
   FileText,
   Calendar,
   DollarSign,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 interface Patient {
   id: string;
@@ -209,7 +209,7 @@ export default function AdminPatientsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="space-y-6 max-w-6xl mx-auto w-full">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Gestão de Pacientes</h1>

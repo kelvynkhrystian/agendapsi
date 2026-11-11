@@ -1,6 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { AlertCircle, AlertTriangle, CheckCircle2, Info } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2, Info } from "@/components/ui/pulso-server-icons";
 
 export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: "info" | "warning" | "success" | "destructive";

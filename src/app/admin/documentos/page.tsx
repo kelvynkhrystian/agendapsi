@@ -20,7 +20,7 @@ import {
   AlertTriangle,
   FileCheck2,
   RefreshCw,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 interface DocumentItem {
   id: string;
@@ -117,7 +117,7 @@ export default function AdminDocumentsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="space-y-6 max-w-6xl mx-auto w-full">
       {/* Cabeçalho */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

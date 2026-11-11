@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { X } from "lucide-react";
+import { X } from "pulsoicon-react";
 
 interface ModalProps {
   isOpen: boolean;

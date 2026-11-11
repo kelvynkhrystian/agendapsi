@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
-import { ShieldCheck, Cookie, Check, X, SlidersHorizontal, Info } from "lucide-react";
+import { ShieldCheck, Cookie, Check, X, SlidersHorizontal, Info } from "pulsoicon-react";
 
 const CONSENT_STORAGE_KEY = "psi_cookie_consent";
 const CURRENT_POLICY_VERSION = "1.0";

@@ -5,7 +5,7 @@ import { BUILTIN_ICONS, BuiltinIconDefinition } from "@/lib/minisite-icons";
 import { ThemeIcon } from "./theme-icon";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, X, Check } from "lucide-react";
+import { Search, X, Check } from "pulsoicon-react";
 
 interface IconPickerModalProps {
   isOpen: boolean;

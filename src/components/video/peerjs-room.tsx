@@ -11,7 +11,7 @@ import {
   RefreshCw,
   AlertTriangle,
   User,
-} from "lucide-react";
+} from "pulsoicon-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 

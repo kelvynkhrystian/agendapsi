@@ -23,7 +23,7 @@ import {
   Info,
   Server,
   Layers,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 interface MessageDetailData {
   id: string;
@@ -181,7 +181,7 @@ export default function AdminMessageDetailPage({
 
   if (isLoading) {
     return (
-      <div className="space-y-6 max-w-4xl">
+      <div className="space-y-6 max-w-4xl mx-auto w-full">
         <div className="h-8 w-40 bg-[#E5E5E5] dark:bg-[#242424] rounded animate-pulse" />
         <div className="h-64 bg-[#E5E5E5] dark:bg-[#242424] rounded-xl animate-pulse" />
       </div>
@@ -190,7 +190,7 @@ export default function AdminMessageDetailPage({
 
   if (error || !log) {
     return (
-      <div className="space-y-6 max-w-4xl">
+      <div className="space-y-6 max-w-4xl mx-auto w-full">
         <Link href="/admin/lembretes/registros">
           <Button variant="outline" size="sm" className="gap-2">
             <ArrowLeft className="h-4 w-4" />
@@ -205,7 +205,7 @@ export default function AdminMessageDetailPage({
   const isEmail = log.channel === "EMAIL";
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-4xl mx-auto w-full">
       {/* Botão de Voltar e Ações Superiores */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <Link href="/admin/lembretes/registros">

@@ -24,7 +24,7 @@ import {
   AlertTriangle,
   Save,
   Check,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 interface PatientData {
   id: string;

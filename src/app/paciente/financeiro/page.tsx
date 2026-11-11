@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
-import { DollarSign, Boxes, CheckCircle, XCircle, CreditCard, Clock } from "lucide-react";
+import { DollarSign, Boxes, CheckCircle, XCircle, CreditCard, Clock } from "pulsoicon-react";
 
 interface PackageProposal {
   id: string;

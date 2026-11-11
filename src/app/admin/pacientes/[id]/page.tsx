@@ -46,7 +46,7 @@ import {
   Upload,
   FileCheck2,
   HelpCircle,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 interface ClinicalRecordItem {
   id: string;

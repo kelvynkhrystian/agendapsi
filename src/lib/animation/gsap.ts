@@ -190,34 +190,56 @@ export const TIMINGS = {
  * Micro-animação para cards de KPI e métricas (Admin & Paciente)
  */
 export function animateKpiEntrance(elements: Element[] | NodeListOf<Element> | HTMLCollection | null): void {
-  if (!elements || isReducedMotion()) return;
+  if (!elements) return;
 
   const targetElements = Array.from(elements);
   if (targetElements.length === 0) return;
 
-  gsap.from(targetElements, {
-    opacity: 0,
-    y: 8,
-    duration: TIMINGS.microStandard,
-    stagger: TIMINGS.microStagger,
-    ease: EASINGS.quick,
-    clearProps: "opacity,transform",
-  });
+  gsap.killTweensOf(targetElements);
+  if (isReducedMotion()) {
+    gsap.set(targetElements, { clearProps: "opacity,transform" });
+    return;
+  }
+
+  gsap.fromTo(
+    targetElements,
+    { opacity: 0, y: 10 },
+    {
+      opacity: 1,
+      y: 0,
+      duration: TIMINGS.microStandard,
+      stagger: TIMINGS.microStagger,
+      ease: EASINGS.quick,
+      overwrite: "auto",
+      clearProps: "opacity,transform",
+    }
+  );
 }
 
 /**
  * Micro-animação para entrada suave de páginas internas
  */
 export function animatePageEnter(container: HTMLElement | null): void {
-  if (!container || isReducedMotion()) return;
+  if (!container) return;
 
-  gsap.from(container, {
-    opacity: 0,
-    y: 6,
-    duration: TIMINGS.microStandard,
-    ease: EASINGS.micro,
-    clearProps: "opacity,transform",
-  });
+  gsap.killTweensOf(container);
+  if (isReducedMotion()) {
+    gsap.set(container, { clearProps: "opacity,transform" });
+    return;
+  }
+
+  gsap.fromTo(
+    container,
+    { opacity: 0, y: 8 },
+    {
+      opacity: 1,
+      y: 0,
+      duration: TIMINGS.microStandard,
+      ease: EASINGS.micro,
+      overwrite: "auto",
+      clearProps: "opacity,transform",
+    }
+  );
 }
 
 /**

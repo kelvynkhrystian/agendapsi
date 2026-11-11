@@ -22,7 +22,7 @@ import {
   Calendar,
   Layers,
   Sparkles,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 interface Service {
   id: string;

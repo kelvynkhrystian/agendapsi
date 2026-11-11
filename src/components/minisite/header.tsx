@@ -16,7 +16,7 @@ import {
   HelpCircle,
   Home,
   ChevronRight,
-} from "lucide-react";
+} from "pulsoicon-react";
 import { extractFirstName, getUserInitials } from "@/lib/header-profile";
 
 export interface HeaderUser {
@@ -193,6 +193,31 @@ export function MiniSiteHeader({
     document.body.style.overflow = "";
   };
 
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    setIsMenuOpen(false);
+    document.body.style.overflow = "";
+
+    if (typeof window !== "undefined" && window.location.pathname === "/") {
+      e.preventDefault();
+      const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const behavior: ScrollBehavior = prefersReduced ? "auto" : "smooth";
+      const heroEl = document.getElementById("inicio");
+      const targetTop = heroEl
+        ? Math.max(0, heroEl.getBoundingClientRect().top + window.scrollY - 84)
+        : 0;
+
+      window.scrollTo({
+        top: targetTop,
+        behavior,
+      });
+
+      if (window.location.hash) {
+        window.history.replaceState(null, "", "/");
+      }
+      setActiveSection("inicio");
+    }
+  };
+
   const handleMobileNavClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
     setIsMenuOpen(false);
@@ -285,9 +310,9 @@ export function MiniSiteHeader({
           <Link
             id="hero-header-mobile-logo"
             href="/"
-            onClick={handleLinkClick}
-            className="min-h-[44px] min-w-[44px] flex items-center shrink-0 focus:outline-none cursor-pointer"
-            aria-label="Página inicial"
+            onClick={handleLogoClick}
+            className="min-h-[44px] min-w-[44px] flex items-center shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/50 cursor-pointer"
+            aria-label="Voltar ao início"
           >
             {logoHorizontalUrl ? (
               <img
@@ -359,8 +384,9 @@ export function MiniSiteHeader({
           <div id="hero-header-logo" ref={logoRef} className="flex items-center justify-start pointer-events-auto">
             <Link
               href="/"
-              className="flex items-center gap-2.5 font-bold text-[var(--primary)] group shrink-0 focus:outline-none"
-              aria-label="Página inicial"
+              onClick={handleLogoClick}
+              className="flex items-center gap-2.5 font-bold text-[var(--primary)] group shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/50 cursor-pointer"
+              aria-label="Voltar ao início"
             >
               {logoHorizontalUrl ? (
                 <img

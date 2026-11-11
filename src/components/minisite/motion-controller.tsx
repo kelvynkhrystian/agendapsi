@@ -698,184 +698,71 @@ export function MiniSiteMotionController() {
     }
 
     // ============================================================================
-    // 5. COMO FUNCIONA (Sequência ScrollTrigger com Desenho da Timeline & Hover)
+    // 5. COMO FUNCIONA (Transição Horizontal Progressiva + Hover Sutil nos Ícones)
     // ============================================================================
     const stepHoverCleanups: Array<() => void> = [];
     if (document.querySelector("#como-funciona")) {
-      const cfHeaderEls = [
-        document.querySelector("#como-funciona-eyebrow"),
-        document.querySelector("#como-funciona-title"),
-        document.querySelector("#como-funciona-subtitle"),
-      ].filter((el): el is HTMLElement => Boolean(el));
-
-      const cfSteps = Array.from(
-        document.querySelectorAll("#como-funciona-steps .como-funciona-step")
-      ) as HTMLElement[];
-      const cfCta = document.querySelector("#como-funciona-cta") as HTMLElement | null;
-
-      const cfTl = gsap.timeline({
+      gsap.from("#como-funciona-header", {
         scrollTrigger: {
           trigger: "#como-funciona",
-          start: "top 82%",
-          once: true,
+          start: "top 88%",
+          toggleActions: "play none none none",
         },
-        onComplete: () => {
-          gsap.set(
-            [
-              ...cfHeaderEls,
-              ...cfSteps,
-              ...document.querySelectorAll(
-                ".como-funciona-line, .como-funciona-dot, .como-funciona-mobile-line, .como-funciona-mobile-dot"
-              ),
-              ...(cfCta ? [cfCta] : []),
-            ],
-            { clearProps: "transform,opacity" }
-          );
-        },
+        x: isDesktop ? -35 : 0,
+        y: isDesktop ? 0 : 20,
+        opacity: 0,
+        duration: 0.65,
+        ease: EASINGS.smooth,
+        clearProps: "all",
       });
 
-      if (cfHeaderEls.length > 0) {
-        cfTl.from(
-          cfHeaderEls,
-          {
-            y: 16,
-            opacity: 0,
-            duration: 0.55,
-            stagger: 0.08,
-            ease: "power3.out",
-            clearProps: "transform,opacity",
+      const stepItems = Array.from(
+        document.querySelectorAll("#como-funciona-steps > div")
+      ) as HTMLElement[];
+      if (stepItems.length > 0) {
+        gsap.from(stepItems, {
+          scrollTrigger: {
+            trigger: "#como-funciona-steps",
+            start: "top 88%",
+            toggleActions: "play none none none",
           },
-          0
-        );
-      }
+          x: isDesktop ? -40 : 0,
+          y: isDesktop ? 0 : 24,
+          opacity: 0,
+          duration: 0.65,
+          stagger: 0.12,
+          ease: EASINGS.expressive,
+          clearProps: "all",
+        });
 
-      cfSteps.forEach((stepEl, index) => {
-        const stepStart = 0.2 + index * 0.24;
-
-        cfTl.from(
-          stepEl,
-          {
-            y: 18,
-            opacity: 0,
-            duration: 0.5,
-            ease: "power3.out",
-            clearProps: "transform,opacity",
-          },
-          stepStart
-        );
-
-        const lineSel = isDesktop ? ".como-funciona-line" : ".como-funciona-mobile-line";
-        const dotSel = isDesktop ? ".como-funciona-dot" : ".como-funciona-mobile-dot";
-        const stepLines = Array.from(stepEl.querySelectorAll(lineSel)) as HTMLElement[];
-        const stepDot = stepEl.querySelector(dotSel) as HTMLElement | null;
-
-        if (stepLines.length > 0) {
-          const lineStart = stepStart + 0.14;
-          const firstLine = stepLines[0];
-          const secondLine = stepLines[1];
-
-          cfTl.from(
-            firstLine,
-            isDesktop
-              ? {
-                  scaleX: 0,
-                  opacity: 0,
-                  transformOrigin: "left center",
-                  duration: 0.22,
-                  ease: "power2.out",
-                  clearProps: "transform,opacity",
-                }
-              : {
-                  scaleY: 0,
-                  opacity: 0,
-                  transformOrigin: "top center",
-                  duration: 0.22,
-                  ease: "power2.out",
-                  clearProps: "transform,opacity",
-                },
-            lineStart
-          );
-
-          if (stepDot) {
-            cfTl.from(
-              stepDot,
-              {
-                scale: 0.4,
-                opacity: 0,
-                duration: 0.18,
+        stepItems.forEach((stepEl) => {
+          const iconWrap = stepEl.querySelector(".como-funciona-icon-wrap") as HTMLElement | null;
+          if (iconWrap && window.matchMedia?.("(hover: hover)").matches) {
+            const handleMouseEnter = () => {
+              gsap.to(iconWrap, {
+                y: -5,
+                duration: 0.25,
                 ease: "power2.out",
-                clearProps: "transform,opacity",
-              },
-              lineStart + 0.14
-            );
-          }
-
-          if (secondLine) {
-            cfTl.from(
-              secondLine,
-              isDesktop
-                ? {
-                    scaleX: 0,
-                    opacity: 0,
-                    transformOrigin: "left center",
-                    duration: 0.22,
-                    ease: "power2.out",
-                    clearProps: "transform,opacity",
-                  }
-                : {
-                    scaleY: 0,
-                    opacity: 0,
-                    transformOrigin: "top center",
-                    duration: 0.22,
-                    ease: "power2.out",
-                    clearProps: "transform,opacity",
-                  },
-              lineStart + 0.18
-            );
-          }
-        }
-
-        // Hover discreto nos ícones com leve movimento vertical
-        const iconWrap = stepEl.querySelector(".como-funciona-icon-wrap") as HTMLElement | null;
-        if (iconWrap && window.matchMedia?.("(hover: hover)").matches) {
-          const handleMouseEnter = () => {
-            gsap.to(iconWrap, {
-              y: -5,
-              duration: 0.25,
-              ease: "power2.out",
-              overwrite: "auto",
+                overwrite: "auto",
+              });
+            };
+            const handleMouseLeave = () => {
+              gsap.to(iconWrap, {
+                y: 0,
+                duration: 0.28,
+                ease: "power2.out",
+                overwrite: "auto",
+                clearProps: "transform",
+              });
+            };
+            stepEl.addEventListener("mouseenter", handleMouseEnter);
+            stepEl.addEventListener("mouseleave", handleMouseLeave);
+            stepHoverCleanups.push(() => {
+              stepEl.removeEventListener("mouseenter", handleMouseEnter);
+              stepEl.removeEventListener("mouseleave", handleMouseLeave);
             });
-          };
-          const handleMouseLeave = () => {
-            gsap.to(iconWrap, {
-              y: 0,
-              duration: 0.28,
-              ease: "power2.out",
-              overwrite: "auto",
-              clearProps: "transform",
-            });
-          };
-          stepEl.addEventListener("mouseenter", handleMouseEnter);
-          stepEl.addEventListener("mouseleave", handleMouseLeave);
-          stepHoverCleanups.push(() => {
-            stepEl.removeEventListener("mouseenter", handleMouseEnter);
-            stepEl.removeEventListener("mouseleave", handleMouseLeave);
-          });
-        }
-      });
-
-      if (cfCta) {
-        cfTl.from(
-          cfCta,
-          {
-            y: 14,
-            opacity: 0,
-            duration: 0.48,
-            ease: "power3.out",
-            clearProps: "transform,opacity",
-          },
-          0.72
-        );
+          }
+        });
       }
     }
 
@@ -996,14 +883,8 @@ export function MiniSiteMotionController() {
         "#hero-scroll-indicator",
         "#services-list > a",
         "#diferenciais-grid > div",
-        "#como-funciona-eyebrow",
-        "#como-funciona-title",
-        "#como-funciona-subtitle",
-        "#como-funciona-steps .como-funciona-step",
-        "#como-funciona-steps .como-funciona-line",
-        "#como-funciona-steps .como-funciona-dot",
-        "#como-funciona-steps .como-funciona-mobile-line",
-        "#como-funciona-steps .como-funciona-mobile-dot",
+        "#como-funciona-header",
+        "#como-funciona-steps > div",
         "#como-funciona-cta",
         "#sobre-media",
         "#sobre-content",

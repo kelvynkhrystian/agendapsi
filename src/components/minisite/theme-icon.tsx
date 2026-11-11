@@ -13,6 +13,8 @@ import {
   Leaf,
   Calendar,
   CalendarDays,
+  CheckCircle2,
+  ClipboardCheck,
   Clock,
   Users,
   UserCheck,
@@ -28,7 +30,7 @@ import {
   Home,
   MapPin,
   Video,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 export const ICON_MAP: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
   Heart,
@@ -42,6 +44,8 @@ export const ICON_MAP: Record<string, React.ComponentType<{ className?: string; 
   Leaf,
   Calendar,
   CalendarDays,
+  CheckCircle2,
+  ClipboardCheck,
   Clock,
   Users,
   UserCheck,

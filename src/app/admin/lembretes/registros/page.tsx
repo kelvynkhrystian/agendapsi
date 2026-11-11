@@ -27,7 +27,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Info,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 interface MessageLogItem {
   id: string;
@@ -212,7 +212,7 @@ export default function AdminMessageLogsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="space-y-6 max-w-6xl mx-auto w-full">
       {/* Cabeçalho da Página */}
       <div>
         <div className="flex items-center gap-2">

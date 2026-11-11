@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
-import { CheckCircle2, Clock, FileCheck2, ShieldCheck, Send } from "lucide-react";
+import { CheckCircle2, Clock, FileCheck2, ShieldCheck, Send } from "pulsoicon-react";
 
 interface QuestionField {
   id: string;

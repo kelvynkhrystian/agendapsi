@@ -30,7 +30,7 @@ import {
   Code,
   Layout,
   Columns,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 interface PageData {
   id: string;

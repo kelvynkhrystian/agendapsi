@@ -4,7 +4,7 @@ import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, AlertTriangle, Loader2, ArrowLeft } from "lucide-react";
+import { CheckCircle2, AlertTriangle, Loader2, ArrowLeft } from "pulsoicon-react";
 import Link from "next/link";
 
 function EmailVerificationContent() {

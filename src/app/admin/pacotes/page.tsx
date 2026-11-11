@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
 import { Modal } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
-import { Boxes, Plus, Calendar, Clock, User, CheckCircle2, XCircle } from "lucide-react";
+import { Boxes, Plus, Calendar, Clock, User, CheckCircle2, XCircle } from "pulsoicon-react";
 
 interface PackageItem {
   id: string;

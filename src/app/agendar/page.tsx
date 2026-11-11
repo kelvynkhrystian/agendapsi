@@ -22,7 +22,7 @@ import {
   Video,
   MapPin,
   AlertTriangle,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 interface Service {
   id: string;
@@ -273,7 +273,7 @@ export default function BookingPage() {
       {/* Header */}
       <header className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-bold text-[var(--primary)]">
+          <Link href="/" aria-label="Voltar ao início" className="flex items-center gap-2 font-bold text-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/50 rounded-lg">
             <Stethoscope className="h-6 w-6" />
             <span>PSI Consultório</span>
           </Link>

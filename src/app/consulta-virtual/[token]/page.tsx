@@ -18,7 +18,7 @@ import {
   UserCheck,
   LogIn,
   ExternalLink,
-} from "lucide-react";
+} from "pulsoicon-react";
 import PeerJsRoom, { PeerJsConfig } from "@/components/video/peerjs-room";
 
 interface MeetingData {

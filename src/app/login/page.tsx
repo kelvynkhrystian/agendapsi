@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { ShieldCheck, UserCheck, Stethoscope } from "lucide-react";
+import { ShieldCheck, UserCheck, Stethoscope } from "pulsoicon-react";
 
 export default function LoginPage() {
   const router = useRouter();

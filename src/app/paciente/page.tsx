@@ -35,7 +35,7 @@ import {
   ArrowRight,
   ShieldCheck,
   HeartHandshake,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 interface Appointment {
   id: string;

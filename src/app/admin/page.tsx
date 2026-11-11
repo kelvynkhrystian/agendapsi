@@ -2,7 +2,13 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { animatePageEnter, animateKpiEntrance } from "@/lib/animation/gsap";
+import {
+  animatePageEnter,
+  animateKpiEntrance,
+  gsap,
+  isReducedMotion,
+  useGSAP,
+} from "@/lib/animation/gsap";
 import {
   formatBRL,
   formatTime,
@@ -23,7 +29,6 @@ import { EmptyState } from "@/components/ui/empty-state";
 import {
   MiniSparkline,
   LollipopPerformanceChart,
-  RadialArcProgress,
 } from "@/components/admin/analytics-charts";
 import {
   Calendar,
@@ -41,10 +46,8 @@ import {
   Globe,
   Mail,
   AlertTriangle,
-  Wallet,
-  Target,
   BarChart3,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 interface PerformanceBucket {
   dateKey?: string;
@@ -159,17 +162,6 @@ function getTimeGreeting(tz?: string): string {
   }
 }
 
-function getCurrentMonthLabel(tz?: string): string {
-  try {
-    return new Intl.DateTimeFormat("pt-BR", {
-      timeZone: tz || "America/Sao_Paulo",
-      month: "long",
-    }).format(new Date());
-  } catch {
-    return "mês atual";
-  }
-}
-
 export default function AdminDashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -177,17 +169,49 @@ export default function AdminDashboardPage() {
   const [seriesFilter, setSeriesFilter] = useState<"all" | "presential" | "online" | "package">("all");
   const pageRef = useRef<HTMLDivElement>(null);
   const kpiGridRef = useRef<HTMLDivElement>(null);
+  const isDashboardReady = !isLoading && Boolean(data);
 
-  useEffect(() => {
-    if (!isLoading && data) {
+  useGSAP(
+    () => {
+      if (!isDashboardReady || !pageRef.current) return;
+
+      if (isReducedMotion()) {
+        gsap.set(pageRef.current, { clearProps: "opacity,transform" });
+        if (kpiGridRef.current) {
+          gsap.set(kpiGridRef.current.children, { clearProps: "opacity,transform" });
+        }
+        return;
+      }
+
       animatePageEnter(pageRef.current);
       if (kpiGridRef.current) {
         animateKpiEntrance(kpiGridRef.current.children);
       }
-    }
-  }, [isLoading, data]);
+
+      const sections = pageRef.current.querySelectorAll("[data-dashboard-section]");
+      if (sections.length > 0) {
+        gsap.killTweensOf(sections);
+        gsap.fromTo(
+          sections,
+          { opacity: 0, y: 10 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.22,
+            stagger: 0.045,
+            delay: 0.03,
+            ease: "power2.out",
+            overwrite: "auto",
+            clearProps: "opacity,transform",
+          }
+        );
+      }
+    },
+    { scope: pageRef, dependencies: [isDashboardReady] }
+  );
 
   useEffect(() => {
+    let active = true;
     fetch("/api/admin/dashboard-stats")
       .then((res) => {
         if (!res.ok) {
@@ -200,33 +224,38 @@ export default function AdminDashboardPage() {
         return res.json();
       })
       .then((d) => {
+        if (!active) return;
         if (d && !d.error) {
           setData(d);
           setIsLoading(false);
         }
       })
       .catch((e) => {
+        if (!active) return;
         console.error(e);
         setIsLoading(false);
       });
+    return () => {
+      active = false;
+    };
   }, []);
 
   if (isLoading || !data) {
     return (
-      <div className="space-y-6 animate-pulse">
+      <div key="dashboard-skeleton" className="space-y-4 sm:space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-2">
+          <div className="space-y-2 animate-pulse">
             <div className="h-4 w-32 bg-[#E5E5E5] dark:bg-[#202020] rounded-lg" />
             <div className="h-8 w-64 bg-[#E5E5E5] dark:bg-[#242424] rounded-xl" />
             <div className="h-4 w-80 bg-[#E5E5E5] dark:bg-[#202020] rounded-lg" />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 animate-pulse">
             <div className="h-10 w-36 bg-[#E5E5E5] dark:bg-[#242424] rounded-xl" />
             <div className="h-10 w-36 bg-[#E5E5E5] dark:bg-[#242424] rounded-xl" />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 animate-pulse">
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
@@ -235,9 +264,9 @@ export default function AdminDashboardPage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
-          <div className="xl:col-span-8 h-96 bg-white dark:bg-[#1A1A1A] border border-[#E5E5E5] dark:border-[#2C2C2C] rounded-2xl" />
-          <div className="xl:col-span-4 h-96 bg-white dark:bg-[#1A1A1A] border border-[#E5E5E5] dark:border-[#2C2C2C] rounded-2xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 animate-pulse">
+          <div className="lg:col-span-8 h-80 bg-white dark:bg-[#1A1A1A] border border-[#E5E5E5] dark:border-[#2C2C2C] rounded-2xl" />
+          <div className="lg:col-span-4 h-80 bg-white dark:bg-[#1A1A1A] border border-[#E5E5E5] dark:border-[#2C2C2C] rounded-2xl" />
         </div>
       </div>
     );
@@ -282,13 +311,11 @@ export default function AdminDashboardPage() {
     { label: "—", valueCents: 0 }
   );
 
-  const monthLabel = getCurrentMonthLabel(data.timezone);
   const revenueDeltaPct = monthSummary?.revenueDeltaPct ?? 0;
   const hasPrevRevenue = (monthSummary?.prevMonthRealCents ?? 0) > 0;
-  const collectionRatePct = monthSummary?.collectionRatePct ?? 0;
 
   return (
-    <div ref={pageRef} className="space-y-6">
+    <div key="dashboard-ready" ref={pageRef} className="space-y-4 sm:space-y-5">
       {/* ================= 1. GREETING & PAGE HEADER ================= */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="space-y-1">
@@ -463,244 +490,129 @@ export default function AdminDashboardPage() {
         </Card>
       </div>
 
-      {/* ================= 3. ASYMMETRIC BENTO CHARTS (LOLLIPOP + WALLET + RADIAL TARGET) ================= */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
-        {/* Esquerda (8 cols): Gráfico Lollipop Interativo "Desempenho & Receita" */}
-        <Card className="xl:col-span-8 bg-white dark:bg-[#1A1A1A] border-[#E5E5E5] dark:border-[#2C2C2C] p-5 sm:p-6 flex flex-col">
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-              <div>
-                <h2 className="font-heading text-base sm:text-lg font-bold text-[#171717] dark:text-[#F5F5F5]">
-                  Desempenho &amp; Receita
-                </h2>
-                <p className="text-xs text-[#737373] dark:text-[#8C8C8C] mt-0.5">
-                  Evolução dos recebimentos confirmados reais frente à média do período
-                </p>
+      {/* ================= 3. PRINCIPAL BENTO (8 COLS CHART + AGENDA | 4 COLS WIDGETS) ================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Coluna Principal (8 cols — largura original do gráfico e agenda) */}
+        <div data-dashboard-section className="lg:col-span-8 space-y-5">
+          {/* Gráfico Lollipop Interativo "Desempenho & Receita" */}
+          <Card className="bg-white dark:bg-[#1A1A1A] border-[#E5E5E5] dark:border-[#2C2C2C] p-4 sm:p-5 flex flex-col">
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                <div>
+                  <h2 className="font-heading text-base sm:text-lg font-bold text-[#171717] dark:text-[#F5F5F5]">
+                    Desempenho &amp; Receita
+                  </h2>
+                  <p className="text-xs text-[#737373] dark:text-[#8C8C8C] mt-0.5">
+                    Evolução dos recebimentos confirmados reais frente à média do período
+                  </p>
+                </div>
+
+                {/* Seletor de Período */}
+                <div className="inline-flex items-center rounded-xl bg-[#F4F4F5] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] p-1 gap-1 self-start">
+                  {[
+                    { id: "14d" as const, label: "14 dias" },
+                    { id: "30d" as const, label: "30 dias" },
+                    { id: "6m" as const, label: "6 meses" },
+                  ].map((opt) => {
+                    const active = chartWindow === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setChartWindow(opt.id)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-heading font-semibold transition-all cursor-pointer ${
+                          active
+                            ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-2xs"
+                            : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] hover:bg-[var(--primary)]/[0.04] dark:bg-transparent dark:text-[#A6A6A6] dark:hover:text-[#F5F5F5] dark:hover:bg-[#242424]"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
-              {/* Seletor de Período */}
-              <div className="inline-flex items-center rounded-xl bg-[#F4F4F5] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] p-1 gap-1 self-start">
+              {/* Resumo Numérico do Recorte */}
+              <div className="flex flex-wrap items-baseline gap-x-8 gap-y-2 pt-0.5">
+                <div>
+                  <span className="block text-[11px] text-[#737373] dark:text-[#8C8C8C]">
+                    Total no período
+                  </span>
+                  <span className="font-heading text-2xl sm:text-3xl font-bold tracking-tight tabular-nums text-[#171717] dark:text-[#F5F5F5]">
+                    {formatBRL(windowTotalCents)}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-[11px] text-[#737373] dark:text-[#8C8C8C]">
+                    Média por ponto ativo
+                  </span>
+                  <span className="font-heading text-sm font-bold tabular-nums text-[#171717] dark:text-[#F5F5F5]">
+                    {formatBRL(avgBucketCents)}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-[11px] text-[#737373] dark:text-[#8C8C8C]">
+                    Melhor {chartWindow === "6m" ? "mês" : "dia"}
+                  </span>
+                  <span className="font-heading text-sm font-bold tabular-nums text-[#171717] dark:text-[#F5F5F5]">
+                    {bestBucket.valueCents > 0
+                      ? `${formatBRL(bestBucket.valueCents)} · ${bestBucket.label}`
+                      : "—"}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-[11px] text-[#737373] dark:text-[#8C8C8C]">
+                    Sessões no período
+                  </span>
+                  <span className="font-heading text-sm font-bold tabular-nums text-[#171717] dark:text-[#F5F5F5]">
+                    {windowSessionsTotal}
+                  </span>
+                </div>
+              </div>
+
+              {/* Filtros de Série */}
+              <div className="flex flex-wrap items-center gap-2">
                 {[
-                  { id: "14d" as const, label: "14 dias" },
-                  { id: "30d" as const, label: "30 dias" },
-                  { id: "6m" as const, label: "6 meses" },
-                ].map((opt) => {
-                  const active = chartWindow === opt.id;
+                  { id: "all" as const, label: "Todos", dot: "var(--primary, #EA580C)" },
+                  { id: "presential" as const, label: "Presencial", dot: "#10B981" },
+                  { id: "online" as const, label: "Teleconsulta", dot: "#3B82F6" },
+                  { id: "package" as const, label: "Pacotes", dot: "#F59E0B" },
+                ].map((s) => {
+                  const active = seriesFilter === s.id;
                   return (
                     <button
-                      key={opt.id}
+                      key={s.id}
                       type="button"
-                      onClick={() => setChartWindow(opt.id)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-heading font-semibold transition-all cursor-pointer ${
+                      onClick={() => setSeriesFilter(s.id)}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-all cursor-pointer ${
                         active
-                          ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-2xs"
-                          : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] hover:bg-[var(--primary)]/[0.04] dark:bg-transparent dark:text-[#A6A6A6] dark:hover:text-[#F5F5F5] dark:hover:bg-[#242424]"
+                          ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] border-transparent font-semibold shadow-2xs"
+                          : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border-[var(--primary)]/25 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#141414] dark:text-[#CCCCCC] dark:border-[#2C2C2C] dark:hover:bg-[#242424]"
                       }`}
                     >
-                      {opt.label}
+                      <span
+                        className="h-2 w-2 rounded-full shrink-0"
+                        style={{ backgroundColor: active ? "#FFFFFF" : s.dot }}
+                      />
+                      <span>{s.label}</span>
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* Resumo Numérico do Recorte */}
-            <div className="flex flex-wrap items-baseline gap-x-8 gap-y-3 pt-1">
-              <div>
-                <span className="block text-[11px] text-[#737373] dark:text-[#8C8C8C]">
-                  Total no período
-                </span>
-                <span className="font-heading text-2xl sm:text-3xl font-bold tracking-tight tabular-nums text-[#171717] dark:text-[#F5F5F5]">
-                  {formatBRL(windowTotalCents)}
-                </span>
-              </div>
-              <div>
-                <span className="block text-[11px] text-[#737373] dark:text-[#8C8C8C]">
-                  Média por ponto ativo
-                </span>
-                <span className="font-heading text-sm font-bold tabular-nums text-[#171717] dark:text-[#F5F5F5]">
-                  {formatBRL(avgBucketCents)}
-                </span>
-              </div>
-              <div>
-                <span className="block text-[11px] text-[#737373] dark:text-[#8C8C8C]">
-                  Melhor {chartWindow === "6m" ? "mês" : "dia"}
-                </span>
-                <span className="font-heading text-sm font-bold tabular-nums text-[#171717] dark:text-[#F5F5F5]">
-                  {bestBucket.valueCents > 0
-                    ? `${formatBRL(bestBucket.valueCents)} · ${bestBucket.label}`
-                    : "—"}
-                </span>
-              </div>
-              <div>
-                <span className="block text-[11px] text-[#737373] dark:text-[#8C8C8C]">
-                  Sessões no período
-                </span>
-                <span className="font-heading text-sm font-bold tabular-nums text-[#171717] dark:text-[#F5F5F5]">
-                  {windowSessionsTotal}
-                </span>
-              </div>
-            </div>
-
-            {/* Filtros de Série */}
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              {[
-                { id: "all" as const, label: "Todos", dot: "var(--primary, #EA580C)" },
-                { id: "presential" as const, label: "Presencial", dot: "#10B981" },
-                { id: "online" as const, label: "Teleconsulta", dot: "#3B82F6" },
-                { id: "package" as const, label: "Pacotes", dot: "#F59E0B" },
-              ].map((s) => {
-                const active = seriesFilter === s.id;
-                return (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => setSeriesFilter(s.id)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-all cursor-pointer ${
-                      active
-                        ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] border-transparent font-semibold shadow-2xs"
-                        : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border-[var(--primary)]/25 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#141414] dark:text-[#CCCCCC] dark:border-[#2C2C2C] dark:hover:bg-[#242424]"
-                    }`}
-                  >
-                    <span
-                      className="h-2 w-2 rounded-full shrink-0"
-                      style={{ backgroundColor: active ? "#FFFFFF" : s.dot }}
-                    />
-                    <span>{s.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="pt-5">
-            <LollipopPerformanceChart
-              data={chartData}
-              height={360}
-              targetLabel="Média"
-              secondarySeriesLabel={seriesFilter === "all" ? "Simulado" : undefined}
-              emptyMessage="Nenhuma receita real confirmada neste recorte temporal."
-            />
-          </div>
-        </Card>
-
-        {/* Direita (4 cols): Resumo Financeiro + Acompanhamento do Mês */}
-        <div className="xl:col-span-4 space-y-5 flex flex-col justify-between">
-          {/* Wallet / Resumo Financeiro */}
-          <Card className="relative overflow-hidden bg-white dark:bg-[#1A1A1A] border-[#E5E5E5] dark:border-[#2C2C2C] p-5 sm:p-6">
-            <div
-              className="pointer-events-none hidden dark:block absolute -right-12 -top-12 h-36 w-36 rounded-full opacity-25 blur-2xl"
-              style={{ backgroundColor: "var(--primary, #EA580C)" }}
-              aria-hidden="true"
-            />
-            <div className="relative z-10 space-y-4">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-xl bg-[var(--primary)]/10 text-[var(--button-outline-fg,var(--primary))] dark:bg-[#242424] dark:text-[var(--primary)] dark:border dark:border-[#333333] flex items-center justify-center">
-                    <Wallet className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <h2 className="font-heading text-sm font-bold text-[#171717] dark:text-[#F5F5F5]">
-                      Resumo Financeiro
-                    </h2>
-                    <p className="text-[11px] text-[#737373] dark:text-[#8C8C8C]">
-                      Saldo real confirmado no mês
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="font-heading text-2xl sm:text-3xl font-bold tracking-tight tabular-nums text-[#171717] dark:text-[#F5F5F5]">
-                {formatBRL(data.revenueMonth.realCents)}
-              </div>
-
-              <MiniSparkline values={sparklines?.revenue7d || [0, 0]} height={42} />
-
-              <div className="grid grid-cols-2 gap-2.5 text-xs">
-                <div className="p-3 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C]">
-                  <span className="block text-[11px] text-[#737373] dark:text-[#8C8C8C]">
-                    A confirmar
-                  </span>
-                  <span className="font-heading font-bold text-sm tabular-nums text-[#171717] dark:text-[#F5F5F5] mt-0.5 block">
-                    {formatBRL(data.pendingBalanceCents)}
-                  </span>
-                </div>
-                <div className="p-3 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C]">
-                  <span className="block text-[11px] text-[#737373] dark:text-[#8C8C8C]">
-                    Simulado (Testes)
-                  </span>
-                  <span className="font-heading font-bold text-sm tabular-nums text-[#171717] dark:text-[#F5F5F5] mt-0.5 block">
-                    {formatBRL(data.revenueMonth.simulatedCents)}
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-2 pt-1">
-                <Link href="/admin/financeiro" className="block">
-                  <Button variant="primary" size="md" className="w-full text-xs">
-                    <span>Gerenciar Financeiro</span>
-                    <ArrowRight className="h-3.5 w-3.5 text-current" />
-                  </Button>
-                </Link>
-                <Link href="/admin/pacotes" className="block">
-                  <Button variant="secondary" size="sm" className="w-full text-xs">
-                    <span>Ver Pacotes &amp; Propostas</span>
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </Card>
-
-          {/* Acompanhamento do Mês (Circular Target Donut) */}
-          <Card className="bg-white dark:bg-[#1A1A1A] border-[#E5E5E5] dark:border-[#2C2C2C] p-5 sm:p-6">
-            <div className="flex items-center justify-between gap-2 mb-4">
-              <div>
-                <h2 className="font-heading text-sm font-bold text-[#171717] dark:text-[#F5F5F5]">
-                  Acompanhamento do Mês
-                </h2>
-                <p className="text-[11px] text-[#737373] dark:text-[#8C8C8C] capitalize">
-                  {monthLabel} · Efetivação financeira
-                </p>
-              </div>
-              <Target className="h-4 w-4 text-[var(--primary)] shrink-0" />
-            </div>
-
-            <div className="flex items-center gap-4">
-              <RadialArcProgress
-                percentage={collectionRatePct}
-                size={112}
-                strokeWidth={10}
-                label="Efetivado"
-                subLabel="Recebido"
+            <div className="pt-3">
+              <LollipopPerformanceChart
+                data={chartData}
+                height={240}
+                targetLabel="Média"
+                secondarySeriesLabel={seriesFilter === "all" ? "Simulado" : undefined}
+                emptyMessage="Nenhuma receita real confirmada neste recorte temporal."
               />
-
-              <div className="flex-1 min-w-0 space-y-2.5 text-xs">
-                <div className="p-2.5 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C]">
-                  <span className="text-[10px] uppercase tracking-wider font-semibold text-[#737373] dark:text-[#8C8C8C] block">
-                    Sessões realizadas
-                  </span>
-                  <span className="font-heading font-bold text-sm tabular-nums text-[#171717] dark:text-[#F5F5F5]">
-                    {monthSummary?.monthCompletedCount ?? 0}/{monthSummary?.monthAppointmentsTotal ?? 0}
-                  </span>
-                </div>
-                <div className="p-2.5 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C]">
-                  <span className="text-[10px] uppercase tracking-wider font-semibold text-[#737373] dark:text-[#8C8C8C] block">
-                    Total combinado
-                  </span>
-                  <span className="font-heading font-bold text-sm tabular-nums text-[#171717] dark:text-[#F5F5F5]">
-                    {formatBRL(data.revenueMonth.totalCombinedCents)}
-                  </span>
-                </div>
-              </div>
             </div>
           </Card>
-        </div>
-      </div>
 
-      {/* ================= 4. OPERATIONAL BENTO: AGENDA DE HOJE & WIDGETS ================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Coluna Principal (8 cols) */}
-        <div className="lg:col-span-8 space-y-5">
           {/* Agenda de Hoje */}
           <Card className="bg-white dark:bg-[#1A1A1A] border-[#E5E5E5] dark:border-[#2C2C2C]">
             <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 sm:p-6 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
@@ -849,7 +761,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Coluna Lateral Operacional (4 cols) */}
-        <div className="lg:col-span-4 space-y-5">
+        <div data-dashboard-section className="lg:col-span-4 space-y-5">
           {/* Ações Rápidas */}
           <Card className="bg-white dark:bg-[#1A1A1A] border-[#E5E5E5] dark:border-[#2C2C2C]">
             <CardHeader className="pb-3 p-5 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">

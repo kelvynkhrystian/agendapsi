@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp } from "pulsoicon-react";
 import { WhatsAppIcon } from "@/components/ui/whatsapp-icon";
 
 export interface MiniSiteFloatingControlsProps {

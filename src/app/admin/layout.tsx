@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { LayoutGroup, MotionConfig, motion } from "motion/react";
 import { cn, formatBRL } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,7 @@ import {
   Share2,
   FileText,
   Plus,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 interface NavGroup {
   groupLabel: string;
@@ -162,8 +163,19 @@ export default function AdminLayout({
   const ringOffset =
     ringCircumference - (Math.min(100, Math.max(0, adminMeta.todayCompletionPct)) / 100) * ringCircumference;
 
+  const breadcrumbLabel = getAdminBreadcrumbLabel(pathname);
+  const activeNavHref =
+    allNavItems
+      .filter((item) =>
+        item.href === "/admin"
+          ? pathname === "/admin"
+          : pathname === item.href || pathname.startsWith(item.href)
+      )
+      .sort((a, b) => b.href.length - a.href.length)[0]?.href ?? null;
+
   return (
-    <div className="min-h-screen flex bg-[#F8F8F8] dark:bg-[#0C0C0C] text-[#171717] dark:text-[#F5F5F5] selection:bg-[var(--primary)] selection:text-white">
+    <MotionConfig reducedMotion="user">
+      <div className="min-h-screen flex bg-[#F8F8F8] dark:bg-[#0C0C0C] text-[#171717] dark:text-[#F5F5F5] selection:bg-[var(--primary)] selection:text-white">
       {/* Mobile Sidebar Backdrop */}
       {sidebarOpen && (
         <div
@@ -224,51 +236,73 @@ export default function AdminLayout({
         </div>
 
         {/* Grouped Navigation */}
-        <nav className="flex-1 px-3 py-2 space-y-2.5 overflow-y-auto">
-          {navGroups.map((group) => (
-            <div key={group.groupLabel} className="space-y-0.5">
-              <p className="px-3 pb-0.5 text-[10px] font-heading font-bold uppercase tracking-wider text-[#737373] dark:text-[#737373]">
-                {group.groupLabel}
-              </p>
-              {group.items.map((item) => {
-                const Icon = item.icon;
-                const isActive =
-                  pathname === item.href ||
-                  (item.href !== "/admin" && pathname.startsWith(item.href));
+        <LayoutGroup id="admin-sidebar-nav">
+          <motion.nav
+            layoutScroll
+            className="relative isolate flex-1 px-3 py-2 space-y-2.5 overflow-y-auto overflow-x-hidden"
+          >
+            {navGroups.map((group) => (
+              <div key={group.groupLabel} className="space-y-0.5">
+                <p className="px-3 pb-0.5 text-[10px] font-heading font-bold uppercase tracking-wider text-[#737373] dark:text-[#737373]">
+                  {group.groupLabel}
+                </p>
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = item.href === activeNavHref;
 
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-heading font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]",
-                      isActive
-                        ? "bg-[var(--button-bg,var(--primary))] dark:bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-sm dark:shadow-[0_8px_22px_-6px_rgba(234,88,12,0.5)]"
-                        : "text-[#525252] dark:text-[#B8B8B8] hover:bg-[#F4F4F5] dark:hover:bg-[#1E1E1E] hover:text-[#171717] dark:hover:text-[#FFFFFF]"
-                    )}
-                    style={
-                      isActive
-                        ? {
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setSidebarOpen(false)}
+                      aria-current={isActive ? "page" : undefined}
+                      className={cn(
+                        "group/nav relative flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-heading font-medium transition-[color,background-color,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]",
+                        isActive
+                          ? "text-[var(--button-fg,#ffffff)] font-semibold"
+                          : "text-[#525252] dark:text-[#B8B8B8] hover:bg-[#F4F4F5] dark:hover:bg-[#1E1E1E] hover:text-[#171717] dark:hover:text-[#FFFFFF] active:scale-[0.99]"
+                      )}
+                    >
+                      {isActive && (
+                        <motion.span
+                          layoutId="admin-sidebar-active-pill"
+                          aria-hidden="true"
+                          transition={{
+                            type: "spring",
+                            stiffness: 440,
+                            damping: 36,
+                            mass: 0.85,
+                          }}
+                          className="pointer-events-none absolute inset-0 z-0 rounded-xl bg-[var(--button-bg,var(--primary))] dark:bg-[var(--button-bg,var(--primary))] shadow-sm dark:shadow-[0_8px_22px_-6px_rgba(234,88,12,0.5)]"
+                          style={{
                             background:
                               "linear-gradient(135deg, var(--button-bg, #CA4C0A) 0%, var(--primary, #EA580C) 100%)",
-                          }
-                        : undefined
-                    }
-                  >
-                    <Icon
-                      className={cn(
-                        "h-4 w-4 shrink-0",
-                        isActive ? "text-white" : "text-[#737373] dark:text-[#8C8C8C]"
+                          }}
+                        />
                       )}
-                    />
-                    <span className="truncate">{item.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          ))}
-        </nav>
+                      <span
+                        className={cn(
+                          "relative z-10 flex items-center justify-center shrink-0 transition-transform duration-200",
+                          !isActive && "group-hover/nav:translate-x-0.5"
+                        )}
+                      >
+                        <Icon
+                          className={cn(
+                            "h-4 w-4 shrink-0 transition-colors duration-200",
+                            isActive
+                              ? "text-white"
+                              : "text-[#737373] dark:text-[#8C8C8C] group-hover/nav:text-[#171717] dark:group-hover/nav:text-[#F5F5F5]"
+                          )}
+                        />
+                      </span>
+                      <span className="relative z-10 truncate">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
+          </motion.nav>
+        </LayoutGroup>
 
         {/* Bottom Compact Summary + Logout */}
         <div className="p-3.5 border-t border-[#E5E5E5] dark:border-[#242424] space-y-2.5">
@@ -339,8 +373,11 @@ export default function AdminLayout({
             <div className="flex items-center gap-1.5 text-xs sm:text-sm text-[#737373] dark:text-[#8C8C8C] truncate">
               <span>Admin</span>
               <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[#737373] dark:text-[#525252]" />
-              <span className="font-heading font-semibold text-[#171717] dark:text-[#F5F5F5] truncate">
-                {getAdminBreadcrumbLabel(pathname)}
+              <span
+                key={breadcrumbLabel}
+                className="font-heading font-semibold text-[#171717] dark:text-[#F5F5F5] truncate animate-admin-crumb"
+              >
+                {breadcrumbLabel}
               </span>
             </div>
           </div>
@@ -388,8 +425,13 @@ export default function AdminLayout({
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto">{children}</main>
+        <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto">
+          <div key={pathname} className={cn("w-full", pathname !== "/admin" && "admin-page-stage")}>
+            {children}
+          </div>
+        </main>
       </div>
     </div>
+    </MotionConfig>
   );
 }

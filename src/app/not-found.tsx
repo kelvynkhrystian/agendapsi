@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { FileQuestion, Home, ArrowLeft } from "lucide-react";
+import { FileQuestion, Home, ArrowLeft } from "@/components/ui/pulso-server-icons";
 
 export default function NotFound() {
   return (

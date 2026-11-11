@@ -41,7 +41,7 @@ import {
   ArrowRight,
   MapPin,
   Sparkles,
-} from "lucide-react";
+} from "pulsoicon-react";
 
 interface RescheduleHistoryItem {
   id: string;
