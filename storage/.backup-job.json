@@ -1,0 +1,28 @@
+{
+  "pid": 16108,
+  "heartbeatAt": "2026-11-11T15:52:15.077Z",
+  "cancelRequested": false,
+  "snapshot": {
+    "jobId": "bkp_1794412332626_941f5adf",
+    "status": "COMPLETED",
+    "stageKey": "FINALIZING",
+    "stageIndex": 6,
+    "totalStages": 6,
+    "stageLabel": "Finalizando backup",
+    "detailText": "Backup concluído e verificado com sucesso!",
+    "percent": 100,
+    "cancellable": false,
+    "startedAt": "2026-11-11T15:52:12.626Z",
+    "updatedAt": "2026-11-11T15:52:15.077Z",
+    "finishedAt": "2026-11-11T15:52:15.077Z",
+    "error": null,
+    "resultBackup": {
+      "id": "cmwcarv0z000dg1fggjef5t77",
+      "filename": "psi_backup_2026-11-11_15-52-12_83ce0d67.zip",
+      "sizeBytes": 8849016,
+      "status": "COMPLETED",
+      "checksumSha256": "a35fe823713b9ce2a2a2d7e99aa17acd3a8895380daa6c3db38ca10fbc8c3956",
+      "fileCount": 10
+    }
+  }
+}
