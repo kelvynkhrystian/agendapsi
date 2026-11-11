@@ -5,6 +5,7 @@ import { requireAdmin } from "@/lib/auth";
 import { rescheduleAppointmentAtomic } from "@/lib/schedule";
 import { dispatchNotification } from "@/lib/notifications";
 import { updateGoogleMeetConference } from "@/lib/google-calendar";
+import { isRestoreInProgress, RESTORE_MAINTENANCE_MESSAGE } from "@/lib/backup";
 
 const rescheduleSchema = z.object({
   startAt: z.string().datetime("Data e horário inválidos."),
@@ -17,6 +18,9 @@ async function handleReschedule(
 ) {
   try {
     const session = await requireAdmin();
+    if (await isRestoreInProgress()) {
+      return NextResponse.json({ error: RESTORE_MAINTENANCE_MESSAGE }, { status: 503 });
+    }
     const { id } = await params;
 
     const body = await req.json();

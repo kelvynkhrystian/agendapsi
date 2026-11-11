@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
+import { isRestoreInProgress, RESTORE_MAINTENANCE_MESSAGE } from "@/lib/backup";
 
 const recordSchema = z.object({
   patientId: z.string().min(1, "Paciente é obrigatório"),
@@ -45,6 +46,9 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const adminSession = await requireAdmin();
+    if (await isRestoreInProgress()) {
+      return NextResponse.json({ error: RESTORE_MAINTENANCE_MESSAGE }, { status: 503 });
+    }
     const body = await req.json();
     const result = recordSchema.safeParse(body);
 

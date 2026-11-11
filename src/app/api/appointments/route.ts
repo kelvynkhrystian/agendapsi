@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession, requireAuth } from "@/lib/auth";
 import { createAtomicAppointment } from "@/lib/schedule";
 import { dispatchNotification } from "@/lib/notifications";
+import { isRestoreInProgress, RESTORE_MAINTENANCE_MESSAGE } from "@/lib/backup";
 
 const createAppointmentSchema = z.object({
   patientId: z.string().min(1, "Paciente é obrigatório"),
@@ -155,6 +156,9 @@ export async function POST(req: NextRequest) {
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: "Autenticação necessária." }, { status: 401 });
+    }
+    if (await isRestoreInProgress()) {
+      return NextResponse.json({ error: RESTORE_MAINTENANCE_MESSAGE }, { status: 503 });
     }
 
     const body = await req.json();

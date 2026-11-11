@@ -4,6 +4,7 @@ import path from "path";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { dispatchNotification } from "@/lib/notifications";
+import { isRestoreInProgress, RESTORE_MAINTENANCE_MESSAGE } from "@/lib/backup";
 
 const ALLOWED_MIME_TYPES = [
   "application/pdf",
@@ -19,6 +20,9 @@ const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024; // 25 MB
 export async function POST(req: NextRequest) {
   try {
     const adminSession = await requireAdmin();
+    if (await isRestoreInProgress()) {
+      return NextResponse.json({ error: RESTORE_MAINTENANCE_MESSAGE }, { status: 503 });
+    }
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const title = (formData.get("title") as string | null)?.trim() || null;

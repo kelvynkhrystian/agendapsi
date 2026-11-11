@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { FakePaymentProvider } from "@/lib/payment-provider";
 import { dispatchNotification } from "@/lib/notifications";
+import { isRestoreInProgress, RESTORE_MAINTENANCE_MESSAGE } from "@/lib/backup";
 
 export async function POST(
   _req: NextRequest,
@@ -10,6 +11,9 @@ export async function POST(
 ) {
   try {
     const adminSession = await requireAdmin();
+    if (await isRestoreInProgress()) {
+      return NextResponse.json({ error: RESTORE_MAINTENANCE_MESSAGE }, { status: 503 });
+    }
     const { id } = await params;
 
     const payment = await FakePaymentProvider.confirmManualPayment(

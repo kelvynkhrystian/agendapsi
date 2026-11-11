@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
+import { isRestoreInProgress, RESTORE_MAINTENANCE_MESSAGE } from "@/lib/backup";
 import {
   processZipBuffer,
   saveStaticMediaFile,
@@ -17,6 +18,9 @@ const uploadSlotSchema = z.enum(["hero", "hero_mobile", "about"]);
 export async function POST(req: NextRequest) {
   try {
     await requireAdmin();
+    if (await isRestoreInProgress()) {
+      return NextResponse.json({ error: RESTORE_MAINTENANCE_MESSAGE }, { status: 503 });
+    }
 
     const formData = await req.formData();
     const rawSlot = formData.get("slot");

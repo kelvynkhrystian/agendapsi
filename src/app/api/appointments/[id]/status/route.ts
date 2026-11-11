@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { dispatchNotification } from "@/lib/notifications";
+import { isRestoreInProgress, RESTORE_MAINTENANCE_MESSAGE } from "@/lib/backup";
 
 const statusTransitionSchema = z.object({
   status: z.enum([
@@ -23,6 +24,9 @@ export async function PATCH(
 ) {
   try {
     const session = await requireAuth();
+    if (await isRestoreInProgress()) {
+      return NextResponse.json({ error: RESTORE_MAINTENANCE_MESSAGE }, { status: 503 });
+    }
     const { id } = await params;
     const body = await req.json();
     const result = statusTransitionSchema.safeParse(body);

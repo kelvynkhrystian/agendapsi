@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { createAtomicAppointment } from "@/lib/schedule";
 import { dispatchNotification } from "@/lib/notifications";
+import { isRestoreInProgress, RESTORE_MAINTENANCE_MESSAGE } from "@/lib/backup";
 
 const confirmBookingSchema = z.object({
   holdToken: z.string().min(8),
@@ -14,6 +15,9 @@ const confirmBookingSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     const session = await requireAuth();
+    if (await isRestoreInProgress()) {
+      return NextResponse.json({ error: RESTORE_MAINTENANCE_MESSAGE }, { status: 503 });
+    }
     const body = await req.json();
     const result = confirmBookingSchema.safeParse(body);
 

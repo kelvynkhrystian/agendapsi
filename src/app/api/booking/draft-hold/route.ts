@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createAtomicHold } from "@/lib/schedule";
 import { getSession } from "@/lib/auth";
+import { isRestoreInProgress, RESTORE_MAINTENANCE_MESSAGE } from "@/lib/backup";
 
 const draftHoldSchema = z.object({
   serviceId: z.string().min(1),
@@ -12,6 +13,9 @@ const draftHoldSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    if (await isRestoreInProgress()) {
+      return NextResponse.json({ error: RESTORE_MAINTENANCE_MESSAGE }, { status: 503 });
+    }
     const body = await req.json();
     const result = draftHoldSchema.safeParse(body);
 

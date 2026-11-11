@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
 import { requireAdmin } from "@/lib/auth";
+import { isRestoreInProgress, RESTORE_MAINTENANCE_MESSAGE } from "@/lib/backup";
 
 export async function POST(req: NextRequest) {
   try {
     await requireAdmin();
+    if (await isRestoreInProgress()) {
+      return NextResponse.json({ error: RESTORE_MAINTENANCE_MESSAGE }, { status: 503 });
+    }
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
