@@ -267,7 +267,7 @@ export const APPOINTMENT_STATUS_MAP: Record<string, string> = {
   COMPLETED: "Realizado",
   CANCELLED: "Cancelado",
   LATE_CANCELLED: "Cancelamento Tardio",
-  NO_SHOW: "Não Compareceu (No-Show)",
+  NO_SHOW: "Não Compareceu",
 };
 
 export function formatAppointmentStatus(status?: string | null): string {

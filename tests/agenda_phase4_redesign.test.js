@@ -36,14 +36,16 @@ test("Phase 4 Agenda — 1. Layout Rebrand: Cabeçalho com Mês/Ano, Navegação
   assert.ok(content.includes("Novo Agendamento"), "Deve conter botão para criar novo agendamento");
 });
 
-test("Phase 4 Agenda — 2. Mini Calendar Lateral Interativo e Resumo da Semana", () => {
+test("Phase 4 Agenda — 2. Mini Calendário Lateral Interativo e Resumo da Semana", () => {
   const agendaPath = path.join(process.cwd(), "src", "app", "admin", "agenda", "page.tsx");
   const content = fs.readFileSync(agendaPath, "utf-8");
 
-  // Mini Calendar Header e Navegação
-  assert.ok(content.includes("Mini Calendar"), "Deve conter o card de Mini Calendar no estilo Rebrand");
-  assert.ok(content.includes("handleMiniCalPrevMonth"), "Deve permitir retroceder o mês no Mini Calendar");
-  assert.ok(content.includes("handleMiniCalNextMonth"), "Deve permitir avançar o mês no Mini Calendar");
+  // Mini Calendário Header e Navegação
+  assert.ok(content.includes("MINI CALENDÁRIO"), "Deve conter o card de MINI CALENDÁRIO em Português do Brasil");
+  assert.ok(!content.includes("Mini Calendar"), "Rótulo em inglês 'Mini Calendar' deve ter sido removido");
+  assert.ok(content.includes("WEEKDAY_FULL_NAMES"), "Deve conter nomes completos dos dias da semana em pt-BR");
+  assert.ok(content.includes("handleMiniCalPrevMonth"), "Deve permitir retroceder o mês no Mini Calendário");
+  assert.ok(content.includes("handleMiniCalNextMonth"), "Deve permitir avançar o mês no Mini Calendário");
 
   // Iniciais dos dias da semana
   assert.ok(
@@ -131,7 +133,9 @@ test("Phase 4 Agenda — 4. Preservação de Regras Clínicas, Encaixe e Transi�
     "Deve conter handler de transição de status de atendimento"
   );
   assert.ok(content.includes('"COMPLETED"'), "Deve suportar transição para Realizado (COMPLETED)");
-  assert.ok(content.includes('"NO_SHOW"'), "Deve suportar transição para Não Comparecimento (NO_SHOW)");
+  assert.ok(content.includes('"NO_SHOW"'), "Deve suportar transição para Não Compareceu (NO_SHOW)");
+  assert.ok(content.includes("Marcar Falta"), "Deve exibir o botão 'Marcar Falta' no lugar de 'No-Show'");
+  assert.ok(!content.includes(">No-Show<") && !content.includes("(No-Show)"), "Não deve manter rótulos em inglês 'No-Show' na interface");
   assert.ok(content.includes('"CANCELLED"'), "Deve suportar transição para Cancelado (CANCELLED)");
 
   // Sala de Teleconsulta (Jitsi)

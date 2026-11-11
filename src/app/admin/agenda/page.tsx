@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import { animateTabContent } from "@/lib/animation/gsap";
-import { formatTime, formatDate, getDayOfWeekName, formatAppointmentStatus } from "@/lib/utils";
+import { formatTime, formatDate, getDayOfWeekName, formatAppointmentStatus, formatModality } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -92,6 +92,15 @@ const MONTH_NAMES = [
 ];
 
 const WEEKDAY_INITIALS = ["D", "S", "T", "Q", "Q", "S", "S"];
+const WEEKDAY_FULL_NAMES = [
+  "Domingo",
+  "Segunda-feira",
+  "Terça-feira",
+  "Quarta-feira",
+  "Quinta-feira",
+  "Sexta-feira",
+  "Sábado",
+];
 
 const HOURS = [
   "08:00",
@@ -112,6 +121,7 @@ export default function AdminAgendaPage() {
   const [appointments, setAppointments] = useState<AppointmentItem[]>([]);
   const [services, setServices] = useState<ServiceOption[]>([]);
   const [patients, setPatients] = useState<PatientOption[]>([]);
+  const [clinicTimezone, setClinicTimezone] = useState<string>("America/Sao_Paulo");
 
   // Segunda-feira da semana ativa
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => {
@@ -126,7 +136,7 @@ export default function AdminAgendaPage() {
   // Dia selecionado para a visualização diária
   const [selectedDayDate, setSelectedDayDate] = useState<Date>(() => new Date());
 
-  // Mês exibido no Mini Calendar
+  // Mês exibido no Mini Calendário
   const [miniCalMonth, setMiniCalMonth] = useState<Date>(() => new Date());
 
   const [viewMode, setViewMode] = useState<"week" | "day" | "list">("week");
@@ -153,6 +163,7 @@ export default function AdminAgendaPage() {
 
   // Modal Detalhes e Ações no Agendamento
   const [selectedAppt, setSelectedAppt] = useState<AppointmentItem | null>(null);
+  const [statusActionError, setStatusActionError] = useState<string | null>(null);
 
   const fetchAppointments = () => {
     setIsLoading(true);
@@ -184,6 +195,15 @@ export default function AdminAgendaPage() {
     fetch("/api/patients")
       .then((r) => r.json())
       .then((d) => setPatients(Array.isArray(d) ? d : []));
+
+    fetch("/api/admin/services/settings")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.timezone) {
+          setClinicTimezone(d.timezone);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const handlePrevWeek = () => {
@@ -210,7 +230,7 @@ export default function AdminAgendaPage() {
     setCurrentWeekStart(monday);
   };
 
-  // Navegação no Mini Calendar lateral
+  // Navegação no Mini Calendário lateral
   const handleSelectMiniCalDay = (dayDate: Date) => {
     setSelectedDayDate(dayDate);
 
@@ -290,6 +310,7 @@ export default function AdminAgendaPage() {
     refundAction?: string
   ) => {
     if (!selectedAppt) return;
+    setStatusActionError(null);
     try {
       const res = await fetch(`/api/appointments/${selectedAppt.id}/status`, {
         method: "PATCH",
@@ -301,12 +322,16 @@ export default function AdminAgendaPage() {
         }),
       });
 
+      const data = await res.json().catch(() => null);
       if (res.ok) {
         setSelectedAppt(null);
         fetchAppointments();
+      } else {
+        setStatusActionError(data?.error || "Não foi possível atualizar o status da consulta.");
       }
     } catch (e) {
       console.error(e);
+      setStatusActionError("Erro de comunicação ao atualizar o status da consulta.");
     }
   };
 
@@ -324,7 +349,7 @@ export default function AdminAgendaPage() {
     return appt.status === statusFilter;
   });
 
-  // Dias da matriz do Mini Calendar
+  // Dias da matriz do Mini Calendário
   const miniCalDays = useMemo(() => {
     const year = miniCalMonth.getFullYear();
     const month = miniCalMonth.getMonth();
@@ -434,6 +459,7 @@ export default function AdminAgendaPage() {
               onClick={handlePrevWeek}
               className="h-8 w-8 dark:text-[#C0C0C0] dark:hover:text-[#FFFFFF]"
               aria-label="Semana anterior"
+              title="Semana anterior"
             >
               <ChevronLeft className="h-4 w-4 text-current" />
             </Button>
@@ -442,6 +468,7 @@ export default function AdminAgendaPage() {
               size="sm"
               onClick={handleToday}
               className="text-xs h-8 px-3 font-heading font-semibold dark:text-[#F5F5F5]"
+              title="Ir para a semana atual"
             >
               Hoje
             </Button>
@@ -451,6 +478,7 @@ export default function AdminAgendaPage() {
               onClick={handleNextWeek}
               className="h-8 w-8 dark:text-[#C0C0C0] dark:hover:text-[#FFFFFF]"
               aria-label="Próxima semana"
+              title="Próxima semana"
             >
               <ChevronRight className="h-4 w-4 text-current" />
             </Button>
@@ -458,6 +486,7 @@ export default function AdminAgendaPage() {
 
           {/* Filtro de Status Rápido */}
           <select
+            aria-label="Filtrar agendamentos por status"
             className="h-10 rounded-xl border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#1B1B1B] px-3.5 text-xs text-[#171717] dark:text-[#F5F5F5] font-medium shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 dark:focus-visible:ring-[#525252]/40 dark:focus-visible:border-[#525252] cursor-pointer"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -467,7 +496,7 @@ export default function AdminAgendaPage() {
             <option value="COMPLETED">Realizados</option>
             <option value="CANCELLED">Cancelados</option>
             <option value="LATE_CANCELLED">Cancelamentos Tardios</option>
-            <option value="NO_SHOW">Não Comparecimento (No-Show)</option>
+            <option value="NO_SHOW">Não Compareceu</option>
           </select>
 
           {/* Botão Novo Agendamento */}
@@ -563,7 +592,7 @@ export default function AdminAgendaPage() {
                               >
                                 <div className="flex items-center justify-between font-mono font-semibold text-[11px] mb-1">
                                   <span className="text-[var(--primary)] dark:text-[#F5F5F5]">
-                                    {formatTime(appt.startAt)}
+                                    {formatTime(appt.startAt, clinicTimezone)}
                                   </span>
                                   {appt.isAdminOverride && (
                                     <span
@@ -644,6 +673,8 @@ export default function AdminAgendaPage() {
                   <Button
                     size="sm"
                     variant="outline"
+                    aria-label="Dia anterior"
+                    title="Dia anterior"
                     onClick={() => {
                       const prev = new Date(selectedDayDate);
                       prev.setDate(prev.getDate() - 1);
@@ -655,6 +686,8 @@ export default function AdminAgendaPage() {
                   <Button
                     size="sm"
                     variant="outline"
+                    aria-label="Próximo dia"
+                    title="Próximo dia"
                     onClick={() => {
                       const next = new Date(selectedDayDate);
                       next.setDate(next.getDate() + 1);
@@ -700,7 +733,7 @@ export default function AdminAgendaPage() {
                         >
                           <div className="flex items-start gap-4">
                             <div className="px-3.5 py-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] font-mono font-bold text-sm shrink-0 border border-[var(--primary)]/20 shadow-2xs">
-                              {formatTime(appt.startAt)} - {formatTime(appt.endAt)}
+                              {formatTime(appt.startAt, clinicTimezone)} - {formatTime(appt.endAt, clinicTimezone)}
                             </div>
                             <div>
                               <h4 className="font-heading font-semibold text-base text-[#171717] dark:text-[#F5F5F5]">
@@ -775,10 +808,10 @@ export default function AdminAgendaPage() {
                         <div className="flex items-start gap-3.5">
                           <div className="text-center font-mono text-xs shrink-0 w-24">
                             <span className="font-bold text-[#171717] dark:text-[#F5F5F5] block">
-                              {formatDate(appt.startAt)}
+                              {formatDate(appt.startAt, clinicTimezone)}
                             </span>
                             <span className="text-[#737373] dark:text-[#A6A6A6]">
-                              {formatTime(appt.startAt)}
+                              {formatTime(appt.startAt, clinicTimezone)}
                             </span>
                           </div>
                           <div>
@@ -820,15 +853,15 @@ export default function AdminAgendaPage() {
           )}
         </div>
 
-        {/* ================= COLUNA LATERAL: REBRAND-STYLE MINI CALENDAR (1 COLUNA) ================= */}
+        {/* ================= COLUNA LATERAL: MINI CALENDÁRIO (1 COLUNA) ================= */}
         <div className="space-y-6">
-          {/* Card do Mini Calendar */}
+          {/* Card do Mini Calendário */}
           <Card className="shadow-xs overflow-hidden">
             <CardHeader className="p-4 pb-2 border-b border-[#E5E5E5] dark:border-[#393939] bg-[#F8F8F8] dark:bg-[#141414]">
               <div className="flex items-center justify-between">
                 <span className="font-heading font-bold text-xs uppercase tracking-wider text-[var(--primary)] dark:text-[#F5F5F5] flex items-center gap-1.5">
                   <CalendarDays className="h-4 w-4 text-[var(--primary)] dark:text-[#C0C0C0]" />
-                  Mini Calendar
+                  MINI CALENDÁRIO
                 </span>
                 <div className="flex items-center gap-1">
                   <button
@@ -836,6 +869,7 @@ export default function AdminAgendaPage() {
                     onClick={handleMiniCalPrevMonth}
                     className="p-1.5 rounded-lg bg-white text-[var(--button-outline-fg,var(--primary))] border border-[var(--primary)]/20 hover:bg-[var(--primary)]/[0.06] dark:bg-[#1E1E1E] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:text-[#F5F5F5] dark:hover:bg-[#292929] transition-colors cursor-pointer"
                     aria-label="Mês anterior"
+                    title="Mês anterior"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </button>
@@ -844,6 +878,7 @@ export default function AdminAgendaPage() {
                     onClick={handleMiniCalNextMonth}
                     className="p-1.5 rounded-lg bg-white text-[var(--button-outline-fg,var(--primary))] border border-[var(--primary)]/20 hover:bg-[var(--primary)]/[0.06] dark:bg-[#1E1E1E] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:text-[#F5F5F5] dark:hover:bg-[#292929] transition-colors cursor-pointer"
                     aria-label="Próximo mês"
+                    title="Próximo mês"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </button>
@@ -858,26 +893,42 @@ export default function AdminAgendaPage() {
               {/* Linha com iniciais dos dias da semana (D, S, T, Q, Q, S, S) */}
               <div className="grid grid-cols-7 gap-1 text-center font-heading text-[11px] font-semibold text-[#9CA3AF] dark:text-[#A6A6A6] mb-1">
                 {WEEKDAY_INITIALS.map((init, i) => (
-                  <span key={i} className="py-1">
+                  <span
+                    key={i}
+                    className="py-1"
+                    title={WEEKDAY_FULL_NAMES[i]}
+                    aria-label={WEEKDAY_FULL_NAMES[i]}
+                  >
                     {init}
                   </span>
                 ))}
               </div>
 
               {/* Grid numérico dos dias */}
-              <div className="grid grid-cols-7 gap-1 text-center text-xs">
+              <div className="grid grid-cols-7 gap-1 text-center text-xs" role="grid" aria-label="Calendário mensal para seleção rápida de data">
                 {miniCalDays.map((item, idx) => {
                   const isCurrentToday =
                     new Date().toDateString() === item.date.toDateString();
                   const isSelected =
                     selectedDayDate.toDateString() === item.date.toDateString();
+                  const dayLabel = `${WEEKDAY_FULL_NAMES[item.date.getDay()]}, ${item.date.getDate()} de ${MONTH_NAMES[item.date.getMonth()]} de ${item.date.getFullYear()}`;
+                  const hasAppointments = appointments.some((appt) => {
+                    const aDate = new Date(appt.startAt);
+                    return (
+                      aDate.toDateString() === item.date.toDateString() &&
+                      appt.status !== "CANCELLED"
+                    );
+                  });
 
                   return (
                     <button
                       key={idx}
                       type="button"
                       onClick={() => handleSelectMiniCalDay(item.date)}
-                      className={`h-8 w-8 mx-auto rounded-full flex items-center justify-center font-medium transition-all cursor-pointer ${
+                      aria-label={`Selecionar ${dayLabel}${isCurrentToday ? " (Hoje)" : ""}${hasAppointments ? " — possui consultas" : ""}`}
+                      aria-pressed={isSelected}
+                      title={`${dayLabel}${isCurrentToday ? " (Hoje)" : ""}`}
+                      className={`relative h-8 w-8 mx-auto rounded-full flex items-center justify-center font-medium transition-all cursor-pointer ${
                         isSelected
                           ? "bg-[var(--button-bg,var(--primary))] dark:bg-[var(--dark-accent,var(--primary))] text-[var(--button-fg,#ffffff)] font-bold shadow-xs"
                           : isCurrentToday
@@ -888,6 +939,12 @@ export default function AdminAgendaPage() {
                       }`}
                     >
                       {item.date.getDate()}
+                      {hasAppointments && !isSelected && (
+                        <span
+                          aria-hidden="true"
+                          className="absolute bottom-0.5 h-1 w-1 rounded-full bg-[var(--primary)]"
+                        />
+                      )}
                     </button>
                   );
                 })}
@@ -936,12 +993,17 @@ export default function AdminAgendaPage() {
       {selectedAppt && (
         <Modal
           isOpen={!!selectedAppt}
-          onClose={() => setSelectedAppt(null)}
+          onClose={() => {
+            setSelectedAppt(null);
+            setStatusActionError(null);
+          }}
           title="Detalhes da Consulta"
-          description={`Agendamento ID: ${selectedAppt.id}`}
+          description={`Código do Agendamento: ${selectedAppt.id}`}
         >
           <div className="space-y-4 text-xs sm:text-sm">
-            <div className="grid grid-cols-2 gap-3 p-4 bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#333333] rounded-2xl">
+            {statusActionError && <Alert variant="destructive">{statusActionError}</Alert>}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#333333] rounded-2xl">
               <div>
                 <span className="text-xs text-[#737373] dark:text-[#A6A6A6] block">Paciente:</span>
                 <span className="font-heading font-semibold text-[#171717] dark:text-[#F5F5F5] block">
@@ -957,13 +1019,13 @@ export default function AdminAgendaPage() {
                   {selectedAppt.service.name}
                 </span>
                 <span className="text-xs text-[#737373] dark:text-[#A6A6A6] block mt-0.5">
-                  {selectedAppt.service.durationMinutes} minutos
+                  {selectedAppt.service.durationMinutes} minutos • {formatModality(selectedAppt.modality)}
                 </span>
               </div>
               <div>
                 <span className="text-xs text-[#737373] dark:text-[#A6A6A6] block">Data e Horário:</span>
                 <span className="font-heading font-semibold text-[#171717] dark:text-[#F5F5F5] block">
-                  {formatDate(selectedAppt.startAt)} às {formatTime(selectedAppt.startAt)}
+                  {formatDate(selectedAppt.startAt, clinicTimezone)} às {formatTime(selectedAppt.startAt, clinicTimezone)}
                 </span>
               </div>
               <div>
@@ -978,14 +1040,14 @@ export default function AdminAgendaPage() {
               <div className="p-3.5 bg-[var(--primary)]/10 dark:bg-[var(--primary)]/15 border border-[var(--primary)]/20 rounded-2xl flex items-center justify-between">
                 <div>
                   <span className="font-bold text-[#171717] dark:text-[#F5F5F5] block text-xs">
-                    Sala de Teleconsulta (Jitsi)
+                    Sala de Teleconsulta
                   </span>
                   <span className="text-xs text-[#737373] dark:text-[#A6A6A6]">
                     Acesso exclusivo e com sala de espera do PSI
                   </span>
                 </div>
                 <a href={selectedAppt.meetingUrlSnapshot} target="_blank" rel="noreferrer">
-                  <Button size="sm" className="gap-1.5 text-xs">
+                  <Button size="sm" className="gap-1.5 text-xs" title="Abrir sala virtual da consulta">
                     <Video className="h-3.5 w-3.5" />
                     <span>Acessar Sala</span>
                   </Button>
@@ -1005,6 +1067,7 @@ export default function AdminAgendaPage() {
                     variant="outline"
                     size="sm"
                     className="text-xs gap-1.5"
+                    title="Marcar consulta como realizada"
                     onClick={() => handleUpdateStatus("COMPLETED")}
                   >
                     <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
@@ -1017,10 +1080,11 @@ export default function AdminAgendaPage() {
                     variant="outline"
                     size="sm"
                     className="text-xs gap-1.5"
+                    title="Registrar falta do paciente na consulta"
                     onClick={() => handleUpdateStatus("NO_SHOW", "Paciente não compareceu", "RETAIN")}
                   >
                     <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
-                    <span>No-Show</span>
+                    <span>Marcar Falta</span>
                   </Button>
                 )}
 
@@ -1029,6 +1093,7 @@ export default function AdminAgendaPage() {
                     variant="destructive"
                     size="sm"
                     className="text-xs gap-1.5"
+                    title="Cancelar este agendamento"
                     onClick={() => handleUpdateStatus("CANCELLED", "Cancelado pelo profissional")}
                   >
                     <XCircle className="h-3.5 w-3.5" />
@@ -1136,7 +1201,7 @@ export default function AdminAgendaPage() {
                 className="rounded border-[#E5E5E5] text-[var(--primary)] focus:ring-[var(--primary)] h-4 w-4"
               />
               <span className="text-xs sm:text-sm font-medium text-[#171717] dark:text-[#F5F5F5]">
-                Encaixe com override de disponibilidade (fora da grade padrão)
+                Encaixe com liberação especial de disponibilidade (fora da grade padrão)
               </span>
             </label>
 

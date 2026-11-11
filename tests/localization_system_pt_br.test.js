@@ -94,7 +94,7 @@ test("Localização pt-BR — 3. Mapeamento de Status de Consultas, Modalidades 
   assert.ok(content.includes('COMPLETED: "Realizado"'), "Status COMPLETED");
   assert.ok(content.includes('CANCELLED: "Cancelado"'), "Status CANCELLED");
   assert.ok(content.includes('LATE_CANCELLED: "Cancelamento Tardio"'), "Status LATE_CANCELLED");
-  assert.ok(content.includes('NO_SHOW: "Não Compareceu (No-Show)"'), "Status NO_SHOW");
+  assert.ok(content.includes('NO_SHOW: "Não Compareceu"'), "Status NO_SHOW em pt-BR sem termo inglês");
   assert.ok(content.includes('PENDING_CONFIRMATION: "Aguardando Confirmação"'), "Status PENDING_CONFIRMATION");
 
   // Modalidade
