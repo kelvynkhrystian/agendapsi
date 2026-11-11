@@ -4,6 +4,8 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { THEME_PRESETS } from "@/lib/theme-presets";
+import { isRestoreInProgress, RESTORE_MAINTENANCE_MESSAGE } from "@/lib/backup";
+import { cleanupReplacedSiteMediaAfterSave } from "@/lib/site-media-cleanup";
 
 const hexColorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Cor hexadecimal inválida");
 
@@ -12,6 +14,7 @@ const updateAppearanceSchema = z.object({
   logoUrl: z.string().nullable().optional(),
   logoHorizontalUrl: z.string().nullable().optional(),
   faviconUrl: z.string().nullable().optional(),
+  abandonedUrls: z.array(z.string()).optional(),
   themeName: z.string().optional().default("VERDE"),
   primaryColor: hexColorSchema.optional(),
   secondaryColor: hexColorSchema.optional(),
@@ -52,7 +55,10 @@ export async function GET() {
 
 export async function PUT(req: NextRequest) {
   try {
-    await requireAdmin();
+    const adminSession = await requireAdmin();
+    if (await isRestoreInProgress()) {
+      return NextResponse.json({ error: RESTORE_MAINTENANCE_MESSAGE }, { status: 503 });
+    }
     const body = await req.json();
     const result = updateAppearanceSchema.safeParse(body);
 
@@ -68,6 +74,7 @@ export async function PUT(req: NextRequest) {
       logoUrl,
       logoHorizontalUrl,
       faviconUrl,
+      abandonedUrls,
       themeName,
       primaryColor,
       secondaryColor,
@@ -76,6 +83,25 @@ export async function PUT(req: NextRequest) {
       backgroundColor,
       textColor,
     } = result.data;
+
+    let previousBrandingUrls: string[] = [];
+    if (scope === "images" || scope === "all") {
+      const prevSite = await prisma.siteSettings.findUnique({
+        where: { id: "default" },
+        select: {
+          logoUrl: true,
+          logoHorizontalUrl: true,
+          faviconUrl: true,
+        },
+      });
+      if (prevSite) {
+        previousBrandingUrls = [
+          prevSite.logoUrl,
+          prevSite.logoHorizontalUrl,
+          prevSite.faviconUrl,
+        ].filter((u): u is string => Boolean(u));
+      }
+    }
 
     if (scope === "images") {
       const updated = await prisma.siteSettings.upsert({
@@ -94,6 +120,18 @@ export async function PUT(req: NextRequest) {
         },
       });
 
+      const cleanup = await cleanupReplacedSiteMediaAfterSave({
+        db: prisma,
+        previousUrls: previousBrandingUrls,
+        abandonedUrls,
+        adminUserId: adminSession.userId,
+        ipAddress: req.headers.get("x-forwarded-for") || "127.0.0.1",
+        reason: "SUBSTITUICAO_IMAGENS_IDENTIDADE",
+      }).catch((cleanErr) => {
+        console.warn("Aviso não-crítico ao limpar imagens substituídas:", cleanErr);
+        return null;
+      });
+
       try {
         revalidatePath("/", "layout");
         revalidatePath("/");
@@ -106,6 +144,7 @@ export async function PUT(req: NextRequest) {
         success: true,
         message: "Imagens do sistema atualizadas com sucesso.",
         appearance: updated,
+        cleanup,
       });
     }
 
@@ -174,6 +213,21 @@ export async function PUT(req: NextRequest) {
             },
           });
 
+    const cleanup =
+      scope === "all"
+        ? await cleanupReplacedSiteMediaAfterSave({
+            db: prisma,
+            previousUrls: previousBrandingUrls,
+            abandonedUrls,
+            adminUserId: adminSession.userId,
+            ipAddress: req.headers.get("x-forwarded-for") || "127.0.0.1",
+            reason: "SUBSTITUICAO_APARENCIA_COMPLETA",
+          }).catch((cleanErr) => {
+            console.warn("Aviso não-crítico ao limpar imagens substituídas:", cleanErr);
+            return null;
+          })
+        : null;
+
     // Invalida o cache das páginas públicas para propagar as cores instantaneamente
     try {
       revalidatePath("/", "layout");
@@ -187,6 +241,7 @@ export async function PUT(req: NextRequest) {
       success: true,
       message: scope === "theme" ? "Tema atualizado com sucesso." : "Aparência atualizada com sucesso.",
       appearance: updated,
+      cleanup,
     });
   } catch (error: unknown) {
     if (error instanceof Error && error.message === "FORBIDDEN") {

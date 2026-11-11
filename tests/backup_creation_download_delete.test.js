@@ -12,6 +12,7 @@ function compileBackupLibsToTempDir(tempDir) {
   const files = [
     "src/lib/prisma.ts",
     "src/lib/translations.ts",
+    "src/lib/site-media-cleanup.ts",
     "src/lib/backup.ts",
   ];
 
@@ -231,6 +232,18 @@ test("Backup Completo D — 2. Geração .zip Real, Higienização de Segredos, 
         aboutText: "Texto institucional sobre atendimento",
         logoUrl: "/uploads/branding/logo-site.png",
         heroMediaUrl: "/api/minisite/media/top/up_test/frame-001.png",
+        aboutMediaType: "VIDEO",
+        aboutMediaUrl: "/api/minisite/media/sobre/intro.mp4",
+        benefitsJson: JSON.stringify([
+          {
+            id: "b1",
+            icon: "heart",
+            customIconUrl: "/uploads/icons/custom.svg",
+            title: "Acolhimento",
+            isVisible: true,
+            order: 1,
+          },
+        ]),
       },
     });
 

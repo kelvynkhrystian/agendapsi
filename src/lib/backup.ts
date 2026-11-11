@@ -1,9 +1,18 @@
 import fsSync, { promises as fs } from "fs";
 import path from "path";
 import crypto from "crypto";
+import zlib from "zlib";
+import { promisify } from "util";
 import AdmZip from "adm-zip";
 import { PrismaClient } from "@prisma/client";
 import { prisma as defaultPrisma } from "./prisma";
+import {
+  canonicalPathKey,
+  collectActiveReferencedSiteMedia,
+  isMediaCleanupInProgress,
+} from "./site-media-cleanup";
+
+const deflateRawAsync = promisify(zlib.deflateRaw);
 
 export const BACKUP_FORMAT_ID = "psi-backup-v1";
 export const BACKUP_FORMAT_VERSION = "1.0.0";
@@ -172,6 +181,51 @@ export interface RestoreLockInfo {
   stage?: string;
 }
 
+export const BACKUP_STAGES = [
+  { step: 1, key: "PREPARING", label: "Preparando backup" },
+  { step: 2, key: "EXPORTING_DATABASE", label: "Exportando banco de dados" },
+  { step: 3, key: "COPYING_MEDIA", label: "Copiando documentos e mídias" },
+  { step: 4, key: "COMPRESSING", label: "Compactando arquivos" },
+  { step: 5, key: "VERIFYING", label: "Verificando integridade" },
+  { step: 6, key: "FINALIZING", label: "Finalizando backup" },
+] as const;
+
+export type BackupStageKey = (typeof BACKUP_STAGES)[number]["key"];
+export type BackupExecutionStatus =
+  | "RUNNING"
+  | "CANCELLING"
+  | "COMPLETED"
+  | "CANCELLED"
+  | "FAILED";
+
+export interface BackupProgressSnapshot {
+  jobId: string;
+  status: BackupExecutionStatus;
+  stageKey: BackupStageKey;
+  stageIndex: number;
+  totalStages: 6;
+  stageLabel: string;
+  detailText: string | null;
+  percent: number | null;
+  cancellable: boolean;
+  startedAt: string;
+  updatedAt: string;
+  finishedAt: string | null;
+  error: string | null;
+  resultBackup: {
+    id: string;
+    filename: string;
+    sizeBytes: number;
+    status: string;
+    checksumSha256: string;
+    fileCount: number;
+  } | null;
+}
+
+export function getBackupJobStateFilePath(roots: BackupStorageRoots = getDefaultStorageRoots()): string {
+  return path.join(path.dirname(roots.backupDir), ".backup-job.json");
+}
+
 export function getDefaultStorageRoots(): BackupStorageRoots {
   const backupDir = path.resolve(process.cwd(), process.env.BACKUP_DIR || "./storage/backups");
   return {
@@ -292,7 +346,14 @@ export async function releaseRestoreLock(roots: BackupStorageRoots): Promise<voi
   await fs.unlink(roots.lockFilePath).catch(() => {});
 }
 
-const IGNORED_UPLOAD_FILENAMES = new Set([".gitkeep", ".DS_Store", "Thumbs.db", ".restore.lock"]);
+const IGNORED_UPLOAD_FILENAMES = new Set([
+  ".gitkeep",
+  ".DS_Store",
+  "Thumbs.db",
+  ".restore.lock",
+  ".backup-job.json",
+  ".media-cleanup.lock",
+]);
 
 interface CollectedDiskFile {
   absPath: string;
@@ -326,7 +387,13 @@ async function walkPersistentDirectory(
 
     for (const entry of entries) {
       if (IGNORED_UPLOAD_FILENAMES.has(entry.name)) continue;
-      if (entry.name.endsWith(".tmp") || entry.name.endsWith(".bak")) continue;
+      if (
+        entry.name.startsWith(".tmp_") ||
+        entry.name.endsWith(".tmp") ||
+        entry.name.endsWith(".bak")
+      ) {
+        continue;
+      }
 
       const absEntry = path.resolve(currentDir, entry.name);
       if (resolvedExcludes.includes(absEntry)) continue;
@@ -432,17 +499,288 @@ function safeJsonStringify(value: unknown): string {
   );
 }
 
+const STORE_ONLY_EXTENSIONS = new Set([
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".webp",
+  ".mp4",
+  ".webm",
+  ".zip",
+  ".gz",
+  ".bz2",
+  ".xz",
+  ".pdf",
+  ".woff2",
+]);
+
+function toDosTimeDate(date: Date): { dosTime: number; dosDate: number } {
+  const year = Math.max(1980, date.getFullYear());
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const seconds = Math.floor(date.getSeconds() / 2);
+  return {
+    dosTime: (hours << 11) | (minutes << 5) | seconds,
+    dosDate: ((year - 1980) << 9) | (month << 5) | day,
+  };
+}
+
+interface ZipStreamInputEntry {
+  entryName: string;
+  readData: () => Promise<Buffer>;
+}
+
+interface ZipCentralRecord {
+  nameBuf: Buffer;
+  method: number;
+  dosTime: number;
+  dosDate: number;
+  crc32: number;
+  compressedSize: number;
+  uncompressedSize: number;
+  localHeaderOffset: number;
+}
+
+async function writeZipArchiveStreaming({
+  outputPath,
+  entries,
+  onEntryDone,
+  shouldCancel,
+}: {
+  outputPath: string;
+  entries: ZipStreamInputEntry[];
+  onEntryDone?: (doneCount: number, totalCount: number, entryName: string) => Promise<void> | void;
+  shouldCancel?: () => boolean | Promise<boolean>;
+}): Promise<void> {
+  const now = new Date();
+  const { dosTime, dosDate } = toDosTimeDate(now);
+  const fh = await fs.open(outputPath, "w");
+  const centralRecords: ZipCentralRecord[] = [];
+  let offset = 0;
+
+  try {
+    for (let i = 0; i < entries.length; i++) {
+      if (shouldCancel && (await shouldCancel())) {
+        throw new Error("BACKUP_CANCELADO_PELO_USUARIO");
+      }
+
+      const item = entries[i];
+      const rawData = await item.readData();
+      const nameBuf = Buffer.from(item.entryName, "utf8");
+      const crc = zlib.crc32(rawData) >>> 0;
+      const ext = path.posix.extname(item.entryName).toLowerCase();
+
+      let method = 0;
+      let payload = rawData;
+      if (!STORE_ONLY_EXTENSIONS.has(ext) && rawData.length > 64) {
+        const deflated = await deflateRawAsync(rawData);
+        if (deflated.length < rawData.length) {
+          method = 8;
+          payload = deflated;
+        }
+      }
+
+      const localHeader = Buffer.allocUnsafe(30);
+      localHeader.writeUInt32LE(0x04034b50, 0);
+      localHeader.writeUInt16LE(20, 4);
+      localHeader.writeUInt16LE(0x0800, 6);
+      localHeader.writeUInt16LE(method, 8);
+      localHeader.writeUInt16LE(dosTime, 10);
+      localHeader.writeUInt16LE(dosDate, 12);
+      localHeader.writeUInt32LE(crc, 14);
+      localHeader.writeUInt32LE(payload.length, 18);
+      localHeader.writeUInt32LE(rawData.length, 22);
+      localHeader.writeUInt16LE(nameBuf.length, 26);
+      localHeader.writeUInt16LE(0, 28);
+
+      const localHeaderOffset = offset;
+      await fh.write(localHeader, 0, localHeader.length, offset);
+      offset += localHeader.length;
+      await fh.write(nameBuf, 0, nameBuf.length, offset);
+      offset += nameBuf.length;
+      if (payload.length > 0) {
+        await fh.write(payload, 0, payload.length, offset);
+        offset += payload.length;
+      }
+
+      centralRecords.push({
+        nameBuf,
+        method,
+        dosTime,
+        dosDate,
+        crc32: crc,
+        compressedSize: payload.length,
+        uncompressedSize: rawData.length,
+        localHeaderOffset,
+      });
+
+      if (onEntryDone) {
+        await onEntryDone(i + 1, entries.length, item.entryName);
+      }
+      // Cede turno do event loop para processar requisições de cancelamento/progresso em backups grandes
+      await new Promise((resolve) => setImmediate(resolve));
+    }
+
+    if (shouldCancel && (await shouldCancel())) {
+      throw new Error("BACKUP_CANCELADO_PELO_USUARIO");
+    }
+
+    const centralDirStartOffset = offset;
+    for (const rec of centralRecords) {
+      const central = Buffer.allocUnsafe(46);
+      central.writeUInt32LE(0x02014b50, 0);
+      central.writeUInt16LE(20, 4);
+      central.writeUInt16LE(20, 6);
+      central.writeUInt16LE(0x0800, 8);
+      central.writeUInt16LE(rec.method, 10);
+      central.writeUInt16LE(rec.dosTime, 12);
+      central.writeUInt16LE(rec.dosDate, 14);
+      central.writeUInt32LE(rec.crc32, 16);
+      central.writeUInt32LE(rec.compressedSize, 20);
+      central.writeUInt32LE(rec.uncompressedSize, 24);
+      central.writeUInt16LE(rec.nameBuf.length, 28);
+      central.writeUInt16LE(0, 30);
+      central.writeUInt16LE(0, 32);
+      central.writeUInt16LE(0, 34);
+      central.writeUInt16LE(0, 36);
+      central.writeUInt32LE(0, 38);
+      central.writeUInt32LE(rec.localHeaderOffset, 42);
+
+      await fh.write(central, 0, central.length, offset);
+      offset += central.length;
+      await fh.write(rec.nameBuf, 0, rec.nameBuf.length, offset);
+      offset += rec.nameBuf.length;
+    }
+
+    const centralDirSize = offset - centralDirStartOffset;
+    const eocd = Buffer.allocUnsafe(22);
+    eocd.writeUInt32LE(0x06054b50, 0);
+    eocd.writeUInt16LE(0, 4);
+    eocd.writeUInt16LE(0, 6);
+    eocd.writeUInt16LE(centralRecords.length, 8);
+    eocd.writeUInt16LE(centralRecords.length, 10);
+    eocd.writeUInt32LE(centralDirSize, 12);
+    eocd.writeUInt32LE(centralDirStartOffset, 16);
+    eocd.writeUInt16LE(0, 20);
+
+    await fh.write(eocd, 0, eocd.length, offset);
+    await fh.sync();
+  } finally {
+    await fh.close().catch(() => {});
+  }
+}
+
+async function copyFileComputeSha256WithProgress({
+  srcPath,
+  destPath,
+  onChunk,
+  shouldCancel,
+}: {
+  srcPath: string;
+  destPath: string;
+  onChunk?: (bytesCopied: number) => Promise<void> | void;
+  shouldCancel?: () => boolean | Promise<boolean>;
+}): Promise<{ sha256: string; sizeBytes: number }> {
+  await fs.mkdir(path.dirname(destPath), { recursive: true });
+  const srcHandle = await fs.open(srcPath, "r");
+  const destHandle = await fs.open(destPath, "w");
+  const hash = crypto.createHash("sha256");
+  const chunkSize = 256 * 1024;
+  const buf = Buffer.allocUnsafe(chunkSize);
+  let totalSize = 0;
+
+  try {
+    while (true) {
+      if (shouldCancel && (await shouldCancel())) {
+        throw new Error("BACKUP_CANCELADO_PELO_USUARIO");
+      }
+      const { bytesRead } = await srcHandle.read(buf, 0, chunkSize, null);
+      if (bytesRead === 0) break;
+      const slice = buf.subarray(0, bytesRead);
+      hash.update(slice);
+      await destHandle.write(slice, 0, bytesRead, null);
+      totalSize += bytesRead;
+      if (onChunk) {
+        await onChunk(bytesRead);
+      }
+      await new Promise((resolve) => setImmediate(resolve));
+    }
+    return {
+      sha256: hash.digest("hex"),
+      sizeBytes: totalSize,
+    };
+  } finally {
+    await srcHandle.close().catch(() => {});
+    await destHandle.close().catch(() => {});
+  }
+}
+
+async function sha256FileWithProgress(
+  filePath: string,
+  onProgress?: (readBytes: number, totalBytes: number) => Promise<void> | void,
+  shouldCancel?: () => boolean | Promise<boolean>
+): Promise<string> {
+  const stat = await fs.stat(filePath);
+  const totalBytes = stat.size;
+  const fh = await fs.open(filePath, "r");
+  const hash = crypto.createHash("sha256");
+  const chunkSize = 512 * 1024;
+  const buf = Buffer.allocUnsafe(chunkSize);
+  let readTotal = 0;
+
+  try {
+    while (true) {
+      if (shouldCancel && (await shouldCancel())) {
+        throw new Error("BACKUP_CANCELADO_PELO_USUARIO");
+      }
+      const { bytesRead } = await fh.read(buf, 0, chunkSize, null);
+      if (bytesRead === 0) break;
+      hash.update(buf.subarray(0, bytesRead));
+      readTotal += bytesRead;
+      if (onProgress) {
+        await onProgress(readTotal, totalBytes);
+      }
+      await new Promise((resolve) => setImmediate(resolve));
+    }
+    return hash.digest("hex");
+  } finally {
+    await fh.close().catch(() => {});
+  }
+}
+
+export interface BackupProgressCallbacks {
+  onProgress?: (
+    patch: Partial<
+      Pick<
+        BackupProgressSnapshot,
+        "stageKey" | "stageIndex" | "stageLabel" | "detailText" | "percent" | "cancellable"
+      >
+    >
+  ) => Promise<void> | void;
+  shouldCancel?: () => boolean | Promise<boolean>;
+  onBeforeAtomicCommit?: () => Promise<void> | void;
+  _testStageHook?: (stageKey: BackupStageKey) => Promise<void> | void;
+}
+
 export async function createFullBackupArchive({
   db = defaultPrisma,
   roots = getDefaultStorageRoots(),
   backupType = "MANUAL",
   customFilename,
+  includeUnusedSiteMedia = false,
+  onProgress,
+  shouldCancel,
+  onBeforeAtomicCommit,
+  _testStageHook,
 }: {
   db?: PrismaClient;
   roots?: BackupStorageRoots;
   backupType?: "MANUAL" | "PRE_RESTORE_SNAPSHOT";
   customFilename?: string;
-}): Promise<{
+  includeUnusedSiteMedia?: boolean;
+} & BackupProgressCallbacks): Promise<{
   backupJob: {
     id: string;
     filename: string;
@@ -456,299 +794,1025 @@ export async function createFullBackupArchive({
   archivePath: string;
   realSizeBytes: number;
 }> {
+  const throwIfCancelled = async () => {
+    if (shouldCancel && (await shouldCancel())) {
+      throw new Error("BACKUP_CANCELADO_PELO_USUARIO");
+    }
+  };
+
+  const emitStage = async (
+    stepIndex: number,
+    detailText: string | null,
+    percent: number | null,
+    cancellable = true
+  ) => {
+    const def = BACKUP_STAGES[stepIndex - 1];
+    if (onProgress && def) {
+      await onProgress({
+        stageKey: def.key,
+        stageIndex: def.step,
+        stageLabel: def.label,
+        detailText,
+        percent,
+        cancellable,
+      });
+    }
+  };
+
+  // Etapa 1: Preparando backup (barra indeterminada até dimensões exatas serem conhecidas)
+  await emitStage(1, "Preparando diretório seguro e inventário...", null, true);
+  if (_testStageHook) await _testStageHook("PREPARING");
+  await throwIfCancelled();
+
+  // Coordena brevemente caso haja uma limpeza de mídia finalizando
+  const cleanupWaitDeadline = Date.now() + 2500;
+  while (await isMediaCleanupInProgress({ backupDir: roots.backupDir, lockFilePath: roots.lockFilePath })) {
+    await throwIfCancelled();
+    if (Date.now() > cleanupWaitDeadline) {
+      throw new Error("LIMPEZA_MIDIA_EM_ANDAMENTO");
+    }
+    await new Promise((r) => setTimeout(r, 60));
+  }
+
   await fs.mkdir(roots.backupDir, { recursive: true });
+  const stageToken = `${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
+  const stagingDir = path.join(roots.backupDir, `.tmp_stage_${stageToken}`);
+  let tmpZipPath: string | null = null;
+  let renamedToFinal = false;
 
-  const createdAtIso = new Date().toISOString();
-  const { migrationVersion, schemaDigest } = await computeSchemaMetadata(db);
-  const installationId = process.env.INSTALLATION_ID || "psi-standalone-instance-default";
+  try {
+    await fs.mkdir(stagingDir, { recursive: true });
 
-  // 1. Leitura consistente do banco de dados dentro de uma transação isolada
-  const snapshot = await db.$transaction(
-    async (tx) => {
-      const [
-        adminAccounts,
-        patientsRaw,
-        guardians,
-        patientProfileChangeRequests,
-        consentAcceptances,
-        services,
-        weeklyAvailability,
-        availabilityExceptions,
-        appointmentPackages,
-        appointments,
-        appointmentHolds,
-        payments,
-        paymentAttempts,
-        refunds,
-        gatewayConfigurationsRaw,
-        anamnesisTemplates,
-        anamnesisSubmissions,
-        clinicalRecords,
-        clinicalRecordRevisions,
-        storedFiles,
-        storedFileShares,
-        videoMeetings,
-        notificationTemplates,
-        notificationDeliveries,
-        notifications,
-        sharedNotificationTemplates,
-        siteSettings,
-        professionalProfiles,
-        legalPages,
-        systemSettingsRaw,
-        auditLogs,
-      ] = await Promise.all([
-        tx.adminAccount.findMany({
-          orderBy: { createdAt: "asc" },
-        }),
-        tx.patient.findMany({
-          orderBy: { createdAt: "asc" },
-        }),
-        tx.guardian.findMany({ orderBy: { createdAt: "asc" } }),
-        tx.patientProfileChangeRequest.findMany({ orderBy: { createdAt: "asc" } }),
-        tx.consentAcceptance.findMany({ orderBy: { acceptedAt: "asc" } }),
-        tx.service.findMany({ orderBy: { createdAt: "asc" } }),
-        tx.weeklyAvailability.findMany({ orderBy: { dayOfWeek: "asc" } }),
-        tx.availabilityException.findMany({ orderBy: { date: "asc" } }),
-        tx.appointmentPackage.findMany({ orderBy: { createdAt: "asc" } }),
-        tx.appointment.findMany({ orderBy: { startAt: "asc" } }),
-        tx.appointmentHold.findMany({
-          where: { expiresAt: { gt: new Date() } },
-          orderBy: { createdAt: "asc" },
-        }),
-        tx.payment.findMany({ orderBy: { createdAt: "asc" } }),
-        tx.paymentAttempt.findMany({ orderBy: { createdAt: "asc" } }),
-        tx.refund.findMany({ orderBy: { refundedAt: "asc" } }),
-        tx.gatewayConfiguration.findMany({ orderBy: { slotNumber: "asc" } }),
-        tx.anamnesisTemplate.findMany({ orderBy: { createdAt: "asc" } }),
-        tx.anamnesisSubmission.findMany({ orderBy: { createdAt: "asc" } }),
-        tx.clinicalRecord.findMany({ orderBy: { sessionDate: "asc" } }),
-        tx.clinicalRecordRevision.findMany({ orderBy: { revisedAt: "asc" } }),
-        tx.storedFile.findMany({ orderBy: { createdAt: "asc" } }),
-        tx.storedFileShare.findMany({ orderBy: { sharedAt: "asc" } }),
-        tx.videoMeeting.findMany({ orderBy: { createdAt: "asc" } }),
-        tx.notificationTemplate.findMany({ orderBy: { type: "asc" } }),
-        tx.notificationDelivery.findMany({ orderBy: { createdAt: "asc" } }),
-        tx.notification.findMany({ orderBy: { createdAt: "asc" } }),
-        tx.sharedNotificationTemplate.findMany({ orderBy: { eventType: "asc" } }),
-        tx.siteSettings.findMany(),
-        tx.professionalProfile.findMany(),
-        tx.legalPage.findMany({ orderBy: { id: "asc" } }),
-        tx.systemSettings.findMany(),
-        tx.auditLog.findMany({ orderBy: { createdAt: "asc" } }),
-      ]);
+    const createdAtIso = new Date().toISOString();
+    const { migrationVersion, schemaDigest } = await computeSchemaMetadata(db);
+    const installationId = process.env.INSTALLATION_ID || "psi-standalone-instance-default";
 
-      // Remove senhas temporárias em texto puro, credenciais e tokens sensíveis do arquivo portátil
-      const patients = patientsRaw.map((p) => ({
-        ...p,
-        tempPassword: null,
-      }));
+    await throwIfCancelled();
 
-      const gatewayConfigurations = gatewayConfigurationsRaw.map((g) => ({
-        ...g,
-        configDataEncrypted: null,
-      }));
+    // Etapa 2: Exportando banco de dados (progresso real tabela a tabela)
+    await emitStage(2, "Iniciando leitura consistente do banco de dados...", 5, true);
+    if (_testStageHook) await _testStageHook("EXPORTING_DATABASE");
+    await throwIfCancelled();
 
-      const systemSettings = systemSettingsRaw.map((s) => ({
-        ...s,
-        smtpPass: null,
-        whatsappApiToken: null,
-        googleMeetClientSecret: null,
-        googleMeetRefreshToken: null,
-        googleMeetAccessToken: null,
-        peerJsTurnSecret: null,
-      }));
+    const snapshot = await db.$transaction(
+      async (tx) => {
+        const tableTotal = PERSISTENT_BACKUP_TABLES.length;
+        let tablesDone = 0;
+        const stepTable = async <T>(label: string, fn: () => Promise<T>): Promise<T> => {
+          await throwIfCancelled();
+          const res = await fn();
+          tablesDone += 1;
+          const pct = 5 + Math.round((tablesDone / tableTotal) * 20);
+          await emitStage(2, `Exportando ${label} (${tablesDone}/${tableTotal})...`, pct, true);
+          return res;
+        };
 
-      return {
-        adminAccounts,
-        patients,
-        guardians,
-        patientProfileChangeRequests,
-        consentAcceptances,
-        services,
-        weeklyAvailability,
-        availabilityExceptions,
-        appointmentPackages,
-        appointments,
-        appointmentHolds,
-        payments,
-        paymentAttempts,
-        refunds,
-        gatewayConfigurations,
-        anamnesisTemplates,
-        anamnesisSubmissions,
-        clinicalRecords,
-        clinicalRecordRevisions,
-        storedFiles,
-        storedFileShares,
-        videoMeetings,
-        notificationTemplates,
-        notificationDeliveries,
-        notifications,
-        sharedNotificationTemplates,
-        siteSettings,
-        professionalProfiles,
-        legalPages,
-        systemSettings,
-        auditLogs,
-      } satisfies Record<PersistentTableKey, unknown[]>;
-    },
-    { maxWait: 15000, timeout: 120000 }
-  );
+        const adminAccounts = await stepTable("contas administrativas", () =>
+          tx.adminAccount.findMany({ orderBy: { createdAt: "asc" } })
+        );
+        const patientsRaw = await stepTable("pacientes", () =>
+          tx.patient.findMany({ orderBy: { createdAt: "asc" } })
+        );
+        const guardians = await stepTable("responsáveis legais", () =>
+          tx.guardian.findMany({ orderBy: { createdAt: "asc" } })
+        );
+        const patientProfileChangeRequests = await stepTable("solicitações cadastrais", () =>
+          tx.patientProfileChangeRequest.findMany({ orderBy: { createdAt: "asc" } })
+        );
+        const consentAcceptances = await stepTable("consentimentos LGPD", () =>
+          tx.consentAcceptance.findMany({ orderBy: { acceptedAt: "asc" } })
+        );
+        const services = await stepTable("serviços", () =>
+          tx.service.findMany({ orderBy: { createdAt: "asc" } })
+        );
+        const weeklyAvailability = await stepTable("disponibilidade semanal", () =>
+          tx.weeklyAvailability.findMany({ orderBy: { dayOfWeek: "asc" } })
+        );
+        const availabilityExceptions = await stepTable("exceções de agenda", () =>
+          tx.availabilityException.findMany({ orderBy: { date: "asc" } })
+        );
+        const appointmentPackages = await stepTable("pacotes de sessões", () =>
+          tx.appointmentPackage.findMany({ orderBy: { createdAt: "asc" } })
+        );
+        const appointments = await stepTable("consultas", () =>
+          tx.appointment.findMany({ orderBy: { startAt: "asc" } })
+        );
+        const appointmentHolds = await stepTable("reservas temporárias", () =>
+          tx.appointmentHold.findMany({
+            where: { expiresAt: { gt: new Date() } },
+            orderBy: { createdAt: "asc" },
+          })
+        );
+        const payments = await stepTable("pagamentos", () =>
+          tx.payment.findMany({ orderBy: { createdAt: "asc" } })
+        );
+        const paymentAttempts = await stepTable("tentativas de pagamento", () =>
+          tx.paymentAttempt.findMany({ orderBy: { createdAt: "asc" } })
+        );
+        const refunds = await stepTable("estornos", () =>
+          tx.refund.findMany({ orderBy: { refundedAt: "asc" } })
+        );
+        const gatewayConfigurationsRaw = await stepTable("configurações de gateway", () =>
+          tx.gatewayConfiguration.findMany({ orderBy: { slotNumber: "asc" } })
+        );
+        const anamnesisTemplates = await stepTable("modelos de anamnese", () =>
+          tx.anamnesisTemplate.findMany({ orderBy: { createdAt: "asc" } })
+        );
+        const anamnesisSubmissions = await stepTable("respostas de anamnese", () =>
+          tx.anamnesisSubmission.findMany({ orderBy: { createdAt: "asc" } })
+        );
+        const clinicalRecords = await stepTable("prontuários clínicos", () =>
+          tx.clinicalRecord.findMany({ orderBy: { sessionDate: "asc" } })
+        );
+        const clinicalRecordRevisions = await stepTable("retificações de prontuário", () =>
+          tx.clinicalRecordRevision.findMany({ orderBy: { revisedAt: "asc" } })
+        );
+        const storedFiles = await stepTable("metadados de arquivos", () =>
+          tx.storedFile.findMany({ orderBy: { createdAt: "asc" } })
+        );
+        const storedFileShares = await stepTable("compartilhamentos de arquivos", () =>
+          tx.storedFileShare.findMany({ orderBy: { sharedAt: "asc" } })
+        );
+        const videoMeetings = await stepTable("salas de vídeo", () =>
+          tx.videoMeeting.findMany({ orderBy: { createdAt: "asc" } })
+        );
+        const notificationTemplates = await stepTable("templates de notificação", () =>
+          tx.notificationTemplate.findMany({ orderBy: { type: "asc" } })
+        );
+        const notificationDeliveries = await stepTable("entregas de notificação", () =>
+          tx.notificationDelivery.findMany({ orderBy: { createdAt: "asc" } })
+        );
+        const notifications = await stepTable("notificações", () =>
+          tx.notification.findMany({ orderBy: { createdAt: "asc" } })
+        );
+        const sharedNotificationTemplates = await stepTable("templates compartilhados", () =>
+          tx.sharedNotificationTemplate.findMany({ orderBy: { eventType: "asc" } })
+        );
+        const siteSettings = await stepTable("configurações do Site", () => tx.siteSettings.findMany());
+        const professionalProfiles = await stepTable("perfil profissional", () =>
+          tx.professionalProfile.findMany()
+        );
+        const legalPages = await stepTable("páginas legais", () =>
+          tx.legalPage.findMany({ orderBy: { id: "asc" } })
+        );
+        const systemSettingsRaw = await stepTable("configurações do sistema", () =>
+          tx.systemSettings.findMany()
+        );
+        const auditLogs = await stepTable("trilhas de auditoria", () =>
+          tx.auditLog.findMany({ orderBy: { createdAt: "asc" } })
+        );
 
-  // 2. Coleta todos os arquivos persistentes enviados em disco
-  const [privateFiles, minisiteFiles, publicUploadFiles] = await Promise.all([
-    walkPersistentDirectory(roots.privateUploadsDir, [roots.backupDir]),
-    walkPersistentDirectory(roots.minisiteDir, [roots.backupDir]),
-    walkPersistentDirectory(roots.publicUploadsDir, [roots.backupDir]),
-  ]);
+        const patients = patientsRaw.map((p) => ({
+          ...p,
+          tempPassword: null,
+        }));
 
-  const zip = new AdmZip();
-  const checksumEntries: Record<string, BackupChecksumsEntry> = {};
-  let totalUncompressedBytes = 0;
+        const gatewayConfigurations = gatewayConfigurationsRaw.map((g) => ({
+          ...g,
+          configDataEncrypted: null,
+        }));
 
-  function addEntry(entryPath: string, data: Buffer) {
-    zip.addFile(entryPath, data);
-    checksumEntries[entryPath] = {
-      sha256: sha256Buffer(data),
-      sizeBytes: data.length,
+        const systemSettings = systemSettingsRaw.map((s) => ({
+          ...s,
+          smtpPass: null,
+          whatsappApiToken: null,
+          googleMeetClientSecret: null,
+          googleMeetRefreshToken: null,
+          googleMeetAccessToken: null,
+          peerJsTurnSecret: null,
+        }));
+
+        return {
+          adminAccounts,
+          patients,
+          guardians,
+          patientProfileChangeRequests,
+          consentAcceptances,
+          services,
+          weeklyAvailability,
+          availabilityExceptions,
+          appointmentPackages,
+          appointments,
+          appointmentHolds,
+          payments,
+          paymentAttempts,
+          refunds,
+          gatewayConfigurations,
+          anamnesisTemplates,
+          anamnesisSubmissions,
+          clinicalRecords,
+          clinicalRecordRevisions,
+          storedFiles,
+          storedFileShares,
+          videoMeetings,
+          notificationTemplates,
+          notificationDeliveries,
+          notifications,
+          sharedNotificationTemplates,
+          siteSettings,
+          professionalProfiles,
+          legalPages,
+          systemSettings,
+          auditLogs,
+        } satisfies Record<PersistentTableKey, unknown[]>;
+      },
+      { maxWait: 15000, timeout: 120000 }
+    );
+
+    await throwIfCancelled();
+
+    // Prepara os JSONs das tabelas no staging isolado
+    const checksumEntries: Record<string, BackupChecksumsEntry> = {};
+    const stagedZipEntries: ZipStreamInputEntry[] = [];
+    const tableCounts: Record<string, number> = {};
+    let totalUncompressedBytes = 0;
+
+    const dbStagingDir = path.join(stagingDir, "database");
+    await fs.mkdir(dbStagingDir, { recursive: true });
+
+    for (const tableKey of PERSISTENT_BACKUP_TABLES) {
+      await throwIfCancelled();
+      const rows = snapshot[tableKey];
+      tableCounts[tableKey] = rows.length;
+      const jsonBuf = Buffer.from(safeJsonStringify(rows), "utf8");
+      const entryPath = `psi-backup/database/${tableKey}.json`;
+      const stagedPath = path.join(dbStagingDir, `${tableKey}.json`);
+      await fs.writeFile(stagedPath, jsonBuf);
+      checksumEntries[entryPath] = {
+        sha256: sha256Buffer(jsonBuf),
+        sizeBytes: jsonBuf.length,
+      };
+      totalUncompressedBytes += jsonBuf.length;
+      stagedZipEntries.push({
+        entryName: entryPath,
+        readData: () => fs.readFile(stagedPath),
+      });
+    }
+
+    // Etapa 3: Copiando documentos e mídias (sempre 100% dos docs privados + mídias ativas do Site)
+    await emitStage(3, "Mapeando documentos privados e mídias ativas do Site...", 25, true);
+    if (_testStageHook) await _testStageHook("COPYING_MEDIA");
+    await throwIfCancelled();
+
+    const activeSiteRefs = includeUnusedSiteMedia
+      ? null
+      : await collectActiveReferencedSiteMedia(db, {
+          minisiteDir: roots.minisiteDir,
+          publicUploadsDir: roots.publicUploadsDir,
+        });
+
+    const [privateFiles, rawMinisiteFiles, rawPublicUploadFiles] = await Promise.all([
+      walkPersistentDirectory(roots.privateUploadsDir, [roots.backupDir]),
+      walkPersistentDirectory(roots.minisiteDir, [roots.backupDir]),
+      walkPersistentDirectory(roots.publicUploadsDir, [roots.backupDir]),
+    ]);
+
+    const selectedMinisiteFiles = activeSiteRefs
+      ? rawMinisiteFiles.files.filter((f) => activeSiteRefs.referencedPaths.has(canonicalPathKey(f.absPath)))
+      : rawMinisiteFiles.files;
+
+    const selectedPublicUploadFiles = activeSiteRefs
+      ? rawPublicUploadFiles.files.filter((f) => activeSiteRefs.referencedPaths.has(canonicalPathKey(f.absPath)))
+      : rawPublicUploadFiles.files;
+
+    const uploadRootsToPackage: Array<{
+      stageSubdir: string;
+      prefix: string;
+      collected: CollectedDiskFile[];
+    }> = [
+      { stageSubdir: "private", prefix: "psi-backup/uploads/private", collected: privateFiles.files },
+      { stageSubdir: "minisite", prefix: "psi-backup/uploads/minisite", collected: selectedMinisiteFiles },
+      { stageSubdir: "public-uploads", prefix: "psi-backup/uploads/public-uploads", collected: selectedPublicUploadFiles },
+    ];
+
+    const totalMediaFiles = uploadRootsToPackage.reduce((acc, a) => acc + a.collected.length, 0);
+    const totalMediaBytes = uploadRootsToPackage.reduce(
+      (acc, a) => acc + a.collected.reduce((s, f) => s + f.sizeBytes, 0),
+      0
+    );
+
+    let copiedMediaFiles = 0;
+    let copiedMediaBytes = 0;
+
+    for (const area of uploadRootsToPackage) {
+      for (const fileItem of area.collected) {
+        await throwIfCancelled();
+        const stagedPath = path.join(stagingDir, "uploads", area.stageSubdir, ...fileItem.relativePosixPath.split("/"));
+        const { sha256, sizeBytes } = await copyFileComputeSha256WithProgress({
+          srcPath: fileItem.absPath,
+          destPath: stagedPath,
+          shouldCancel,
+          onChunk: async (bytes) => {
+            copiedMediaBytes += bytes;
+            if (totalMediaBytes > 0) {
+              const pct = 25 + Math.round((copiedMediaBytes / totalMediaBytes) * 30);
+              await emitStage(
+                3,
+                `Copiando arquivos (${copiedMediaFiles + 1}/${totalMediaFiles})...`,
+                Math.min(55, pct),
+                true
+              );
+            }
+          },
+        });
+        copiedMediaFiles += 1;
+        if (totalMediaBytes === 0) {
+          const pct = 25 + Math.round((copiedMediaFiles / Math.max(totalMediaFiles, 1)) * 30);
+          await emitStage(3, `Copiando arquivos (${copiedMediaFiles}/${totalMediaFiles})...`, pct, true);
+        }
+
+        const zipEntryPath = `${area.prefix}/${fileItem.relativePosixPath}`;
+        checksumEntries[zipEntryPath] = { sha256, sizeBytes };
+        totalUncompressedBytes += sizeBytes;
+        stagedZipEntries.push({
+          entryName: zipEntryPath,
+          readData: () => fs.readFile(stagedPath),
+        });
+      }
+    }
+
+    await emitStage(
+      3,
+      totalMediaFiles > 0
+        ? `${totalMediaFiles} arquivo(s) preparados para compactação`
+        : "Nenhum arquivo enviado encontrado; preparando manifesto...",
+      55,
+      true
+    );
+
+    const categories: string[] = [
+      "Pacientes e Responsáveis",
+      "Agendamentos e Pacotes",
+      "Serviços e Disponibilidade",
+      "Pagamentos e Financeiro",
+      "Prontuários e Anamneses",
+      "Notificações e Lembretes",
+      "Configurações do Site e Aparência",
+      "Páginas Legais e Auditoria",
+    ];
+    if (privateFiles.files.length > 0) categories.push("Documentos Privados de Pacientes");
+    if (selectedMinisiteFiles.length > 0) categories.push("Mídias e Animações do Site");
+    if (selectedPublicUploadFiles.length > 0) categories.push("Logos e Ícones do Site");
+
+    const entryCountBeforeManifest = Object.keys(checksumEntries).length + 1;
+    const manifest: BackupManifest = {
+      format: BACKUP_FORMAT_ID,
+      formatVersion: BACKUP_FORMAT_VERSION,
+      appVersion: APP_VERSION,
+      migrationVersion,
+      schemaDigest,
+      createdAt: createdAtIso,
+      installationId,
+      backupType,
+      categories,
+      tableCounts,
+      fileCount: copiedMediaFiles,
+      totalUncompressedBytes: 0,
+      redactedSecretFields: [...REDACTED_SECRET_FIELDS],
+      excludedSystemDirectories: [...EXCLUDED_BACKUP_SYSTEM_DIRECTORIES],
+      integrity: {
+        algorithm: "SHA-256",
+        checksumsPath: "psi-backup/checksums.json",
+        entryCount: entryCountBeforeManifest,
+      },
     };
-    totalUncompressedBytes += data.length;
+
+    const manifestDraftSize = Buffer.byteLength(safeJsonStringify(manifest), "utf8");
+    manifest.totalUncompressedBytes = totalUncompressedBytes + manifestDraftSize;
+    const manifestBuf = Buffer.from(safeJsonStringify(manifest), "utf8");
+    const manifestStagePath = path.join(stagingDir, "manifest.json");
+    await fs.writeFile(manifestStagePath, manifestBuf);
+    checksumEntries["psi-backup/manifest.json"] = {
+      sha256: sha256Buffer(manifestBuf),
+      sizeBytes: manifestBuf.length,
+    };
+    stagedZipEntries.push({
+      entryName: "psi-backup/manifest.json",
+      readData: () => fs.readFile(manifestStagePath),
+    });
+
+    const checksumsPayload: BackupChecksumsFile = {
+      algorithm: "SHA-256",
+      generatedAt: createdAtIso,
+      entries: checksumEntries,
+    };
+    const checksumsBuf = Buffer.from(safeJsonStringify(checksumsPayload), "utf8");
+    const checksumsStagePath = path.join(stagingDir, "checksums.json");
+    await fs.writeFile(checksumsStagePath, checksumsBuf);
+    stagedZipEntries.push({
+      entryName: "psi-backup/checksums.json",
+      readData: () => fs.readFile(checksumsStagePath),
+    });
+
+    // Etapa 4: Compactando arquivos em disco temporário
+    const timestampStamp = createdAtIso.replace(/[:.]/g, "-").replace("T", "_").slice(0, 19);
+    const randSuffix = crypto.randomBytes(4).toString("hex");
+    const baseFilename =
+      customFilename || `psi_backup_${timestampStamp}_${randSuffix}.zip`;
+    const finalPath = resolveSafeBackupFilePath(roots.backupDir, baseFilename);
+    tmpZipPath = path.join(roots.backupDir, `.tmp_${stageToken}_${baseFilename}`);
+
+    await emitStage(4, `Compactando ${stagedZipEntries.length} itens...`, 55, true);
+    if (_testStageHook) await _testStageHook("COMPRESSING");
+    await throwIfCancelled();
+
+    await writeZipArchiveStreaming({
+      outputPath: tmpZipPath,
+      entries: stagedZipEntries,
+      shouldCancel,
+      onEntryDone: async (doneCount, totalCount) => {
+        const pct = 55 + Math.round((doneCount / Math.max(totalCount, 1)) * 30);
+        await emitStage(4, `Compactando item ${doneCount} de ${totalCount}...`, Math.min(85, pct), true);
+      },
+    });
+
+    // Libera diretório de staging temporário logo após compactação
+    await fs.rm(stagingDir, { recursive: true, force: true }).catch(() => {});
+
+    // Etapa 5: Verificando integridade (SHA-256 + leitura estrutural do pacote ZIP antes da conclusão)
+    await emitStage(5, "Calculando checksum SHA-256 do pacote...", 85, true);
+    if (_testStageHook) await _testStageHook("VERIFYING");
+    await throwIfCancelled();
+
+    const archiveChecksumSha256 = await sha256FileWithProgress(
+      tmpZipPath,
+      async (readBytes, totalBytes) => {
+        if (totalBytes > 0) {
+          const pct = 85 + Math.round((readBytes / totalBytes) * 8);
+          await emitStage(5, "Verificando checksum SHA-256 do pacote...", Math.min(93, pct), true);
+        }
+      },
+      shouldCancel
+    );
+
+    await emitStage(5, "Validando manifesto e integridade de cada arquivo...", 94, true);
+    await throwIfCancelled();
+    await validateAndInspectBackupArchive(tmpZipPath, db);
+    await emitStage(5, "Integridade verificada com sucesso", 98, true);
+    await throwIfCancelled();
+
+    // Etapa 6: Finalizando backup (etapa crítica atômica — NÃO cancelável)
+    if (onBeforeAtomicCommit) {
+      await onBeforeAtomicCommit();
+    }
+    await emitStage(6, "Gravando arquivo final e registrando histórico...", 99, false);
+    if (_testStageHook) await _testStageHook("FINALIZING");
+
+    await fs.rename(tmpZipPath, finalPath);
+    renamedToFinal = true;
+
+    const stat = await fs.stat(finalPath);
+    const realSizeBytes = stat.size;
+
+    const detailsPayload: BackupJobMetadataSummary = {
+      format: BACKUP_FORMAT_ID,
+      formatVersion: BACKUP_FORMAT_VERSION,
+      appVersion: APP_VERSION,
+      migrationVersion,
+      schemaDigest,
+      installationId,
+      backupType,
+      origin: backupType === "PRE_RESTORE_SNAPSHOT" ? "SAFETY_SNAPSHOT" : "GENERATED",
+      isLegacy: false,
+      categories,
+      tableCounts,
+      fileCount: copiedMediaFiles,
+      realSizeBytes,
+      patientCount: snapshot.patients.length,
+      appointmentCount: snapshot.appointments.length,
+      recordCount: snapshot.clinicalRecords.length,
+    };
+
+    const backupJob = await db.backupJob.create({
+      data: {
+        filename: baseFilename,
+        sizeBytes: Math.min(realSizeBytes, 2_147_483_647),
+        checksumSha256: archiveChecksumSha256,
+        status: "COMPLETED",
+        details: JSON.stringify(detailsPayload),
+      },
+    });
+
+    // 100% emitido SOMENTE após geração e verificação completas
+    await emitStage(6, "Backup concluído e verificado", 100, false);
+
+    return {
+      backupJob,
+      manifest,
+      archivePath: finalPath,
+      realSizeBytes,
+    };
+  } finally {
+    await fs.rm(stagingDir, { recursive: true, force: true }).catch(() => {});
+    if (tmpZipPath && !renamedToFinal) {
+      await fs.unlink(tmpZipPath).catch(() => {});
+    }
+  }
+}
+
+interface PersistedBackupJobRecord {
+  pid: number;
+  heartbeatAt: string;
+  cancelRequested: boolean;
+  snapshot: BackupProgressSnapshot;
+}
+
+interface BackupJobRuntimeEntry {
+  roots: BackupStorageRoots;
+  snapshot: BackupProgressSnapshot;
+  cancelRequested: boolean;
+  promise: Promise<void>;
+}
+
+const globalForBackupJobs = globalThis as unknown as {
+  __psiBackupRuntimeMap?: Map<string, BackupJobRuntimeEntry>;
+};
+
+function getBackupRuntimeMap(): Map<string, BackupJobRuntimeEntry> {
+  if (!globalForBackupJobs.__psiBackupRuntimeMap) {
+    globalForBackupJobs.__psiBackupRuntimeMap = new Map<string, BackupJobRuntimeEntry>();
+  }
+  return globalForBackupJobs.__psiBackupRuntimeMap;
+}
+
+function makeRuntimeKey(roots: BackupStorageRoots, jobId: string): string {
+  return `${path.resolve(roots.backupDir)}::${jobId}`;
+}
+
+function isProcessAlive(pid: unknown): boolean {
+  if (typeof pid !== "number" || !Number.isInteger(pid) || pid <= 0) return false;
+  if (pid === process.pid) return true;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (err: unknown) {
+    const code = (err as NodeJS.ErrnoException)?.code;
+    return code === "EPERM";
+  }
+}
+
+const TRACKED_JOB_STALE_MS = 15 * 60 * 1000;
+
+async function persistBackupJobRecord(
+  roots: BackupStorageRoots,
+  record: PersistedBackupJobRecord
+): Promise<void> {
+  const filePath = getBackupJobStateFilePath(roots);
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+  const tmpFile = `${filePath}.${process.pid}.${crypto.randomBytes(3).toString("hex")}.tmp`;
+  await fs.writeFile(tmpFile, JSON.stringify(record, null, 2), "utf8");
+  await fs.rename(tmpFile, filePath);
+}
+
+async function readPersistedBackupJobRecord(
+  roots: BackupStorageRoots
+): Promise<PersistedBackupJobRecord | null> {
+  const filePath = getBackupJobStateFilePath(roots);
+  try {
+    const raw = await fs.readFile(filePath, "utf8");
+    const parsed = JSON.parse(raw) as PersistedBackupJobRecord;
+    if (!parsed?.snapshot?.jobId) return null;
+
+    if (parsed.snapshot.status === "RUNNING" || parsed.snapshot.status === "CANCELLING") {
+      const ageMs = parsed.heartbeatAt ? Date.now() - new Date(parsed.heartbeatAt).getTime() : NaN;
+      const pidDead = parsed.pid && !isProcessAlive(parsed.pid);
+      const stale = !Number.isFinite(ageMs) || ageMs > TRACKED_JOB_STALE_MS;
+      if (pidDead || stale) {
+        // Limpa eventuais temporários de um processo anterior interrompido
+        const entries = await fs.readdir(roots.backupDir).catch(() => []);
+        for (const name of entries) {
+          if (name.startsWith(".tmp_")) {
+            await fs.rm(path.join(roots.backupDir, name), { recursive: true, force: true }).catch(() => {});
+          }
+        }
+        const recovered: PersistedBackupJobRecord = {
+          ...parsed,
+          heartbeatAt: new Date().toISOString(),
+          snapshot: {
+            ...parsed.snapshot,
+            status: "FAILED",
+            cancellable: false,
+            finishedAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            error: "O processo anterior de backup foi interrompido antes da conclusão.",
+          },
+        };
+        await persistBackupJobRecord(roots, recovered).catch(() => {});
+        return recovered;
+      }
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+export async function isBackupJobActive(
+  roots: BackupStorageRoots = getDefaultStorageRoots()
+): Promise<boolean> {
+  const dirKey = `${path.resolve(roots.backupDir)}::`;
+  for (const [k, entry] of getBackupRuntimeMap().entries()) {
+    if (
+      k.startsWith(dirKey) &&
+      (entry.snapshot.status === "RUNNING" || entry.snapshot.status === "CANCELLING")
+    ) {
+      return true;
+    }
+  }
+  const persisted = await readPersistedBackupJobRecord(roots);
+  return Boolean(
+    persisted &&
+      (persisted.snapshot.status === "RUNNING" || persisted.snapshot.status === "CANCELLING")
+  );
+}
+
+export async function getTrackedBackupJobStatus(
+  roots: BackupStorageRoots = getDefaultStorageRoots(),
+  jobId?: string | null
+): Promise<BackupProgressSnapshot | null> {
+  const map = getBackupRuntimeMap();
+  if (jobId) {
+    const inMem = map.get(makeRuntimeKey(roots, jobId));
+    if (inMem) return { ...inMem.snapshot };
+    const persisted = await readPersistedBackupJobRecord(roots);
+    if (persisted?.snapshot.jobId === jobId) return persisted.snapshot;
+    return null;
   }
 
-  // 3. Serializa todas as tabelas para psi-backup/database/*.json
-  const tableCounts: Record<string, number> = {};
-  for (const tableKey of PERSISTENT_BACKUP_TABLES) {
-    const rows = snapshot[tableKey];
-    tableCounts[tableKey] = rows.length;
-    const jsonBuf = Buffer.from(safeJsonStringify(rows), "utf8");
-    addEntry(`psi-backup/database/${tableKey}.json`, jsonBuf);
-  }
-
-  // 4. Empacota os arquivos enviados mantendo a estrutura relativa exata
-  const uploadRootsToPackage: Array<{
-    prefix: string;
-    collected: CollectedDiskFile[];
-  }> = [
-    { prefix: "psi-backup/uploads/private", collected: privateFiles.files },
-    { prefix: "psi-backup/uploads/minisite", collected: minisiteFiles.files },
-    { prefix: "psi-backup/uploads/public-uploads", collected: publicUploadFiles.files },
-  ];
-
-  let packagedFileCount = 0;
-  for (const area of uploadRootsToPackage) {
-    for (const fileItem of area.collected) {
-      const fileBuf = await fs.readFile(fileItem.absPath);
-      const zipEntryPath = `${area.prefix}/${fileItem.relativePosixPath}`;
-      addEntry(zipEntryPath, fileBuf);
-      packagedFileCount++;
+  const dirKey = `${path.resolve(roots.backupDir)}::`;
+  for (const [k, entry] of map.entries()) {
+    if (
+      k.startsWith(dirKey) &&
+      (entry.snapshot.status === "RUNNING" || entry.snapshot.status === "CANCELLING")
+    ) {
+      return { ...entry.snapshot };
     }
   }
 
-  const categories: string[] = [
-    "Pacientes e Responsáveis",
-    "Agendamentos e Pacotes",
-    "Serviços e Disponibilidade",
-    "Pagamentos e Financeiro",
-    "Prontuários e Anamneses",
-    "Notificações e Lembretes",
-    "Configurações do Site e Aparência",
-    "Páginas Legais e Auditoria",
-  ];
-  if (privateFiles.files.length > 0) categories.push("Documentos Privados de Pacientes");
-  if (minisiteFiles.files.length > 0) categories.push("Mídias e Animações do Site");
-  if (publicUploadFiles.files.length > 0) categories.push("Logos e Ícones do Site");
+  const persisted = await readPersistedBackupJobRecord(roots);
+  if (
+    persisted &&
+    (persisted.snapshot.status === "RUNNING" || persisted.snapshot.status === "CANCELLING")
+  ) {
+    return persisted.snapshot;
+  }
+  return null;
+}
 
-  // Pré-monta manifest.json (sem incluir checksums.json no próprio hash para evitar ciclo)
-  const entryCountBeforeManifest = Object.keys(checksumEntries).length + 1;
-  const manifest: BackupManifest = {
-    format: BACKUP_FORMAT_ID,
-    formatVersion: BACKUP_FORMAT_VERSION,
-    appVersion: APP_VERSION,
-    migrationVersion,
-    schemaDigest,
-    createdAt: createdAtIso,
-    installationId,
-    backupType,
-    categories,
-    tableCounts,
-    fileCount: packagedFileCount,
-    totalUncompressedBytes: 0, // atualizado logo abaixo após serializar manifest
-    redactedSecretFields: [...REDACTED_SECRET_FIELDS],
-    excludedSystemDirectories: [...EXCLUDED_BACKUP_SYSTEM_DIRECTORIES],
-    integrity: {
-      algorithm: "SHA-256",
-      checksumsPath: "psi-backup/checksums.json",
-      entryCount: entryCountBeforeManifest,
-    },
+export async function startTrackedBackupJob({
+  db = defaultPrisma,
+  roots = getDefaultStorageRoots(),
+  adminUserId,
+  ipAddress = "127.0.0.1",
+  includeUnusedSiteMedia = false,
+  _testStageHook,
+}: {
+  db?: PrismaClient;
+  roots?: BackupStorageRoots;
+  adminUserId: string;
+  ipAddress?: string;
+  includeUnusedSiteMedia?: boolean;
+  _testStageHook?: (stageKey: BackupStageKey, snapshot: BackupProgressSnapshot) => Promise<void> | void;
+}): Promise<BackupProgressSnapshot> {
+  if (await isRestoreInProgress(roots)) {
+    throw new Error("RESTAURACAO_EM_ANDAMENTO");
+  }
+  if (await isBackupJobActive(roots)) {
+    throw new Error("BACKUP_EM_ANDAMENTO");
+  }
+  if (await isMediaCleanupInProgress({ backupDir: roots.backupDir, lockFilePath: roots.lockFilePath })) {
+    throw new Error("LIMPEZA_MIDIA_EM_ANDAMENTO");
+  }
+
+  const nowIso = new Date().toISOString();
+  const jobId = `bkp_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
+  const initialSnapshot: BackupProgressSnapshot = {
+    jobId,
+    status: "RUNNING",
+    stageKey: "PREPARING",
+    stageIndex: 1,
+    totalStages: 6,
+    stageLabel: BACKUP_STAGES[0].label,
+    detailText: "Iniciando processo de cópia de segurança...",
+    percent: null,
+    cancellable: true,
+    startedAt: nowIso,
+    updatedAt: nowIso,
+    finishedAt: null,
+    error: null,
+    resultBackup: null,
   };
 
-  // Ajusta totalUncompressedBytes considerando o próprio manifest
-  const manifestDraftSize = Buffer.byteLength(safeJsonStringify(manifest), "utf8");
-  manifest.totalUncompressedBytes = totalUncompressedBytes + manifestDraftSize;
-  const manifestBuf = Buffer.from(safeJsonStringify(manifest), "utf8");
-  addEntry("psi-backup/manifest.json", manifestBuf);
-
-  const checksumsPayload: BackupChecksumsFile = {
-    algorithm: "SHA-256",
-    generatedAt: createdAtIso,
-    entries: checksumEntries,
-  };
-  zip.addFile("psi-backup/checksums.json", Buffer.from(safeJsonStringify(checksumsPayload), "utf8"));
-
-  // 5. Grava ZIP em disco de forma atômica (.tmp -> rename)
-  const timestampStamp = createdAtIso.replace(/[:.]/g, "-").replace("T", "_").slice(0, 19);
-  const randSuffix = crypto.randomBytes(4).toString("hex");
-  const baseFilename =
-    customFilename || `psi_backup_${timestampStamp}_${randSuffix}.zip`;
-  const finalPath = resolveSafeBackupFilePath(roots.backupDir, baseFilename);
-  const tmpPath = path.join(
-    roots.backupDir,
-    `.tmp_${Date.now()}_${crypto.randomBytes(4).toString("hex")}_${baseFilename}`
-  );
-
-  await zip.writeZipPromise(tmpPath, { overwrite: true });
-  await fs.rename(tmpPath, finalPath);
-
-  const stat = await fs.stat(finalPath);
-  const realSizeBytes = stat.size;
-  const archiveChecksumSha256 = await sha256File(finalPath);
-
-  // 6. Registra metadados em BackupJob (apenas metadados operacionais, nunca dados clínicos)
-  const detailsPayload: BackupJobMetadataSummary = {
-    format: BACKUP_FORMAT_ID,
-    formatVersion: BACKUP_FORMAT_VERSION,
-    appVersion: APP_VERSION,
-    migrationVersion,
-    schemaDigest,
-    installationId,
-    backupType,
-    origin: backupType === "PRE_RESTORE_SNAPSHOT" ? "SAFETY_SNAPSHOT" : "GENERATED",
-    isLegacy: false,
-    categories,
-    tableCounts,
-    fileCount: packagedFileCount,
-    realSizeBytes,
-    patientCount: snapshot.patients.length,
-    appointmentCount: snapshot.appointments.length,
-    recordCount: snapshot.clinicalRecords.length,
+  const runtime: BackupJobRuntimeEntry = {
+    roots,
+    snapshot: initialSnapshot,
+    cancelRequested: false,
+    promise: Promise.resolve(),
   };
 
-  const backupJob = await db.backupJob.create({
-    data: {
-      filename: baseFilename,
-      sizeBytes: Math.min(realSizeBytes, 2_147_483_647),
-      checksumSha256: archiveChecksumSha256,
-      status: "COMPLETED",
-      details: JSON.stringify(detailsPayload),
-    },
+  const runtimeKey = makeRuntimeKey(roots, jobId);
+  getBackupRuntimeMap().set(runtimeKey, runtime);
+
+  await persistBackupJobRecord(roots, {
+    pid: process.pid,
+    heartbeatAt: nowIso,
+    cancelRequested: false,
+    snapshot: initialSnapshot,
   });
 
+  const syncPersist = async (patch: Partial<BackupProgressSnapshot>) => {
+    const ts = new Date().toISOString();
+    runtime.snapshot = {
+      ...runtime.snapshot,
+      ...patch,
+      updatedAt: ts,
+    };
+    await persistBackupJobRecord(roots, {
+      pid: process.pid,
+      heartbeatAt: ts,
+      cancelRequested: runtime.cancelRequested,
+      snapshot: runtime.snapshot,
+    }).catch(() => {});
+  };
+
+  const checkCancelRequested = async (): Promise<boolean> => {
+    if (runtime.cancelRequested) return true;
+    const persisted = await readPersistedBackupJobRecord(roots);
+    if (persisted?.snapshot.jobId === jobId && persisted.cancelRequested) {
+      runtime.cancelRequested = true;
+      return true;
+    }
+    return false;
+  };
+
+  const workerPromise = (async () => {
+    try {
+      const created = await createFullBackupArchive({
+        db,
+        roots,
+        backupType: "MANUAL",
+        includeUnusedSiteMedia,
+        shouldCancel: checkCancelRequested,
+        _testStageHook: _testStageHook
+          ? async (stageKey) => _testStageHook(stageKey, { ...runtime.snapshot })
+          : undefined,
+        onBeforeAtomicCommit: async () => {
+          // Aviso final: se cancelado exatamente antes de entrar na Fase 6, aborta antes do commit atômico
+          if (await checkCancelRequested()) {
+            throw new Error("BACKUP_CANCELADO_PELO_USUARIO");
+          }
+          await syncPersist({
+            stageKey: "FINALIZING",
+            stageIndex: 6,
+            stageLabel: BACKUP_STAGES[5].label,
+            cancellable: false,
+          });
+        },
+        onProgress: async (patch) => {
+          await syncPersist({
+            ...patch,
+            status: runtime.cancelRequested ? "CANCELLING" : "RUNNING",
+          });
+        },
+      });
+
+      await db.auditLog
+        .create({
+          data: {
+            userId: adminUserId,
+            userRole: "ADMIN",
+            action: "BACKUP_GENERATED",
+            resource: "BackupJob",
+            resourceId: created.backupJob.id,
+            details: JSON.stringify({
+              filename: created.backupJob.filename,
+              sizeBytes: created.realSizeBytes,
+              checksumSha256: created.backupJob.checksumSha256,
+              fileCount: created.manifest.fileCount,
+              format: created.manifest.format,
+            }),
+            ipAddress,
+          },
+        })
+        .catch(() => {});
+
+      await syncPersist({
+        status: "COMPLETED",
+        stageKey: "FINALIZING",
+        stageIndex: 6,
+        stageLabel: BACKUP_STAGES[5].label,
+        detailText: "Backup concluído e verificado com sucesso!",
+        percent: 100,
+        cancellable: false,
+        finishedAt: new Date().toISOString(),
+        resultBackup: {
+          id: created.backupJob.id,
+          filename: created.backupJob.filename,
+          sizeBytes: created.realSizeBytes,
+          status: created.backupJob.status,
+          checksumSha256: created.backupJob.checksumSha256,
+          fileCount: created.manifest.fileCount,
+        },
+      });
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message === "BACKUP_CANCELADO_PELO_USUARIO") {
+        // Garante remoção residual de qualquer .tmp_ pertencente a este job
+        const entries = await fs.readdir(roots.backupDir).catch(() => []);
+        for (const name of entries) {
+          if (name.startsWith(".tmp_")) {
+            await fs.rm(path.join(roots.backupDir, name), { recursive: true, force: true }).catch(() => {});
+          }
+        }
+
+        await db.auditLog
+          .create({
+            data: {
+              userId: adminUserId,
+              userRole: "ADMIN",
+              action: "BACKUP_CANCELLED",
+              resource: "BackupJob",
+              resourceId: jobId,
+              details: JSON.stringify({
+                stageKey: runtime.snapshot.stageKey,
+                stageLabel: runtime.snapshot.stageLabel,
+              }),
+              ipAddress,
+            },
+          })
+          .catch(() => {});
+
+        await syncPersist({
+          status: "CANCELLED",
+          detailText: "Geração de backup cancelada com segurança.",
+          cancellable: false,
+          finishedAt: new Date().toISOString(),
+          error: null,
+        });
+      } else {
+        const msg =
+          err instanceof Error && err.message === "LIMPEZA_MIDIA_EM_ANDAMENTO"
+            ? "Uma limpeza de mídias está em execução. Aguarde alguns instantes e tente novamente."
+            : err instanceof Error
+            ? err.message
+            : "Erro inesperado ao gerar cópia de segurança.";
+
+        await syncPersist({
+          status: "FAILED",
+          cancellable: false,
+          finishedAt: new Date().toISOString(),
+          error: msg,
+        });
+      }
+    } finally {
+      // Mantém entrada em memória brevemente para consultas imediatas pós-término e limpa depois
+      setTimeout(() => {
+        const entry = getBackupRuntimeMap().get(runtimeKey);
+        if (entry === runtime) {
+          getBackupRuntimeMap().delete(runtimeKey);
+        }
+      }, 60_000).unref?.();
+    }
+  })();
+
+  runtime.promise = workerPromise;
+  return { ...initialSnapshot };
+}
+
+export async function requestBackupCancellation({
+  roots = getDefaultStorageRoots(),
+  jobId,
+}: {
+  roots?: BackupStorageRoots;
+  jobId?: string | null;
+} = {}): Promise<{
+  cancelled: boolean;
+  nonCancellableStage?: boolean;
+  notActive?: boolean;
+  message: string;
+  snapshot: BackupProgressSnapshot | null;
+}> {
+  const current = await getTrackedBackupJobStatus(roots, jobId);
+  if (!current) {
+    return {
+      cancelled: false,
+      notActive: true,
+      message: "Nenhum processo ativo de backup foi encontrado no momento.",
+      snapshot: null,
+    };
+  }
+
+  if (current.status === "COMPLETED") {
+    return {
+      cancelled: false,
+      message: "O backup já foi concluído antes do cancelamento.",
+      snapshot: current,
+    };
+  }
+
+  if (current.status === "CANCELLED") {
+    return {
+      cancelled: true,
+      message: "Backup cancelado com segurança.",
+      snapshot: current,
+    };
+  }
+
+  if (!current.cancellable || current.stageKey === "FINALIZING") {
+    return {
+      cancelled: false,
+      nonCancellableStage: true,
+      message:
+        "O backup já entrou na etapa final de gravação atômica e não pode ser interrompido com segurança. Aguarde a conclusão.",
+      snapshot: current,
+    };
+  }
+
+  const runtimeKey = makeRuntimeKey(roots, current.jobId);
+  const runtime = getBackupRuntimeMap().get(runtimeKey);
+
+  if (runtime) {
+    runtime.cancelRequested = true;
+    runtime.snapshot = {
+      ...runtime.snapshot,
+      status: "CANCELLING",
+      detailText: "Cancelando backup com segurança e removendo temporários...",
+      updatedAt: new Date().toISOString(),
+    };
+    await persistBackupJobRecord(roots, {
+      pid: process.pid,
+      heartbeatAt: runtime.snapshot.updatedAt,
+      cancelRequested: true,
+      snapshot: runtime.snapshot,
+    }).catch(() => {});
+
+    // Aguarda encerramento limpo e remoção dos arquivos temporários antes de confirmar sucesso
+    await Promise.race([
+      runtime.promise,
+      new Promise((resolve) => setTimeout(resolve, 10000)),
+    ]);
+
+    const finalSnap = (await getTrackedBackupJobStatus(roots, current.jobId)) || runtime.snapshot;
+    if (finalSnap.status === "CANCELLED") {
+      return {
+        cancelled: true,
+        message: "Backup cancelado com segurança. Os arquivos temporários foram removidos e seus dados permanecem preservados.",
+        snapshot: finalSnap,
+      };
+    }
+    if (finalSnap.status === "COMPLETED") {
+      return {
+        cancelled: false,
+        nonCancellableStage: true,
+        message: "O backup concluiu a gravação final antes de ser interrompido.",
+        snapshot: finalSnap,
+      };
+    }
+    return {
+      cancelled: finalSnap.status === "FAILED",
+      message:
+        finalSnap.status === "FAILED"
+          ? "Backup interrompido e temporários removidos."
+          : "Solicitação de cancelamento registrada; finalizando limpeza segura...",
+      snapshot: finalSnap,
+    };
+  }
+
+  // Fallback cross-process/HMR via arquivo de controle .backup-job.json
+  const persisted = await readPersistedBackupJobRecord(roots);
+  if (persisted && persisted.snapshot.jobId === current.jobId) {
+    await persistBackupJobRecord(roots, {
+      ...persisted,
+      cancelRequested: true,
+      snapshot: {
+        ...persisted.snapshot,
+        status: "CANCELLING",
+        detailText: "Cancelando backup com segurança...",
+        updatedAt: new Date().toISOString(),
+      },
+    });
+    const deadline = Date.now() + 8000;
+    while (Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, 120));
+      const next = await getTrackedBackupJobStatus(roots, current.jobId);
+      if (next && (next.status === "CANCELLED" || next.status === "COMPLETED" || next.status === "FAILED")) {
+        return {
+          cancelled: next.status === "CANCELLED",
+          nonCancellableStage: next.status === "COMPLETED",
+          message:
+            next.status === "CANCELLED"
+              ? "Backup cancelado com segurança. Os arquivos temporários foram removidos."
+              : "O backup concluiu a gravação final.",
+          snapshot: next,
+        };
+      }
+    }
+  }
+
   return {
-    backupJob,
-    manifest,
-    archivePath: finalPath,
-    realSizeBytes,
+    cancelled: false,
+    message: "Cancelamento solicitado; aguardando confirmação segura do processo.",
+    snapshot: await getTrackedBackupJobStatus(roots, current.jobId),
   };
 }
 
@@ -865,6 +1929,9 @@ export async function deleteBackupArchiveAndRecord({
 }> {
   if (await isRestoreInProgress(roots)) {
     throw new Error("RESTAURACAO_EM_ANDAMENTO");
+  }
+  if (await isBackupJobActive(roots)) {
+    throw new Error("BACKUP_EM_ANDAMENTO");
   }
 
   const job = await db.backupJob.findUnique({
@@ -1647,6 +2714,9 @@ export async function importBackupArchive({
   if (await isRestoreInProgress(roots)) {
     throw new Error("RESTAURACAO_EM_ANDAMENTO");
   }
+  if (await isBackupJobActive(roots)) {
+    throw new Error("BACKUP_EM_ANDAMENTO");
+  }
 
   if (!fileBuffer || fileBuffer.length === 0) {
     throw new Error("O arquivo enviado está vazio.");
@@ -2039,6 +3109,12 @@ export async function executeStagedBackupRestoration({
   if (typeof confirmationText !== "string" || confirmationText.trim() !== "RESTAURAR") {
     throw new Error("CONFIRMACAO_INVALIDA");
   }
+  if (await isBackupJobActive(roots)) {
+    throw new Error("BACKUP_EM_ANDAMENTO");
+  }
+  if (await isMediaCleanupInProgress({ backupDir: roots.backupDir, lockFilePath: roots.lockFilePath })) {
+    throw new Error("LIMPEZA_MIDIA_EM_ANDAMENTO");
+  }
 
   // Bloqueio global contra escritas concorrentes durante a restauração
   await acquireRestoreLock(roots, {
@@ -2060,6 +3136,7 @@ export async function executeStagedBackupRestoration({
       db,
       roots,
       backupType: "PRE_RESTORE_SNAPSHOT",
+      includeUnusedSiteMedia: true,
     });
     safetyValidated = await validateAndInspectBackupArchive(safetySnapshot.archivePath, db);
 

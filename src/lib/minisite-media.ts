@@ -239,24 +239,29 @@ export async function processZipBuffer(
 
   const relativeFrames: string[] = [];
 
-  for (let i = 0; i < validation.entries.length; i++) {
-    const entry = validation.entries[i];
-    const ext = path.extname(entry.name).toLowerCase();
-    const frameIndex = String(i + 1).padStart(3, "0");
-    const safeFilename = `frame-${frameIndex}${ext}`;
-    const destinationPath = path.join(targetDir, safeFilename);
+  try {
+    for (let i = 0; i < validation.entries.length; i++) {
+      const entry = validation.entries[i];
+      const ext = path.extname(entry.name).toLowerCase();
+      const frameIndex = String(i + 1).padStart(3, "0");
+      const safeFilename = `frame-${frameIndex}${ext}`;
+      const destinationPath = path.join(targetDir, safeFilename);
 
-    const entryData = entry.getData();
-    await fs.writeFile(destinationPath, entryData);
+      const entryData = entry.getData();
+      await fs.writeFile(destinationPath, entryData);
 
-    relativeFrames.push(`/api/minisite/media/${slotFolder}/${uploadId}/${safeFilename}`);
+      relativeFrames.push(`/api/minisite/media/${slotFolder}/${uploadId}/${safeFilename}`);
+    }
+
+    return {
+      frameCount: relativeFrames.length,
+      frames: relativeFrames,
+      posterUrl: relativeFrames[0],
+    };
+  } catch (err) {
+    await fs.rm(targetDir, { recursive: true, force: true }).catch(() => {});
+    throw err;
   }
-
-  return {
-    frameCount: relativeFrames.length,
-    frames: relativeFrames,
-    posterUrl: relativeFrames[0],
-  };
 }
 
 /**
@@ -298,22 +303,27 @@ export async function processMultipleImageFiles(
 
   const relativeFrames: string[] = [];
 
-  for (let i = 0; i < validFiles.length; i++) {
-    const file = validFiles[i];
-    const ext = path.extname(file.name).toLowerCase();
-    const frameIndex = String(i + 1).padStart(3, "0");
-    const safeFilename = `frame-${frameIndex}${ext}`;
-    const destinationPath = path.join(targetDir, safeFilename);
+  try {
+    for (let i = 0; i < validFiles.length; i++) {
+      const file = validFiles[i];
+      const ext = path.extname(file.name).toLowerCase();
+      const frameIndex = String(i + 1).padStart(3, "0");
+      const safeFilename = `frame-${frameIndex}${ext}`;
+      const destinationPath = path.join(targetDir, safeFilename);
 
-    await fs.writeFile(destinationPath, file.buffer);
-    relativeFrames.push(`/api/minisite/media/${slotFolder}/${uploadId}/${safeFilename}`);
+      await fs.writeFile(destinationPath, file.buffer);
+      relativeFrames.push(`/api/minisite/media/${slotFolder}/${uploadId}/${safeFilename}`);
+    }
+
+    return {
+      frameCount: relativeFrames.length,
+      frames: relativeFrames,
+      posterUrl: relativeFrames[0],
+    };
+  } catch (err) {
+    await fs.rm(targetDir, { recursive: true, force: true }).catch(() => {});
+    throw err;
   }
-
-  return {
-    frameCount: relativeFrames.length,
-    frames: relativeFrames,
-    posterUrl: relativeFrames[0],
-  };
 }
 
 /**
@@ -342,8 +352,13 @@ export async function saveStaticMediaFile(
   const safeFilename = `${type}${ext}`;
   const destinationPath = path.join(targetDir, safeFilename);
 
-  await fs.writeFile(destinationPath, buffer);
-  return `/api/minisite/media/${slotFolder}/${uploadId}/${safeFilename}`;
+  try {
+    await fs.writeFile(destinationPath, buffer);
+    return `/api/minisite/media/${slotFolder}/${uploadId}/${safeFilename}`;
+  } catch (err) {
+    await fs.rm(targetDir, { recursive: true, force: true }).catch(() => {});
+    throw err;
+  }
 }
 
 /**

@@ -211,6 +211,16 @@ export default function AdminSettingsPage() {
 
   const pendingHeroColorRef = useRef<Promise<string | null> | null>(null);
   const pendingHeroMobileColorRef = useRef<Promise<string | null> | null>(null);
+  const abandonedMediaUrlsRef = useRef<Set<string>>(new Set());
+  const abandonedImageUrlsRef = useRef<Set<string>>(new Set());
+
+  const trackAbandonedUrls = (targetRef: React.MutableRefObject<Set<string>>, ...urls: Array<string | null | undefined>) => {
+    for (const url of urls) {
+      if (typeof url === "string" && url.trim().length > 0) {
+        targetRef.current.add(url.trim());
+      }
+    }
+  };
 
   // Video Providers State (Task 9)
   const [videoProviders, setVideoProviders] = useState<VideoProviderItem[]>([]);
@@ -746,9 +756,18 @@ export default function AdminSettingsPage() {
       if (!res.ok) {
         setImagesError(data.error || "Erro no upload do arquivo.");
       } else {
-        if (assetType === "logo") setLogoUrl(data.url);
-        if (assetType === "logoHorizontal") setLogoHorizontalUrl(data.url);
-        if (assetType === "favicon") setFaviconUrl(data.url);
+        if (assetType === "logo") {
+          trackAbandonedUrls(abandonedImageUrlsRef, logoUrl);
+          setLogoUrl(data.url);
+        }
+        if (assetType === "logoHorizontal") {
+          trackAbandonedUrls(abandonedImageUrlsRef, logoHorizontalUrl);
+          setLogoHorizontalUrl(data.url);
+        }
+        if (assetType === "favicon") {
+          trackAbandonedUrls(abandonedImageUrlsRef, faviconUrl);
+          setFaviconUrl(data.url);
+        }
         setImagesFeedback('Arquivo enviado na prévia. Clique em "Salvar Alterações" abaixo para publicar.');
       }
     } catch {
@@ -1102,6 +1121,7 @@ export default function AdminSettingsPage() {
           logoUrl,
           logoHorizontalUrl,
           faviconUrl,
+          abandonedUrls: Array.from(abandonedImageUrlsRef.current),
         }),
       });
       const data = await res.json();
@@ -1109,6 +1129,7 @@ export default function AdminSettingsPage() {
         setImagesError(data.error || "Erro ao salvar imagens do sistema.");
         return;
       }
+      abandonedImageUrlsRef.current.clear();
       setSavedImagesSection({ logoUrl, logoHorizontalUrl, faviconUrl });
       setImagesFeedback("Imagens do sistema atualizadas com sucesso.");
       router.refresh();
@@ -1331,6 +1352,13 @@ export default function AdminSettingsPage() {
           : "Sobre Mim";
 
       if (slot === "hero") {
+        trackAbandonedUrls(
+          abandonedMediaUrlsRef,
+          heroMediaUrl,
+          heroPosterUrl,
+          heroBgMediaRef,
+          ...heroFrames
+        );
         setHeroMediaType(detectedType);
         setHeroPlaybackSpeed(1);
         setHeroLoop(true);
@@ -1365,6 +1393,13 @@ export default function AdminSettingsPage() {
           setHeroBgMediaRef(data.url || null);
         }
       } else if (slot === "hero_mobile") {
+        trackAbandonedUrls(
+          abandonedMediaUrlsRef,
+          heroMobileMediaUrl,
+          heroMobilePosterUrl,
+          heroMobileBgMediaRef,
+          ...heroMobileFrames
+        );
         setHeroMobileMediaType(detectedType);
         setHeroMobilePlaybackSpeed(1);
         setHeroMobileLoop(true);
@@ -1398,6 +1433,12 @@ export default function AdminSettingsPage() {
           setHeroMobileBgMediaRef(data.url || null);
         }
       } else {
+        trackAbandonedUrls(
+          abandonedMediaUrlsRef,
+          aboutMediaUrl,
+          aboutPosterUrl,
+          ...aboutFrames
+        );
         setAboutMediaType(detectedType);
         setAboutPlaybackSpeed(1);
         setAboutLoop(true);
@@ -1437,6 +1478,7 @@ export default function AdminSettingsPage() {
   const handleRemoveSlotMedia = (slot: "hero" | "hero_mobile" | "about") => {
     setMediaError(null);
     if (slot === "hero") {
+      trackAbandonedUrls(abandonedMediaUrlsRef, heroMediaUrl, heroPosterUrl, heroBgMediaRef, ...heroFrames);
       setHeroMediaUrl(null);
       setHeroPosterUrl(null);
       setHeroFrames([]);
@@ -1447,6 +1489,13 @@ export default function AdminSettingsPage() {
       setHeroBgStatus("IDLE");
       setHeroBgMediaRef(null);
     } else if (slot === "hero_mobile") {
+      trackAbandonedUrls(
+        abandonedMediaUrlsRef,
+        heroMobileMediaUrl,
+        heroMobilePosterUrl,
+        heroMobileBgMediaRef,
+        ...heroMobileFrames
+      );
       setHeroMobileMediaUrl(null);
       setHeroMobilePosterUrl(null);
       setHeroMobileFrames([]);
@@ -1457,6 +1506,7 @@ export default function AdminSettingsPage() {
       setHeroMobileBgStatus("IDLE");
       setHeroMobileBgMediaRef(null);
     } else {
+      trackAbandonedUrls(abandonedMediaUrlsRef, aboutMediaUrl, aboutPosterUrl, ...aboutFrames);
       setAboutMediaUrl(null);
       setAboutPosterUrl(null);
       setAboutFrames([]);
@@ -1551,11 +1601,13 @@ export default function AdminSettingsPage() {
             frameCount: aboutFrameCount,
             frames: aboutFrames,
           },
+          abandonedUrls: Array.from(abandonedMediaUrlsRef.current),
         }),
       });
 
       const data = await res.json();
       if (res.ok) {
+        abandonedMediaUrlsRef.current.clear();
         setHeroBgMode(resolvedHeroBgMode);
         setHeroBgDetectedColor(resolvedHeroBgColor);
         setHeroBgStatus(resolvedHeroBgStatus);
@@ -2714,6 +2766,7 @@ export default function AdminSettingsPage() {
                     <button
                       type="button"
                       onClick={() => {
+                        trackAbandonedUrls(abandonedImageUrlsRef, faviconUrl);
                         setFaviconUrl(null);
                         setImagesFeedback('Favicon removido da prévia. Clique em "Salvar Alterações" para confirmar.');
                       }}
@@ -2769,6 +2822,7 @@ export default function AdminSettingsPage() {
                     <button
                       type="button"
                       onClick={() => {
+                        trackAbandonedUrls(abandonedImageUrlsRef, logoUrl);
                         setLogoUrl(null);
                         setImagesFeedback('Logo removido da prévia. Clique em "Salvar Alterações" para confirmar.');
                       }}
@@ -2824,6 +2878,7 @@ export default function AdminSettingsPage() {
                     <button
                       type="button"
                       onClick={() => {
+                        trackAbandonedUrls(abandonedImageUrlsRef, logoHorizontalUrl);
                         setLogoHorizontalUrl(null);
                         setImagesFeedback('Banner removido da prévia. Clique em "Salvar Alterações" para confirmar.');
                       }}

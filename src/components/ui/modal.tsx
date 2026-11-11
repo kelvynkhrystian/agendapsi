@@ -11,6 +11,7 @@ interface ModalProps {
   description?: string;
   children: React.ReactNode;
   maxWidth?: "sm" | "md" | "lg" | "xl";
+  preventClose?: boolean;
 }
 
 export function Modal({
@@ -20,10 +21,11 @@ export function Modal({
   description,
   children,
   maxWidth = "md",
+  preventClose = false,
 }: ModalProps) {
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && !preventClose) onClose();
     };
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -33,7 +35,7 @@ export function Modal({
       document.body.style.overflow = "unset";
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, preventClose]);
 
   if (!isOpen) return null;
 
@@ -47,7 +49,9 @@ export function Modal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200"
-      onClick={onClose}
+      onClick={() => {
+        if (!preventClose) onClose();
+      }}
     >
       <div
         className={cn(
@@ -69,13 +73,15 @@ export function Modal({
               </p>
             )}
           </div>
-          <button
-            onClick={onClose}
-            className="rounded-xl p-2 text-[#737373] hover:text-[#171717] dark:text-[#C0C0C0] dark:hover:text-[#FFFFFF] hover:bg-[#F2F2F2] dark:hover:bg-[#383838] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] dark:focus-visible:ring-[#525252] transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center shrink-0"
-            aria-label="Fechar modal"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          {!preventClose && (
+            <button
+              onClick={onClose}
+              className="rounded-xl p-2 text-[#737373] hover:text-[#171717] dark:text-[#C0C0C0] dark:hover:text-[#FFFFFF] hover:bg-[#F2F2F2] dark:hover:bg-[#383838] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] dark:focus-visible:ring-[#525252] transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center shrink-0"
+              aria-label="Fechar modal"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
         </div>
         <div className="pt-5">{children}</div>
       </div>

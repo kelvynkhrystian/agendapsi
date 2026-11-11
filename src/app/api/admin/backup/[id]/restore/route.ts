@@ -129,6 +129,18 @@ export async function POST(
           { status: 409 }
         );
       }
+      if (error.message === "BACKUP_EM_ANDAMENTO") {
+        return NextResponse.json(
+          { error: "Há um backup sendo gerado no momento. Aguarde a conclusão ou cancele antes de restaurar." },
+          { status: 409 }
+        );
+      }
+      if (error.message === "LIMPEZA_MIDIA_EM_ANDAMENTO") {
+        return NextResponse.json(
+          { error: "Há uma limpeza de mídias em execução. Aguarde alguns instantes." },
+          { status: 409 }
+        );
+      }
       if (error.message === "BACKUP_NAO_ENCONTRADO") {
         return NextResponse.json({ error: "Backup não encontrado." }, { status: 404 });
       }

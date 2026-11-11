@@ -299,6 +299,19 @@
   }
 }
 
+@keyframes backupIndeterminateSlide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+.animate-backup-indeterminate {
+  animation: backupIndeterminateSlide 1.45s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
 .animate-menu-drawer {
   animation: menuDrawerFadeDown 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -319,7 +332,8 @@
   .animate-menu-drawer,
   .animate-block-stagger,
   .animate-backdrop-fade,
-  .animate-custom-colors-enter {
+  .animate-custom-colors-enter,
+  .animate-backup-indeterminate {
     animation: none !important;
   }
 }

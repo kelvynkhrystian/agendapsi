@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { sanitizeSvgMarkup } from "@/lib/minisite-icons";
+import { isRestoreInProgress, RESTORE_MAINTENANCE_MESSAGE } from "@/lib/backup";
 import fs from "fs/promises";
 import path from "path";
 
 const MAX_ICON_SIZE_BYTES = 2 * 1024 * 1024; // 2 MB
 
 export async function POST(req: NextRequest) {
+  let destinationPath: string | null = null;
   try {
     await requireAdmin();
+    if (await isRestoreInProgress()) {
+      return NextResponse.json({ error: RESTORE_MAINTENANCE_MESSAGE }, { status: 503 });
+    }
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
@@ -63,7 +68,7 @@ export async function POST(req: NextRequest) {
     await fs.mkdir(uploadDir, { recursive: true });
 
     const safeName = `icon_${Date.now()}_${Math.random().toString(36).substring(2, 9)}${rawExt}`;
-    const destinationPath = path.join(uploadDir, safeName);
+    destinationPath = path.join(uploadDir, safeName);
 
     await fs.writeFile(destinationPath, finalBuffer);
 
@@ -73,6 +78,9 @@ export async function POST(req: NextRequest) {
       message: "Ícone personalizado enviado com sucesso!",
     });
   } catch (error: any) {
+    if (destinationPath) {
+      await fs.unlink(destinationPath).catch(() => {});
+    }
     if (error?.message?.includes("Não autorizado") || error?.message?.includes("Token")) {
       return NextResponse.json({ error: "Acesso não autorizado." }, { status: 401 });
     }

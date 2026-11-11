@@ -12,6 +12,7 @@ function compileBackupLibsToTempDir(tempDir) {
   const files = [
     "src/lib/prisma.ts",
     "src/lib/translations.ts",
+    "src/lib/site-media-cleanup.ts",
     "src/lib/backup.ts",
   ];
 
@@ -276,6 +277,19 @@ test("Backup & Restauração E — 2. Fluxo Completo Isolado: Rejeições de Seg
         aboutText: "Cuidado psicológico e psiquiátrico integrado.",
         logoUrl: "/uploads/branding/logo-clinica.png",
         heroMediaUrl: "/api/minisite/media/top/up_hero/frame-001.png",
+        aboutMediaType: "VIDEO",
+        aboutMediaUrl: "/api/minisite/media/sobre/video.mp4",
+        customHtml: '<p><a href="/api/minisite/media/sobre/a.zip">Animação</a></p>',
+        benefitsJson: JSON.stringify([
+          {
+            id: "b1",
+            icon: "heart",
+            customIconUrl: "/uploads/icons/acolhimento.svg",
+            title: "Acolhimento",
+            isVisible: true,
+            order: 1,
+          },
+        ]),
       },
     });
 

@@ -39,10 +39,15 @@ export async function POST(req: NextRequest) {
     await fs.mkdir(uploadDir, { recursive: true });
 
     const ext = path.extname(file.name) || (file.type === "image/svg+xml" ? ".svg" : file.type === "image/x-icon" ? ".ico" : ".png");
-    const filename = `${assetType}-${Date.now()}${ext}`;
+    const filename = `${assetType}-${Date.now()}_${Math.random().toString(36).substring(2, 7)}${ext}`;
     const filePath = path.join(uploadDir, filename);
 
-    await fs.writeFile(filePath, buffer);
+    try {
+      await fs.writeFile(filePath, buffer);
+    } catch (writeErr) {
+      await fs.unlink(filePath).catch(() => {});
+      throw writeErr;
+    }
 
     const publicUrl = `/uploads/branding/${filename}`;
 

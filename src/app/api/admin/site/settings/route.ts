@@ -4,6 +4,11 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { siteSectionsConfigSchema, parseSiteSectionsConfig } from "@/lib/site-sections";
+import { isRestoreInProgress, RESTORE_MAINTENANCE_MESSAGE } from "@/lib/backup";
+import {
+  cleanupReplacedSiteMediaAfterSave,
+  extractSiteSettingsSlotUrls,
+} from "@/lib/site-media-cleanup";
 
 const siteSettingsSchema = z.object({
   clinicName: z.string().min(2).optional(),
@@ -50,11 +55,15 @@ const siteSettingsSchema = z.object({
   professionalTitle: z.string().optional(),
   crpCrm: z.string().optional(),
   bio: z.string().optional(),
+  abandonedUrls: z.array(z.string()).optional(),
 });
 
 export async function PUT(req: NextRequest) {
   try {
-    await requireAdmin();
+    const adminSession = await requireAdmin();
+    if (await isRestoreInProgress()) {
+      return NextResponse.json({ error: RESTORE_MAINTENANCE_MESSAGE }, { status: 503 });
+    }
     const body = await req.json();
     const result = siteSettingsSchema.safeParse(body);
 
@@ -66,6 +75,20 @@ export async function PUT(req: NextRequest) {
     }
 
     const data = result.data;
+
+    const previousSite = await prisma.siteSettings.findUnique({
+      where: { id: "default" },
+      select: {
+        benefitsJson: true,
+        sectionsConfigJson: true,
+      },
+    });
+    const previousIconUrls = previousSite
+      ? extractSiteSettingsSlotUrls({
+          benefitsJson: previousSite.benefitsJson,
+          sectionsConfigJson: previousSite.sectionsConfigJson,
+        })
+      : [];
 
     const computedBenefitsJson = data.benefits
       ? JSON.stringify(data.benefits)
@@ -157,6 +180,18 @@ export async function PUT(req: NextRequest) {
       }),
     ]);
 
+    const cleanup = await cleanupReplacedSiteMediaAfterSave({
+      db: prisma,
+      previousUrls: previousIconUrls,
+      abandonedUrls: data.abandonedUrls,
+      adminUserId: adminSession.userId,
+      ipAddress: req.headers.get("x-forwarded-for") || "127.0.0.1",
+      reason: "SUBSTITUICAO_ICONES_E_SECOES_SITE",
+    }).catch((cleanErr) => {
+      console.warn("Aviso não-crítico ao limpar ícones substituídos:", cleanErr);
+      return null;
+    });
+
     try {
       revalidatePath("/");
       revalidatePath("/site");
@@ -170,6 +205,7 @@ export async function PUT(req: NextRequest) {
       site: updatedSite,
       profile: updatedProfile,
       sectionsConfig: parseSiteSectionsConfig(updatedSite.sectionsConfigJson),
+      cleanup,
     });
   } catch (error: unknown) {
     if (error instanceof Error && (error.message === "UNAUTHORIZED" || error.message === "FORBIDDEN")) {

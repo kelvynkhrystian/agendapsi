@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -107,6 +107,13 @@ export default function AdminMiniSitePage() {
   // Biblioteca de Ícones Compartilhada (Hero Benefícios, Diferenciais, Como Funciona)
   const [iconPickerTarget, setIconPickerTarget] = useState<IconTarget>(null);
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
+  const abandonedIconUrlsRef = useRef<Set<string>>(new Set());
+
+  const trackAbandonedIconUrl = (url: string | null | undefined) => {
+    if (typeof url === "string" && url.trim().length > 0) {
+      abandonedIconUrlsRef.current.add(url.trim());
+    }
+  };
 
   // Configurações Estruturadas de Todas as Seções do Site
   const [sectionsConfig, setSectionsConfig] = useState<SiteSectionsConfig>(
@@ -234,6 +241,7 @@ export default function AdminMiniSitePage() {
       }
 
       if (target.type === "benefit") {
+        trackAbandonedIconUrl(benefits[target.index]?.customIconUrl);
         setBenefits((prev) => {
           const next = [...prev];
           next[target.index] = {
@@ -243,6 +251,7 @@ export default function AdminMiniSitePage() {
           return next;
         });
       } else {
+        trackAbandonedIconUrl(sectionsConfig.diferenciais.items[target.index]?.customIconUrl);
         setSectionsConfig((prev) => {
           const items = [...prev.diferenciais.items];
           items[target.index] = {
@@ -280,11 +289,13 @@ export default function AdminMiniSitePage() {
   const handleSelectIconFromModal = (iconKey: string) => {
     if (!iconPickerTarget) return;
     if (iconPickerTarget.type === "benefit") {
+      trackAbandonedIconUrl(benefits[iconPickerTarget.index]?.customIconUrl);
       handleUpdateBenefit(iconPickerTarget.index, {
         icon: iconKey,
         customIconUrl: null,
       });
     } else if (iconPickerTarget.type === "diferencial") {
+      trackAbandonedIconUrl(sectionsConfig.diferenciais.items[iconPickerTarget.index]?.customIconUrl);
       setSectionsConfig((prev) => {
         const items = [...prev.diferenciais.items];
         items[iconPickerTarget.index] = {
@@ -388,6 +399,7 @@ export default function AdminMiniSitePage() {
           benefits,
           bio,
           sectionsConfig,
+          abandonedUrls: Array.from(abandonedIconUrlsRef.current),
         }),
       });
 
@@ -398,6 +410,7 @@ export default function AdminMiniSitePage() {
         return;
       }
 
+      abandonedIconUrlsRef.current.clear();
       setSaveMessage("Configurações do Site atualizadas e publicadas com sucesso!");
       setIsSaving(false);
     } catch {
@@ -666,7 +679,10 @@ export default function AdminMiniSitePage() {
                       {item.customIconUrl && (
                         <button
                           type="button"
-                          onClick={() => handleUpdateBenefit(index, { customIconUrl: null })}
+                          onClick={() => {
+                            trackAbandonedIconUrl(item.customIconUrl);
+                            handleUpdateBenefit(index, { customIconUrl: null });
+                          }}
                           className="text-[10px] text-red-500 dark:text-rose-400 hover:underline flex items-center justify-center gap-1 w-full cursor-pointer"
                         >
                           <Trash2 className="h-3 w-3" />
@@ -1089,6 +1105,7 @@ export default function AdminMiniSitePage() {
                     <button
                       type="button"
                       onClick={() => {
+                        trackAbandonedIconUrl(item.customIconUrl);
                         const items = [...sectionsConfig.diferenciais.items];
                         items[idx] = { ...items[idx], customIconUrl: null };
                         setSectionsConfig((prev) => ({

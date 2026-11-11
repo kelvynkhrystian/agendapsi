@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
+import { isRestoreInProgress, RESTORE_MAINTENANCE_MESSAGE } from "@/lib/backup";
 import { detectExistingFrames, MediaSlot } from "@/lib/minisite-media";
 
 export async function POST(req: NextRequest) {
   try {
     await requireAdmin();
+    if (await isRestoreInProgress()) {
+      return NextResponse.json({ error: RESTORE_MAINTENANCE_MESSAGE }, { status: 503 });
+    }
 
     const body = await req.json();
     const slot = body.slot as MediaSlot; // "hero" | "about"

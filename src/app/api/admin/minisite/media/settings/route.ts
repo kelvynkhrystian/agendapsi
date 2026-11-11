@@ -5,6 +5,11 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { isValidHexColor, normalizeHexColor } from "@/lib/hero-color-detector";
 import { normalizePlaybackSpeed } from "@/lib/minisite-media";
+import { isRestoreInProgress, RESTORE_MAINTENANCE_MESSAGE } from "@/lib/backup";
+import {
+  cleanupReplacedSiteMediaAfterSave,
+  extractSiteSettingsSlotUrls,
+} from "@/lib/site-media-cleanup";
 
 const slotSettingsSchema = z.object({
   mediaType: z.enum(["IMAGE", "FRAME_ANIMATION", "VIDEO"]).optional(),
@@ -30,6 +35,7 @@ const updateMediaSettingsSchema = z.object({
   hero: slotSettingsSchema.optional(),
   heroMobile: slotSettingsSchema.optional(),
   about: slotSettingsSchema.optional(),
+  abandonedUrls: z.array(z.string()).optional(),
 });
 
 function parseFramesJson(raw: string | null | undefined): string[] {
@@ -165,7 +171,10 @@ export async function GET() {
 
 export async function PUT(req: NextRequest) {
   try {
-    await requireAdmin();
+    const adminSession = await requireAdmin();
+    if (await isRestoreInProgress()) {
+      return NextResponse.json({ error: RESTORE_MAINTENANCE_MESSAGE }, { status: 503 });
+    }
 
     const rawBody = await req.json().catch(() => null);
     const parsed = updateMediaSettingsSchema.safeParse(rawBody);
@@ -177,6 +186,60 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = parsed.data;
+    const previousSite = await prisma.siteSettings.findUnique({
+      where: { id: "default" },
+      select: {
+        heroMediaType: true,
+        heroMediaUrl: true,
+        heroPosterUrl: true,
+        heroFramesJson: true,
+        heroBgMediaRef: true,
+        heroMobileMediaType: true,
+        heroMobileMediaUrl: true,
+        heroMobilePosterUrl: true,
+        heroMobileFramesJson: true,
+        heroMobileBgMediaRef: true,
+        aboutMediaType: true,
+        aboutMediaUrl: true,
+        aboutPosterUrl: true,
+        aboutFramesJson: true,
+      },
+    });
+
+    const previousUrls = previousSite
+      ? extractSiteSettingsSlotUrls(
+          {
+            ...(body.hero
+              ? {
+                  heroMediaType: previousSite.heroMediaType,
+                  heroMediaUrl: previousSite.heroMediaUrl,
+                  heroPosterUrl: previousSite.heroPosterUrl,
+                  heroFramesJson: previousSite.heroFramesJson,
+                  heroBgMediaRef: previousSite.heroBgMediaRef,
+                }
+              : {}),
+            ...(body.heroMobile
+              ? {
+                  heroMobileMediaType: previousSite.heroMobileMediaType,
+                  heroMobileMediaUrl: previousSite.heroMobileMediaUrl,
+                  heroMobilePosterUrl: previousSite.heroMobilePosterUrl,
+                  heroMobileFramesJson: previousSite.heroMobileFramesJson,
+                  heroMobileBgMediaRef: previousSite.heroMobileBgMediaRef,
+                }
+              : {}),
+            ...(body.about
+              ? {
+                  aboutMediaType: previousSite.aboutMediaType,
+                  aboutMediaUrl: previousSite.aboutMediaUrl,
+                  aboutPosterUrl: previousSite.aboutPosterUrl,
+                  aboutFramesJson: previousSite.aboutFramesJson,
+                }
+              : {}),
+          },
+          { includeStaleSlotFrames: true }
+        )
+      : [];
+
     const updateData: Record<string, unknown> = {};
 
     if (body.hero) {
@@ -191,9 +254,14 @@ export async function PUT(req: NextRequest) {
       if (h.playbackMode !== undefined) updateData.heroPlaybackMode = h.playbackMode;
       if (h.playbackDirection !== undefined) updateData.heroPlaybackDirection = h.playbackDirection;
       if (h.positioning !== undefined) updateData.heroPositioning = h.positioning;
-      if (h.frameCount !== undefined) updateData.heroFrameCount = h.frameCount;
-      if (h.frames !== undefined) {
-        updateData.heroFramesJson = Array.isArray(h.frames) ? JSON.stringify(h.frames) : null;
+      if (h.mediaType && h.mediaType !== "FRAME_ANIMATION") {
+        updateData.heroFrameCount = 0;
+        updateData.heroFramesJson = null;
+      } else {
+        if (h.frameCount !== undefined) updateData.heroFrameCount = h.frameCount;
+        if (h.frames !== undefined) {
+          updateData.heroFramesJson = Array.isArray(h.frames) && h.frames.length > 0 ? JSON.stringify(h.frames) : null;
+        }
       }
 
       // Cor de fundo automática do Hero Desktop (mantendo suporte aos campos legados)
@@ -232,9 +300,14 @@ export async function PUT(req: NextRequest) {
         updateData.heroMobilePlaybackDirection = hm.playbackDirection;
       }
       if (hm.positioning !== undefined) updateData.heroMobilePositioning = hm.positioning;
-      if (hm.frameCount !== undefined) updateData.heroMobileFrameCount = hm.frameCount;
-      if (hm.frames !== undefined) {
-        updateData.heroMobileFramesJson = Array.isArray(hm.frames) ? JSON.stringify(hm.frames) : null;
+      if (hm.mediaType && hm.mediaType !== "FRAME_ANIMATION") {
+        updateData.heroMobileFrameCount = 0;
+        updateData.heroMobileFramesJson = null;
+      } else {
+        if (hm.frameCount !== undefined) updateData.heroMobileFrameCount = hm.frameCount;
+        if (hm.frames !== undefined) {
+          updateData.heroMobileFramesJson = Array.isArray(hm.frames) && hm.frames.length > 0 ? JSON.stringify(hm.frames) : null;
+        }
       }
       if (hm.bgDetectedColor !== undefined) {
         updateData.heroMobileBgDetectedColor =
@@ -258,9 +331,14 @@ export async function PUT(req: NextRequest) {
       if (a.playbackMode !== undefined) updateData.aboutPlaybackMode = a.playbackMode;
       if (a.playbackDirection !== undefined) updateData.aboutPlaybackDirection = a.playbackDirection;
       if (a.positioning !== undefined) updateData.aboutPositioning = a.positioning;
-      if (a.frameCount !== undefined) updateData.aboutFrameCount = a.frameCount;
-      if (a.frames !== undefined) {
-        updateData.aboutFramesJson = Array.isArray(a.frames) ? JSON.stringify(a.frames) : null;
+      if (a.mediaType && a.mediaType !== "FRAME_ANIMATION") {
+        updateData.aboutFrameCount = 0;
+        updateData.aboutFramesJson = null;
+      } else {
+        if (a.frameCount !== undefined) updateData.aboutFrameCount = a.frameCount;
+        if (a.frames !== undefined) {
+          updateData.aboutFramesJson = Array.isArray(a.frames) && a.frames.length > 0 ? JSON.stringify(a.frames) : null;
+        }
       }
     }
 
@@ -272,6 +350,18 @@ export async function PUT(req: NextRequest) {
         aboutText: "Acolhimento clínico ético e humanizado.",
         ...updateData,
       },
+    });
+
+    const cleanup = await cleanupReplacedSiteMediaAfterSave({
+      db: prisma,
+      previousUrls,
+      abandonedUrls: body.abandonedUrls,
+      adminUserId: adminSession.userId,
+      ipAddress: req.headers.get("x-forwarded-for") || "127.0.0.1",
+      reason: "SUBSTITUICAO_MIDIAS_SITE",
+    }).catch((cleanErr) => {
+      console.warn("Aviso não-crítico ao limpar mídias substituídas:", cleanErr);
+      return null;
     });
 
     try {
@@ -286,6 +376,7 @@ export async function PUT(req: NextRequest) {
       success: true,
       message: "Configurações de mídia do Site salvas com sucesso!",
       site: updated,
+      cleanup,
     });
   } catch (error: unknown) {
     if (error instanceof Error && error.message === "FORBIDDEN") {

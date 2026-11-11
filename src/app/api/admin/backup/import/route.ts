@@ -71,6 +71,12 @@ export async function POST(req: NextRequest) {
         { status: 409 }
       );
     }
+    if (error instanceof Error && error.message === "BACKUP_EM_ANDAMENTO") {
+      return NextResponse.json(
+        { error: "Geração de backup em andamento. Aguarde a conclusão ou cancele antes de importar." },
+        { status: 409 }
+      );
+    }
     const msg = error instanceof Error ? error.message : "Erro ao validar arquivo de backup enviado.";
     return NextResponse.json({ error: msg }, { status: 400 });
   }

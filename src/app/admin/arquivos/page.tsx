@@ -23,7 +23,82 @@ import {
   CheckCircle2,
   FileArchive,
   KeyRound,
+  Loader2,
+  Circle,
+  XCircle,
 } from "lucide-react";
+
+const ACTIVE_BACKUP_JOB_STORAGE_KEY = "psi_active_backup_job_id";
+
+const BACKUP_STAGE_STEPS = [
+  { step: 1, key: "PREPARING", label: "Preparando backup" },
+  { step: 2, key: "EXPORTING_DATABASE", label: "Exportando banco de dados" },
+  { step: 3, key: "COPYING_MEDIA", label: "Copiando documentos e mídias" },
+  { step: 4, key: "COMPRESSING", label: "Compactando arquivos" },
+  { step: 5, key: "VERIFYING", label: "Verificando integridade" },
+  { step: 6, key: "FINALIZING", label: "Finalizando backup" },
+] as const;
+
+type BackupStageKey = (typeof BACKUP_STAGE_STEPS)[number]["key"];
+
+interface BackupProgressJob {
+  jobId: string;
+  status: "RUNNING" | "CANCELLING" | "COMPLETED" | "CANCELLED" | "FAILED";
+  stageKey: BackupStageKey;
+  stageIndex: number;
+  totalStages: number;
+  stageLabel: string;
+  detailText: string | null;
+  percent: number | null;
+  cancellable: boolean;
+  startedAt: string;
+  updatedAt: string;
+  finishedAt: string | null;
+  error: string | null;
+  resultBackup: {
+    id: string;
+    filename: string;
+    sizeBytes: number;
+    status: string;
+    checksumSha256: string;
+    fileCount: number;
+  } | null;
+}
+
+interface OrphanedMediaFileItem {
+  relativeKey: string;
+  area: "minisite" | "public-uploads";
+  categoryLabel: string;
+  sizeBytes: number;
+  mtimeMs: number;
+}
+
+interface OrphanedMediaCategoryItem {
+  categoryLabel: string;
+  count: number;
+  bytes: number;
+}
+
+interface OrphanedMediaPreview {
+  files: OrphanedMediaFileItem[];
+  categorySummary: OrphanedMediaCategoryItem[];
+  totalCount: number;
+  totalBytes: number;
+  graceProtectedCount: number;
+  gracePeriodMs: number;
+  blockedByLock: boolean;
+  blockReason: string | null;
+}
+
+interface OrphanedMediaExecuteResult {
+  deletedCount: number;
+  deletedBytes: number;
+  deletedFiles: string[];
+  skippedSharedCount: number;
+  deferredByLock: boolean;
+  blockReason: string | null;
+  categorySummary: OrphanedMediaCategoryItem[];
+}
 
 interface BackupJobItem {
   id: string;
@@ -141,7 +216,10 @@ function getBackupStatusBadgeVariant(status: string): "success" | "warning" | "d
     case "PROCESSING":
     case "RESTORING":
     case "PENDING":
+    case "RUNNING":
+    case "CANCELLING":
       return "warning";
+    case "CANCELLED":
     default:
       return "secondary";
   }
@@ -155,9 +233,26 @@ export default function AdminStoragePage() {
     storedFileRecordsCount: 0,
   });
   const [restoreInProgress, setRestoreInProgress] = useState(false);
+  const [mediaCleanupInProgress, setMediaCleanupInProgress] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isGeneratingBackup, setIsGeneratingBackup] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  // Estado do modal de progresso e cancelamento seguro do backup
+  const [backupProgressJob, setBackupProgressJob] = useState<BackupProgressJob | null>(null);
+  const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
+  const [isStartingBackup, setIsStartingBackup] = useState(false);
+  const [isCancellingBackup, setIsCancellingBackup] = useState(false);
+  const [backupCancelWarning, setBackupCancelWarning] = useState<string | null>(null);
+  const terminalJobSyncedRef = useRef<string | null>(null);
+  const pollingInFlightRef = useRef(false);
+
+  // Estado do modal de limpeza manual de mídias não utilizadas do Site
+  const [isCleanupModalOpen, setIsCleanupModalOpen] = useState(false);
+  const [isScanningOrphanMedia, setIsScanningOrphanMedia] = useState(false);
+  const [cleanupPreview, setCleanupPreview] = useState<OrphanedMediaPreview | null>(null);
+  const [cleanupPreviewError, setCleanupPreviewError] = useState<string | null>(null);
+  const [isExecutingCleanup, setIsExecutingCleanup] = useState(false);
+  const [cleanupResult, setCleanupResult] = useState<OrphanedMediaExecuteResult | null>(null);
 
   // Estado do modal de exclusão segura
   const [deleteTarget, setDeleteTarget] = useState<BackupJobItem | null>(null);
@@ -185,8 +280,31 @@ export default function AdminStoragePage() {
   const [restoreExecuteError, setRestoreExecuteError] = useState<string | null>(null);
   const [restoreSuccessResult, setRestoreSuccessResult] = useState<RestoreResultData | null>(null);
 
-  const fetchData = useCallback(async () => {
-    setIsLoading(true);
+  const persistActiveBackupJobId = useCallback((jobId: string | null) => {
+    if (typeof window === "undefined") return;
+    try {
+      if (jobId) {
+        window.sessionStorage.setItem(ACTIVE_BACKUP_JOB_STORAGE_KEY, jobId);
+      } else {
+        window.sessionStorage.removeItem(ACTIVE_BACKUP_JOB_STORAGE_KEY);
+      }
+    } catch {
+      // ignora restrições pontuais de storage do navegador
+    }
+  }, []);
+
+  const readStoredActiveBackupJobId = useCallback((): string | null => {
+    if (typeof window === "undefined") return null;
+    try {
+      return window.sessionStorage.getItem(ACTIVE_BACKUP_JOB_STORAGE_KEY);
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const fetchData = useCallback(async (options?: { silent?: boolean }) => {
+    const silent = options?.silent ?? false;
+    if (!silent) setIsLoading(true);
     try {
       const res = await fetch("/api/admin/backup", { cache: "no-store" });
       const data = await res.json();
@@ -197,53 +315,329 @@ export default function AdminStoragePage() {
           setBackups(Array.isArray(data.backups) ? data.backups : []);
           if (data.storageStats) setStorageStats(data.storageStats);
           setRestoreInProgress(Boolean(data.restoreInProgress));
+          setMediaCleanupInProgress(Boolean(data.mediaCleanupInProgress));
+
+          const serverJob = data.activeBackupJob as BackupProgressJob | null | undefined;
+          if (serverJob && (serverJob.status === "RUNNING" || serverJob.status === "CANCELLING")) {
+            persistActiveBackupJobId(serverJob.jobId);
+            setBackupProgressJob(serverJob);
+            setIsBackupModalOpen(true);
+          } else if (!silent) {
+            const storedJobId = readStoredActiveBackupJobId();
+            if (storedJobId) {
+              const progRes = await fetch(
+                `/api/admin/backup/progress?jobId=${encodeURIComponent(storedJobId)}`,
+                { cache: "no-store" }
+              ).catch(() => null);
+              if (progRes && progRes.ok) {
+                const progData = await progRes.json().catch(() => null);
+                if (progData?.job) {
+                  setBackupProgressJob(progData.job);
+                  setIsBackupModalOpen(true);
+                } else {
+                  persistActiveBackupJobId(null);
+                }
+              }
+            }
+          }
         }
-      } else {
+      } else if (!silent) {
         setFeedback({
           type: "error",
           message: data?.error || "Não foi possível carregar o histórico de backups.",
         });
       }
     } catch {
-      setFeedback({
-        type: "error",
-        message: "Erro de conexão ao consultar armazenamento e backups.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  const handleGenerateBackup = async () => {
-    setIsGeneratingBackup(true);
-    setFeedback(null);
-
-    try {
-      const res = await fetch("/api/admin/backup", { method: "POST" });
-      const data = await res.json();
-      if (res.ok) {
-        setFeedback({
-          type: "success",
-          message: data?.message || "Backup completo (.zip) gerado com sucesso.",
-        });
-        await fetchData();
-      } else {
+      if (!silent) {
         setFeedback({
           type: "error",
-          message: data?.error || "Não foi possível gerar o backup completo.",
+          message: "Erro de conexão ao consultar armazenamento e backups.",
+        });
+      }
+    } finally {
+      if (!silent) setIsLoading(false);
+    }
+  }, [persistActiveBackupJobId, readStoredActiveBackupJobId]);
+
+  useEffect(() => {
+    void fetchData();
+  }, [fetchData]);
+
+  // Polling real do progresso enquanto o job estiver em execução/cancelamento
+  useEffect(() => {
+    if (!isBackupModalOpen || !backupProgressJob) return;
+
+    const { status, jobId } = backupProgressJob;
+    if (status === "COMPLETED" || status === "CANCELLED" || status === "FAILED") {
+      if (terminalJobSyncedRef.current !== jobId) {
+        terminalJobSyncedRef.current = jobId;
+        setIsCancellingBackup(false);
+        if (status === "COMPLETED") {
+          setBackupCancelWarning(null);
+        }
+        void fetchData({ silent: true });
+      }
+      return;
+    }
+
+    let cancelledEffect = false;
+    const pollOnce = async () => {
+      if (cancelledEffect || pollingInFlightRef.current) return;
+      pollingInFlightRef.current = true;
+      try {
+        const res = await fetch(
+          `/api/admin/backup/progress?jobId=${encodeURIComponent(jobId)}`,
+          { cache: "no-store" }
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelledEffect && data?.job) {
+          setBackupProgressJob(data.job);
+        }
+      } catch {
+        // mantém última leitura até próxima resposta do servidor
+      } finally {
+        pollingInFlightRef.current = false;
+      }
+    };
+
+    const intervalId = window.setInterval(pollOnce, 450);
+    return () => {
+      cancelledEffect = true;
+      window.clearInterval(intervalId);
+    };
+  }, [isBackupModalOpen, backupProgressJob, fetchData]);
+
+  const handleGenerateBackup = async () => {
+    if (
+      isStartingBackup ||
+      (backupProgressJob &&
+        (backupProgressJob.status === "RUNNING" || backupProgressJob.status === "CANCELLING"))
+    ) {
+      return;
+    }
+
+    const nowIso = new Date().toISOString();
+    setIsStartingBackup(true);
+    setFeedback(null);
+    setBackupCancelWarning(null);
+    setIsCancellingBackup(false);
+    terminalJobSyncedRef.current = null;
+    setBackupProgressJob({
+      jobId: "pending",
+      status: "RUNNING",
+      stageKey: "PREPARING",
+      stageIndex: 1,
+      totalStages: 6,
+      stageLabel: "Preparando backup",
+      detailText: "Inicializando ambiente seguro de exportação...",
+      percent: null,
+      cancellable: true,
+      startedAt: nowIso,
+      updatedAt: nowIso,
+      finishedAt: null,
+      error: null,
+      resultBackup: null,
+    });
+    setIsBackupModalOpen(true);
+
+    try {
+      const res = await fetch("/api/admin/backup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "async" }),
+      });
+      const data = await res.json();
+
+      if (res.ok && data?.job) {
+        persistActiveBackupJobId(data.job.jobId);
+        setBackupProgressJob(data.job);
+      } else if (res.status === 409) {
+        const progRes = await fetch("/api/admin/backup/progress", { cache: "no-store" }).catch(
+          () => null
+        );
+        const progData = progRes && progRes.ok ? await progRes.json().catch(() => null) : null;
+        if (
+          progData?.job &&
+          (progData.job.status === "RUNNING" || progData.job.status === "CANCELLING")
+        ) {
+          persistActiveBackupJobId(progData.job.jobId);
+          setBackupProgressJob(progData.job);
+          setBackupCancelWarning(
+            "Já existia um backup em andamento. Reconectado ao acompanhamento ao vivo."
+          );
+        } else {
+          setIsBackupModalOpen(false);
+          setBackupProgressJob(null);
+          setFeedback({
+            type: "error",
+            message: data?.error || "Não foi possível iniciar o backup neste momento.",
+          });
+        }
+      } else {
+        setIsBackupModalOpen(false);
+        setBackupProgressJob(null);
+        setFeedback({
+          type: "error",
+          message: data?.error || "Não foi possível iniciar a geração do backup.",
         });
       }
     } catch {
+      setIsBackupModalOpen(false);
+      setBackupProgressJob(null);
       setFeedback({
         type: "error",
-        message: "Erro inesperado ao gerar o backup completo.",
+        message: "Erro inesperado ao iniciar o backup completo.",
       });
     } finally {
-      setIsGeneratingBackup(false);
+      setIsStartingBackup(false);
+    }
+  };
+
+  const handleCancelActiveBackup = async () => {
+    if (
+      !backupProgressJob ||
+      backupProgressJob.jobId === "pending" ||
+      isCancellingBackup ||
+      !backupProgressJob.cancellable
+    ) {
+      return;
+    }
+
+    setIsCancellingBackup(true);
+    setBackupCancelWarning(null);
+    setBackupProgressJob((prev) =>
+      prev
+        ? {
+            ...prev,
+            status: "CANCELLING",
+            detailText: "Cancelando em etapa segura e limpando arquivos temporários...",
+          }
+        : prev
+    );
+
+    try {
+      const res = await fetch("/api/admin/backup/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobId: backupProgressJob.jobId }),
+      });
+      const data = await res.json();
+
+      if (res.status === 409 && data?.nonCancellableStage) {
+        if (data.job) setBackupProgressJob(data.job);
+        setBackupCancelWarning(
+          data.error ||
+            "O backup entrou na etapa final de gravação atômica e não pode mais ser interrompido."
+        );
+        setIsCancellingBackup(false);
+        return;
+      }
+
+      if (res.ok && data?.job) {
+        setBackupProgressJob(data.job);
+        setFeedback({
+          type: "success",
+          message:
+            data.message ||
+            "Backup cancelado com segurança. Os dados atuais e backups anteriores foram preservados.",
+        });
+        await fetchData({ silent: true });
+      } else {
+        setBackupCancelWarning(data?.error || "Não foi possível confirmar o cancelamento.");
+      }
+    } catch {
+      setBackupCancelWarning("Erro de comunicação ao solicitar cancelamento do backup.");
+    } finally {
+      setIsCancellingBackup(false);
+    }
+  };
+
+  const isBackupProcessActive = Boolean(
+    isStartingBackup ||
+      (backupProgressJob &&
+        (backupProgressJob.status === "RUNNING" || backupProgressJob.status === "CANCELLING"))
+  );
+
+  const closeBackupProgressModal = () => {
+    if (isBackupProcessActive) return;
+    persistActiveBackupJobId(null);
+    setIsBackupModalOpen(false);
+    setBackupCancelWarning(null);
+    setBackupProgressJob(null);
+  };
+
+  const openCleanupMediaModal = async () => {
+    if (restoreInProgress || isBackupProcessActive || isExecutingRestore) return;
+    setIsCleanupModalOpen(true);
+    setIsScanningOrphanMedia(true);
+    setCleanupPreview(null);
+    setCleanupPreviewError(null);
+    setCleanupResult(null);
+
+    try {
+      const res = await fetch("/api/admin/storage/cleanup-media", { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok) {
+        setCleanupPreviewError(
+          data?.error || "Não foi possível analisar as mídias não utilizadas do Site."
+        );
+        return;
+      }
+      setCleanupPreview(data.preview);
+      if (data.storageStats) {
+        setStorageStats(data.storageStats);
+      }
+    } catch {
+      setCleanupPreviewError("Erro de comunicação ao verificar mídias não utilizadas.");
+    } finally {
+      setIsScanningOrphanMedia(false);
+    }
+  };
+
+  const closeCleanupMediaModal = () => {
+    if (isExecutingCleanup) return;
+    setIsCleanupModalOpen(false);
+    setCleanupPreview(null);
+    setCleanupPreviewError(null);
+    setCleanupResult(null);
+  };
+
+  const handleConfirmCleanupMedia = async () => {
+    if (!cleanupPreview || cleanupPreview.totalCount === 0 || isExecutingCleanup) return;
+    setIsExecutingCleanup(true);
+    setCleanupPreviewError(null);
+
+    try {
+      const res = await fetch("/api/admin/storage/cleanup-media", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          confirm: true,
+          targetRelativeKeys: cleanupPreview.files.map((f) => f.relativeKey),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCleanupPreviewError(data?.error || "Não foi possível concluir a limpeza de mídias.");
+        return;
+      }
+
+      setCleanupResult(data.result);
+      if (data.storageStats) {
+        setStorageStats(data.storageStats);
+      }
+      setFeedback({
+        type: "success",
+        message:
+          data.message ||
+          `Limpeza concluída: ${data.result?.deletedCount ?? 0} arquivo(s) não utilizado(s) removido(s).`,
+      });
+      await fetchData({ silent: true });
+    } catch {
+      setCleanupPreviewError("Erro de comunicação durante a exclusão das mídias não utilizadas.");
+    } finally {
+      setIsExecutingCleanup(false);
     }
   };
 
@@ -454,8 +848,8 @@ export default function AdminStoragePage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={fetchData}
-            disabled={isLoading || isGeneratingBackup || isExecutingRestore}
+            onClick={() => fetchData()}
+            disabled={isLoading || isBackupProcessActive || isExecutingRestore || isExecutingCleanup}
             className="gap-1.5 text-xs"
             title="Atualizar listagem de backups e armazenamento"
           >
@@ -465,8 +859,25 @@ export default function AdminStoragePage() {
           <Button
             variant="outline"
             size="sm"
+            onClick={openCleanupMediaModal}
+            disabled={
+              restoreInProgress ||
+              isBackupProcessActive ||
+              isExecutingRestore ||
+              mediaCleanupInProgress ||
+              isExecutingCleanup
+            }
+            className="gap-1.5 text-xs"
+            title="Analisar e remover mídias antigas do Site que não estão mais em uso"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            <span>Limpar Mídias Não Utilizadas</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={openImportModal}
-            disabled={restoreInProgress || isGeneratingBackup || isExecutingRestore}
+            disabled={restoreInProgress || isBackupProcessActive || isExecutingRestore || isExecutingCleanup}
             className="gap-1.5 text-xs"
           >
             <Upload className="h-3.5 w-3.5" />
@@ -474,11 +885,17 @@ export default function AdminStoragePage() {
           </Button>
           <Button
             onClick={handleGenerateBackup}
-            isLoading={isGeneratingBackup}
-            disabled={restoreInProgress || isExecutingRestore}
+            isLoading={isBackupProcessActive}
+            disabled={
+              restoreInProgress ||
+              isBackupProcessActive ||
+              isExecutingRestore ||
+              mediaCleanupInProgress ||
+              isExecutingCleanup
+            }
             className="gap-1.5 text-xs"
           >
-            <Database className="h-3.5 w-3.5" />
+            {!isBackupProcessActive && <Database className="h-3.5 w-3.5" />}
             <span>Gerar Novo Backup</span>
           </Button>
         </div>
@@ -487,6 +904,12 @@ export default function AdminStoragePage() {
       {restoreInProgress && (
         <Alert variant="warning">
           Uma restauração de sistema está em andamento. Operações de escrita permanecem bloqueadas até a conclusão.
+        </Alert>
+      )}
+
+      {mediaCleanupInProgress && (
+        <Alert variant="warning">
+          Uma limpeza de mídias não utilizadas está em andamento. Operações de backup aguardam a finalização segura.
         </Alert>
       )}
 
@@ -571,6 +994,7 @@ export default function AdminStoragePage() {
                   b.restorable &&
                   !b.isLegacy &&
                   !restoreInProgress &&
+                  !isBackupProcessActive &&
                   b.status !== "RESTORING" &&
                   !isExecutingRestore;
 
@@ -677,7 +1101,12 @@ export default function AdminStoragePage() {
                           setDeleteError(null);
                           setDeleteTarget(b);
                         }}
-                        disabled={restoreInProgress || b.status === "RESTORING" || isExecutingRestore}
+                        disabled={
+                          restoreInProgress ||
+                          isBackupProcessActive ||
+                          b.status === "RESTORING" ||
+                          isExecutingRestore
+                        }
                         className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 dark:text-red-400 dark:border-red-500/30 dark:hover:bg-red-950/30 text-xs"
                         aria-label={`Excluir backup ${b.filename}`}
                       >
@@ -715,6 +1144,7 @@ export default function AdminStoragePage() {
       <Modal
         isOpen={isImportModalOpen}
         onClose={closeImportModal}
+        preventClose={isImportingBackup}
         title="Importar Backup"
         description="Envie um pacote .zip completo gerado anteriormente pelo PSI para validar sua integridade e compatibilidade."
         maxWidth="lg"
@@ -870,6 +1300,7 @@ export default function AdminStoragePage() {
       <Modal
         isOpen={Boolean(restoreTarget)}
         onClose={closeRestoreModal}
+        preventClose={isExecutingRestore}
         title="Restaurar Backup"
         maxWidth="lg"
       >
@@ -1103,6 +1534,421 @@ export default function AdminStoragePage() {
         )}
       </Modal>
 
+      {/* Modal: Progresso Real da Geração de Backup */}
+      <Modal
+        isOpen={isBackupModalOpen && Boolean(backupProgressJob)}
+        onClose={closeBackupProgressModal}
+        preventClose={isBackupProcessActive}
+        title="Criando cópia de segurança"
+        description={
+          isBackupProcessActive
+            ? "Backup em andamento. Não feche esta tela até a conclusão."
+            : backupProgressJob?.status === "COMPLETED"
+            ? "Backup completo criado e verificado com sucesso."
+            : backupProgressJob?.status === "CANCELLED"
+            ? "Operação interrompida com segurança."
+            : "Não foi possível concluir a geração da cópia de segurança."
+        }
+        maxWidth="lg"
+      >
+        {backupProgressJob && (
+          <div className="space-y-4 text-xs">
+            {/* Barra de Progresso Real ou Indeterminada */}
+            {backupProgressJob.status === "RUNNING" || backupProgressJob.status === "CANCELLING" ? (
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-semibold text-sm text-[#171717] dark:text-[#F5F5F5]">
+                    {backupProgressJob.stageLabel}
+                  </span>
+                  <span className="font-mono font-semibold tabular-nums text-xs text-[#525252] dark:text-[#D0D0D0]">
+                    {typeof backupProgressJob.percent === "number"
+                      ? `${backupProgressJob.percent}%`
+                      : "Calculando..."}
+                  </span>
+                </div>
+
+                <div
+                  className="h-3 w-full overflow-hidden rounded-full bg-[#E5E5E5] dark:bg-[#2C2C2C] border border-[#D4D4D4] dark:border-[#393939]"
+                  role="progressbar"
+                  aria-label="Progresso do backup"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={
+                    typeof backupProgressJob.percent === "number"
+                      ? backupProgressJob.percent
+                      : undefined
+                  }
+                >
+                  {typeof backupProgressJob.percent === "number" ? (
+                    <div
+                      className="h-full rounded-full bg-[var(--button-bg,var(--primary))] dark:bg-[#E5E5E5] transition-[width] duration-300 ease-out"
+                      style={{
+                        width: `${Math.min(100, Math.max(0, backupProgressJob.percent))}%`,
+                      }}
+                    />
+                  ) : (
+                    <div className="h-full w-2/5 rounded-full bg-[var(--button-bg,var(--primary))] dark:bg-[#E5E5E5] animate-backup-indeterminate" />
+                  )}
+                </div>
+
+                <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] min-h-[16px]">
+                  {backupProgressJob.detailText || "Processando etapas internas com verificação SHA-256..."}
+                </p>
+              </div>
+            ) : null}
+
+            {/* Lista Real das 6 Etapas */}
+            {(backupProgressJob.status === "RUNNING" ||
+              backupProgressJob.status === "CANCELLING" ||
+              backupProgressJob.status === "COMPLETED") && (
+              <div className="rounded-xl border border-[#E5E5E5] dark:border-[#393939] bg-[#F8F8F8] dark:bg-[#191919] p-3.5 space-y-2">
+                {BACKUP_STAGE_STEPS.map((st) => {
+                  const isDone =
+                    backupProgressJob.status === "COMPLETED" ||
+                    backupProgressJob.stageIndex > st.step;
+                  const isCurrent =
+                    backupProgressJob.status !== "COMPLETED" &&
+                    backupProgressJob.stageIndex === st.step;
+
+                  return (
+                    <div
+                      key={st.key}
+                      className={`flex items-center justify-between gap-3 px-2.5 py-1.5 rounded-lg transition-colors ${
+                        isCurrent
+                          ? "bg-white dark:bg-[#202020] border border-[var(--primary)]/25 dark:border-[#393939]"
+                          : ""
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {isDone ? (
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        ) : isCurrent ? (
+                          <Loader2 className="h-4 w-4 text-[var(--primary)] dark:text-[#F5F5F5] animate-spin shrink-0" />
+                        ) : (
+                          <Circle className="h-4 w-4 text-[#A3A3A3] dark:text-[#525252] shrink-0" />
+                        )}
+                        <span
+                          className={`truncate ${
+                            isCurrent
+                              ? "font-semibold text-[#171717] dark:text-[#F5F5F5]"
+                              : isDone
+                              ? "text-[#404040] dark:text-[#D0D0D0]"
+                              : "text-[#737373] dark:text-[#737373]"
+                          }`}
+                        >
+                          {st.step}. {st.label}
+                        </span>
+                      </div>
+                      <span className="text-[11px] font-medium shrink-0 text-[#737373] dark:text-[#A6A6A6]">
+                        {isDone ? "Concluída" : isCurrent ? "Em andamento" : "Aguardando"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {backupCancelWarning && (
+              <Alert variant="warning">{backupCancelWarning}</Alert>
+            )}
+
+            {/* Estado Concluído */}
+            {backupProgressJob.status === "COMPLETED" && backupProgressJob.resultBackup && (
+              <div className="space-y-3">
+                <Alert variant="success">Backup concluído com sucesso!</Alert>
+
+                <div className="rounded-xl border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#191919] p-4 space-y-2.5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="font-mono font-semibold text-[#171717] dark:text-[#F5F5F5] break-all">
+                      {backupProgressJob.resultBackup.filename}
+                    </span>
+                    <Badge variant="success" size="sm">
+                      Concluído
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-[11px] text-[#525252] dark:text-[#A6A6A6]">
+                    <div>
+                      <span className="block">Tamanho do arquivo</span>
+                      <strong className="text-[#171717] dark:text-[#F5F5F5] tabular-nums">
+                        {formatBytesHuman(backupProgressJob.resultBackup.sizeBytes)}
+                      </strong>
+                    </div>
+                    <div>
+                      <span className="block">Arquivos incluídos</span>
+                      <strong className="text-[#171717] dark:text-[#F5F5F5] tabular-nums">
+                        {backupProgressJob.resultBackup.fileCount}
+                      </strong>
+                    </div>
+                    <div className="col-span-2 sm:col-span-1">
+                      <span className="block">Integridade SHA-256</span>
+                      <strong className="font-mono text-[#171717] dark:text-[#F5F5F5]">
+                        {backupProgressJob.resultBackup.checksumSha256.slice(0, 12)}...
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Estado Cancelado */}
+            {backupProgressJob.status === "CANCELLED" && (
+              <Alert variant="info">
+                <span className="flex items-start gap-2">
+                  <XCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                  <span>
+                    Backup cancelado com segurança. Os arquivos temporários incompletos foram removidos, e o banco de dados ativo, documentos privados e backups anteriores permanecem intactos.
+                  </span>
+                </span>
+              </Alert>
+            )}
+
+            {/* Estado de Falha */}
+            {backupProgressJob.status === "FAILED" && (
+              <Alert variant="destructive">
+                {backupProgressJob.error ||
+                  "Não foi possível concluir a geração do backup completo."}
+              </Alert>
+            )}
+
+            {/* Rodapé / Ações */}
+            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2">
+              {isBackupProcessActive ? (
+                <>
+                  <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
+                    {!backupProgressJob.cancellable
+                      ? "Etapa final de gravação atômica não pode ser interrompida."
+                      : "O banco de dados e seus arquivos originais nunca são alterados durante a geração."}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCancelActiveBackup}
+                    disabled={
+                      !backupProgressJob.cancellable ||
+                      isCancellingBackup ||
+                      backupProgressJob.status === "CANCELLING" ||
+                      backupProgressJob.jobId === "pending"
+                    }
+                    isLoading={
+                      isCancellingBackup || backupProgressJob.status === "CANCELLING"
+                    }
+                    className="ml-auto text-xs"
+                  >
+                    <span>
+                      {isCancellingBackup || backupProgressJob.status === "CANCELLING"
+                        ? "Cancelando..."
+                        : "Cancelar"}
+                    </span>
+                  </Button>
+                </>
+              ) : backupProgressJob.status === "COMPLETED" && backupProgressJob.resultBackup ? (
+                <div className="flex flex-wrap items-center justify-end gap-2.5 w-full">
+                  <Button variant="outline" onClick={closeBackupProgressModal} className="text-xs">
+                    Fechar
+                  </Button>
+                  <a
+                    href={`/api/admin/backup/${encodeURIComponent(backupProgressJob.resultBackup.id)}/download`}
+                    download={backupProgressJob.resultBackup.filename}
+                    className="inline-flex items-center justify-center gap-1.5 font-heading font-semibold text-xs px-4 py-2 min-h-[38px] rounded-xl bg-[var(--button-bg,var(--primary))] hover:opacity-95 text-[var(--button-fg,#ffffff)] shadow-xs transition-all"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>Baixar Backup</span>
+                  </a>
+                </div>
+              ) : (
+                <div className="flex justify-end w-full">
+                  <Button onClick={closeBackupProgressModal} className="text-xs">
+                    Fechar
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal: Limpar Mídias Não Utilizadas (Preview em 2 etapas -> Confirmação) */}
+      <Modal
+        isOpen={isCleanupModalOpen}
+        onClose={closeCleanupMediaModal}
+        preventClose={isExecutingCleanup}
+        title="Limpar Mídias Não Utilizadas"
+        description="Remove apenas imagens, vídeos, ZIPs e ícones antigos do Site que não possuem nenhuma referência ativa."
+        maxWidth="lg"
+      >
+        <div className="space-y-4 text-xs max-h-[75vh] overflow-y-auto pr-1">
+          {isScanningOrphanMedia ? (
+            <div className="p-6 text-center space-y-2.5 text-[#737373] dark:text-[#A6A6A6]">
+              <Loader2 className="h-5 w-5 animate-spin mx-auto text-[var(--primary)] dark:text-[#F5F5F5]" />
+              <p>Analisando mídias do Site e conferindo referências ativas no banco de dados...</p>
+            </div>
+          ) : cleanupPreviewError ? (
+            <div className="space-y-4">
+              <Alert variant="destructive">{cleanupPreviewError}</Alert>
+              <div className="flex justify-end">
+                <Button variant="outline" onClick={closeCleanupMediaModal}>
+                  Fechar
+                </Button>
+              </div>
+            </div>
+          ) : cleanupResult ? (
+            <div className="space-y-4">
+              <Alert variant="success">
+                {cleanupResult.deletedCount > 0
+                  ? `Limpeza concluída! ${cleanupResult.deletedCount} arquivo(s) obsoleto(s) do Site foram removidos com segurança.`
+                  : "Nenhuma mídia não utilizada elegível para remoção foi encontrada."}
+              </Alert>
+
+              <div className="rounded-xl border border-[#E5E5E5] dark:border-[#393939] bg-[#F8F8F8] dark:bg-[#191919] p-4 grid grid-cols-2 gap-3">
+                <div>
+                  <span className="block text-[11px] text-[#737373] dark:text-[#A6A6A6]">
+                    Arquivos removidos
+                  </span>
+                  <strong className="text-base tabular-nums text-[#171717] dark:text-[#F5F5F5]">
+                    {cleanupResult.deletedCount}
+                  </strong>
+                </div>
+                <div>
+                  <span className="block text-[11px] text-[#737373] dark:text-[#A6A6A6]">
+                    Espaço recuperado
+                  </span>
+                  <strong className="text-base tabular-nums text-[#171717] dark:text-[#F5F5F5]">
+                    {formatBytesHuman(cleanupResult.deletedBytes)}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-1">
+                <Button onClick={closeCleanupMediaModal}>Fechar</Button>
+              </div>
+            </div>
+          ) : cleanupPreview ? (
+            <div className="space-y-4">
+              {cleanupPreview.blockedByLock && (
+                <Alert variant="warning">
+                  {cleanupPreview.blockReason ||
+                    "Existe um backup ou restauração em andamento. Aguarde a conclusão para confirmar a limpeza."}
+                </Alert>
+              )}
+
+              <div className="rounded-xl border border-[#E5E5E5] dark:border-[#393939] bg-[#F8F8F8] dark:bg-[#191919] p-4 grid grid-cols-2 gap-3">
+                <div>
+                  <span className="block text-[11px] text-[#737373] dark:text-[#A6A6A6]">
+                    Arquivos não utilizados encontrados
+                  </span>
+                  <strong className="text-lg tabular-nums text-[#171717] dark:text-[#F5F5F5]">
+                    {cleanupPreview.totalCount}
+                  </strong>
+                </div>
+                <div>
+                  <span className="block text-[11px] text-[#737373] dark:text-[#A6A6A6]">
+                    Espaço estimado a recuperar
+                  </span>
+                  <strong className="text-lg tabular-nums text-[#171717] dark:text-[#F5F5F5]">
+                    {formatBytesHuman(cleanupPreview.totalBytes)}
+                  </strong>
+                </div>
+              </div>
+
+              {cleanupPreview.totalCount === 0 ? (
+                <Alert variant="info">
+                  Todas as mídias do Site armazenadas em disco estão em uso ativo ou protegidas pela janela de segurança. Nenhum arquivo precisa ser removido agora.
+                </Alert>
+              ) : (
+                <>
+                  {cleanupPreview.categorySummary.length > 0 && (
+                    <div className="space-y-2">
+                      <span className="block font-semibold text-[#171717] dark:text-[#F5F5F5]">
+                        Distribuição por área
+                      </span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {cleanupPreview.categorySummary.map((cat) => (
+                          <div
+                            key={cat.categoryLabel}
+                            className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#141414]"
+                          >
+                            <span className="text-[#404040] dark:text-[#D0D0D0] truncate">
+                              {cat.categoryLabel}
+                            </span>
+                            <span className="font-mono text-[11px] tabular-nums text-[#737373] dark:text-[#A6A6A6] shrink-0">
+                              {cat.count} ({formatBytesHuman(cat.bytes)})
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-1.5">
+                    <span className="block font-semibold text-[#171717] dark:text-[#F5F5F5]">
+                      Arquivos elegíveis para remoção ({cleanupPreview.files.length})
+                    </span>
+                    <div className="max-h-40 overflow-y-auto rounded-xl border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#141414] divide-y divide-[#E5E5E5] dark:divide-[#2C2C2C]">
+                      {cleanupPreview.files.slice(0, 25).map((file) => (
+                        <div
+                          key={file.relativeKey}
+                          className="px-3 py-1.5 flex items-center justify-between gap-3 text-[11px]"
+                        >
+                          <span className="font-mono text-[#404040] dark:text-[#D0D0D0] truncate">
+                            {file.relativeKey}
+                          </span>
+                          <span className="font-mono tabular-nums text-[#737373] dark:text-[#A6A6A6] shrink-0">
+                            {formatBytesHuman(file.sizeBytes)}
+                          </span>
+                        </div>
+                      ))}
+                      {cleanupPreview.files.length > 25 && (
+                        <div className="px-3 py-1.5 text-[11px] text-[#737373] dark:text-[#A6A6A6]">
+                          E mais {cleanupPreview.files.length - 25} arquivo(s) listado(s) na verificação.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {cleanupPreview.graceProtectedCount > 0 && (
+                <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
+                  {cleanupPreview.graceProtectedCount} arquivo(s) recém-enviado(s) (menos de 2 minutos) permaneceram preservados temporariamente para proteger rascunhos não salvos.
+                </p>
+              )}
+
+              <div className="rounded-xl border border-[#E5E5E5] dark:border-[#393939] bg-[#F8F8F8] dark:bg-[#191919] p-3 flex items-start gap-2 text-[11px] text-[#525252] dark:text-[#A6A6A6]">
+                <ShieldCheck className="h-4 w-4 text-[var(--primary)] dark:text-[#F5F5F5] shrink-0 mt-0.5" />
+                <span>
+                  Documentos privados de pacientes, prontuários clínicos, mídias atualmente publicadas no Site e pacotes de backup concluídos nunca são alterados por esta ação.
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={closeCleanupMediaModal}
+                  disabled={isExecutingCleanup}
+                >
+                  {cleanupPreview.totalCount === 0 ? "Fechar" : "Cancelar"}
+                </Button>
+                {cleanupPreview.totalCount > 0 && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={handleConfirmCleanupMedia}
+                    disabled={cleanupPreview.blockedByLock || isExecutingCleanup}
+                    isLoading={isExecutingCleanup}
+                    className="gap-1.5"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>Confirmar Limpeza</span>
+                  </Button>
+                )}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </Modal>
+
       {/* Modal de Confirmação de Exclusão Segura */}
       <Modal
         isOpen={Boolean(deleteTarget)}
@@ -1112,6 +1958,7 @@ export default function AdminStoragePage() {
             setDeleteTarget(null);
           }
         }}
+        preventClose={isDeletingBackup}
         title="Excluir Backup"
         maxWidth="md"
       >

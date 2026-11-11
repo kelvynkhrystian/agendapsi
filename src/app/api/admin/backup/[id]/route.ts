@@ -44,6 +44,12 @@ export async function DELETE(
           { status: 409 }
         );
       }
+      if (error.message === "BACKUP_EM_ANDAMENTO") {
+        return NextResponse.json(
+          { error: "Não é possível excluir um backup enquanto uma cópia de segurança estiver sendo gerada." },
+          { status: 409 }
+        );
+      }
       if (
         error.message === "CAMINHO_BACKUP_INVALIDO" ||
         error.message === "CAMINHO_BACKUP_FORA_DIRETORIO"
