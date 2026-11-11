@@ -106,3 +106,31 @@ test("6. Criação de Serviços: Herança automática de configurações padrão
     "POST /api/services deve herdar defaultConfirmationPolicy de SystemSettings quando não enviado"
   );
 });
+
+test("7. Remoção de redundância: Configurações Gerais preservadas exclusivamente em Serviços", () => {
+  const settingsPagePath = path.join(__dirname, "../src/app/admin/configuracoes/page.tsx");
+  const settingsContent = fs.readFileSync(settingsPagePath, "utf8");
+  const servicesPagePath = path.join(__dirname, "../src/app/admin/servicos/page.tsx");
+  const servicesContent = fs.readFileSync(servicesPagePath, "utf8");
+
+  assert.ok(
+    !settingsContent.includes("Agenda & Políticas") && !settingsContent.includes('setActiveTab("general")'),
+    "A aba redundante 'Agenda & Políticas' deve estar ausente de /admin/configuracoes"
+  );
+  assert.ok(
+    settingsContent.includes("Perfil") &&
+      settingsContent.includes("Aparência") &&
+      settingsContent.includes("Consultas Virtuais") &&
+      settingsContent.includes("Segurança & Monitoramento"),
+    "As 4 abas autorizadas de /admin/configuracoes devem ser preservadas"
+  );
+  assert.ok(
+    servicesContent.includes("/api/admin/services/settings") &&
+      servicesContent.includes("minBookingNoticeHours") &&
+      servicesContent.includes("maxBookingHorizonDays") &&
+      servicesContent.includes("defaultCancellationNoticeDays") &&
+      servicesContent.includes("defaultBufferMinutes") &&
+      servicesContent.includes("timezone"),
+    "Todas as regras de agendamento e políticas devem permanecer configuráveis em /admin/servicos"
+  );
+});

@@ -16,7 +16,6 @@ import {
 } from "@/lib/theme-presets";
 import { MiniSiteMediaSlotCard } from "@/components/admin/minisite-media-slot-card";
 import {
-  Settings,
   Palette,
   Video,
   ShieldCheck,
@@ -73,7 +72,7 @@ function isValidHex6(value: string): boolean {
 export default function AdminSettingsPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<
-    "profile" | "appearance" | "video" | "general" | "security"
+    "profile" | "appearance" | "video" | "security"
   >("profile");
 
   // Profile State — Seção A (Dados da Aplicação)
@@ -253,27 +252,6 @@ export default function AdminSettingsPage() {
   const [videoError, setVideoError] = useState<string | null>(null);
   const [savedVideoSnapshot, setSavedVideoSnapshot] = useState<string>("");
 
-  // General Settings State (Agenda & Políticas persistidas em SystemSettings)
-  const [timezone, setTimezone] = useState("America/Sao_Paulo");
-  const [minNoticeHours, setMinNoticeHours] = useState(24);
-  const [horizonDays, setHorizonDays] = useState(30);
-  const [cancellationNoticeDays, setCancellationNoticeDays] = useState(3);
-  const [defaultBufferMinutes, setDefaultBufferMinutes] = useState(10);
-  const [defaultModality, setDefaultModality] = useState<"PRESENTIAL" | "ONLINE" | "BOTH">("BOTH");
-  const [defaultConfirmationPolicy, setDefaultConfirmationPolicy] = useState<
-    "AUTOMATIC" | "UPON_PAYMENT" | "MANUAL_ADMIN" | "PAYMENT_AND_ADMIN"
-  >("AUTOMATIC");
-  const [allowPatientReschedule, setAllowPatientReschedule] = useState(true);
-  const [savedGeneralSection, setSavedGeneralSection] = useState({
-    timezone: "America/Sao_Paulo",
-    minNoticeHours: 24,
-    horizonDays: 30,
-    cancellationNoticeDays: 3,
-  });
-  const [isSavingGeneral, setIsSavingGeneral] = useState(false);
-  const [generalFeedback, setGeneralFeedback] = useState<string | null>(null);
-  const [generalError, setGeneralError] = useState<string | null>(null);
-
   // Security / Technical State
   const [copiedUrl, setCopiedUrl] = useState(false);
 
@@ -286,7 +264,7 @@ export default function AdminSettingsPage() {
       const tabParam = params.get("tab");
       if (
         tabParam &&
-        ["profile", "appearance", "video", "general", "security"].includes(tabParam)
+        ["profile", "appearance", "video", "security"].includes(tabParam)
       ) {
         setActiveTab(tabParam as any);
       }
@@ -392,12 +370,11 @@ export default function AdminSettingsPage() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [appRes, vidRes, mediaRes, profRes, svcSettingsRes] = await Promise.all([
+      const [appRes, vidRes, mediaRes, profRes] = await Promise.all([
         fetch("/api/admin/appearance"),
         fetch("/api/admin/video-providers"),
         fetch("/api/admin/minisite/media/settings"),
         fetch("/api/admin/profile"),
-        fetch("/api/admin/services/settings"),
       ]);
 
       if (profRes && profRes.ok) {
@@ -670,28 +647,6 @@ export default function AdminSettingsPage() {
           })
         );
       }
-
-      if (svcSettingsRes && svcSettingsRes.ok) {
-        const svcData = await svcSettingsRes.json();
-        const nextTz = svcData.timezone || "America/Sao_Paulo";
-        const nextMin = svcData.minBookingNoticeHours ?? 24;
-        const nextHorizon = svcData.maxBookingHorizonDays ?? 30;
-        const nextCancel = svcData.defaultCancellationNoticeDays ?? 3;
-        setTimezone(nextTz);
-        setMinNoticeHours(nextMin);
-        setHorizonDays(nextHorizon);
-        setCancellationNoticeDays(nextCancel);
-        setDefaultBufferMinutes(svcData.defaultBufferMinutes ?? 10);
-        setDefaultModality(svcData.defaultModality || "BOTH");
-        setDefaultConfirmationPolicy(svcData.defaultConfirmationPolicy || "AUTOMATIC");
-        setAllowPatientReschedule(svcData.allowPatientReschedule ?? true);
-        setSavedGeneralSection({
-          timezone: nextTz,
-          minNoticeHours: nextMin,
-          horizonDays: nextHorizon,
-          cancellationNoticeDays: nextCancel,
-        });
-      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -770,12 +725,6 @@ export default function AdminSettingsPage() {
     googleMeetClientSecret,
   });
   const isVideoDirty = savedVideoSnapshot !== "" && currentVideoSnapshot !== savedVideoSnapshot;
-
-  const isGeneralDirty =
-    timezone !== savedGeneralSection.timezone ||
-    minNoticeHours !== savedGeneralSection.minNoticeHours ||
-    horizonDays !== savedGeneralSection.horizonDays ||
-    cancellationNoticeDays !== savedGeneralSection.cancellationNoticeDays;
 
   // Upload de Asset de Imagens do Sistema
   const handleUploadAsset = async (assetType: "logo" | "logoHorizontal" | "favicon", file: File) => {
@@ -1893,75 +1842,6 @@ export default function AdminSettingsPage() {
     }
   };
 
-  // Salvamento independente — Agenda & Políticas (SystemSettings)
-  const handleSaveGeneralSettings = async () => {
-    if (isSavingGeneral || !isGeneralDirty) return;
-    setGeneralFeedback(null);
-    setGeneralError(null);
-
-    const parsedMinNotice = Number(minNoticeHours);
-    const parsedHorizon = Number(horizonDays);
-    const parsedCancel = Number(cancellationNoticeDays);
-
-    if (!Number.isFinite(parsedMinNotice) || parsedMinNotice < 0) {
-      setGeneralError("A antecedência mínima para reserva deve ser maior ou igual a zero.");
-      return;
-    }
-    if (!Number.isFinite(parsedHorizon) || parsedHorizon < 1) {
-      setGeneralError("O horizonte máximo de agendamento deve ser de pelo menos 1 dia.");
-      return;
-    }
-    if (!Number.isFinite(parsedCancel) || parsedCancel < 0) {
-      setGeneralError("O prazo limite para cancelamento deve ser maior ou igual a zero.");
-      return;
-    }
-
-    setIsSavingGeneral(true);
-    try {
-      const res = await fetch("/api/admin/services/settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          timezone,
-          minBookingNoticeHours: parsedMinNotice,
-          maxBookingHorizonDays: parsedHorizon,
-          defaultBufferMinutes,
-          defaultCancellationNoticeDays: parsedCancel,
-          defaultModality,
-          defaultConfirmationPolicy,
-          allowPatientReschedule,
-          syncExistingServices: false,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setGeneralError(data.error || "Erro ao salvar políticas de agenda.");
-        return;
-      }
-
-      const nextTz = data.settings?.timezone ?? timezone;
-      const nextMin = data.settings?.minBookingNoticeHours ?? parsedMinNotice;
-      const nextHorizon = data.settings?.maxBookingHorizonDays ?? parsedHorizon;
-      const nextCancel = data.settings?.defaultCancellationNoticeDays ?? parsedCancel;
-      setTimezone(nextTz);
-      setMinNoticeHours(nextMin);
-      setHorizonDays(nextHorizon);
-      setCancellationNoticeDays(nextCancel);
-      setSavedGeneralSection({
-        timezone: nextTz,
-        minNoticeHours: nextMin,
-        horizonDays: nextHorizon,
-        cancellationNoticeDays: nextCancel,
-      });
-      setGeneralFeedback("Políticas de agenda e horários atualizadas com sucesso.");
-      router.refresh();
-    } catch {
-      setGeneralError("Erro de comunicação ao salvar políticas de agenda.");
-    } finally {
-      setIsSavingGeneral(false);
-    }
-  };
-
   const normalizedPreviewBg = normalizeHexColor(backgroundColor, "#F0FDF4");
   const normalizedPreviewText = normalizeHexColor(textColor, "#14532D");
   const normalizedPreviewPrimary = normalizeHexColor(primaryColor, "#16A34A");
@@ -1979,7 +1859,7 @@ export default function AdminSettingsPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Configurações do Consultório</h1>
         <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">
-          Personalize a identidade visual da clínica, teleconsulta, agenda e políticas operacionais.
+          Personalize o perfil do consultório, a identidade visual, a teleconsulta e o monitoramento técnico.
         </p>
       </div>
 
@@ -2022,19 +1902,6 @@ export default function AdminSettingsPage() {
         >
           <Video className="h-4 w-4 text-current" />
           <span>Consultas Virtuais</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab("general")}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
-            activeTab === "general"
-              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
-              : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1C1C1C] dark:border-transparent dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5]"
-          }`}
-        >
-          <Settings className="h-4 w-4 text-current" />
-          <span>Agenda & Políticas</span>
         </button>
 
         <button
@@ -3565,111 +3432,7 @@ export default function AdminSettingsPage() {
         </div>
       )}
 
-      {/* ================= ABA 4: AGENDA & POLÍTICAS (SEÇÃO INDEPENDENTE COM PERSISTÊNCIA REAL) ================= */}
-      {activeTab === "general" && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Políticas de Agenda e Horários</CardTitle>
-            <CardDescription className="text-xs">
-              Defina as regras gerais de antecedência mínima, limite de agendamento e cancelamentos
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="space-y-4 text-xs">
-            {generalFeedback && <Alert variant="success">{generalFeedback}</Alert>}
-            {generalError && <Alert variant="destructive">{generalError}</Alert>}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">
-                  Fuso Horário Padrão do Consultório
-                </label>
-                <select
-                  value={timezone}
-                  onChange={(e) => {
-                    setTimezone(e.target.value);
-                    setGeneralFeedback(null);
-                    setGeneralError(null);
-                  }}
-                  className="w-full h-10 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] px-3 py-2 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] transition-all shadow-2xs cursor-pointer"
-                >
-                  <option value="America/Sao_Paulo">Brasília (America/Sao_Paulo - GMT-3)</option>
-                  <option value="America/Manaus">Manaus (America/Manaus - GMT-4)</option>
-                  <option value="America/Belem">Belém (America/Belem - GMT-3)</option>
-                  <option value="America/Cuiaba">Cuiabá (America/Cuiaba - GMT-4)</option>
-                  <option value="America/Fortaleza">Fortaleza (America/Fortaleza - GMT-3)</option>
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">
-                  Antecedência Mínima para Reserva (Horas)
-                </label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={minNoticeHours}
-                  onChange={(e) => {
-                    setMinNoticeHours(Number(e.target.value));
-                    setGeneralFeedback(null);
-                    setGeneralError(null);
-                  }}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">
-                  Horizonte Máximo de Agendamento (Dias à frente)
-                </label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={horizonDays}
-                  onChange={(e) => {
-                    setHorizonDays(Number(e.target.value));
-                    setGeneralFeedback(null);
-                    setGeneralError(null);
-                  }}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5]">
-                  Prazo Limite para Cancelamento sem Penalidade (Dias)
-                </label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={cancellationNoticeDays}
-                  onChange={(e) => {
-                    setCancellationNoticeDays(Number(e.target.value));
-                    setGeneralFeedback(null);
-                    setGeneralError(null);
-                  }}
-                />
-                <p className="text-[10px] text-[#737373] dark:text-[#A6A6A6]">
-                  Padrão do contrato terapêutico: 3 dias úteis de antecedência.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-3 border-t border-[#E5E5E5] dark:border-[#262626]">
-              <Button
-                type="button"
-                onClick={handleSaveGeneralSettings}
-                disabled={!isGeneralDirty || isSavingGeneral}
-                isLoading={isSavingGeneral}
-                className="gap-2 text-xs"
-              >
-                {!isSavingGeneral && <Save className="h-4 w-4" />}
-                <span>{isSavingGeneral ? "Salvando..." : "Salvar Alterações"}</span>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* ================= ABA 5: SEGURANÇA & MONITORAMENTO ================= */}
+      {/* ================= ABA 4: SEGURANÇA & MONITORAMENTO ================= */}
       {activeTab === "security" && (
         <div className="space-y-6">
           <Card>

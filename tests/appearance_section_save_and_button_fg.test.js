@@ -70,13 +70,13 @@ test("Appearance Settings, Independent Section Saving & Global Light Mode White 
     assert.ok(src.includes("lastBasePreset"), "Deve rastrear o último preset selecionado antes de entrar em Personalizado");
     assert.ok(src.includes("handleSelectCustomTheme"), "Preset Personalizado deve usar handleSelectCustomTheme");
 
-    // Salvamento independente por seção e persistência real de Agenda & Políticas
+    // Salvamento independente por seção e remoção da aba redundante Agenda & Políticas
     assert.ok(src.includes("handleSaveAppSection"));
     assert.ok(src.includes("handleSaveProfSection"));
     assert.ok(src.includes("handleSaveContactSection"));
     assert.ok(src.includes("handleSaveSystemImages"));
-    assert.ok(src.includes("handleSaveGeneralSettings"));
-    assert.ok(src.includes('/api/admin/services/settings'), "Agenda & Políticas deve persistir via /api/admin/services/settings");
+    assert.ok(!src.includes("Agenda & Políticas"), "Aba redundante Agenda & Políticas não deve mais existir em Configurações");
+    assert.ok(!src.includes("handleSaveGeneralSettings"), "Formulário redundante general deve ter sido removido de Configurações");
   });
 
   await t.test("5. UI Kit Button usa tokens claros no Light Mode (primário com --button-fg branco) e Dark Mode fosco com destaque", () => {
