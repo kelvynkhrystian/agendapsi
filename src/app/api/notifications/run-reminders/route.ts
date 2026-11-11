@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
         channel: "WHATSAPP",
         templateType: "REMINDER_24H",
         idempotencyKey,
+        relatedAppointmentId: appt.id,
         variables: {
           patientName: appt.patient.fullName,
           professionalName: "Consultório PSI",
@@ -74,12 +75,13 @@ export async function POST(req: NextRequest) {
         channel: "WHATSAPP",
         templateType: "REMINDER_2H",
         idempotencyKey,
+        relatedAppointmentId: appt.id,
         variables: {
           patientName: appt.patient.fullName,
           professionalName: "Consultório PSI",
           appointmentDateTime: appt.startAt.toISOString(),
           modality: appt.modality,
-          entryUrl: appt.meetingUrlSnapshot || "",
+          entryUrl: appt.modality === "PRESENTIAL" ? "" : appt.meetingUrlSnapshot || "",
         },
       });
 

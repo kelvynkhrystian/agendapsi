@@ -31,7 +31,9 @@ import {
   XCircle,
   FileText,
   CalendarCheck,
+  CalendarClock,
   CalendarDays,
+  History,
   LayoutGrid,
   ListFilter,
   Check,
@@ -40,6 +42,24 @@ import {
   MapPin,
   Sparkles,
 } from "lucide-react";
+
+interface RescheduleHistoryItem {
+  id: string;
+  createdAt: string;
+  previousStartAt: string | null;
+  previousEndAt: string | null;
+  newStartAt: string | null;
+  newEndAt: string | null;
+  reason: string | null;
+}
+
+interface AvailableSlotOption {
+  startAt: string;
+  endAt: string;
+  formattedTime: string;
+  available: boolean;
+  reason?: string;
+}
 
 interface AppointmentItem {
   id: string;
@@ -50,7 +70,13 @@ interface AppointmentItem {
   modality: "PRESENTIAL" | "ONLINE" | "BOTH";
   status: "PENDING_CONFIRMATION" | "CONFIRMED" | "COMPLETED" | "CANCELLED" | "LATE_CANCELLED" | "NO_SHOW";
   isAdminOverride: boolean;
-  meetingUrlSnapshot?: string;
+  meetingUrlSnapshot?: string | null;
+  rescheduleHistory?: RescheduleHistoryItem[];
+  establishment?: {
+    name: string;
+    address: string | null;
+    professionalName: string;
+  };
   patient: {
     fullName: string;
     phone: string;
@@ -164,6 +190,17 @@ export default function AdminAgendaPage() {
   // Modal Detalhes e Ações no Agendamento
   const [selectedAppt, setSelectedAppt] = useState<AppointmentItem | null>(null);
   const [statusActionError, setStatusActionError] = useState<string | null>(null);
+  const [agendaFeedback, setAgendaFeedback] = useState<string | null>(null);
+
+  // Fluxo de Remarcação dentro de Detalhes da Consulta
+  const [isRescheduling, setIsRescheduling] = useState(false);
+  const [rescheduleDate, setRescheduleDate] = useState("");
+  const [rescheduleSlots, setRescheduleSlots] = useState<AvailableSlotOption[]>([]);
+  const [selectedRescheduleSlot, setSelectedRescheduleSlot] = useState<AvailableSlotOption | null>(null);
+  const [isLoadingRescheduleSlots, setIsLoadingRescheduleSlots] = useState(false);
+  const [isSubmittingReschedule, setIsSubmittingReschedule] = useState(false);
+  const [rescheduleError, setRescheduleError] = useState<string | null>(null);
+  const [rescheduleSuccessBanner, setRescheduleSuccessBanner] = useState<string | null>(null);
 
   const fetchAppointments = () => {
     setIsLoading(true);
@@ -325,6 +362,7 @@ export default function AdminAgendaPage() {
       const data = await res.json().catch(() => null);
       if (res.ok) {
         setSelectedAppt(null);
+        setIsRescheduling(false);
         fetchAppointments();
       } else {
         setStatusActionError(data?.error || "Não foi possível atualizar o status da consulta.");
@@ -332,6 +370,129 @@ export default function AdminAgendaPage() {
     } catch (e) {
       console.error(e);
       setStatusActionError("Erro de comunicação ao atualizar o status da consulta.");
+    }
+  };
+
+  const openAppointmentDetails = (appt: AppointmentItem) => {
+    setSelectedAppt(appt);
+    setIsRescheduling(false);
+    setStatusActionError(null);
+    setRescheduleError(null);
+    setRescheduleSuccessBanner(null);
+    setSelectedRescheduleSlot(null);
+    setRescheduleSlots([]);
+  };
+
+  const loadRescheduleSlots = async (
+    dateStr: string,
+    serviceId: string,
+    appointmentId: string
+  ) => {
+    if (!dateStr) {
+      setRescheduleSlots([]);
+      return;
+    }
+    setIsLoadingRescheduleSlots(true);
+    setRescheduleError(null);
+    setSelectedRescheduleSlot(null);
+
+    try {
+      const res = await fetch(
+        `/api/availability/slots?date=${encodeURIComponent(dateStr)}&serviceId=${encodeURIComponent(
+          serviceId
+        )}&excludeAppointmentId=${encodeURIComponent(appointmentId)}&forAdmin=true`
+      );
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setRescheduleSlots([]);
+        setRescheduleError(
+          data?.error || "Não foi possível carregar os horários disponíveis para esta data."
+        );
+      } else {
+        setRescheduleSlots(Array.isArray(data) ? data : []);
+      }
+    } catch {
+      setRescheduleSlots([]);
+      setRescheduleError("Erro de comunicação ao buscar horários disponíveis.");
+    } finally {
+      setIsLoadingRescheduleSlots(false);
+    }
+  };
+
+  const handleStartReschedule = () => {
+    if (!selectedAppt) return;
+    const todayStr = new Date().toISOString().split("T")[0];
+    const currentApptDateStr = new Date(selectedAppt.startAt).toISOString().split("T")[0];
+    const initialDate = currentApptDateStr >= todayStr ? currentApptDateStr : todayStr;
+
+    setIsRescheduling(true);
+    setStatusActionError(null);
+    setRescheduleSuccessBanner(null);
+    setRescheduleError(null);
+    setRescheduleDate(initialDate);
+    loadRescheduleSlots(initialDate, selectedAppt.serviceId, selectedAppt.id);
+  };
+
+  const handleRescheduleDateChange = (nextDate: string) => {
+    setRescheduleDate(nextDate);
+    if (selectedAppt) {
+      loadRescheduleSlots(nextDate, selectedAppt.serviceId, selectedAppt.id);
+    }
+  };
+
+  const handleConfirmReschedule = async () => {
+    if (!selectedAppt || !selectedRescheduleSlot) return;
+    setIsSubmittingReschedule(true);
+    setRescheduleError(null);
+
+    try {
+      const res = await fetch(`/api/appointments/${selectedAppt.id}/reschedule`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          startAt: selectedRescheduleSlot.startAt,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.appointment) {
+        const errMsg =
+          res.status === 409
+            ? "Este horário não está mais disponível. Selecione outro horário."
+            : data?.error || "Não foi possível confirmar a remarcação.";
+        setRescheduleError(errMsg);
+        if (res.status === 409) {
+          setSelectedRescheduleSlot(null);
+          if (rescheduleDate) {
+            loadRescheduleSlots(rescheduleDate, selectedAppt.serviceId, selectedAppt.id);
+          }
+        }
+        return;
+      }
+
+      const updatedAppt: AppointmentItem = data.appointment;
+      setSelectedAppt(updatedAppt);
+      setAppointments((prev) =>
+        prev.map((item) => (item.id === updatedAppt.id ? updatedAppt : item))
+      );
+      setIsRescheduling(false);
+      setSelectedRescheduleSlot(null);
+      setRescheduleSuccessBanner("Consulta remarcada com sucesso.");
+      setAgendaFeedback("Consulta remarcada com sucesso.");
+
+      const movedDate = new Date(updatedAppt.startAt);
+      const weekEnd = new Date(currentWeekStart);
+      weekEnd.setDate(weekEnd.getDate() + 7);
+      if (movedDate < currentWeekStart || movedDate >= weekEnd) {
+        handleSelectMiniCalDay(movedDate);
+        setMiniCalMonth(movedDate);
+      } else {
+        fetchAppointments();
+      }
+    } catch {
+      setRescheduleError("Erro de comunicação ao tentar remarcar a consulta.");
+    } finally {
+      setIsSubmittingReschedule(false);
     }
   };
 
@@ -514,6 +675,21 @@ export default function AdminAgendaPage() {
         </div>
       </div>
 
+      {agendaFeedback && (
+        <Alert variant="success" className="items-center justify-between">
+          <div className="flex items-center justify-between gap-4 w-full">
+            <span>{agendaFeedback}</span>
+            <button
+              type="button"
+              onClick={() => setAgendaFeedback(null)}
+              className="text-xs font-semibold underline underline-offset-4 cursor-pointer shrink-0"
+            >
+              Fechar
+            </button>
+          </div>
+        </Alert>
+      )}
+
       {/* ================= 2. WORKSPACE LAYOUT: MAIN CALENDAR + SIDEBAR ================= */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
         {/* ================= COLUNA PRINCIPAL: AGENDA (3 COLUNAS) ================= */}
@@ -579,7 +755,7 @@ export default function AdminAgendaPage() {
                             return (
                               <div
                                 key={appt.id}
-                                onClick={() => setSelectedAppt(appt)}
+                                onClick={() => openAppointmentDetails(appt)}
                                 className={`group p-3 rounded-xl border text-xs cursor-pointer transition-all duration-150 hover:-translate-y-0.5 hover:shadow-xs ${
                                   appt.isAdminOverride
                                     ? "border-purple-300 bg-purple-50/80 dark:border-purple-800/60 dark:bg-purple-950/30 text-purple-900 dark:text-purple-200"
@@ -728,7 +904,7 @@ export default function AdminAgendaPage() {
                       {dayAppts.map((appt) => (
                         <div
                           key={appt.id}
-                          onClick={() => setSelectedAppt(appt)}
+                          onClick={() => openAppointmentDetails(appt)}
                           className="p-4 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] hover:border-[var(--primary)]/60 hover:shadow-xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer"
                         >
                           <div className="flex items-start gap-4">
@@ -802,7 +978,7 @@ export default function AdminAgendaPage() {
                     {filteredAppointments.map((appt) => (
                       <div
                         key={appt.id}
-                        onClick={() => setSelectedAppt(appt)}
+                        onClick={() => openAppointmentDetails(appt)}
                         className="py-3.5 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#F3F4F6]/50 dark:hover:bg-[#292929]/50 p-2.5 rounded-xl transition-colors cursor-pointer"
                       >
                         <div className="flex items-start gap-3.5">
@@ -995,114 +1171,322 @@ export default function AdminAgendaPage() {
           isOpen={!!selectedAppt}
           onClose={() => {
             setSelectedAppt(null);
+            setIsRescheduling(false);
             setStatusActionError(null);
+            setRescheduleError(null);
+            setRescheduleSuccessBanner(null);
           }}
-          title="Detalhes da Consulta"
-          description={`Código do Agendamento: ${selectedAppt.id}`}
+          title={isRescheduling ? "Remarcar Consulta" : "Detalhes da Consulta"}
+          description={
+            isRescheduling
+              ? `${selectedAppt.patient.fullName} • ${selectedAppt.service.name} (${selectedAppt.service.durationMinutes} min)`
+              : `Código do Agendamento: ${selectedAppt.id}`
+          }
+          maxWidth={isRescheduling ? "lg" : "md"}
         >
-          <div className="space-y-4 text-xs sm:text-sm">
-            {statusActionError && <Alert variant="destructive">{statusActionError}</Alert>}
+          {isRescheduling ? (
+            <div className="space-y-4 text-xs sm:text-sm">
+              {rescheduleError && <Alert variant="destructive">{rescheduleError}</Alert>}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#333333] rounded-2xl">
-              <div>
-                <span className="text-xs text-[#737373] dark:text-[#A6A6A6] block">Paciente:</span>
-                <span className="font-heading font-semibold text-[#171717] dark:text-[#F5F5F5] block">
-                  {selectedAppt.patient.fullName}
-                </span>
-                <span className="text-xs text-[#737373] dark:text-[#A6A6A6] block mt-0.5">
-                  {selectedAppt.patient.phone}
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-[#737373] dark:text-[#A6A6A6] block">Serviço:</span>
-                <span className="font-heading font-semibold text-[#171717] dark:text-[#F5F5F5] block">
-                  {selectedAppt.service.name}
-                </span>
-                <span className="text-xs text-[#737373] dark:text-[#A6A6A6] block mt-0.5">
-                  {selectedAppt.service.durationMinutes} minutos • {formatModality(selectedAppt.modality)}
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-[#737373] dark:text-[#A6A6A6] block">Data e Horário:</span>
-                <span className="font-heading font-semibold text-[#171717] dark:text-[#F5F5F5] block">
-                  {formatDate(selectedAppt.startAt, clinicTimezone)} às {formatTime(selectedAppt.startAt, clinicTimezone)}
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-[#737373] dark:text-[#A6A6A6] block">Status Atual:</span>
-                <Badge variant={selectedAppt.status === "CONFIRMED" ? "success" : "default"}>
-                  {formatAppointmentStatus(selectedAppt.status)}
-                </Badge>
-              </div>
-            </div>
-
-            {selectedAppt.meetingUrlSnapshot && (
-              <div className="p-3.5 bg-[var(--primary)]/10 dark:bg-[var(--primary)]/15 border border-[var(--primary)]/20 rounded-2xl flex items-center justify-between">
+              {/* Data e Horário Atuais */}
+              <div className="p-3.5 rounded-2xl border border-[#E5E5E5] dark:border-[#333333] bg-[#F8F8F8] dark:bg-[#141414] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <span className="font-bold text-[#171717] dark:text-[#F5F5F5] block text-xs">
-                    Sala de Teleconsulta
+                  <span className="text-xs font-heading font-semibold text-[#737373] dark:text-[#A6A6A6] block">
+                    Data Atual
                   </span>
-                  <span className="text-xs text-[#737373] dark:text-[#A6A6A6]">
-                    Acesso exclusivo e com sala de espera do PSI
+                  <span className="font-heading font-bold text-sm text-[#171717] dark:text-[#F5F5F5]">
+                    {formatDate(selectedAppt.startAt, clinicTimezone)} às{" "}
+                    {formatTime(selectedAppt.startAt, clinicTimezone)}
                   </span>
                 </div>
-                <a href={selectedAppt.meetingUrlSnapshot} target="_blank" rel="noreferrer">
-                  <Button size="sm" className="gap-1.5 text-xs" title="Abrir sala virtual da consulta">
-                    <Video className="h-3.5 w-3.5" />
-                    <span>Acessar Sala</span>
-                  </Button>
-                </a>
+                <span className="text-xs text-[#525252] dark:text-[#A6A6A6]">
+                  {formatModality(selectedAppt.modality)}
+                </span>
               </div>
-            )}
 
-            {/* Ações de Transição */}
-            <div className="pt-2 border-t border-[#E5E5E5] dark:border-[#333333] space-y-2">
-              <span className="text-xs font-heading font-semibold text-[#737373] dark:text-[#A6A6A6] block uppercase">
-                Atualizar Status
-              </span>
+              {/* Seleção de Novo Dia */}
+              <div>
+                <Input
+                  label="Novo Dia"
+                  type="date"
+                  min={new Date().toISOString().split("T")[0]}
+                  value={rescheduleDate}
+                  onChange={(e) => handleRescheduleDateChange(e.target.value)}
+                />
+              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                {selectedAppt.status !== "COMPLETED" && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs gap-1.5"
-                    title="Marcar consulta como realizada"
-                    onClick={() => handleUpdateStatus("COMPLETED")}
-                  >
-                    <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
-                    <span>Realizado</span>
-                  </Button>
+              {/* Grade de Horários Disponíveis */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-heading font-semibold uppercase tracking-wide text-[#525252] dark:text-[#D0D0D0]">
+                    Horários Disponíveis
+                  </span>
+                  {rescheduleDate && !isLoadingRescheduleSlots && rescheduleSlots.length > 0 && (
+                    <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
+                      {rescheduleSlots.filter((s) => s.available).length} livre(s)
+                    </span>
+                  )}
+                </div>
+
+                {isLoadingRescheduleSlots ? (
+                  <div className="py-6 text-center text-xs text-[#737373] dark:text-[#A6A6A6] rounded-xl border border-dashed border-[#E5E5E5] dark:border-[#333333]">
+                    Verificando disponibilidade da agenda...
+                  </div>
+                ) : rescheduleSlots.length === 0 ? (
+                  <div className="py-5 px-4 text-center text-xs text-[#737373] dark:text-[#A6A6A6] rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-[#F8F8F8] dark:bg-[#141414]">
+                    Nenhum horário disponível para o dia selecionado (dia sem expediente ou data bloqueada).
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-52 overflow-y-auto pr-1">
+                      {rescheduleSlots.map((slot) => {
+                        const isSelected =
+                          selectedRescheduleSlot?.startAt === slot.startAt;
+                        const labelTime = formatTime(slot.startAt, clinicTimezone);
+
+                        return (
+                          <button
+                            key={slot.startAt}
+                            type="button"
+                            disabled={!slot.available || isSubmittingReschedule}
+                            onClick={() => {
+                              setSelectedRescheduleSlot(slot);
+                              setRescheduleError(null);
+                            }}
+                            title={
+                              slot.available
+                                ? `Selecionar ${labelTime}`
+                                : slot.reason || "Horário indisponível"
+                            }
+                            className={`py-2 px-2.5 rounded-xl border font-mono text-xs font-semibold transition-all ${
+                              !slot.available
+                                ? "bg-[#F3F4F6] text-[#9CA3AF] border-[#E5E5E5] dark:bg-[#141414] dark:text-[#666666] dark:border-[#2C2C2C] opacity-60 cursor-not-allowed line-through"
+                                : isSelected
+                                ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] border-[var(--button-bg,var(--primary))] dark:bg-[var(--dark-accent,var(--primary))] dark:text-white shadow-xs cursor-pointer"
+                                : "bg-white text-[#171717] border-[#E5E5E5] hover:border-[var(--primary)] hover:bg-[var(--primary)]/[0.05] dark:bg-[#191919] dark:text-[#F5F5F5] dark:border-[#333333] dark:hover:border-[#525252] dark:hover:bg-[#292929] cursor-pointer"
+                            }`}
+                          >
+                            {labelTime}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {rescheduleSlots.every((s) => !s.available) && (
+                      <p className="text-xs text-amber-700 dark:text-amber-300">
+                        Todos os horários desta data estão ocupados ou indisponíveis. Selecione outro dia.
+                      </p>
+                    )}
+                  </div>
                 )}
+              </div>
 
-                {selectedAppt.status !== "NO_SHOW" && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs gap-1.5"
-                    title="Registrar falta do paciente na consulta"
-                    onClick={() => handleUpdateStatus("NO_SHOW", "Paciente não compareceu", "RETAIN")}
-                  >
-                    <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
-                    <span>Marcar Falta</span>
-                  </Button>
-                )}
+              {/* Resumo de Confirmação */}
+              {selectedRescheduleSlot && (
+                <div className="p-3.5 rounded-2xl border border-[var(--primary)]/30 bg-[var(--primary)]/[0.06] dark:bg-[#191919] dark:border-[#393939] space-y-1">
+                  <span className="text-xs font-heading font-semibold uppercase tracking-wide text-[var(--primary)] dark:text-[#F5F5F5] block">
+                    Novo Horário
+                  </span>
+                  <p className="font-heading font-bold text-sm text-[#171717] dark:text-[#F5F5F5]">
+                    {formatDate(selectedRescheduleSlot.startAt, clinicTimezone)} às{" "}
+                    {formatTime(selectedRescheduleSlot.startAt, clinicTimezone)} —{" "}
+                    {selectedAppt.service.durationMinutes} min ({formatModality(selectedAppt.modality)})
+                  </p>
+                  {selectedAppt.modality === "PRESENTIAL" && selectedAppt.establishment?.address ? (
+                    <p className="text-xs text-[#525252] dark:text-[#A6A6A6]">
+                      Endereço presencial mantido: {selectedAppt.establishment.address}
+                    </p>
+                  ) : selectedAppt.modality === "ONLINE" ? (
+                    <p className="text-xs text-[#525252] dark:text-[#A6A6A6]">
+                      Provedor e acesso de teleconsulta serão preservados e atualizados.
+                    </p>
+                  ) : null}
+                </div>
+              )}
 
-                {selectedAppt.status !== "CANCELLED" && (
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="text-xs gap-1.5"
-                    title="Cancelar este agendamento"
-                    onClick={() => handleUpdateStatus("CANCELLED", "Cancelado pelo profissional")}
-                  >
-                    <XCircle className="h-3.5 w-3.5" />
-                    <span>Cancelar</span>
-                  </Button>
-                )}
+              {/* Ações do Formulário */}
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 pt-2 border-t border-[#E5E5E5] dark:border-[#333333]">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled={isSubmittingReschedule}
+                  onClick={() => {
+                    setIsRescheduling(false);
+                    setRescheduleError(null);
+                    setSelectedRescheduleSlot(null);
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  isLoading={isSubmittingReschedule}
+                  disabled={!selectedRescheduleSlot || isSubmittingReschedule}
+                  onClick={handleConfirmReschedule}
+                  className="gap-1.5"
+                >
+                  <CalendarClock className="h-4 w-4 text-current" />
+                  <span>Confirmar Remarcação</span>
+                </Button>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-4 text-xs sm:text-sm">
+              {rescheduleSuccessBanner && (
+                <Alert variant="success">{rescheduleSuccessBanner}</Alert>
+              )}
+              {statusActionError && <Alert variant="destructive">{statusActionError}</Alert>}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#333333] rounded-2xl">
+                <div>
+                  <span className="text-xs text-[#737373] dark:text-[#A6A6A6] block">Paciente:</span>
+                  <span className="font-heading font-semibold text-[#171717] dark:text-[#F5F5F5] block">
+                    {selectedAppt.patient.fullName}
+                  </span>
+                  <span className="text-xs text-[#737373] dark:text-[#A6A6A6] block mt-0.5">
+                    {selectedAppt.patient.phone}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs text-[#737373] dark:text-[#A6A6A6] block">Serviço:</span>
+                  <span className="font-heading font-semibold text-[#171717] dark:text-[#F5F5F5] block">
+                    {selectedAppt.service.name}
+                  </span>
+                  <span className="text-xs text-[#737373] dark:text-[#A6A6A6] block mt-0.5">
+                    {selectedAppt.service.durationMinutes} minutos • {formatModality(selectedAppt.modality)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs text-[#737373] dark:text-[#A6A6A6] block">Data e Horário:</span>
+                  <span className="font-heading font-semibold text-[#171717] dark:text-[#F5F5F5] block">
+                    {formatDate(selectedAppt.startAt, clinicTimezone)} às {formatTime(selectedAppt.startAt, clinicTimezone)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs text-[#737373] dark:text-[#A6A6A6] block">Status Atual:</span>
+                  <Badge variant={selectedAppt.status === "CONFIRMED" ? "success" : "default"}>
+                    {formatAppointmentStatus(selectedAppt.status)}
+                  </Badge>
+                </div>
+                {selectedAppt.modality === "PRESENTIAL" && selectedAppt.establishment?.address && (
+                  <div className="sm:col-span-2 pt-1 border-t border-[#E5E5E5] dark:border-[#2C2C2C]">
+                    <span className="text-xs text-[#737373] dark:text-[#A6A6A6] block">Local do Atendimento:</span>
+                    <span className="text-xs font-medium text-[#171717] dark:text-[#F5F5F5]">
+                      {selectedAppt.establishment.address}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {selectedAppt.modality !== "PRESENTIAL" && selectedAppt.meetingUrlSnapshot && (
+                <div className="p-3.5 bg-[var(--primary)]/10 dark:bg-[var(--primary)]/15 border border-[var(--primary)]/20 rounded-2xl flex items-center justify-between">
+                  <div>
+                    <span className="font-bold text-[#171717] dark:text-[#F5F5F5] block text-xs">
+                      Sala de Teleconsulta
+                    </span>
+                    <span className="text-xs text-[#737373] dark:text-[#A6A6A6]">
+                      Acesso exclusivo e com sala de espera do PSI
+                    </span>
+                  </div>
+                  <a href={selectedAppt.meetingUrlSnapshot} target="_blank" rel="noreferrer">
+                    <Button size="sm" className="gap-1.5 text-xs" title="Abrir sala virtual da consulta">
+                      <Video className="h-3.5 w-3.5" />
+                      <span>Acessar Sala</span>
+                    </Button>
+                  </a>
+                </div>
+              )}
+
+              {selectedAppt.rescheduleHistory && selectedAppt.rescheduleHistory.length > 0 && (
+                <div className="p-3.5 rounded-2xl border border-[#E5E5E5] dark:border-[#333333] bg-[#F8F8F8] dark:bg-[#141414] space-y-1.5">
+                  <span className="text-xs font-heading font-semibold text-[#525252] dark:text-[#D0D0D0] flex items-center gap-1.5">
+                    <History className="h-3.5 w-3.5 text-[var(--primary)] dark:text-[#C0C0C0]" />
+                    Histórico de Remarcações
+                  </span>
+                  <ul className="space-y-1 text-xs text-[#737373] dark:text-[#A6A6A6]">
+                    {selectedAppt.rescheduleHistory.slice(0, 3).map((item) => (
+                      <li key={item.id}>
+                        {item.previousStartAt && item.newStartAt
+                          ? `De ${formatDate(item.previousStartAt, clinicTimezone)} às ${formatTime(
+                              item.previousStartAt,
+                              clinicTimezone
+                            )} para ${formatDate(item.newStartAt, clinicTimezone)} às ${formatTime(
+                              item.newStartAt,
+                              clinicTimezone
+                            )}`
+                          : "Horário atualizado pela administração"}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Ações no Agendamento */}
+              <div className="pt-2 border-t border-[#E5E5E5] dark:border-[#333333] space-y-2.5">
+                <span className="text-xs font-heading font-semibold text-[#737373] dark:text-[#A6A6A6] block uppercase">
+                  Ações da Consulta
+                </span>
+
+                <div className="flex flex-wrap gap-2">
+                  {(selectedAppt.status === "CONFIRMED" ||
+                    selectedAppt.status === "PENDING_CONFIRMATION" ||
+                    selectedAppt.status === "NO_SHOW") && (
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="text-xs gap-1.5"
+                      title="Alterar data e horário desta consulta"
+                      onClick={handleStartReschedule}
+                    >
+                      <CalendarClock className="h-3.5 w-3.5 text-current" />
+                      <span>Remarcar</span>
+                    </Button>
+                  )}
+
+                  {selectedAppt.status !== "COMPLETED" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs gap-1.5"
+                      title="Marcar consulta como realizada"
+                      onClick={() => handleUpdateStatus("COMPLETED")}
+                    >
+                      <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
+                      <span>Realizado</span>
+                    </Button>
+                  )}
+
+                  {selectedAppt.status !== "NO_SHOW" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs gap-1.5"
+                      title="Registrar falta do paciente na consulta"
+                      onClick={() => handleUpdateStatus("NO_SHOW", "Paciente não compareceu", "RETAIN")}
+                    >
+                      <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
+                      <span>Marcar Falta</span>
+                    </Button>
+                  )}
+
+                  {selectedAppt.status !== "CANCELLED" &&
+                    selectedAppt.status !== "LATE_CANCELLED" && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="text-xs gap-1.5"
+                        title="Cancelar este agendamento"
+                        onClick={() => handleUpdateStatus("CANCELLED", "Cancelado pelo profissional")}
+                      >
+                        <XCircle className="h-3.5 w-3.5" />
+                        <span>Cancelar</span>
+                      </Button>
+                    )}
+                </div>
+              </div>
+            </div>
+          )}
         </Modal>
       )}
 

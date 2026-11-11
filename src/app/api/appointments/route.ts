@@ -74,10 +74,65 @@ export async function GET(req: NextRequest) {
       prisma.professionalProfile.findUnique({ where: { id: "default" } }),
     ]);
 
+    const rescheduleLogs =
+      session.role === "ADMIN" && appointments.length > 0
+        ? await prisma.auditLog.findMany({
+            where: {
+              resource: "Appointment",
+              action: "APPOINTMENT_RESCHEDULED",
+              resourceId: { in: appointments.map((a) => a.id) },
+            },
+            orderBy: { createdAt: "desc" },
+            select: {
+              id: true,
+              resourceId: true,
+              details: true,
+              createdAt: true,
+            },
+          })
+        : [];
+
+    const rescheduleHistoryMap = new Map<
+      string,
+      Array<{
+        id: string;
+        createdAt: string;
+        previousStartAt: string | null;
+        previousEndAt: string | null;
+        newStartAt: string | null;
+        newEndAt: string | null;
+        reason: string | null;
+      }>
+    >();
+
+    for (const log of rescheduleLogs) {
+      if (!log.resourceId) continue;
+      let parsed: Record<string, unknown> = {};
+      try {
+        parsed = log.details ? JSON.parse(log.details) : {};
+      } catch {
+        parsed = {};
+      }
+      const list = rescheduleHistoryMap.get(log.resourceId) || [];
+      list.push({
+        id: log.id,
+        createdAt: log.createdAt.toISOString(),
+        previousStartAt: typeof parsed.previousStartAt === "string" ? parsed.previousStartAt : null,
+        previousEndAt: typeof parsed.previousEndAt === "string" ? parsed.previousEndAt : null,
+        newStartAt: typeof parsed.newStartAt === "string" ? parsed.newStartAt : null,
+        newEndAt: typeof parsed.newEndAt === "string" ? parsed.newEndAt : null,
+        reason: typeof parsed.reason === "string" ? parsed.reason : null,
+      });
+      rescheduleHistoryMap.set(log.resourceId, list);
+    }
+
     const enriched = appointments.map((appt) => ({
       ...appt,
       // TASK 3: Para agendamentos presenciais, NUNCA expõe link de sala virtual
       meetingUrlSnapshot: appt.modality === "PRESENTIAL" ? null : appt.meetingUrlSnapshot,
+      ...(session.role === "ADMIN"
+        ? { rescheduleHistory: rescheduleHistoryMap.get(appt.id) || [] }
+        : {}),
       establishment: {
         name: site?.clinicName || "Consultório de Psicologia & Psiquiatria",
         address: site?.address || null,

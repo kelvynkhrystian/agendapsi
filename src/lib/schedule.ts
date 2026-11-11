@@ -30,17 +30,37 @@ export function addMinutes(date: Date, minutes: number): Date {
 }
 
 /**
+ * Resolve o buffer efetivo do serviço considerando o padrão global
+ */
+export function resolveBufferMinutes(
+  serviceBufferMinutes?: number | null,
+  defaultBufferMinutes: number = 10
+): number {
+  return typeof serviceBufferMinutes === "number" && serviceBufferMinutes > 0
+    ? serviceBufferMinutes
+    : defaultBufferMinutes;
+}
+
+/**
  * Calcula os horários disponíveis em uma determinada data para um determinado serviço
  */
 export async function getAvailableSlotsForDate({
   dateStr, // "YYYY-MM-DD"
   serviceId,
   timezone = "America/Sao_Paulo",
+  excludeAppointmentId,
+  respectMinNotice = true,
 }: {
   dateStr: string;
   serviceId: string;
   timezone?: string;
+  excludeAppointmentId?: string;
+  respectMinNotice?: boolean;
 }): Promise<TimeSlot[]> {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    throw new Error("DATA_INVALIDA");
+  }
+
   const service = await prisma.service.findUnique({
     where: { id: serviceId },
   });
@@ -69,9 +89,8 @@ export async function getAvailableSlotsForDate({
   const targetDayStart = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
   const targetDayEnd = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
 
-  // Verifica dia da semana (0 = Domingo ... 6 = Sábado)
-  // Calcula o dia da semana no fuso local
-  const dayOfWeek = new Date(year, month - 1, day).getDay();
+  // Verifica dia da semana (0 = Domingo ... 6 = Sábado) de forma independente do fuso do servidor
+  const dayOfWeek = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
 
   // 1. Busca disponibilidade semanal configurada
   const weeklyRules = await prisma.weeklyAvailability.findMany({
@@ -102,14 +121,15 @@ export async function getAvailableSlotsForDate({
     return [];
   }
 
-  // 3. Busca agendamentos existentes no dia que não estejam cancelados
+  // 3. Busca agendamentos existentes no entorno do dia que não estejam cancelados
   const existingAppointments = await prisma.appointment.findMany({
     where: {
-      startAt: { gte: targetDayStart },
-      endAt: { lte: new Date(targetDayEnd.getTime() + 86400000) }, // margem de segurança
+      startAt: { lt: new Date(targetDayEnd.getTime() + 86400000) },
+      endAt: { gt: new Date(targetDayStart.getTime() - 86400000) },
       status: {
-        notIn: ["CANCELLED"],
+        notIn: ["CANCELLED", "LATE_CANCELLED"],
       },
+      ...(excludeAppointmentId ? { id: { not: excludeAppointmentId } } : {}),
     },
     include: {
       service: {
@@ -122,15 +142,15 @@ export async function getAvailableSlotsForDate({
   const activeHolds = await prisma.appointmentHold.findMany({
     where: {
       expiresAt: { gt: now },
-      startAt: { gte: targetDayStart },
-      endAt: { lte: targetDayEnd },
+      startAt: { lt: targetDayEnd },
+      endAt: { gt: targetDayStart },
     },
   });
 
   const slots: TimeSlot[] = [];
   const duration = service.durationMinutes;
   const defaultBuffer = settings?.defaultBufferMinutes ?? 10;
-  const buffer = typeof service.bufferMinutes === "number" && service.bufferMinutes > 0 ? service.bufferMinutes : defaultBuffer;
+  const buffer = resolveBufferMinutes(service.bufferMinutes, defaultBuffer);
   const totalSlotDuration = duration + buffer;
 
   // Itera sobre as faixas de horário de trabalho do dia
@@ -138,7 +158,7 @@ export async function getAvailableSlotsForDate({
     const [startH, startM] = rule.startTime.split(":").map(Number);
     const [endH, endM] = rule.endTime.split(":").map(Number);
 
-    // Constrói objeto Date no fuso
+    // Constrói objeto Date em UTC seguindo a grade configurada
     const periodStart = new Date(Date.UTC(year, month - 1, day, startH, startM));
     const periodEnd = new Date(Date.UTC(year, month - 1, day, endH, endM));
 
@@ -153,14 +173,20 @@ export async function getAvailableSlotsForDate({
       let isAvailable = true;
       let reason: string | undefined;
 
-      // Valida antecedência mínima
-      if (slotStart < minNoticeHoursDate(minBookingTime)) {
+      // Impede seleção de horários no passado
+      if (slotStart <= now) {
+        isAvailable = false;
+        reason = "Horário já encerrado ou no passado";
+      }
+
+      // Valida antecedência mínima quando aplicável
+      if (isAvailable && respectMinNotice && slotStart < minNoticeHoursDate(minBookingTime)) {
         isAvailable = false;
         reason = "Antecedência mínima necessária não atingida";
       }
 
       // Valida horizonte máximo
-      if (maxBookingTime && slotStart > maxBookingTime) {
+      if (isAvailable && maxBookingTime && slotStart > maxBookingTime) {
         isAvailable = false;
         reason = "Data além do horizonte máximo de agendamento";
       }
@@ -186,7 +212,7 @@ export async function getAvailableSlotsForDate({
       // Valida colisão com consultas existentes (levando em conta buffers)
       if (isAvailable) {
         for (const appt of existingAppointments) {
-          const apptBuffer = appt.service.bufferMinutes || 0;
+          const apptBuffer = resolveBufferMinutes(appt.service?.bufferMinutes, defaultBuffer);
           const apptEndWithBuffer = addMinutes(appt.endAt, apptBuffer);
 
           if (intervalsOverlap(slotStart, slotEndWithBuffer, appt.startAt, apptEndWithBuffer)) {
@@ -267,7 +293,7 @@ export async function createAtomicHold({
     // 2. Verifica se existe conflito com consultas confirmadas/pendentes
     const conflictingAppointment = await tx.appointment.findFirst({
       where: {
-        status: { notIn: ["CANCELLED"] },
+        status: { notIn: ["CANCELLED", "LATE_CANCELLED"] },
         startAt: { lt: endAt },
         endAt: { gt: startAt },
       },
@@ -347,7 +373,7 @@ export async function createAtomicAppointment({
     // Se não for override explícito do admin, verifica conflito de agendamento
     const conflicting = await tx.appointment.findFirst({
       where: {
-        status: { notIn: ["CANCELLED"] },
+        status: { notIn: ["CANCELLED", "LATE_CANCELLED"] },
         startAt: { lt: endAt },
         endAt: { gt: startAt },
       },
@@ -395,5 +421,292 @@ export async function createAtomicAppointment({
     }
 
     return appointment;
+  });
+}
+
+/**
+ * Remarcação atômica de agendamento administrativo com validação completa de grade,
+ * bloqueios, buffers, conflitos, preservação de entidade/pagamento e invalidação de lembretes antigos.
+ */
+export async function rescheduleAppointmentAtomic({
+  appointmentId,
+  newStartAt,
+  adminUserId,
+  adminRole = "ADMIN",
+  ipAddress = "127.0.0.1",
+  reason,
+  appUrl = process.env.APP_URL || "http://localhost:3000",
+}: {
+  appointmentId: string;
+  newStartAt: Date;
+  adminUserId: string;
+  adminRole?: string;
+  ipAddress?: string;
+  reason?: string;
+  appUrl?: string;
+}) {
+  if (Number.isNaN(newStartAt.getTime())) {
+    throw new Error("DATA_INVALIDA");
+  }
+
+  if (newStartAt.getTime() <= Date.now()) {
+    throw new Error("HORARIO_NO_PASSADO");
+  }
+
+  const appointment = await prisma.appointment.findUnique({
+    where: { id: appointmentId },
+    include: {
+      service: true,
+      patient: {
+        select: {
+          id: true,
+          fullName: true,
+          phone: true,
+          email: true,
+          isMinor: true,
+        },
+      },
+      payment: true,
+      videoMeeting: true,
+    },
+  });
+
+  if (!appointment) {
+    throw new Error("AGENDAMENTO_NAO_ENCONTRADO");
+  }
+
+  const reschedulableStatuses = new Set(["CONFIRMED", "PENDING_CONFIRMATION", "NO_SHOW"]);
+  if (!reschedulableStatuses.has(appointment.status)) {
+    throw new Error("STATUS_NAO_PERMITE_REMARCACAO");
+  }
+
+  if (!appointment.service || !appointment.service.isActive) {
+    throw new Error("SERVICO_INATIVO_OU_INEXISTENTE");
+  }
+
+  if (
+    appointment.service.modality !== "BOTH" &&
+    appointment.service.modality !== appointment.modality
+  ) {
+    throw new Error("MODALIDADE_INCOMPATIVEL");
+  }
+
+  const computedEndAt = addMinutes(newStartAt, appointment.service.durationMinutes);
+  if (
+    newStartAt.getTime() === appointment.startAt.getTime() &&
+    computedEndAt.getTime() === appointment.endAt.getTime()
+  ) {
+    throw new Error("HORARIO_IDENTICO_ATUAL");
+  }
+
+  const settings = await prisma.systemSettings.findUnique({
+    where: { id: "default" },
+  });
+
+  // Validação da grade oficial de disponibilidade antes da transação
+  const dateStr = newStartAt.toISOString().slice(0, 10);
+  const availableSlots = await getAvailableSlotsForDate({
+    dateStr,
+    serviceId: appointment.serviceId,
+    timezone: settings?.timezone || "America/Sao_Paulo",
+    excludeAppointmentId: appointmentId,
+    respectMinNotice: false,
+  });
+
+  const matchedSlot = availableSlots.find(
+    (s) => new Date(s.startAt).getTime() === newStartAt.getTime()
+  );
+
+  if (!matchedSlot || !matchedSlot.available) {
+    throw new Error(
+      `HORARIO_INDISPONIVEL:${matchedSlot?.reason || "Horário fora da grade de atendimento ou indisponível"}`
+    );
+  }
+
+  const defaultBuffer = settings?.defaultBufferMinutes ?? 10;
+
+  return prisma.$transaction(async (tx) => {
+    const current = await tx.appointment.findUnique({
+      where: { id: appointmentId },
+      include: {
+        service: true,
+        patient: {
+          select: {
+            id: true,
+            fullName: true,
+            phone: true,
+            email: true,
+            isMinor: true,
+          },
+        },
+        payment: true,
+        videoMeeting: true,
+      },
+    });
+
+    if (!current) {
+      throw new Error("AGENDAMENTO_NAO_ENCONTRADO");
+    }
+
+    if (!reschedulableStatuses.has(current.status)) {
+      throw new Error("STATUS_NAO_PERMITE_REMARCACAO");
+    }
+
+    const txEndAt = addMinutes(newStartAt, current.service.durationMinutes);
+    const requestedBuffer = resolveBufferMinutes(current.service.bufferMinutes, defaultBuffer);
+    const newEndWithBuffer = addMinutes(txEndAt, requestedBuffer);
+
+    // Garantia atômica anti-dupla reserva considerando buffers dos atendimentos vizinhos
+    const candidateAppts = await tx.appointment.findMany({
+      where: {
+        id: { not: appointmentId },
+        status: { notIn: ["CANCELLED", "LATE_CANCELLED"] },
+        startAt: { lt: newEndWithBuffer },
+        endAt: { gt: addMinutes(newStartAt, -1440) },
+      },
+      include: {
+        service: {
+          select: { bufferMinutes: true },
+        },
+      },
+    });
+
+    const hasApptConflict = candidateAppts.some((other) => {
+      const otherBuffer = resolveBufferMinutes(other.service?.bufferMinutes, defaultBuffer);
+      const otherEndWithBuffer = addMinutes(other.endAt, otherBuffer);
+      return intervalsOverlap(newStartAt, newEndWithBuffer, other.startAt, otherEndWithBuffer);
+    });
+
+    if (hasApptConflict) {
+      throw new Error("HORARIO_JA_OCUPADO");
+    }
+
+    const activeHoldConflict = await tx.appointmentHold.findFirst({
+      where: {
+        expiresAt: { gt: new Date() },
+        startAt: { lt: newEndWithBuffer },
+        endAt: { gt: newStartAt },
+      },
+    });
+
+    if (activeHoldConflict) {
+      throw new Error("HORARIO_JA_OCUPADO");
+    }
+
+    const nextStatus = current.status === "NO_SHOW" ? "CONFIRMED" : current.status;
+    const restoredSnapshot =
+      current.modality === "PRESENTIAL"
+        ? null
+        : current.meetingUrlSnapshot ||
+          (current.videoMeeting?.psiEntryToken
+            ? `${appUrl}/consulta-virtual/${current.videoMeeting.psiEntryToken}`
+            : undefined);
+
+    await tx.appointment.update({
+      where: { id: appointmentId },
+      data: {
+        startAt: newStartAt,
+        endAt: txEndAt,
+        status: nextStatus,
+        isAdminOverride: false,
+        ...(current.status === "NO_SHOW"
+          ? { noShowRecordedAt: null, noShowHandled: false }
+          : {}),
+        ...(restoredSnapshot !== undefined
+          ? { meetingUrlSnapshot: restoredSnapshot }
+          : {}),
+      },
+    });
+
+    // Se for consulta online sem sala provisionada ainda, cria respeitando o provedor configurado
+    if (current.modality === "ONLINE" && !current.videoMeeting) {
+      await provisionVideoMeeting({
+        tx,
+        appointmentId,
+        patientName: current.patient?.fullName || "Paciente",
+        serviceName: current.service?.name || "Consulta",
+        startAt: newStartAt,
+        endAt: txEndAt,
+        appUrl,
+      });
+    }
+
+    // Invalida lembretes pendentes obsoletos e libera chaves de idempotência para os novos lembretes
+    await tx.notificationDelivery.updateMany({
+      where: {
+        relatedAppointmentId: appointmentId,
+        templateType: { in: ["REMINDER_24H", "REMINDER_2H"] },
+        status: { in: ["PENDING", "QUEUED", "PROCESSING"] },
+      },
+      data: {
+        status: "CANCELLED",
+        errorDetails: "Lembrete invalidado devido à remarcação da consulta.",
+      },
+    });
+
+    const prevReminders = await tx.notificationDelivery.findMany({
+      where: {
+        idempotencyKey: {
+          in: [`reminder_24h_${appointmentId}`, `reminder_2h_${appointmentId}`],
+        },
+      },
+      select: { id: true, idempotencyKey: true },
+    });
+
+    for (const rem of prevReminders) {
+      await tx.notificationDelivery.update({
+        where: { id: rem.id },
+        data: {
+          idempotencyKey: `superseded_${Date.now()}_${rem.idempotencyKey}`,
+        },
+      });
+    }
+
+    // Registro de auditoria preservando datas anterior e nova (sem expor dados clínicos)
+    const auditLog = await tx.auditLog.create({
+      data: {
+        userId: adminUserId,
+        userRole: adminRole,
+        action: "APPOINTMENT_RESCHEDULED",
+        resource: "Appointment",
+        resourceId: appointmentId,
+        details: JSON.stringify({
+          previousStartAt: current.startAt.toISOString(),
+          previousEndAt: current.endAt.toISOString(),
+          newStartAt: newStartAt.toISOString(),
+          newEndAt: txEndAt.toISOString(),
+          previousStatus: current.status,
+          newStatus: nextStatus,
+          modality: current.modality,
+          reason: reason || null,
+        }),
+        ipAddress,
+      },
+    });
+
+    const finalAppointment = await tx.appointment.findUniqueOrThrow({
+      where: { id: appointmentId },
+      include: {
+        patient: {
+          select: {
+            id: true,
+            fullName: true,
+            phone: true,
+            email: true,
+            isMinor: true,
+          },
+        },
+        service: true,
+        payment: true,
+        videoMeeting: true,
+      },
+    });
+
+    return {
+      appointment: finalAppointment,
+      previousStartAt: current.startAt,
+      previousEndAt: current.endAt,
+      auditLogId: auditLog.id,
+    };
   });
 }

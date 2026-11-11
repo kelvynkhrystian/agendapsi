@@ -10,6 +10,7 @@ export interface NotificationVariables {
   serviceName?: string;
   date?: string | Date;
   time?: string | Date;
+  timezone?: string;
   valueCents?: number;
   location?: string;
   meetingLink?: string;
@@ -159,13 +160,13 @@ export function renderNotificationTemplate(
   const dateStr = vars.date
     ? typeof vars.date === "string"
       ? vars.date
-      : formatDate(vars.date)
+      : formatDate(vars.date, vars.timezone)
     : "";
 
   const timeStr = vars.time
     ? typeof vars.time === "string"
       ? vars.time
-      : formatTime(vars.time)
+      : formatTime(vars.time, vars.timezone)
     : "";
 
   const valStr = vars.valueCents !== undefined ? formatBRL(vars.valueCents) : "";
@@ -263,28 +264,70 @@ export function maskRecipient(recipient: string, channel?: string): string {
   return "***";
 }
 
+function resolveNotificationTemplateType(eventType: string): NotificationType {
+  switch (eventType) {
+    case "APPOINTMENT_REGISTERED":
+    case "ADMIN_NEW_APPOINTMENT":
+      return "APPOINTMENT_CREATED";
+    case "APPOINTMENT_CANCELLED":
+    case "ADMIN_APPOINTMENT_CANCELLED":
+    case "ADMIN_LATE_CANCELLATION":
+      return "APPOINTMENT_CANCELLED";
+    case "APPOINTMENT_RESCHEDULED":
+      return "APPOINTMENT_RESCHEDULED";
+    case "PAYMENT_APPROVED":
+    case "PAYMENT_PENDING":
+    case "PAYMENT_REFUNDED":
+      return "PAYMENT_RECEIVED";
+    case "PACKAGE_AWAITING_ACCEPTANCE":
+    case "PACKAGE_CONFIRMED":
+    case "ADMIN_PACKAGE_ACCEPTED":
+      return "PACKAGE_PROPOSAL";
+    case "APPOINTMENT_REMINDER":
+      return "REMINDER_24H";
+    default:
+      return "APPOINTMENT_CONFIRMED";
+  }
+}
+
 /**
  * Disparador unificado de notificações com suporte a in-app, email e whatsapp
  */
 export async function dispatchNotification(params: DispatchNotificationParams) {
   try {
-    // 1. Idempotência: previne duplicação se chave fornecida
+    // 1. Idempotência: previne duplicação respeitando idempotencyKey e permitindo múltiplas remarcações distintas
     if (params.idempotencyKey) {
-      const existing = await prisma.notification.findFirst({
+      const existingDelivery = await prisma.notificationDelivery.findFirst({
         where: {
-          recipientId: params.recipientId,
-          eventType: params.eventType,
-          relatedEntityId: params.relatedEntityId,
+          OR: [
+            { idempotencyKey: `email-${params.idempotencyKey}` },
+            { idempotencyKey: `wa-${params.idempotencyKey}` },
+          ],
         },
+        select: { id: true },
       });
-      if (existing) {
-        return existing;
+      if (existingDelivery) {
+        return existingDelivery;
+      }
+
+      if (params.eventType !== "APPOINTMENT_RESCHEDULED") {
+        const existing = await prisma.notification.findFirst({
+          where: {
+            recipientId: params.recipientId,
+            eventType: params.eventType,
+            relatedEntityId: params.relatedEntityId,
+          },
+        });
+        if (existing) {
+          return existing;
+        }
       }
     }
 
     const template = await getOrCreateTemplate(params.eventType);
     const title = renderNotificationTemplate(template.title, params.vars);
     const message = renderNotificationTemplate(template.body, params.vars);
+    const resolvedTemplateType = resolveNotificationTemplateType(params.eventType);
 
     // 2. Sempre cria a notificação interna (In-App)
     const notification = await prisma.notification.create({
@@ -327,7 +370,7 @@ export async function dispatchNotification(params: DispatchNotificationParams) {
             recipient: recipientEmail,
             maskedRecipient: masked,
             channel: "EMAIL",
-            templateType: "APPOINTMENT_CONFIRMED",
+            templateType: resolvedTemplateType,
             messageType: params.eventType,
             subjectOrCategory: title,
             recipientReference: params.recipientId,
@@ -381,7 +424,7 @@ export async function dispatchNotification(params: DispatchNotificationParams) {
             recipient: recipientPhone,
             maskedRecipient: masked,
             channel: "WHATSAPP",
-            templateType: "APPOINTMENT_CONFIRMED",
+            templateType: resolvedTemplateType,
             messageType: params.eventType,
             subjectOrCategory: title,
             recipientReference: params.recipientId,
@@ -427,6 +470,7 @@ export async function sendNotification({
   subject,
   variables,
   idempotencyKey,
+  relatedAppointmentId,
 }: {
   recipient: string;
   channel: NotificationChannel;
@@ -434,6 +478,7 @@ export async function sendNotification({
   subject?: string;
   variables: Record<string, string>;
   idempotencyKey?: string;
+  relatedAppointmentId?: string;
 }) {
   if (idempotencyKey) {
     const existing = await prisma.notificationDelivery.findUnique({
@@ -461,6 +506,7 @@ export async function sendNotification({
       templateType,
       messageType: templateType.toString(),
       subjectOrCategory: subject || `Notificação ${templateType}`,
+      relatedAppointmentId,
       status,
       simulated: !isReal,
       provider: isReal ? (channel === "EMAIL" ? "SMTP" : "WHATSAPP_API") : "SIMULATED",
