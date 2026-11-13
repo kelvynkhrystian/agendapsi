@@ -78,7 +78,7 @@ export default function PatientLayout({
       {/* Mobile Drawer Overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-xs md:hidden"
+          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-xs lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -86,7 +86,7 @@ export default function PatientLayout({
       {/* Left Sidebar (Desktop + Mobile Drawer) */}
       <aside
         className={cn(
-          "fixed top-0 bottom-0 left-0 z-50 w-64 border-r border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#141414] flex flex-col transition-transform duration-200 md:translate-x-0 shadow-xs",
+          "fixed top-0 bottom-0 left-0 z-50 w-64 border-r border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#141414] flex flex-col transition-transform duration-200 lg:translate-x-0 shadow-xs",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -104,7 +104,7 @@ export default function PatientLayout({
           <button
             type="button"
             onClick={() => setSidebarOpen(false)}
-            className="md:hidden p-2 rounded-xl bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/25 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1E1E1E] dark:border-[#2C2C2C] dark:text-[#C0C0C0] dark:hover:bg-[#292929] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] transition-colors min-h-[38px] min-w-[38px] flex items-center justify-center"
+            className="lg:hidden p-2 rounded-xl bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/25 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1E1E1E] dark:border-[#2C2C2C] dark:text-[#C0C0C0] dark:hover:bg-[#292929] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
             aria-label="Fechar menu"
           >
             <X className="h-4.5 w-4.5" />
@@ -176,33 +176,45 @@ export default function PatientLayout({
       </aside>
 
       {/* Main Content Area positioned on the right */}
-      <div className="flex-1 flex flex-col md:pl-64 min-w-0">
+      <div className="flex-1 flex flex-col lg:pl-64 min-w-0">
         {/* Header */}
-        <header className="h-16 border-b border-[#E5E5E5] dark:border-[#2C2C2C] bg-white/90 dark:bg-[#141414]/95 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-8 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <header className="h-16 border-b border-[#E5E5E5] dark:border-[#2C2C2C] bg-white/90 dark:bg-[#141414]/95 backdrop-blur-md sticky top-0 z-30 px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="md:hidden p-2 rounded-xl bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/25 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1E1E1E] dark:border-[#2C2C2C] dark:text-[#D0D0D0] dark:hover:bg-[#292929] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] transition-colors min-h-[38px] min-w-[38px] flex items-center justify-center"
+              className="lg:hidden p-2 rounded-xl bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/25 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1E1E1E] dark:border-[#2C2C2C] dark:text-[#D0D0D0] dark:hover:bg-[#292929] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0"
               aria-label="Abrir menu"
             >
               <Menu className="h-5 w-5" />
             </button>
-            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-[#737373] dark:text-[#A6A6A6]">
-              <span>Paciente</span>
-              <ChevronRight className="h-3.5 w-3.5 text-[#737373]" />
-              <span className="font-heading font-semibold text-[#171717] dark:text-[#F5F5F5]">
-                {patientNavItems.find((n) => n.href === pathname)?.label ||
+            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-[#737373] dark:text-[#A6A6A6] min-w-0 truncate">
+              <span className="hidden sm:inline shrink-0">Paciente</span>
+              <ChevronRight className="hidden sm:block h-3.5 w-3.5 text-[#737373] shrink-0" />
+              <span className="font-heading font-semibold text-[#171717] dark:text-[#F5F5F5] truncate">
+                {patientNavItems.find(
+                  (n) =>
+                    n.href === pathname ||
+                    (n.href !== "/paciente" && pathname.startsWith(n.href))
+                )?.label ||
                   (pathname.startsWith("/paciente/notificacoes") ? "Notificações" : "Painel")}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Link href="/agendar">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+            <Link href="/agendar" aria-label="Agendar consulta">
               <Button variant="primary" size="sm" className="hidden sm:inline-flex text-xs gap-1.5 rounded-xl shadow-xs">
                 <Calendar className="h-3.5 w-3.5" />
                 <span>Agendar Consulta</span>
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                className="sm:hidden h-10 w-10 p-0 rounded-xl shadow-xs inline-flex items-center justify-center"
+                title="Agendar Consulta"
+              >
+                <Calendar className="h-4 w-4" />
               </Button>
             </Link>
             <ThemeToggle />
@@ -211,7 +223,7 @@ export default function PatientLayout({
         </header>
 
         {/* Content Body */}
-        <main className="flex-1 p-4 sm:p-8 max-w-6xl w-full mx-auto">{children}</main>
+        <main className="flex-1 p-3.5 sm:p-6 lg:p-8 max-w-6xl w-full mx-auto">{children}</main>
       </div>
     </div>
   );

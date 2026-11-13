@@ -3,7 +3,7 @@ const assert = require("node:assert");
 const fs = require("node:fs");
 const path = require("node:path");
 
-test("1. Subnavegação entre Configurações de Lembretes e Registros de Mensagens", () => {
+test("1. Subnavegação entre Lembretes e Registros", () => {
   const lembretesPagePath = path.join(__dirname, "../src/app/admin/lembretes/page.tsx");
   const registrosPagePath = path.join(__dirname, "../src/app/admin/lembretes/registros/page.tsx");
 
@@ -16,12 +16,14 @@ test("1. Subnavegação entre Configurações de Lembretes e Registros de Mensag
   // Verifica abas de subnavegação em /admin/lembretes
   assert.ok(lembretesContent.includes("/admin/lembretes"), "Deve referenciar link de lembretes");
   assert.ok(lembretesContent.includes("/admin/lembretes/registros"), "Deve referenciar link de registros");
-  assert.ok(lembretesContent.includes("Configurações de Lembretes"), "Deve conter texto da aba de configurações");
-  assert.ok(lembretesContent.includes("Registros de Mensagens"), "Deve conter texto da aba de registros");
+  assert.ok(lembretesContent.includes("<span>Lembretes</span>"), "Deve conter texto da aba Lembretes");
+  assert.ok(lembretesContent.includes("<span>Registros</span>"), "Deve conter texto da aba Registros");
 
   // Verifica abas de subnavegação em /admin/lembretes/registros
-  assert.ok(registrosContent.includes("/admin/lembretes"), "Deve referenciar link para voltar a configurações");
+  assert.ok(registrosContent.includes("/admin/lembretes"), "Deve referenciar link para voltar a lembretes");
   assert.ok(registrosContent.includes("/admin/lembretes/registros"), "Deve referenciar aba ativa de registros");
+  assert.ok(registrosContent.includes("<span>Lembretes</span>"), "Deve conter aba Lembretes");
+  assert.ok(registrosContent.includes("<span>Registros</span>"), "Deve conter aba Registros");
   assert.ok(registrosContent.includes("Registros de Mensagens"), "Deve conter cabeçalho de registros");
 });
 

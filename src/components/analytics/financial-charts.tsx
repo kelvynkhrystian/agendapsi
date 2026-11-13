@@ -340,13 +340,13 @@ export function StemPerformanceChart({
     <div
       data-testid="finance-stem-chart"
       className={cn(
-        "rounded-2xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#1A1A1A] shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] p-5 sm:p-6",
+        "rounded-2xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#1A1A1A] shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] p-4 sm:p-6",
         className
       )}
     >
       {/* Header row: Title + Timeframe switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
+        <div className="min-w-0">
           <h3 className="font-heading text-base sm:text-lg font-semibold text-[#171717] dark:text-[#F5F5F5] tracking-tight">
             {title}
           </h3>
@@ -354,7 +354,7 @@ export function StemPerformanceChart({
         </div>
 
         <div
-          className="inline-flex items-center p-1 rounded-xl bg-[#F4F4F5] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] gap-1 self-start"
+          className="grid grid-cols-3 sm:inline-flex items-center p-1 rounded-xl bg-[#F4F4F5] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] gap-1 w-full sm:w-auto sm:self-start"
           role="group"
           aria-label="Período do gráfico"
         >
@@ -375,7 +375,7 @@ export function StemPerformanceChart({
                   setHoveredIndex(null);
                 }}
                 className={cn(
-                  "px-3 py-1 rounded-lg text-xs font-heading font-semibold transition-all cursor-pointer",
+                  "px-2 sm:px-3 py-1.5 sm:py-1 rounded-lg text-xs font-heading font-semibold transition-all cursor-pointer text-center whitespace-nowrap",
                   active
                     ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-2xs"
                     : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] hover:bg-[var(--primary)]/[0.04] dark:bg-transparent dark:text-[#A6A6A6] dark:hover:text-[#F5F5F5] dark:hover:bg-[#242424]"
@@ -389,30 +389,30 @@ export function StemPerformanceChart({
       </div>
 
       {/* KPI Metrics Row */}
-      <div className="mt-5 flex flex-wrap items-baseline gap-x-7 gap-y-3">
-        <div>
+      <div className="mt-4 sm:mt-5 grid grid-cols-2 sm:flex sm:flex-wrap items-baseline gap-x-4 sm:gap-x-7 gap-y-3">
+        <div className="col-span-2 sm:col-span-1">
           <span className="text-[11px] font-medium text-[#737373] dark:text-[#8C8C8C] block">
             Total no período
           </span>
-          <span className="font-heading text-2xl sm:text-[26px] font-bold tracking-tight tabular-nums text-[#171717] dark:text-[#F5F5F5]">
+          <span className="font-heading text-xl sm:text-[26px] font-bold tracking-tight tabular-nums text-[#171717] dark:text-[#F5F5F5]">
             {formatBRL(stats.totalCents)}
           </span>
         </div>
 
-        <div className="border-l border-[#E5E5E5] dark:border-[#2C2C2C] pl-5">
+        <div className="sm:border-l sm:border-[#E5E5E5] sm:dark:border-[#2C2C2C] sm:pl-5 min-w-0">
           <span className="text-[11px] font-medium text-[#737373] dark:text-[#8C8C8C] block">
             {range === "m6" ? "Média por mês ativo" : "Média por dia ativo"}
           </span>
-          <span className="font-heading text-sm sm:text-base font-bold tabular-nums text-[#171717] dark:text-[#F5F5F5]">
+          <span className="font-heading text-sm sm:text-base font-bold tabular-nums text-[#171717] dark:text-[#F5F5F5] block truncate">
             {formatBRL(stats.avgCents)}
           </span>
         </div>
 
-        <div className="border-l border-[#E5E5E5] dark:border-[#2C2C2C] pl-5">
+        <div className="sm:border-l sm:border-[#E5E5E5] sm:dark:border-[#2C2C2C] sm:pl-5 min-w-0">
           <span className="text-[11px] font-medium text-[#737373] dark:text-[#8C8C8C] block">
             {range === "m6" ? "Melhor mês" : "Melhor dia"}
           </span>
-          <span className="font-heading text-sm sm:text-base font-bold tabular-nums text-[#171717] dark:text-[#F5F5F5]">
+          <span className="font-heading text-sm sm:text-base font-bold tabular-nums text-[#171717] dark:text-[#F5F5F5] block truncate">
             {stats.bestVal > 0 ? `${formatBRL(stats.bestVal)} (${stats.bestLabel})` : "—"}
           </span>
         </div>
@@ -472,10 +472,10 @@ export function StemPerformanceChart({
       </div>
 
       {/* Stem & Dot SVG Canvas */}
-      <div className="relative mt-5">
+      <div className="relative mt-4 sm:mt-5">
         <svg
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-          className="w-full h-56 sm:h-60 overflow-visible select-none"
+          className="w-full h-44 sm:h-60 overflow-visible select-none"
           role="img"
           aria-label={`Gráfico de desempenho financeiro por ${range === "m6" ? "mês" : "dia"}`}
           onMouseLeave={() => setHoveredIndex(null)}
@@ -771,11 +771,11 @@ export function PaymentMethodsDonutChart({
     <div
       data-testid="finance-donut-chart"
       className={cn(
-        "rounded-2xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#1A1A1A] shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] p-5 sm:p-6 flex flex-col justify-between",
+        "rounded-2xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#1A1A1A] shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] p-4 sm:p-6 flex flex-col justify-between",
         className
       )}
     >
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h3 className="font-heading text-base sm:text-lg font-semibold text-[#171717] dark:text-[#F5F5F5] tracking-tight">
             {viewMode === "status" ? "Distribuição por Status" : "Meios de Pagamento"}

@@ -166,9 +166,20 @@ export default function AdminAgendaPage() {
   const [miniCalMonth, setMiniCalMonth] = useState<Date>(() => new Date());
 
   const [viewMode, setViewMode] = useState<"week" | "day" | "list">("week");
+  const hasUserSelectedViewRef = useRef(false);
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [isLoading, setIsLoading] = useState(true);
   const calendarContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      window.innerWidth < 768 &&
+      !hasUserSelectedViewRef.current
+    ) {
+      setViewMode("day");
+    }
+  }, []);
 
   useEffect(() => {
     animateTabContent(calendarContainerRef.current);
@@ -561,8 +572,8 @@ export default function AdminAgendaPage() {
   return (
     <div className="space-y-6">
       {/* ================= 1. REBRAND-STYLE WORKSPACE HEADER ================= */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b border-[#E5E5E5] dark:border-[#393939]">
-        <div className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 sm:gap-4 pb-3 border-b border-[#E5E5E5] dark:border-[#393939]">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center justify-between lg:justify-start gap-3 sm:gap-4 w-full lg:w-auto">
           <div>
             <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
               {headerMonthTitle}
@@ -573,11 +584,14 @@ export default function AdminAgendaPage() {
           </div>
 
           {/* Seletor de visualização (Semana / Dia / Lista) */}
-          <div className="inline-flex items-center rounded-xl bg-[#F3F4F6] dark:bg-[#141414] p-1 border border-[#E5E5E5] dark:border-[#2C2C2C] text-xs font-heading font-medium gap-1">
+          <div className="grid grid-cols-3 sm:inline-flex items-center rounded-xl bg-[#F3F4F6] dark:bg-[#141414] p-1 border border-[#E5E5E5] dark:border-[#2C2C2C] text-xs font-heading font-medium gap-1 w-full sm:w-auto">
             <button
               type="button"
-              onClick={() => setViewMode("week")}
-              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+              onClick={() => {
+                hasUserSelectedViewRef.current = true;
+                setViewMode("week");
+              }}
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap text-center ${
                 viewMode === "week"
                   ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
                   : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:bg-[var(--primary)]/[0.04] dark:bg-transparent dark:border-transparent dark:text-[#A6A6A6] dark:hover:text-[#FFFFFF]"
@@ -587,8 +601,11 @@ export default function AdminAgendaPage() {
             </button>
             <button
               type="button"
-              onClick={() => setViewMode("day")}
-              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+              onClick={() => {
+                hasUserSelectedViewRef.current = true;
+                setViewMode("day");
+              }}
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap text-center ${
                 viewMode === "day"
                   ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
                   : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:bg-[var(--primary)]/[0.04] dark:bg-transparent dark:border-transparent dark:text-[#A6A6A6] dark:hover:text-[#FFFFFF]"
@@ -598,8 +615,11 @@ export default function AdminAgendaPage() {
             </button>
             <button
               type="button"
-              onClick={() => setViewMode("list")}
-              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+              onClick={() => {
+                hasUserSelectedViewRef.current = true;
+                setViewMode("list");
+              }}
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap text-center ${
                 viewMode === "list"
                   ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
                   : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:bg-[var(--primary)]/[0.04] dark:bg-transparent dark:border-transparent dark:text-[#A6A6A6] dark:hover:text-[#FFFFFF]"
@@ -611,9 +631,9 @@ export default function AdminAgendaPage() {
         </div>
 
         {/* Controles de Navegação e Ação Primária */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="grid grid-cols-[auto_1fr] sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5 w-full lg:w-auto">
           {/* Navegação de Data */}
-          <div className="flex items-center rounded-xl border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#202020] p-1 shadow-2xs">
+          <div className="flex items-center rounded-xl border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#202020] p-1 shadow-2xs shrink-0">
             <Button
               variant="ghost"
               size="icon"
@@ -628,7 +648,7 @@ export default function AdminAgendaPage() {
               variant="ghost"
               size="sm"
               onClick={handleToday}
-              className="text-xs h-8 px-3 font-heading font-semibold dark:text-[#F5F5F5]"
+              className="text-xs h-8 px-2.5 sm:px-3 font-heading font-semibold dark:text-[#F5F5F5]"
               title="Ir para a semana atual"
             >
               Hoje
@@ -648,7 +668,7 @@ export default function AdminAgendaPage() {
           {/* Filtro de Status Rápido */}
           <select
             aria-label="Filtrar agendamentos por status"
-            className="h-10 rounded-xl border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#1B1B1B] px-3.5 text-xs text-[#171717] dark:text-[#F5F5F5] font-medium shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 dark:focus-visible:ring-[#525252]/40 dark:focus-visible:border-[#525252] cursor-pointer"
+            className="h-10 w-full sm:w-auto min-w-0 rounded-xl border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#1B1B1B] px-3 sm:px-3.5 text-xs text-[#171717] dark:text-[#F5F5F5] font-medium shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 dark:focus-visible:ring-[#525252]/40 dark:focus-visible:border-[#525252] cursor-pointer"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -667,7 +687,7 @@ export default function AdminAgendaPage() {
               setAppointmentDate(new Date().toISOString().split("T")[0]);
               setIsModalOpen(true);
             }}
-            className="gap-2 shadow-xs"
+            className="col-span-2 sm:col-span-1 w-full sm:w-auto justify-center gap-2 shadow-xs"
           >
             <Plus className="h-4 w-4" />
             <span>Novo Agendamento</span>
@@ -710,7 +730,7 @@ export default function AdminAgendaPage() {
                   return (
                     <div
                       key={dayIdx}
-                      className={`flex flex-col min-h-[460px] transition-colors ${
+                      className={`flex flex-col min-h-0 md:min-h-[460px] transition-colors ${
                         isToday
                           ? "bg-[var(--primary)]/[0.03] dark:bg-[#292929]/30"
                           : "bg-white dark:bg-[#202020]"
@@ -721,7 +741,7 @@ export default function AdminAgendaPage() {
                         onClick={() => {
                           setSelectedDayDate(day);
                         }}
-                        className={`p-3.5 text-center border-b transition-colors cursor-pointer select-none ${
+                        className={`px-3.5 py-2.5 md:p-3.5 flex md:block items-center justify-between md:text-center border-b transition-colors cursor-pointer select-none ${
                           isToday
                             ? "border-[var(--primary)]/30 bg-[var(--primary)]/10 text-[#171717] dark:text-[#F5F5F5] font-bold dark:border-[#393939] dark:bg-[#292929]"
                             : isSelected
@@ -732,7 +752,7 @@ export default function AdminAgendaPage() {
                         <div className="text-[11px] font-heading font-semibold uppercase tracking-wider">
                           {getDayOfWeekName(day.getDay()).slice(0, 3)}
                         </div>
-                        <div className="mt-1 flex items-center justify-center">
+                        <div className="md:mt-1 flex items-center justify-center gap-2">
                           <span
                             className={`h-7 w-7 rounded-full flex items-center justify-center font-heading text-sm ${
                               isToday
@@ -742,11 +762,16 @@ export default function AdminAgendaPage() {
                           >
                             {day.getDate()}
                           </span>
+                          {dayAppointments.length > 0 && (
+                            <span className="md:hidden text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--button-outline-fg,var(--primary))]">
+                              {dayAppointments.length}
+                            </span>
+                          )}
                         </div>
                       </div>
 
                       {/* Lista de Consultas do dia */}
-                      <div className="flex-1 p-2 space-y-2 overflow-y-auto max-h-[540px]">
+                      <div className="flex-1 p-2 space-y-2 md:overflow-y-auto md:max-h-[540px]">
                         {dayAppointments.length > 0 ? (
                           dayAppointments.map((appt) => {
                             const isCancelled =
@@ -820,8 +845,8 @@ export default function AdminAgendaPage() {
                             );
                           })
                         ) : (
-                          <div className="h-full min-h-[120px] flex flex-col items-center justify-center text-[11px] text-[#9CA3AF] dark:text-[#71717A] py-8">
-                            <Clock className="h-4 w-4 mb-1 opacity-50" />
+                          <div className="h-full min-h-0 md:min-h-[120px] flex flex-row md:flex-col items-center justify-center gap-1.5 md:gap-0 text-[11px] text-[#9CA3AF] dark:text-[#71717A] py-3 md:py-8">
+                            <Clock className="h-3.5 w-3.5 md:h-4 md:w-4 md:mb-1 opacity-50" />
                             <span>Livre</span>
                           </div>
                         )}
@@ -836,16 +861,16 @@ export default function AdminAgendaPage() {
           {/* VISUALIZAÇÃO: DIA (DAY VIEW) */}
           {viewMode === "day" && (
             <Card className="shadow-xs">
-              <CardHeader className="p-5 border-b border-[#E5E5E5] dark:border-[#333333] flex flex-row items-center justify-between">
+              <CardHeader className="p-4 sm:p-5 border-b border-[#E5E5E5] dark:border-[#333333] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <CardTitle className="text-lg">
+                  <CardTitle className="text-base sm:text-lg">
                     {getDayOfWeekName(selectedDayDate.getDay())}, {formatDate(selectedDayDate)}
                   </CardTitle>
                   <CardDescription>
                     Cronograma detalhado de atendimentos do dia
                   </CardDescription>
                 </div>
-                <div className="flex gap-1.5">
+                <div className="flex gap-1.5 self-end sm:self-center">
                   <Button
                     size="sm"
                     variant="outline"
@@ -874,7 +899,7 @@ export default function AdminAgendaPage() {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="p-5">
+              <CardContent className="p-4 sm:p-5">
                 {(() => {
                   const dayAppts = filteredAppointments.filter((a) => {
                     const aDate = new Date(a.startAt);
@@ -905,17 +930,17 @@ export default function AdminAgendaPage() {
                         <div
                           key={appt.id}
                           onClick={() => openAppointmentDetails(appt)}
-                          className="p-4 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] hover:border-[var(--primary)]/60 hover:shadow-xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer"
+                          className="p-3.5 sm:p-4 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] hover:border-[var(--primary)]/60 hover:shadow-xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 cursor-pointer"
                         >
-                          <div className="flex items-start gap-4">
-                            <div className="px-3.5 py-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] font-mono font-bold text-sm shrink-0 border border-[var(--primary)]/20 shadow-2xs">
+                          <div className="flex flex-col sm:flex-row sm:items-start gap-2.5 sm:gap-4 min-w-0">
+                            <div className="px-3 py-1.5 sm:py-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] font-mono font-bold text-xs sm:text-sm shrink-0 self-start border border-[var(--primary)]/20 shadow-2xs tabular-nums">
                               {formatTime(appt.startAt, clinicTimezone)} - {formatTime(appt.endAt, clinicTimezone)}
                             </div>
-                            <div>
-                              <h4 className="font-heading font-semibold text-base text-[#171717] dark:text-[#F5F5F5]">
+                            <div className="min-w-0">
+                              <h4 className="font-heading font-semibold text-sm sm:text-base text-[#171717] dark:text-[#F5F5F5] truncate">
                                 {appt.patient.fullName}
                               </h4>
-                              <p className="text-xs text-[#737373] dark:text-[#A6A6A6] mt-0.5">
+                              <p className="text-xs text-[#737373] dark:text-[#A6A6A6] mt-0.5 break-words">
                                 {appt.service.name} • {appt.service.durationMinutes} minutos •{" "}
                                 {appt.modality === "ONLINE" ? "Teleconsulta" : "Presencial"}
                               </p>
@@ -927,7 +952,7 @@ export default function AdminAgendaPage() {
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2.5 self-end sm:self-center">
+                          <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full sm:w-auto sm:self-center shrink-0">
                             <Badge
                               variant={
                                 appt.status === "CONFIRMED"
@@ -966,42 +991,42 @@ export default function AdminAgendaPage() {
           {/* VISUALIZAÇÃO: LISTA (LIST VIEW) */}
           {viewMode === "list" && (
             <Card className="shadow-xs">
-              <CardHeader className="p-5 border-b border-[#E5E5E5] dark:border-[#393939]">
+              <CardHeader className="p-4 sm:p-5 border-b border-[#E5E5E5] dark:border-[#393939]">
                 <CardTitle className="text-lg">Todas as Consultas da Semana</CardTitle>
                 <CardDescription>
                   Visualização cronológica corrida das {filteredAppointments.length} consulta(s)
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-5">
+              <CardContent className="p-4 sm:p-5">
                 {filteredAppointments.length > 0 ? (
                   <div className="divide-y divide-[#E5E5E5] dark:divide-[#393939]">
                     {filteredAppointments.map((appt) => (
                       <div
                         key={appt.id}
                         onClick={() => openAppointmentDetails(appt)}
-                        className="py-3.5 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#F3F4F6]/50 dark:hover:bg-[#292929]/50 p-2.5 rounded-xl transition-colors cursor-pointer"
+                        className="py-3.5 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 hover:bg-[#F3F4F6]/50 dark:hover:bg-[#292929]/50 p-2 rounded-xl transition-colors cursor-pointer"
                       >
-                        <div className="flex items-start gap-3.5">
-                          <div className="text-center font-mono text-xs shrink-0 w-24">
-                            <span className="font-bold text-[#171717] dark:text-[#F5F5F5] block">
+                        <div className="flex flex-col sm:flex-row sm:items-start gap-1.5 sm:gap-3.5 min-w-0">
+                          <div className="flex sm:block items-center gap-2 text-left sm:text-center font-mono text-xs shrink-0 sm:w-24">
+                            <span className="font-bold text-[#171717] dark:text-[#F5F5F5] sm:block">
                               {formatDate(appt.startAt, clinicTimezone)}
                             </span>
                             <span className="text-[#737373] dark:text-[#A6A6A6]">
                               {formatTime(appt.startAt, clinicTimezone)}
                             </span>
                           </div>
-                          <div>
-                            <span className="font-heading font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] block">
+                          <div className="min-w-0">
+                            <span className="font-heading font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] block truncate">
                               {appt.patient.fullName}
                             </span>
-                            <span className="text-xs text-[#737373] dark:text-[#A6A6A6]">
+                            <span className="text-xs text-[#737373] dark:text-[#A6A6A6] break-words">
                               {appt.service.name} • {appt.service.durationMinutes} min •{" "}
                               {appt.modality === "ONLINE" ? "Teleconsulta" : "Presencial"}
                             </span>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 self-end sm:self-center">
+                        <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
                           <Badge
                             variant={
                               appt.status === "CONFIRMED"
@@ -1030,7 +1055,7 @@ export default function AdminAgendaPage() {
         </div>
 
         {/* ================= COLUNA LATERAL: MINI CALENDÁRIO (1 COLUNA) ================= */}
-        <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4 lg:gap-6 items-start">
           {/* Card do Mini Calendário */}
           <Card className="shadow-xs overflow-hidden">
             <CardHeader className="p-4 pb-2 border-b border-[#E5E5E5] dark:border-[#393939] bg-[#F8F8F8] dark:bg-[#141414]">
@@ -1238,7 +1263,7 @@ export default function AdminAgendaPage() {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-52 overflow-y-auto pr-1">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-52 overflow-y-auto pr-1">
                       {rescheduleSlots.map((slot) => {
                         const isSelected =
                           selectedRescheduleSlot?.startAt === slot.startAt;
@@ -1305,7 +1330,7 @@ export default function AdminAgendaPage() {
               )}
 
               {/* Ações do Formulário */}
-              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 pt-2 border-t border-[#E5E5E5] dark:border-[#333333]">
+              <div className="grid grid-cols-2 sm:flex sm:justify-end gap-2.5 pt-2 border-t border-[#E5E5E5] dark:border-[#333333]">
                 <Button
                   type="button"
                   variant="ghost"
@@ -1315,6 +1340,7 @@ export default function AdminAgendaPage() {
                     setRescheduleError(null);
                     setSelectedRescheduleSlot(null);
                   }}
+                  className="w-full sm:w-auto justify-center"
                 >
                   Cancelar
                 </Button>
@@ -1324,7 +1350,7 @@ export default function AdminAgendaPage() {
                   isLoading={isSubmittingReschedule}
                   disabled={!selectedRescheduleSlot || isSubmittingReschedule}
                   onClick={handleConfirmReschedule}
-                  className="gap-1.5"
+                  className="gap-1.5 w-full sm:w-auto justify-center"
                 >
                   <CalendarClock className="h-4 w-4 text-current" />
                   <span>Confirmar Remarcação</span>
@@ -1380,7 +1406,7 @@ export default function AdminAgendaPage() {
               </div>
 
               {selectedAppt.modality !== "PRESENTIAL" && selectedAppt.meetingUrlSnapshot && (
-                <div className="p-3.5 bg-[var(--primary)]/10 dark:bg-[var(--primary)]/15 border border-[var(--primary)]/20 rounded-2xl flex items-center justify-between">
+                <div className="p-3.5 bg-[var(--primary)]/10 dark:bg-[var(--primary)]/15 border border-[var(--primary)]/20 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <span className="font-bold text-[#171717] dark:text-[#F5F5F5] block text-xs">
                       Sala de Teleconsulta
@@ -1389,8 +1415,8 @@ export default function AdminAgendaPage() {
                       Acesso exclusivo e com sala de espera do PSI
                     </span>
                   </div>
-                  <a href={selectedAppt.meetingUrlSnapshot} target="_blank" rel="noreferrer">
-                    <Button size="sm" className="gap-1.5 text-xs" title="Abrir sala virtual da consulta">
+                  <a href={selectedAppt.meetingUrlSnapshot} target="_blank" rel="noreferrer" className="w-full sm:w-auto shrink-0">
+                    <Button size="sm" className="gap-1.5 text-xs w-full sm:w-auto justify-center" title="Abrir sala virtual da consulta">
                       <Video className="h-3.5 w-3.5" />
                       <span>Acessar Sala</span>
                     </Button>
@@ -1428,14 +1454,14 @@ export default function AdminAgendaPage() {
                   Ações da Consulta
                 </span>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
                   {(selectedAppt.status === "CONFIRMED" ||
                     selectedAppt.status === "PENDING_CONFIRMATION" ||
                     selectedAppt.status === "NO_SHOW") && (
                     <Button
                       variant="primary"
                       size="sm"
-                      className="text-xs gap-1.5"
+                      className="text-xs gap-1.5 w-full sm:w-auto justify-center"
                       title="Alterar data e horário desta consulta"
                       onClick={handleStartReschedule}
                     >
@@ -1448,7 +1474,7 @@ export default function AdminAgendaPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-xs gap-1.5"
+                      className="text-xs gap-1.5 w-full sm:w-auto justify-center"
                       title="Marcar consulta como realizada"
                       onClick={() => handleUpdateStatus("COMPLETED")}
                     >
@@ -1461,7 +1487,7 @@ export default function AdminAgendaPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-xs gap-1.5"
+                      className="text-xs gap-1.5 w-full sm:w-auto justify-center"
                       title="Registrar falta do paciente na consulta"
                       onClick={() => handleUpdateStatus("NO_SHOW", "Paciente não compareceu", "RETAIN")}
                     >
@@ -1475,7 +1501,7 @@ export default function AdminAgendaPage() {
                       <Button
                         variant="destructive"
                         size="sm"
-                        className="text-xs gap-1.5"
+                        className="text-xs gap-1.5 w-full sm:w-auto justify-center"
                         title="Cancelar este agendamento"
                         onClick={() => handleUpdateStatus("CANCELLED", "Cancelado pelo profissional")}
                       >
@@ -1602,11 +1628,11 @@ export default function AdminAgendaPage() {
             </label>
           </div>
 
-          <div className="flex justify-end gap-2.5 pt-2">
-            <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
+          <div className="grid grid-cols-2 sm:flex sm:justify-end gap-2.5 pt-2">
+            <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)} className="w-full sm:w-auto justify-center">
               Cancelar
             </Button>
-            <Button type="submit" isLoading={isSubmitting}>
+            <Button type="submit" isLoading={isSubmitting} className="w-full sm:w-auto justify-center">
               Confirmar Agendamento
             </Button>
           </div>

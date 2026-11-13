@@ -24,19 +24,17 @@ export async function GET() {
 
     const sys = await prisma.systemSettings.findFirst();
 
-    const activeProvider = sys?.activeVideoProvider || "JITSI";
+    const activeProvider = sys?.activeVideoProvider || "PEERJS";
 
-    // 1. PeerJS Status & Funcionalidade
-    const isPeerJsFunctional = !!(sys?.peerJsServerHost && sys?.peerJsTestStatus === "SUCCESS");
-    let peerJsStatus = "CONFIG_REQUIRED";
-    if (!sys?.peerJsServerHost) {
-      peerJsStatus = "CONFIG_REQUIRED";
+    // 1. PeerJS Status & Funcionalidade (Padrão PSI com sinalização automática)
+    const isPeerJsFunctional = sys?.peerJsTestStatus !== "FAILED";
+    let peerJsStatus = "OPERATIONAL";
+    if (sys?.peerJsTestStatus === "FAILED") {
+      peerJsStatus = "FAILED";
     } else if (sys?.peerJsTestStatus === "SUCCESS") {
       peerJsStatus = "OPERATIONAL";
-    } else if (sys?.peerJsTestStatus === "FAILED") {
-      peerJsStatus = "FAILED";
     } else {
-      peerJsStatus = "CONFIGURED";
+      peerJsStatus = "OPERATIONAL";
     }
 
     // 2. Google Meet Status & Funcionalidade (OAuth 2.0 / Google Calendar)
@@ -56,32 +54,22 @@ export async function GET() {
       googleMeetStatus = "CONFIGURED"; // Credenciais salvas, pendente autorização OAuth
     }
 
+    // Ordem oficial dos 3 provedores: 1. PSI Teleconsulta (PeerJS), 2. Jitsi Meet, 3. Google Meet
     const providers = [
       {
-        key: "JITSI",
-        name: "Jitsi Meet",
-        description:
-          "Salas de teleconsulta integradas com link temporário criptografado e sala de espera do consultório.",
-        status: "ACTIVE", // Sempre disponível no V1
-        isFunctional: true,
-        isActive: activeProvider === "JITSI",
-        config: {
-          domain: sys?.jitsiDomain || "meet.jit.si",
-        },
-      },
-      {
         key: "PEERJS",
-        name: "PeerJS / WebRTC Direto",
+        name: "PSI Teleconsulta",
         description:
-          "Comunicação P2P ponta a ponta sem servidores intermediários de mídia. Requer servidor de sinalização STUN/TURN.",
+          "Videochamadas integradas diretamente ao PSI com sinalização automática e transmissão criptografada.",
         status: peerJsStatus,
         isFunctional: isPeerJsFunctional,
         isActive: activeProvider === "PEERJS",
+        isDefaultBadge: true,
         config: {
-          host: sys?.peerJsServerHost || "",
-          port: sys?.peerJsServerPort || 9000,
-          path: sys?.peerJsPath || "/peerjs",
-          secure: sys?.peerJsSecure ?? false,
+          host: sys?.peerJsServerHost || "0.peerjs.com",
+          port: sys?.peerJsServerPort || 443,
+          path: sys?.peerJsPath || "/",
+          secure: sys?.peerJsSecure ?? true,
           stunServer: sys?.peerJsStunServer || "stun:stun.l.google.com:19302",
           turnServer: sys?.peerJsTurnServer || "",
           turnUser: sys?.peerJsTurnUser || "",
@@ -89,6 +77,18 @@ export async function GET() {
           turnSecret: sys?.peerJsTurnSecret ? "••••••••" : "",
           lastTestedAt: sys?.peerJsLastTestedAt || null,
           testStatus: sys?.peerJsTestStatus || null,
+        },
+      },
+      {
+        key: "JITSI",
+        name: "Jitsi Meet",
+        description:
+          "Videochamadas utilizando uma sala Jitsi integrada.",
+        status: "ACTIVE", // Alternativa preservada
+        isFunctional: true,
+        isActive: activeProvider === "JITSI",
+        config: {
+          domain: sys?.jitsiDomain || "meet.jit.si",
         },
       },
       {
@@ -153,17 +153,11 @@ export async function PUT(req: NextRequest) {
 
     const existing = await prisma.systemSettings.findFirst();
 
-    // Regra da Task 9 / Phase 1: Bloqueia PeerJS não funcional
+    // Regra: PSI Teleconsulta (PeerJS) é o padrão oficial integrado. Bloqueia apenas se testado e falhou explicitamente.
     if (activeVideoProvider === "PEERJS") {
-      if (!peerJsServerHost) {
+      if (existing?.peerJsTestStatus === "FAILED") {
         return NextResponse.json(
-          { error: "O provedor PeerJS não pode ser ativado sem configurar o host do servidor de sinalização." },
-          { status: 400 }
-        );
-      }
-      if (existing?.peerJsTestStatus !== "SUCCESS") {
-        return NextResponse.json(
-          { error: "O provedor PeerJS requer um teste de conexão bem-sucedido antes de ser ativado como provedor padrão." },
+          { error: "O servidor de sinalização do PeerJS falhou no último teste. Execute uma verificação antes de definir como padrão." },
           { status: 400 }
         );
       }
@@ -212,16 +206,16 @@ export async function PUT(req: NextRequest) {
       where: { id: "default" },
       update: {
         activeVideoProvider,
-        jitsiDomain: jitsiDomain || "meet.jit.si",
-        peerJsServerHost: peerJsServerHost || null,
-        peerJsServerPort: peerJsServerPort || 9000,
-        peerJsPath: peerJsPath || "/peerjs",
-        peerJsSecure: peerJsSecure ?? false,
-        peerJsStunServer: peerJsStunServer || null,
-        peerJsTurnServer: peerJsTurnServer || null,
-        peerJsTurnUser: peerJsTurnUser || null,
+        jitsiDomain: jitsiDomain || existing?.jitsiDomain || "meet.jit.si",
+        peerJsServerHost: peerJsServerHost !== undefined ? peerJsServerHost : (existing?.peerJsServerHost || null),
+        peerJsServerPort: peerJsServerPort !== undefined ? peerJsServerPort : (existing?.peerJsServerPort || 9000),
+        peerJsPath: peerJsPath !== undefined ? peerJsPath : (existing?.peerJsPath || "/peerjs"),
+        peerJsSecure: peerJsSecure !== undefined ? peerJsSecure : (existing?.peerJsSecure ?? true),
+        peerJsStunServer: peerJsStunServer !== undefined ? peerJsStunServer : (existing?.peerJsStunServer || null),
+        peerJsTurnServer: peerJsTurnServer !== undefined ? peerJsTurnServer : (existing?.peerJsTurnServer || null),
+        peerJsTurnUser: peerJsTurnUser !== undefined ? peerJsTurnUser : (existing?.peerJsTurnUser || null),
         peerJsTurnSecret: finalTurnSecret,
-        googleMeetClientId: googleMeetClientId || null,
+        googleMeetClientId: googleMeetClientId !== undefined ? googleMeetClientId : (existing?.googleMeetClientId || null),
         googleMeetClientSecret: finalGoogleSecret,
       },
       create: {
@@ -231,7 +225,7 @@ export async function PUT(req: NextRequest) {
         peerJsServerHost: peerJsServerHost || null,
         peerJsServerPort: peerJsServerPort || 9000,
         peerJsPath: peerJsPath || "/peerjs",
-        peerJsSecure: peerJsSecure ?? false,
+        peerJsSecure: peerJsSecure ?? true,
         peerJsStunServer: peerJsStunServer || null,
         peerJsTurnServer: peerJsTurnServer || null,
         peerJsTurnUser: peerJsTurnUser || null,

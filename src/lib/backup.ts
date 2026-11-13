@@ -28,7 +28,11 @@ export const REDACTED_SECRET_FIELDS = [
   "Patient.tempPassword",
   "GatewayConfiguration.configDataEncrypted",
   "SystemSettings.smtpPass",
+  "SystemSettings.textbeeApiKey",
   "SystemSettings.whatsappApiToken",
+  "SystemSettings.whatsappMetaAccessToken",
+  "SystemSettings.whatsappMetaAppSecret",
+  "SystemSettings.openWaApiKey",
   "SystemSettings.googleMeetClientSecret",
   "SystemSettings.googleMeetRefreshToken",
   "SystemSettings.googleMeetAccessToken",
@@ -975,7 +979,11 @@ export async function createFullBackupArchive({
         const systemSettings = systemSettingsRaw.map((s) => ({
           ...s,
           smtpPass: null,
+          textbeeApiKey: null,
           whatsappApiToken: null,
+          whatsappMetaAccessToken: null,
+          whatsappMetaAppSecret: null,
+          openWaApiKey: null,
           googleMeetClientSecret: null,
           googleMeetRefreshToken: null,
           googleMeetAccessToken: null,
@@ -1322,10 +1330,12 @@ interface BackupJobRuntimeEntry {
   snapshot: BackupProgressSnapshot;
   cancelRequested: boolean;
   promise: Promise<void>;
+  enqueueUpdate: (task: () => Promise<void>) => Promise<void>;
 }
 
 const globalForBackupJobs = globalThis as unknown as {
   __psiBackupRuntimeMap?: Map<string, BackupJobRuntimeEntry>;
+  __psiBackupPersistQueueMap?: Map<string, Promise<void>>;
 };
 
 function getBackupRuntimeMap(): Map<string, BackupJobRuntimeEntry> {
@@ -1333,6 +1343,13 @@ function getBackupRuntimeMap(): Map<string, BackupJobRuntimeEntry> {
     globalForBackupJobs.__psiBackupRuntimeMap = new Map<string, BackupJobRuntimeEntry>();
   }
   return globalForBackupJobs.__psiBackupRuntimeMap;
+}
+
+function getBackupPersistQueueMap(): Map<string, Promise<void>> {
+  if (!globalForBackupJobs.__psiBackupPersistQueueMap) {
+    globalForBackupJobs.__psiBackupPersistQueueMap = new Map<string, Promise<void>>();
+  }
+  return globalForBackupJobs.__psiBackupPersistQueueMap;
 }
 
 function makeRuntimeKey(roots: BackupStorageRoots, jobId: string): string {
@@ -1357,11 +1374,39 @@ async function persistBackupJobRecord(
   roots: BackupStorageRoots,
   record: PersistedBackupJobRecord
 ): Promise<void> {
-  const filePath = getBackupJobStateFilePath(roots);
-  await fs.mkdir(path.dirname(filePath), { recursive: true });
-  const tmpFile = `${filePath}.${process.pid}.${crypto.randomBytes(3).toString("hex")}.tmp`;
-  await fs.writeFile(tmpFile, JSON.stringify(record, null, 2), "utf8");
-  await fs.rename(tmpFile, filePath);
+  const filePath = path.resolve(getBackupJobStateFilePath(roots));
+  const queueMap = getBackupPersistQueueMap();
+  const prev = queueMap.get(filePath) ?? Promise.resolve();
+  const run = async () => {
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    const tmpFile = `${filePath}.${process.pid}.${crypto.randomBytes(3).toString("hex")}.tmp`;
+    await fs.writeFile(tmpFile, JSON.stringify(record, null, 2), "utf8");
+    let renamed = false;
+    for (let attempt = 0; attempt < 3 && !renamed; attempt += 1) {
+      try {
+        await fs.rename(tmpFile, filePath);
+        renamed = true;
+      } catch (err: unknown) {
+        const code = (err as NodeJS.ErrnoException)?.code;
+        if ((code === "EPERM" || code === "EBUSY") && attempt < 2) {
+          await new Promise((resolve) => setTimeout(resolve, 15));
+          continue;
+        }
+        await fs.unlink(tmpFile).catch(() => {});
+        throw err;
+      }
+    }
+  };
+  const next = prev.then(run, run);
+  const settled = next.catch(() => {});
+  queueMap.set(filePath, settled);
+  try {
+    await next;
+  } finally {
+    if (queueMap.get(filePath) === settled) {
+      queueMap.delete(filePath);
+    }
+  }
 }
 
 async function readPersistedBackupJobRecord(
@@ -1504,11 +1549,19 @@ export async function startTrackedBackupJob({
     resultBackup: null,
   };
 
+  let updateChain = Promise.resolve();
+  const enqueueUpdate = (task: () => Promise<void>): Promise<void> => {
+    const next = updateChain.then(task, task);
+    updateChain = next.catch(() => {});
+    return next;
+  };
+
   const runtime: BackupJobRuntimeEntry = {
     roots,
     snapshot: initialSnapshot,
     cancelRequested: false,
     promise: Promise.resolve(),
+    enqueueUpdate,
   };
 
   const runtimeKey = makeRuntimeKey(roots, jobId);
@@ -1521,20 +1574,39 @@ export async function startTrackedBackupJob({
     snapshot: initialSnapshot,
   });
 
-  const syncPersist = async (patch: Partial<BackupProgressSnapshot>) => {
-    const ts = new Date().toISOString();
-    runtime.snapshot = {
-      ...runtime.snapshot,
-      ...patch,
-      updatedAt: ts,
-    };
-    await persistBackupJobRecord(roots, {
-      pid: process.pid,
-      heartbeatAt: ts,
-      cancelRequested: runtime.cancelRequested,
-      snapshot: runtime.snapshot,
-    }).catch(() => {});
-  };
+  const syncPersist = (patch: Partial<BackupProgressSnapshot>): Promise<void> =>
+    enqueueUpdate(async () => {
+      const currentStatus = runtime.snapshot.status;
+      if (
+        currentStatus === "COMPLETED" ||
+        currentStatus === "CANCELLED" ||
+        currentStatus === "FAILED"
+      ) {
+        return;
+      }
+      const ts = new Date().toISOString();
+      const isTerminal =
+        patch.status === "COMPLETED" ||
+        patch.status === "CANCELLED" ||
+        patch.status === "FAILED";
+      const nextSnapshot: BackupProgressSnapshot = {
+        ...runtime.snapshot,
+        ...patch,
+        updatedAt: ts,
+      };
+      if (!isTerminal) {
+        runtime.snapshot = nextSnapshot;
+      }
+      await persistBackupJobRecord(roots, {
+        pid: process.pid,
+        heartbeatAt: ts,
+        cancelRequested: runtime.cancelRequested,
+        snapshot: nextSnapshot,
+      }).catch(() => {});
+      if (isTerminal) {
+        runtime.snapshot = nextSnapshot;
+      }
+    });
 
   const checkCancelRequested = async (): Promise<boolean> => {
     if (runtime.cancelRequested) return true;
@@ -1733,18 +1805,25 @@ export async function requestBackupCancellation({
 
   if (runtime) {
     runtime.cancelRequested = true;
-    runtime.snapshot = {
-      ...runtime.snapshot,
-      status: "CANCELLING",
-      detailText: "Cancelando backup com segurança e removendo temporários...",
-      updatedAt: new Date().toISOString(),
-    };
-    await persistBackupJobRecord(roots, {
-      pid: process.pid,
-      heartbeatAt: runtime.snapshot.updatedAt,
-      cancelRequested: true,
-      snapshot: runtime.snapshot,
-    }).catch(() => {});
+    await runtime.enqueueUpdate(async () => {
+      const status = runtime.snapshot.status;
+      if (status === "COMPLETED" || status === "CANCELLED" || status === "FAILED") {
+        return;
+      }
+      const ts = new Date().toISOString();
+      runtime.snapshot = {
+        ...runtime.snapshot,
+        status: "CANCELLING",
+        detailText: "Cancelando backup com segurança e removendo temporários...",
+        updatedAt: ts,
+      };
+      await persistBackupJobRecord(roots, {
+        pid: process.pid,
+        heartbeatAt: ts,
+        cancelRequested: true,
+        snapshot: runtime.snapshot,
+      }).catch(() => {});
+    });
 
     // Aguarda encerramento limpo e remoção dos arquivos temporários antes de confirmar sucesso
     await Promise.race([
@@ -2051,7 +2130,18 @@ const TABLE_DATE_FIELDS: Record<PersistentTableKey, readonly string[]> = {
   siteSettings: ["updatedAt"],
   professionalProfiles: ["updatedAt"],
   legalPages: ["publishedAt", "updatedAt"],
-  systemSettings: ["googleMeetTokenExpiresAt", "googleMeetConnectedAt", "peerJsLastTestedAt", "updatedAt"],
+  systemSettings: [
+    "emailLastCheckedAt",
+    "emailLastTestedAt",
+    "smsLastCheckedAt",
+    "smsLastTestedAt",
+    "whatsappLastCheckedAt",
+    "whatsappLastTestedAt",
+    "googleMeetTokenExpiresAt",
+    "googleMeetConnectedAt",
+    "peerJsLastTestedAt",
+    "updatedAt",
+  ],
   auditLogs: ["createdAt"],
 };
 
@@ -2126,11 +2216,12 @@ export interface StagedRestoreResult {
 
 export const SECRETS_RECONFIGURATION_CHECKLIST: string[] = [
   "Senha SMTP e ativação de envio de e-mail em Admin -> Integrações (se aplicável).",
-  "Token e ativação da API de WhatsApp em Admin -> Integrações (se aplicável).",
+  "API Key do TextBee e ativação de envio de SMS em Admin -> Integrações (se aplicável).",
+  "Token da Meta Official API ou API Key do OpenWA e ativação do WhatsApp em Admin -> Integrações (se aplicável).",
   "Credenciais OAuth (Client Secret / Tokens) do Google Meet em Admin -> Configurações -> Consultas Virtuais.",
   "Segredo TURN do PeerJS (se utilizar servidor TURN dedicado).",
   "Credenciais criptografadas de gateway de pagamento (quando configuradas em produção).",
-  "Variáveis de ambiente do servidor (.env): DATABASE_URL, JWT_SECRET e TECHNICAL_STATUS_BEARER_TOKEN.",
+  "Variáveis de ambiente do servidor (.env): DATABASE_URL, JWT_SECRET, PSI_ENCRYPTION_KEY e TECHNICAL_STATUS_BEARER_TOKEN.",
 ];
 
 function isValidZipMagic(headerBytes: Buffer): boolean {
@@ -2903,13 +2994,33 @@ async function applyValidatedDatabaseSnapshot(
       await insertChunks(
         "systemSettings",
         (b) => tx.systemSettings.createMany({ data: b as never[] }),
-        (r) => ({
-          ...r,
-          // Garante consistência quando segredos sensíveis foram omitidos do pacote portátil
-          smtpEnabled: r.smtpPass ? Boolean(r.smtpEnabled) : false,
-          whatsappEnabled: r.whatsappApiToken ? Boolean(r.whatsappEnabled) : false,
-          googleMeetStatus: r.googleMeetRefreshToken ? r.googleMeetStatus : null,
-        })
+        (r) => {
+          const canKeepEmail =
+            Boolean(r.smtpPass) || (r.emailMode === "DEFAULT" && !r.smtpHost && !r.smtpUser);
+          const canKeepSms = Boolean(r.textbeeApiKey);
+          const canKeepWhatsapp = Boolean(
+            r.whatsappMetaAccessToken || r.whatsappApiToken || r.openWaApiKey
+          );
+          return {
+            ...r,
+            // Garante consistência quando segredos sensíveis foram omitidos do pacote portátil
+            smtpEnabled: canKeepEmail ? Boolean(r.smtpEnabled) : false,
+            emailHealthStatus: canKeepEmail ? r.emailHealthStatus || "NOT_CONFIGURED" : "NOT_CONFIGURED",
+            emailLastCheckedAt: r.smtpPass ? r.emailLastCheckedAt ?? null : null,
+            emailLastTestedAt: r.smtpPass ? r.emailLastTestedAt ?? null : null,
+            smsEnabled: canKeepSms ? Boolean(r.smsEnabled) : false,
+            smsHealthStatus: canKeepSms ? r.smsHealthStatus || "NOT_CONFIGURED" : "NOT_CONFIGURED",
+            smsLastCheckedAt: canKeepSms ? r.smsLastCheckedAt ?? null : null,
+            smsLastTestedAt: canKeepSms ? r.smsLastTestedAt ?? null : null,
+            whatsappEnabled: canKeepWhatsapp ? Boolean(r.whatsappEnabled) : false,
+            whatsappHealthStatus: canKeepWhatsapp
+              ? r.whatsappHealthStatus || "NOT_CONFIGURED"
+              : "NOT_CONFIGURED",
+            whatsappLastCheckedAt: canKeepWhatsapp ? r.whatsappLastCheckedAt ?? null : null,
+            whatsappLastTestedAt: canKeepWhatsapp ? r.whatsappLastTestedAt ?? null : null,
+            googleMeetStatus: r.googleMeetRefreshToken ? r.googleMeetStatus : null,
+          };
+        }
       );
       await insertChunks("professionalProfiles", (b) =>
         tx.professionalProfile.createMany({ data: b as never[] })

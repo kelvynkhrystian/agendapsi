@@ -12,6 +12,7 @@ const patientUpdateSchema = z.object({
   address: z.string().optional(),
   emergencyContact: z.string().optional(),
   isActive: z.boolean().optional(),
+  smsOptIn: z.boolean().optional(),
 });
 
 export async function GET(
@@ -86,11 +87,29 @@ export async function PATCH(
     }
 
     const data = result.data;
+    const currentSms =
+      data.smsOptIn !== undefined
+        ? await prisma.patient.findUnique({
+            where: { id },
+            select: { smsOptIn: true, smsOptInAt: true },
+          })
+        : null;
+
     const updated = await prisma.patient.update({
       where: { id },
       data: {
         ...data,
         birthDate: data.birthDate ? new Date(data.birthDate) : undefined,
+        ...(data.smsOptIn !== undefined
+          ? {
+              smsOptIn: data.smsOptIn,
+              smsOptInAt: data.smsOptIn
+                ? currentSms?.smsOptIn && currentSms?.smsOptInAt
+                  ? currentSms.smsOptInAt
+                  : new Date()
+                : null,
+            }
+          : {}),
       },
     });
 

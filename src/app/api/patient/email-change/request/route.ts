@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { requirePatient } from "@/lib/auth";
 import { sendNotification } from "@/lib/notifications";
+import { getEmailCapability } from "@/lib/integrations-email";
 
 const emailRequestSchema = z.object({
   newEmail: z.string().trim().email("Formato de e-mail inválido").toLowerCase(),
@@ -56,7 +57,7 @@ export async function POST(req: NextRequest) {
 
     // 2. Verificação de infraestrutura de envio de e-mails (SMTP)
     const sys = await prisma.systemSettings.findFirst();
-    const isEmailConfigured = !!(sys?.smtpEnabled && sys?.smtpHost && sys?.smtpUser);
+    const isEmailConfigured = getEmailCapability(sys).canSendRealEmails;
 
     if (!isEmailConfigured) {
       // REGRA: Se a infraestrutura de verificação não estiver disponível,
@@ -136,17 +137,41 @@ export async function POST(req: NextRequest) {
     const appUrl = process.env.APP_URL || "http://localhost:3000";
     const verificationUrl = `${appUrl}/paciente/verificar-email?token=${rawToken}`;
 
+    const createdToken = await prisma.patientEmailChangeToken.findUnique({
+      where: { tokenHash },
+      select: { id: true },
+    });
+
     const delivery = await sendNotification({
       recipient: newEmail,
       channel: "EMAIL",
       templateType: "APPOINTMENT_CONFIRMED",
       subject: "Confirmação de alteração de e-mail — PSI Consultório",
+      patientId: session.userId,
+      customMessage: `Olá, ${session.name || "Paciente"}!\n\nRecebemos uma solicitação para alterar o e-mail da sua conta no Consultório PSI.\nPara confirmar o novo endereço, acesse o link abaixo (válido por 15 minutos):\n${verificationUrl}\n\nSe você não solicitou esta alteração, ignore esta mensagem.`,
       variables: {
         patientName: session.name || "Paciente",
         professionalName: "Consultório PSI",
         appointmentDateTime: verificationUrl,
       },
     });
+
+    if (!delivery.success && !delivery.simulated) {
+      if (createdToken) {
+        await prisma.patientEmailChangeToken.update({
+          where: { id: createdToken.id },
+          data: { usedAt: new Date() },
+        });
+      }
+      return NextResponse.json(
+        {
+          error:
+            delivery.error ||
+            "Não foi possível enviar o link de verificação por e-mail. Seu e-mail atual permanece ativo.",
+        },
+        { status: 502 }
+      );
+    }
 
     // 7. Registro de Auditoria (sem vazar token bruto ou tokenHash)
     await prisma.auditLog.create({

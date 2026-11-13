@@ -134,7 +134,7 @@ export default function AdminDocumentsPage() {
           size="sm"
           onClick={fetchDocuments}
           disabled={isLoading}
-          className="gap-2 self-start sm:self-auto text-xs"
+          className="gap-2 w-full sm:w-auto text-xs"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
           <span>Atualizar Lista</span>
@@ -151,7 +151,7 @@ export default function AdminDocumentsPage() {
 
       {/* Filtros e Busca */}
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-        <div className="max-w-md flex-1">
+        <div className="w-full sm:max-w-md flex-1">
           <Input
             placeholder="Buscar por nome do arquivo ou descrição..."
             leftIcon={<Search className="h-4 w-4" />}
@@ -160,7 +160,7 @@ export default function AdminDocumentsPage() {
           />
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 text-xs">
+        <div className="grid grid-cols-2 sm:flex items-center gap-1.5 sm:gap-2 text-xs w-full sm:w-auto">
           {[
             { id: "ALL", label: "Todos" },
             { id: "PATIENT_DOCUMENT", label: "Pacientes" },
@@ -171,7 +171,7 @@ export default function AdminDocumentsPage() {
               key={cat.id}
               type="button"
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer select-none whitespace-nowrap ${
+              className={`px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-lg font-medium transition-colors cursor-pointer select-none whitespace-nowrap text-center ${
                 selectedCategory === cat.id
                   ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-xs"
                   : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/25 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:text-[#D0D0D0] dark:border-[#393939] dark:hover:bg-[#292929]"
@@ -199,14 +199,14 @@ export default function AdminDocumentsPage() {
             return (
               <div
                 key={doc.id}
-                className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/70 dark:hover:bg-[#262626] transition-colors text-xs"
+                className="p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 sm:gap-4 hover:bg-slate-50/70 dark:hover:bg-[#262626] transition-colors text-xs"
               >
                 <div className="space-y-1.5 min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-sm text-slate-900 dark:text-[#F5F5F5] truncate max-w-md">
+                    <span className="font-bold text-sm text-slate-900 dark:text-[#F5F5F5] break-words">
                       {doc.title || doc.originalName}
                     </span>
-                    <span className="text-[11px] text-slate-400 font-mono">
+                    <span className="text-[11px] text-slate-400 font-mono break-all">
                       ({doc.originalName})
                     </span>
 
@@ -223,17 +223,17 @@ export default function AdminDocumentsPage() {
                     </p>
                   )}
 
-                  <div className="text-slate-500 dark:text-[#A6A6A6] text-[11px] flex flex-wrap items-center gap-2.5 pt-0.5">
+                  <div className="text-slate-500 dark:text-[#A6A6A6] text-[11px] flex flex-wrap items-center gap-2 pt-0.5">
                     <span>Enviado em {formatDate(doc.createdAt)}</span>
                     <span>•</span>
                     <span>Tamanho: {(doc.sizeBytes / 1024).toFixed(1)} KB</span>
                     <span>•</span>
-                    <span>Formato: {doc.mimeType}</span>
+                    <span className="break-all">Formato: {doc.mimeType}</span>
                     {patient && (
                       <>
                         <span>•</span>
                         <span className="inline-flex items-center gap-1 text-[var(--primary)] font-medium">
-                          <User className="h-3 w-3" />
+                          <User className="h-3 w-3 shrink-0" />
                           <span>{patient.fullName}</span>
                         </span>
                       </>
@@ -242,21 +242,22 @@ export default function AdminDocumentsPage() {
                 </div>
 
                 {/* Ações */}
-                <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                <div className="grid grid-cols-3 sm:flex items-center gap-2 shrink-0 w-full lg:w-auto">
                   <a
                     href={`/api/files/${doc.id}/download?view=inline`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    className="w-full sm:w-auto"
                   >
-                    <Button variant="outline" size="sm" className="h-8 text-xs gap-1 cursor-pointer">
-                      <Eye className="h-3.5 w-3.5" />
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto h-9 sm:h-8 px-2 sm:px-3 text-xs gap-1 cursor-pointer">
+                      <Eye className="h-3.5 w-3.5 shrink-0" />
                       <span>Visualizar</span>
                     </Button>
                   </a>
 
-                  <a href={`/api/files/${doc.id}/download`} download>
-                    <Button variant="outline" size="sm" className="h-8 text-xs gap-1 cursor-pointer">
-                      <Download className="h-3.5 w-3.5" />
+                  <a href={`/api/files/${doc.id}/download`} download className="w-full sm:w-auto">
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto h-9 sm:h-8 px-2 sm:px-3 text-xs gap-1 cursor-pointer">
+                      <Download className="h-3.5 w-3.5 shrink-0" />
                       <span>Baixar</span>
                     </Button>
                   </a>
@@ -264,11 +265,11 @@ export default function AdminDocumentsPage() {
                   <Button
                     variant="destructive"
                     size="sm"
-                    className="h-8 text-xs gap-1 cursor-pointer"
+                    className="w-full sm:w-auto h-9 sm:h-8 px-2 sm:px-3 text-xs gap-1 cursor-pointer"
                     onClick={() => setDocumentToDelete(doc)}
                     title="Excluir documento"
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <Trash2 className="h-3.5 w-3.5 shrink-0" />
                     <span>Excluir</span>
                   </Button>
                 </div>
@@ -308,13 +309,14 @@ export default function AdminDocumentsPage() {
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-[#393939]">
+          <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-end gap-2.5 sm:gap-3 pt-3 border-t border-slate-100 dark:border-[#393939]">
             <Button
               type="button"
               variant="outline"
               size="sm"
               disabled={isDeleting}
               onClick={() => setDocumentToDelete(null)}
+              className="w-full sm:w-auto"
             >
               Cancelar
             </Button>
@@ -325,7 +327,7 @@ export default function AdminDocumentsPage() {
               size="sm"
               isLoading={isDeleting}
               onClick={confirmDeleteDocument}
-              className="gap-1.5"
+              className="w-full sm:w-auto gap-1.5"
             >
               <Trash2 className="h-3.5 w-3.5" />
               <span>Excluir documento</span>

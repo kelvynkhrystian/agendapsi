@@ -25,7 +25,66 @@ export interface VideoProvider {
 }
 
 /**
- * Provedor 1: Jitsi Meet (Funcional padrão V1)
+ * Provedor 1: PSI Teleconsulta (PeerJS / WebRTC) — Provedor Padrão Oficial do PSI
+ * Fluxo: Chamada integrada direta WebRTC com sinalização automática provisionada e suporte transparente a STUN/TURN.
+ */
+export class PeerJsVideoProvider implements VideoProvider {
+  providerKey: SupportedVideoProvider = "PEERJS";
+  isFunctional: boolean;
+  public serverHost: string | null;
+  public serverPort: number | null;
+  public path: string;
+  public secure: boolean;
+  public stunServer?: string | null;
+  public turnServer?: string | null;
+  public turnUser?: string | null;
+  public turnSecret?: string | null;
+  public testStatus: string | null;
+
+  constructor(
+    serverHost: string | null = null,
+    serverPort: number | null = null,
+    path: string | null = null,
+    secure: boolean | null = null,
+    testStatus: string | null = null,
+    options?: {
+      stunServer?: string | null;
+      turnServer?: string | null;
+      turnUser?: string | null;
+      turnSecret?: string | null;
+    }
+  ) {
+    this.serverHost = serverHost || process.env.PEERJS_SERVER_HOST || process.env.PEERJS_HOST || "0.peerjs.com";
+    this.serverPort = serverPort ?? (process.env.PEERJS_SERVER_PORT ? Number(process.env.PEERJS_SERVER_PORT) : (this.serverHost === "0.peerjs.com" ? 443 : 9000));
+    this.path = path || process.env.PEERJS_PATH || (this.serverHost === "0.peerjs.com" ? "/" : "/peerjs");
+    this.secure = secure ?? (process.env.PEERJS_SECURE !== undefined ? process.env.PEERJS_SECURE === "true" : true);
+    this.testStatus = testStatus;
+    this.stunServer = options?.stunServer || process.env.PEERJS_STUN_SERVER || "stun:stun.l.google.com:19302";
+    this.turnServer = options?.turnServer || process.env.PEERJS_TURN_SERVER || null;
+    this.turnUser = options?.turnUser || process.env.PEERJS_TURN_USER || null;
+    this.turnSecret = options?.turnSecret || process.env.PEERJS_TURN_SECRET || null;
+    // O PeerJS é o provedor nativo oficial padrão do PSI. É funcional nativamente, a menos que o teste tenha falhado explicitamente.
+    this.isFunctional = testStatus !== "FAILED";
+  }
+
+  async createRoom(appointmentId: string): Promise<VideoRoom> {
+    const highEntropySuffix = Math.random().toString(36).substring(2, 10);
+    const peerRoomId = `peer-psi-${appointmentId}-${highEntropySuffix}`;
+    const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const appUrl = process.env.APP_URL || "http://localhost:3000";
+
+    return {
+      provider: "PEERJS",
+      roomName: peerRoomId,
+      entryUrl: `${appUrl}/consulta-virtual/${token}`,
+      rawMeetingUrl: `${appUrl}/consulta-virtual/${token}`,
+      isPreparedOnly: false,
+    };
+  }
+}
+
+/**
+ * Provedor 2: Jitsi Meet (Alternativa com sala integrada)
  */
 export class JitsiVideoProvider implements VideoProvider {
   providerKey: SupportedVideoProvider = "JITSI";
@@ -50,65 +109,6 @@ export class JitsiVideoProvider implements VideoProvider {
       roomName,
       entryUrl,
       rawMeetingUrl,
-    };
-  }
-}
-
-/**
- * Provedor 2: PeerJS / WebRTC Direto (P2P ponto a ponto)
- * Fluxo: Chamada P2P direta com sinalização STUN/TURN e sala segura.
- */
-export class PeerJsVideoProvider implements VideoProvider {
-  providerKey: SupportedVideoProvider = "PEERJS";
-  isFunctional: boolean;
-  public serverHost: string | null;
-  public serverPort: number | null;
-  public path: string;
-  public secure: boolean;
-  public stunServer?: string | null;
-  public turnServer?: string | null;
-  public turnUser?: string | null;
-  public turnSecret?: string | null;
-  public testStatus: string | null;
-
-  constructor(
-    serverHost: string | null = null,
-    serverPort: number | null = 9000,
-    path: string = "/peerjs",
-    secure: boolean = true,
-    testStatus: string | null = null,
-    options?: {
-      stunServer?: string | null;
-      turnServer?: string | null;
-      turnUser?: string | null;
-      turnSecret?: string | null;
-    }
-  ) {
-    this.serverHost = serverHost;
-    this.serverPort = serverPort;
-    this.path = path || "/peerjs";
-    this.secure = secure ?? true;
-    this.testStatus = testStatus;
-    this.stunServer = options?.stunServer;
-    this.turnServer = options?.turnServer;
-    this.turnUser = options?.turnUser;
-    this.turnSecret = options?.turnSecret;
-    // Funcional apenas quando configurado e com conectividade de sinalização validada com sucesso
-    this.isFunctional = !!(serverHost && testStatus === "SUCCESS");
-  }
-
-  async createRoom(appointmentId: string): Promise<VideoRoom> {
-    const highEntropySuffix = Math.random().toString(36).substring(2, 10);
-    const peerRoomId = `peer-psi-${appointmentId}-${highEntropySuffix}`;
-    const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    const appUrl = process.env.APP_URL || "http://localhost:3000";
-
-    return {
-      provider: "PEERJS",
-      roomName: peerRoomId,
-      entryUrl: `${appUrl}/consulta-virtual/${token}`,
-      rawMeetingUrl: `${appUrl}/consulta-virtual/${token}`,
-      isPreparedOnly: false,
     };
   }
 }
@@ -185,7 +185,7 @@ export class GoogleMeetVideoProvider implements VideoProvider {
  * Factory para instanciar o provedor configurado
  */
 export function getVideoProvider(
-  activeKey: string = "JITSI",
+  activeKey: string = "PEERJS",
   options?: {
     jitsiDomain?: string;
     peerJsHost?: string | null;
@@ -204,7 +204,17 @@ export function getVideoProvider(
   }
 ): VideoProvider {
   switch (activeKey) {
+    case "JITSI":
+      return new JitsiVideoProvider(options?.jitsiDomain);
+    case "GOOGLE_MEET":
+      return new GoogleMeetVideoProvider(
+        options?.googleMeetClientId,
+        options?.googleMeetStatus,
+        options?.googleMeetAccountEmail,
+        options?.googleMeetHasRefreshToken
+      );
     case "PEERJS":
+    default:
       return new PeerJsVideoProvider(
         options?.peerJsHost,
         options?.peerJsPort,
@@ -218,16 +228,6 @@ export function getVideoProvider(
           turnSecret: options?.peerJsTurnSecret,
         }
       );
-    case "GOOGLE_MEET":
-      return new GoogleMeetVideoProvider(
-        options?.googleMeetClientId,
-        options?.googleMeetStatus,
-        options?.googleMeetAccountEmail,
-        options?.googleMeetHasRefreshToken
-      );
-    case "JITSI":
-    default:
-      return new JitsiVideoProvider(options?.jitsiDomain);
   }
 }
 
@@ -325,7 +325,7 @@ export async function provisionVideoMeeting({
 }> {
   const settings = await tx.systemSettings.findFirst();
   const activeProvider: SupportedVideoProvider =
-    (settings?.activeVideoProvider as SupportedVideoProvider) || "JITSI";
+    (settings?.activeVideoProvider as SupportedVideoProvider) || "PEERJS";
 
   const psiEntryToken =
     Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);

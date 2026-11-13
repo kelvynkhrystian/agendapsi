@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requirePatient } from "@/lib/auth";
+import { getEmailCapability } from "@/lib/integrations-email";
 
 const profileUpdateSchema = z.object({
   fullName: z.string().trim().min(2, "Nome deve ter no mínimo 2 caracteres").max(120, "Nome muito longo"),
@@ -11,6 +12,7 @@ const profileUpdateSchema = z.object({
   gender: z.string().trim().max(50).optional().nullable(),
   address: z.string().trim().max(255).optional().nullable(),
   emergencyContact: z.string().trim().max(255).optional().nullable(),
+  smsOptIn: z.boolean().optional(),
 });
 
 function isValidCpfFormat(cpf: string): boolean {
@@ -37,6 +39,8 @@ export async function GET() {
         gender: true,
         address: true,
         emergencyContact: true,
+        smsOptIn: true,
+        smsOptInAt: true,
         mustChangePassword: true,
         guardians: {
           select: {
@@ -55,7 +59,7 @@ export async function GET() {
     }
 
     const sys = await prisma.systemSettings.findFirst();
-    const emailDeliveryConfigured = !!(sys?.smtpEnabled && sys?.smtpHost && sys?.smtpUser);
+    const emailDeliveryConfigured = getEmailCapability(sys).canSendRealEmails;
 
     return NextResponse.json({
       success: true,
@@ -118,6 +122,14 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
+    const current =
+      data.smsOptIn !== undefined
+        ? await prisma.patient.findUnique({
+            where: { id: session.userId },
+            select: { smsOptIn: true, smsOptInAt: true },
+          })
+        : null;
+
     const updatedPatient = await prisma.patient.update({
       where: { id: session.userId },
       data: {
@@ -128,6 +140,16 @@ export async function PATCH(req: NextRequest) {
         gender: data.gender || null,
         address: data.address || null,
         emergencyContact: data.emergencyContact || null,
+        ...(data.smsOptIn !== undefined
+          ? {
+              smsOptIn: data.smsOptIn,
+              smsOptInAt: data.smsOptIn
+                ? current?.smsOptIn && current?.smsOptInAt
+                  ? current.smsOptInAt
+                  : new Date()
+                : null,
+            }
+          : {}),
       },
       select: {
         id: true,
@@ -139,6 +161,8 @@ export async function PATCH(req: NextRequest) {
         gender: true,
         address: true,
         emergencyContact: true,
+        smsOptIn: true,
+        smsOptInAt: true,
         isMinor: true,
         guardians: {
           select: {

@@ -92,7 +92,7 @@ export function NotificationHistoryView({
             variant="outline"
             size="sm"
             onClick={handleMarkAllAsRead}
-            className="gap-2 shrink-0 text-xs"
+            className="gap-2 shrink-0 text-xs w-full sm:w-auto justify-center"
           >
             <CheckCheck className="h-4 w-4 text-[var(--primary)] dark:text-[#C0C0C0]" />
             <span>Marcar todas como lidas</span>
@@ -101,7 +101,7 @@ export function NotificationHistoryView({
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 border-b border-[#E5E5E5] dark:border-[#393939] pb-3">
+      <div className="flex flex-wrap items-center gap-2 border-b border-[#E5E5E5] dark:border-[#393939] pb-3">
         <Filter className="h-4 w-4 text-[#737373] dark:text-[#C0C0C0]" />
         <button
           onClick={() => {
@@ -167,40 +167,46 @@ export function NotificationHistoryView({
                   : "bg-white dark:bg-[#202020] border-[#E5E5E5] dark:border-[#393939]"
               }`}
             >
-              <CardContent className="p-6 !pt-6 sm:p-6 sm:!pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="space-y-1.5 flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+              <CardContent className="p-4 !pt-4 sm:p-6 sm:!pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 sm:gap-4">
+                <div className="space-y-1.5 flex-1 min-w-0 w-full">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     {!n.isRead && (
                       <span className="h-2 w-2 rounded-full bg-[var(--primary)] dark:bg-[#FFFFFF] shrink-0" />
                     )}
-                    <h3 className="font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] truncate">
+                    <h3 className="font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] break-words min-w-0">
                       {n.title}
                     </h3>
-                    <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6] flex items-center gap-1 shrink-0 ml-auto sm:ml-2">
+                    <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6] flex items-center gap-1 shrink-0 sm:ml-2">
                       <Clock className="h-3 w-3" />
                       {formatDate(n.createdAt)} às {formatTime(n.createdAt)}
                     </span>
                   </div>
-                  <p className="text-xs text-[#525252] dark:text-[#D0D0D0] leading-relaxed">
+                  <p className="text-xs text-[#525252] dark:text-[#D0D0D0] leading-relaxed break-words">
                     {n.message}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                <div
+                  className={
+                    !n.isRead && n.targetUrl
+                      ? "grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto shrink-0"
+                      : "flex items-center justify-end sm:justify-start gap-2 w-full sm:w-auto shrink-0"
+                  }
+                >
                   {!n.isRead && (
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleMarkAsRead(n.id)}
-                      className="text-xs h-8 gap-1.5"
+                      className="text-xs h-9 sm:h-8 gap-1.5 w-full sm:w-auto justify-center"
                     >
                       <Check className="h-3.5 w-3.5" />
                       <span>Marcar lida</span>
                     </Button>
                   )}
                   {n.targetUrl && (
-                    <Link href={n.targetUrl}>
-                      <Button variant="outline" size="sm" className="text-xs h-8 gap-1.5">
+                    <Link href={n.targetUrl} className="w-full sm:w-auto">
+                      <Button variant="outline" size="sm" className="text-xs h-9 sm:h-8 gap-1.5 w-full sm:w-auto justify-center">
                         <span>Acessar</span>
                         <ExternalLink className="h-3 w-3" />
                       </Button>

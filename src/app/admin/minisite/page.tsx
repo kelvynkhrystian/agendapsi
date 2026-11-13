@@ -466,16 +466,16 @@ export default function AdminMiniSitePage() {
       {/* Cabeçalho Principal */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
             Site & Presença Digital
           </h1>
-          <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">
+          <p className="text-xs sm:text-sm text-[#737373] dark:text-[#A6A6A6]">
             Configure o Site na mesma sequência exibida aos visitantes, da abertura ao rodapé.
           </p>
         </div>
 
-        <Link href="/" target="_blank" title="Abrir Site público em nova aba">
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+        <Link href="/" target="_blank" title="Abrir Site público em nova aba" className="w-full sm:w-auto">
+          <Button variant="outline" size="sm" className="w-full sm:w-auto gap-1.5 text-xs">
             <ExternalLink className="h-3.5 w-3.5" />
             <span>Visualizar Site</span>
           </Button>
@@ -1061,7 +1061,7 @@ export default function AdminMiniSitePage() {
                     </label>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-start sm:items-center gap-3">
                     <div className="w-11 h-11 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] dark:bg-[#292929] dark:text-[#F5F5F5] flex items-center justify-center shrink-0">
                       <ThemeIcon
                         iconName={item.icon}
@@ -1070,16 +1070,16 @@ export default function AdminMiniSitePage() {
                         alt={item.title}
                       />
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2 min-w-0 flex-1">
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
                         onClick={() => setIconPickerTarget({ type: "diferencial", index: idx })}
-                        className="text-[11px] gap-1 h-8 px-2.5"
+                        className="text-[11px] gap-1 h-8 px-2.5 max-w-full"
                       >
-                        <Compass className="h-3.5 w-3.5" />
-                        <span>Escolher Ícone ({item.icon})</span>
+                        <Compass className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">Escolher Ícone ({item.icon})</span>
                       </Button>
 
                       <label className="cursor-pointer">
@@ -1270,7 +1270,7 @@ export default function AdminMiniSitePage() {
                   key={step.id || idx}
                   className="p-4 rounded-2xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#FAFAFA] dark:bg-[#141414] space-y-3"
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-[var(--primary)]/12 text-[var(--primary)] dark:bg-[#292929] dark:text-[#F5F5F5] dark:border dark:border-[#393939] font-bold text-xs tabular-nums">
                       Etapa {step.number}
                     </span>
@@ -1731,7 +1731,7 @@ export default function AdminMiniSitePage() {
 
               {fullAddressPreview && (
                 <div className="p-4 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] space-y-2">
-                  <div className="flex items-center justify-between text-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                     <span className="font-semibold text-[#404040] dark:text-[#D0D0D0]">
                       Prévia do Endereço Formatado:
                     </span>
@@ -1824,7 +1824,7 @@ export default function AdminMiniSitePage() {
                     href={whatsappChatUrlPreview}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shrink-0 self-start sm:self-auto flex items-center gap-1"
+                    className="w-full sm:w-auto px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shrink-0 flex items-center justify-center gap-1"
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
                     <span>Testar Conversa</span>
@@ -1966,7 +1966,7 @@ export default function AdminMiniSitePage() {
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] flex items-center justify-between text-xs text-[#525252] dark:text-[#D0D0D0]">
+            <div className="p-3 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] flex flex-wrap items-center justify-between gap-2 text-xs text-[#525252] dark:text-[#D0D0D0]">
               <span>
                 Destino fixo do botão de agendamento: <code className="font-mono font-semibold">/agendar</code>
               </span>
@@ -2020,7 +2020,7 @@ export default function AdminMiniSitePage() {
 
             {/* Descrição Opcional & Copyright */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <label className="text-sm font-medium text-[#171717] dark:text-[#F5F5F5]">
                   Descrição Opcional do Rodapé
                 </label>
@@ -2138,8 +2138,8 @@ export default function AdminMiniSitePage() {
               </div>
 
               {/* Preferências de Cookies */}
-              <label className="flex items-center justify-between gap-3 p-3.5 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#FAFAFA] dark:bg-[#141414] cursor-pointer hover:border-[var(--primary)]/40 dark:hover:border-[#525252] transition-colors">
-                <span className="flex items-center gap-2.5 text-xs font-medium text-[#171717] dark:text-[#F5F5F5]">
+              <label className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-3.5 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#FAFAFA] dark:bg-[#141414] cursor-pointer hover:border-[var(--primary)]/40 dark:hover:border-[#525252] transition-colors">
+                <span className="flex items-start sm:items-center gap-2.5 text-xs font-medium text-[#171717] dark:text-[#F5F5F5]">
                   <input
                     type="checkbox"
                     checked={sectionsConfig.rodape.showCookiePreferences}
@@ -2149,12 +2149,12 @@ export default function AdminMiniSitePage() {
                         rodape: { ...prev.rodape, showCookiePreferences: e.target.checked },
                       }))
                     }
-                    className="rounded text-[var(--primary)] focus:ring-[var(--primary)]"
+                    className="mt-0.5 sm:mt-0 rounded text-[var(--primary)] focus:ring-[var(--primary)] shrink-0"
                   />
-                  <Cookie className="h-4 w-4 text-[var(--primary)] dark:text-[#D0D0D0] shrink-0" />
+                  <Cookie className="h-4 w-4 text-[var(--primary)] dark:text-[#D0D0D0] shrink-0 mt-0.5 sm:mt-0" />
                   <span>Exibir link &quot;Preferências de cookies&quot; no rodapé (LGPD)</span>
                 </span>
-                <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6] shrink-0">
+                <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6] shrink-0 pl-6 sm:pl-0">
                   Consentimento ativo
                 </span>
               </label>
@@ -2194,7 +2194,7 @@ export default function AdminMiniSitePage() {
             type="submit"
             size="lg"
             disabled={isSaving}
-            className="gap-2 bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-[var(--button-fg,#ffffff)]"
+            className="w-full sm:w-auto gap-2 bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-[var(--button-fg,#ffffff)]"
           >
             <Save className="h-4 w-4" />
             <span>{isSaving ? "Salvando Alterações..." : "Salvar Alterações do Site"}</span>

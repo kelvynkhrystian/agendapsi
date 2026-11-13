@@ -29,6 +29,7 @@ export default function RegisterPage() {
   const [guardianEmail, setGuardianEmail] = useState("");
   const [guardianRelationship, setGuardianRelationship] = useState("Mãe");
 
+  const [smsOptIn, setSmsOptIn] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,6 +83,7 @@ export default function RegisterPage() {
           guardianPhone: isMinor ? guardianPhone : undefined,
           guardianEmail: isMinor ? guardianEmail : undefined,
           guardianRelationship: isMinor ? guardianRelationship : undefined,
+          smsOptIn,
           acceptTerms,
         }),
       });
@@ -103,28 +105,28 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between p-4 sm:p-6 bg-[#F8F8F8] dark:bg-[#0C0C0C]">
-      <div className="flex justify-between items-center max-w-5xl w-full mx-auto">
-        <Link href="/" className="flex items-center gap-2 font-bold text-lg text-[var(--primary)]">
-          <Stethoscope className="h-6 w-6" />
-          <span>PSI Consultório</span>
+    <div className="min-h-[100dvh] flex flex-col justify-between p-4 sm:p-6 bg-[#F8F8F8] dark:bg-[#0C0C0C]">
+      <div className="flex justify-between items-center max-w-5xl w-full mx-auto gap-3">
+        <Link href="/" className="flex items-center gap-2 font-bold text-base sm:text-lg text-[var(--primary)] min-w-0">
+          <Stethoscope className="h-5 w-5 sm:h-6 sm:w-6 shrink-0" />
+          <span className="truncate">PSI Consultório</span>
         </Link>
         <ThemeToggle />
       </div>
 
-      <div className="max-w-xl w-full mx-auto my-8">
+      <div className="max-w-xl w-full mx-auto my-6 sm:my-8">
         <Card className="border-[#E5E5E5] dark:border-[#2C2C2C] shadow-md">
-          <CardHeader className="text-center space-y-2">
+          <CardHeader className="text-center space-y-2 p-4 sm:p-6">
             <div className="mx-auto w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] mb-2">
               <UserCheck className="h-6 w-6" />
             </div>
-            <CardTitle className="text-2xl font-bold">Cadastro de Paciente</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-xl sm:text-2xl font-bold">Cadastro de Paciente</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
               Preencha seus dados para agendamentos, anamnese e acesso à sua área exclusiva
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-4 sm:p-6 pt-0">
             {error && <Alert variant="destructive">{error}</Alert>}
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -200,12 +202,12 @@ export default function RegisterPage() {
 
               {/* Toggle de Menor de Idade */}
               <div className="pt-2 border-t border-[#E5E5E5] dark:border-[#2C2C2C]">
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2.5 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={isMinor}
                     onChange={(e) => setIsMinor(e.target.checked)}
-                    className="rounded border-[#CCCCCC] dark:border-[#525252] accent-[var(--primary)] h-4 w-4"
+                    className="rounded border-[#CCCCCC] dark:border-[#525252] accent-[var(--primary)] h-4 w-4 shrink-0"
                   />
                   <span className="text-sm font-medium text-[#404040] dark:text-[#E5E5E5]">
                     O paciente é menor de 18 anos
@@ -271,8 +273,20 @@ export default function RegisterPage() {
                 </div>
               )}
 
-              {/* Termos e LGPD */}
-              <div className="pt-2">
+              {/* Preferência de SMS e Termos LGPD */}
+              <div className="pt-2 border-t border-[#E5E5E5] dark:border-[#2C2C2C] space-y-3">
+                <label className="flex items-start gap-2.5 cursor-pointer text-xs text-[#404040] dark:text-[#D0D0D0]">
+                  <input
+                    type="checkbox"
+                    checked={smsOptIn}
+                    onChange={(e) => setSmsOptIn(e.target.checked)}
+                    className="mt-0.5 rounded border-[#CCCCCC] dark:border-[#525252] accent-[var(--primary)] h-4 w-4 shrink-0 cursor-pointer"
+                  />
+                  <span>
+                    <strong>Autorizo receber lembretes por SMS (opcional):</strong> Concordo em receber avisos de consultas e comunicações importantes por SMS no telefone informado, podendo revogar esta opção a qualquer momento no meu perfil.
+                  </span>
+                </label>
+
                 <label className="flex items-start gap-2.5 cursor-pointer text-xs text-[#525252] dark:text-[#A6A6A6]">
                   <input
                     type="checkbox"

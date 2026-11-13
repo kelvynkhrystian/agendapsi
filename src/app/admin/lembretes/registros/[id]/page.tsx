@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState, use } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,24 +11,21 @@ import {
   ArrowLeft,
   Mail,
   MessageCircle,
+  Smartphone,
   CheckCircle2,
   AlertTriangle,
   Clock,
-  RotateCcw,
   Send,
   Calendar,
   ExternalLink,
-  ShieldCheck,
   Info,
-  Server,
-  Layers,
 } from "pulsoicon-react";
 
 interface MessageDetailData {
   id: string;
   recipient: string;
   maskedRecipient: string;
-  channel: "EMAIL" | "WHATSAPP";
+  channel: "EMAIL" | "WHATSAPP" | "SMS";
   templateType: string;
   messageType: string;
   subjectOrCategory: string;
@@ -66,7 +62,6 @@ export default function AdminMessageDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const router = useRouter();
 
   const [log, setLog] = useState<MessageDetailData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -203,27 +198,28 @@ export default function AdminMessageDetailPage({
   }
 
   const isEmail = log.channel === "EMAIL";
+  const isSms = log.channel === "SMS";
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto w-full">
       {/* Botão de Voltar e Ações Superiores */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <Link href="/admin/lembretes/registros">
-          <Button variant="outline" size="sm" className="gap-2 text-xs">
-            <ArrowLeft className="h-4 w-4" />
+      <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-2.5 sm:gap-3">
+        <Link href="/admin/lembretes/registros" className="w-full sm:w-auto">
+          <Button variant="outline" size="sm" className="w-full sm:w-auto gap-1.5 sm:gap-2 text-xs">
+            <ArrowLeft className="h-4 w-4 shrink-0" />
             <span>Voltar aos Registros</span>
           </Button>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             size="sm"
             disabled={resending}
             onClick={handleResend}
-            className="gap-1.5 text-xs text-[var(--primary)] hover:bg-[var(--primary)]/10"
+            className="w-full sm:w-auto gap-1.5 text-xs"
           >
-            <Send className="h-3.5 w-3.5" />
+            <Send className="h-3.5 w-3.5 shrink-0" />
             <span>{resending ? "Reenviando..." : "Reenviar Mensagem"}</span>
           </Button>
         </div>
@@ -243,6 +239,8 @@ export default function AdminMessageDetailPage({
               <div className="flex items-center gap-2">
                 {isEmail ? (
                   <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                ) : isSms ? (
+                  <Smartphone className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                 ) : (
                   <MessageCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                 )}
@@ -265,7 +263,7 @@ export default function AdminMessageDetailPage({
             <div>
               <span className="text-[#737373] dark:text-[#A6A6A6] font-medium block">Canal</span>
               <span className="font-semibold text-[#171717] dark:text-[#F5F5F5] text-sm mt-0.5 block">
-                {isEmail ? "E-mail (SMTP)" : "WhatsApp"}
+                {isEmail ? "E-mail (SMTP)" : isSms ? "SMS (TextBee)" : "WhatsApp"}
               </span>
             </div>
 
@@ -292,14 +290,14 @@ export default function AdminMessageDetailPage({
 
             <div>
               <span className="text-[#737373] dark:text-[#A6A6A6] font-medium block">Tentativas de Envio</span>
-              <span className="font-semibold text-[#171717] dark:text-[#F5F5F5] mt-0.5 block">
+              <span className="font-semibold text-[#171717] dark:text-[#F5F5F5] mt-0.5 block tabular-nums">
                 {log.attemptCount} tentativa(s)
               </span>
             </div>
 
             <div>
               <span className="text-[#737373] dark:text-[#A6A6A6] font-medium block">Data de Registro</span>
-              <span className="font-mono text-[#171717] dark:text-[#F5F5F5] mt-0.5 block">
+              <span className="font-mono text-[#171717] dark:text-[#F5F5F5] mt-0.5 block tabular-nums">
                 {formatDate(log.sentAt)} às {formatTime(log.sentAt)}
               </span>
             </div>
@@ -307,8 +305,8 @@ export default function AdminMessageDetailPage({
 
           {/* Message-ID do Provedor (se disponível) */}
           {log.providerMessageId && (
-            <div className="p-3 rounded-lg bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] font-mono text-[11px] flex items-center justify-between gap-2">
-              <span className="text-[#737373] dark:text-[#A6A6A6]">ID de Rastreio do Provedor:</span>
+            <div className="p-3 rounded-lg bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] font-mono text-[11px] flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
+              <span className="text-[#737373] dark:text-[#A6A6A6] shrink-0">ID de Rastreio do Provedor:</span>
               <span className="font-semibold text-[#171717] dark:text-[#F5F5F5] break-all">
                 {log.providerMessageId}
               </span>
@@ -322,65 +320,60 @@ export default function AdminMessageDetailPage({
               <span>Linha do Tempo de Entrega</span>
             </h3>
 
-            <div className="space-y-2 pl-2 border-l-2 border-[#E5E5E5] dark:border-[#333333] ml-2">
-              {/* Evento 1: Criado */}
+            <div className="space-y-2 pl-2 border-l border-[#E5E5E5] dark:border-[#333333] ml-2">
               <div className="relative pl-4 pb-2">
-                <div className="absolute -left-[9px] top-1 h-3 w-3 rounded-full bg-[#A3A3A3] dark:bg-[#737373] border-2 border-white dark:border-[#1A1A1A]" />
+                <div className="absolute -left-[6px] top-1 h-3 w-3 rounded-full bg-[#A3A3A3] dark:bg-[#737373] border-2 border-white dark:border-[#1A1A1A]" />
                 <p className="font-semibold text-[#171717] dark:text-[#F5F5F5]">
                   Disparo registrado no sistema
                 </p>
-                <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
+                <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] tabular-nums">
                   {formatDate(log.sentAt)} às {formatTime(log.sentAt)}
                 </p>
               </div>
 
-              {/* Evento 2: Tentativa */}
               {log.attemptedAt && (
                 <div className="relative pl-4 pb-2">
-                  <div className="absolute -left-[9px] top-1 h-3 w-3 rounded-full bg-blue-500 border-2 border-white dark:border-[#1A1A1A]" />
+                  <div className="absolute -left-[6px] top-1 h-3 w-3 rounded-full bg-blue-500 border-2 border-white dark:border-[#1A1A1A]" />
                   <p className="font-semibold text-[#171717] dark:text-[#F5F5F5]">
                     Tentativa de envio processada
                   </p>
-                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
+                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] tabular-nums">
                     {formatDate(log.attemptedAt)} às {formatTime(log.attemptedAt)}
                   </p>
                 </div>
               )}
 
-              {/* Evento 3: Aceito pelo Provedor */}
               {log.acceptedAt && (
                 <div className="relative pl-4 pb-2">
-                  <div className="absolute -left-[9px] top-1 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white dark:border-[#1A1A1A]" />
+                  <div className="absolute -left-[6px] top-1 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white dark:border-[#1A1A1A]" />
                   <p className="font-semibold text-emerald-800 dark:text-emerald-300">
                     Aceito pelo servidor / provedor ({log.provider})
                   </p>
-                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
+                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] tabular-nums">
                     {formatDate(log.acceptedAt)} às {formatTime(log.acceptedAt)} — Submissão concluída com sucesso.
                   </p>
                 </div>
               )}
 
-              {/* Evento 4: Entrega Confirmada (Webhook) */}
               {log.deliveredAt && (
                 <div className="relative pl-4 pb-2">
-                  <div className="absolute -left-[9px] top-1 h-3 w-3 rounded-full bg-[var(--primary)] border-2 border-white dark:border-[#1A1A1A]" />
+                  <div className="absolute -left-[6px] top-1 h-3 w-3 rounded-full bg-[var(--primary)] border-2 border-white dark:border-[#1A1A1A]" />
                   <p className="font-semibold text-[var(--primary)]">
                     Entrega confirmada no destino (Webhook verificado)
                   </p>
-                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
+                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] tabular-nums">
                     {formatDate(log.deliveredAt)} às {formatTime(log.deliveredAt)}
                   </p>
                 </div>
               )}
 
-              {/* Evento 5: Falha */}
               {log.failedAt && (
                 <div className="relative pl-4 pb-2">
-                  <div className="absolute -left-[9px] top-1 h-3 w-3 rounded-full bg-red-500 border-2 border-white dark:border-[#1A1A1A]" />
+                  <div className="absolute -left-[6px] top-1 h-3 w-3 rounded-full bg-red-500 border-2 border-white dark:border-[#1A1A1A]" />
                   <p className="font-semibold text-red-700 dark:text-red-400">
                     Falha na entrega
                   </p>
-                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
+                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] tabular-nums">
                     {formatDate(log.failedAt)} às {formatTime(log.failedAt)}
                   </p>
                 </div>
@@ -388,7 +381,6 @@ export default function AdminMessageDetailPage({
             </div>
           </div>
 
-          {/* Erro Sanitizado (se houver) */}
           {log.errorDetails && (
             <div className="space-y-1.5 pt-2 border-t border-[#E5E5E5] dark:border-[#2C2C2C]">
               <span className="font-semibold text-red-700 dark:text-red-400 block">
@@ -401,7 +393,6 @@ export default function AdminMessageDetailPage({
             </div>
           )}
 
-          {/* Consulta Vinculada (se aplicável) */}
           {log.relatedAppointment && (
             <div className="space-y-2 pt-2 border-t border-[#E5E5E5] dark:border-[#2C2C2C]">
               <span className="font-semibold text-[#171717] dark:text-[#F5F5F5] block">
@@ -412,12 +403,12 @@ export default function AdminMessageDetailPage({
                   <p className="font-semibold text-[#171717] dark:text-[#F5F5F5]">
                     {log.relatedAppointment.patientName} — {log.relatedAppointment.serviceName}
                   </p>
-                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] mt-0.5">
+                  <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6] mt-0.5 tabular-nums">
                     Data da Consulta: {formatDate(log.relatedAppointment.startAt)} às {formatTime(log.relatedAppointment.startAt)} ({log.relatedAppointment.modality})
                   </p>
                 </div>
 
-                <Link href={`/admin/agenda`}>
+                <Link href="/admin/agenda">
                   <Button variant="outline" size="sm" className="text-xs gap-1 h-8">
                     <Calendar className="h-3 w-3" />
                     <span>Ver na Agenda</span>

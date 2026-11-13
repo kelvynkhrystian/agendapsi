@@ -218,8 +218,8 @@ export default function AdminPatientsPage() {
           </p>
         </div>
 
-        <Link href="/admin/pacientes/novo">
-          <Button className="gap-2">
+        <Link href="/admin/pacientes/novo" className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto gap-2">
             <Plus className="h-4 w-4" />
             <span>Cadastrar Paciente</span>
           </Button>
@@ -236,7 +236,7 @@ export default function AdminPatientsPage() {
 
       {/* Barra de Filtros e Busca */}
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-        <div className="max-w-md flex-1">
+        <div className="w-full sm:max-w-md flex-1">
           <Input
             placeholder="Buscar por nome, e-mail ou telefone..."
             leftIcon={<Search className="h-4 w-4" />}
@@ -245,7 +245,7 @@ export default function AdminPatientsPage() {
           />
         </div>
 
-        <div className="flex items-center gap-2 text-xs">
+        <div className="grid grid-cols-3 sm:flex items-center gap-1.5 sm:gap-2 text-xs w-full sm:w-auto">
           {[
             { id: "ACTIVE", label: "Ativos" },
             { id: "ARCHIVED", label: "Arquivados" },
@@ -255,7 +255,7 @@ export default function AdminPatientsPage() {
               key={tab.id}
               type="button"
               onClick={() => setStatusFilter(tab.id as typeof statusFilter)}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer select-none border ${
+              className={`px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-lg font-medium transition-colors cursor-pointer select-none border text-center ${
                 statusFilter === tab.id
                   ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] border-transparent shadow-xs"
                   : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border-[var(--primary)]/25 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:text-[#D0D0D0] dark:border-[#393939] dark:hover:bg-[#292929]"
@@ -275,15 +275,15 @@ export default function AdminPatientsPage() {
           ))}
         </div>
       ) : patients.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-5">
           {patients.map((patient) => (
             <div key={patient.id} className="relative group">
               <Link href={`/admin/pacientes/${patient.id}`}>
                 <Card className="hover:border-[var(--primary)] transition-all cursor-pointer h-full">
-                  <CardHeader className="flex flex-row items-start justify-between pb-3">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <CardTitle className="text-base font-bold">{patient.fullName}</CardTitle>
+                  <CardHeader className="flex flex-row items-start justify-between gap-2 pb-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                        <CardTitle className="text-base font-bold break-words">{patient.fullName}</CardTitle>
                         {patient.isMinor && (
                           <Badge variant="warning" className="text-[10px]">
                             Menor de Idade
@@ -300,13 +300,14 @@ export default function AdminPatientsPage() {
                       </CardDescription>
                     </div>
 
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 shrink-0">
                       {/* Botão de Excluir / Arquivar */}
                       <button
                         type="button"
                         onClick={(e) => handleOpenDeleteModal(e, patient)}
                         title="Excluir ou arquivar cliente"
-                        className="p-1.5 rounded-lg text-[#737373] dark:text-[#A6A6A6] hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
+                        aria-label="Excluir ou arquivar cliente"
+                        className="p-2 sm:p-1.5 rounded-lg text-[#737373] dark:text-[#A6A6A6] hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -317,7 +318,8 @@ export default function AdminPatientsPage() {
                           type="button"
                           onClick={(e) => handleRestorePatient(e, patient.id)}
                           title="Restaurar paciente ativo"
-                          className="p-1.5 rounded-lg text-[#737373] dark:text-[#A6A6A6] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors cursor-pointer"
+                          aria-label="Restaurar paciente ativo"
+                          className="p-2 sm:p-1.5 rounded-lg text-[#737373] dark:text-[#A6A6A6] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-colors cursor-pointer"
                         >
                           <RotateCcw className="h-4 w-4" />
                         </button>
@@ -329,12 +331,12 @@ export default function AdminPatientsPage() {
 
                   <CardContent className="space-y-2.5 pt-0 text-xs">
                     <div className="flex items-center gap-2 text-[#525252] dark:text-[#A6A6A6]">
-                      <Phone className="h-3.5 w-3.5 text-[var(--primary)]" />
+                      <Phone className="h-3.5 w-3.5 text-[var(--primary)] shrink-0" />
                       <span>{patient.phone}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-[#525252] dark:text-[#A6A6A6]">
-                      <Mail className="h-3.5 w-3.5 text-[var(--primary)]" />
-                      <span>{patient.email}</span>
+                    <div className="flex items-center gap-2 text-[#525252] dark:text-[#A6A6A6] min-w-0">
+                      <Mail className="h-3.5 w-3.5 text-[var(--primary)] shrink-0" />
+                      <span className="break-all">{patient.email}</span>
                     </div>
 
                     {patient.isMinor && patient.guardians.length > 0 && (
@@ -343,7 +345,7 @@ export default function AdminPatientsPage() {
                       </div>
                     )}
 
-                    <div className="flex items-center gap-4 pt-2.5 border-t border-[#E5E5E5] dark:border-[#333333] text-[11px] font-medium text-[#737373] dark:text-[#A6A6A6]">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-2.5 border-t border-[#E5E5E5] dark:border-[#333333] text-[11px] font-medium text-[#737373] dark:text-[#A6A6A6]">
                       <span>{patient._count.appointments} consulta(s)</span>
                       <span>{patient._count.clinicalRecords} nota(s) de prontuário</span>
                     </div>
@@ -404,7 +406,7 @@ export default function AdminPatientsPage() {
                   <div className="font-bold text-sm mt-0.5 text-[#171717] dark:text-[#F5F5F5]">{deletionInfo.dependencies.appointmentsCount}</div>
                 </div>
 
-                <div className="p-2.5 rounded-lg border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#1A1A1A]">
+                <div className="p-2.5 rounded-lg border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#1A1A1A] col-span-2 sm:col-span-1">
                   <div className="text-[#737373] dark:text-[#A6A6A6] text-[11px] flex items-center gap-1">
                     <DollarSign className="h-3 w-3" />
                     <span>Pagamentos</span>
@@ -427,13 +429,14 @@ export default function AdminPatientsPage() {
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-[#393939]">
+                  <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-end gap-2.5 sm:gap-3 pt-3 border-t border-slate-100 dark:border-[#393939]">
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       disabled={isProcessing}
                       onClick={() => setPatientToDelete(null)}
+                      className="w-full sm:w-auto"
                     >
                       Cancelar
                     </Button>
@@ -444,7 +447,7 @@ export default function AdminPatientsPage() {
                       size="sm"
                       isLoading={isProcessing}
                       onClick={() => handleConfirmAction("ARCHIVE")}
-                      className="gap-1.5"
+                      className="w-full sm:w-auto gap-1.5"
                     >
                       <Archive className="h-3.5 w-3.5" />
                       <span>Arquivar Paciente</span>
@@ -470,13 +473,14 @@ export default function AdminPatientsPage() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-[#393939]">
+                  <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-end gap-2.5 sm:gap-3 pt-3 border-t border-slate-100 dark:border-[#393939]">
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       disabled={isProcessing}
                       onClick={() => setPatientToDelete(null)}
+                      className="w-full sm:w-auto"
                     >
                       Cancelar
                     </Button>
@@ -488,10 +492,10 @@ export default function AdminPatientsPage() {
                       isLoading={isProcessing}
                       disabled={confirmationInput.trim() !== "EXCLUIR"}
                       onClick={() => handleConfirmAction("PERMANENT")}
-                      className="gap-1.5"
+                      className="w-full sm:w-auto gap-1.5"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
-                      <span>Excluir permanentemente</span>
+                      <span>Excluir</span>
                     </Button>
                   </div>
                 </div>

@@ -64,6 +64,7 @@ enum AnamnesisSubmissionStatus {
 enum NotificationChannel {
   EMAIL
   WHATSAPP
+  SMS
 }
 
 enum NotificationType {
@@ -108,6 +109,8 @@ model Patient {
   gender             String?
   address            String?
   emergencyContact   String?
+  smsOptIn           Boolean    @default(false)
+  smsOptInAt         DateTime?
   isActive           Boolean    @default(true)
   createdAt          DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
@@ -637,7 +640,7 @@ model SystemSettings {
   defaultBufferMinutes         Int                @default(10)
   defaultModality              Modality           @default(BOTH)
   defaultConfirmationPolicy    ConfirmationPolicy @default(AUTOMATIC)
-  activeVideoProvider          String             @default("JITSI")
+  activeVideoProvider          String             @default("PEERJS")
   jitsiDomain                  String   @default("meet.jit.si")
   enableOnlinePayment          Boolean  @default(true)
   enableInPersonPayment        Boolean  @default(true)
@@ -645,17 +648,49 @@ model SystemSettings {
   smtpHost                     String?
   smtpPort                     Int?
   smtpUser                     String?
-  smtpPass                     String?
+  smtpPass                     String?  @db.Text
   smtpFrom                     String?
   smtpEnabled                  Boolean  @default(false)
   smtpEncryption               String   @default("TLS")
   smtpSenderName               String?
+  emailMode                    String   @default("DEFAULT") // DEFAULT, CUSTOM
+  smtpReplyTo                  String?
+  emailHealthStatus            String   @default("NOT_CONFIGURED")
+  emailHealthMessage           String?  @db.Text
+  emailLastCheckedAt           DateTime?
+  emailLastTestedAt            DateTime?
+  emailDisabledRecoveryStrategy String  @default("ADMIN_ASSISTED") // ADMIN_ASSISTED, SMS
+  smsEnabled                   Boolean  @default(false)
+  smsProvider                  String   @default("TEXTBEE")
+  textbeeHostingMode           String   @default("CLOUD") // CLOUD, SELF_HOSTED
+  textbeeApiUrl                String?
+  textbeeApiKey                String?  @db.Text
+  textbeeDeviceId              String?
+  smsHealthStatus              String   @default("NOT_CONFIGURED")
+  smsHealthMessage             String?  @db.Text
+  smsLastCheckedAt             DateTime?
+  smsLastTestedAt              DateTime?
   whatsappApiUrl               String?
-  whatsappApiToken             String?
+  whatsappApiToken             String?  @db.Text
   whatsappEnabled              Boolean  @default(false)
   whatsappInstanceId           String?
-  whatsappProvider             String   @default("GENERIC")
+  whatsappProvider             String   @default("GENERIC") // META_OFFICIAL, OPENWA, GENERIC (legado)
   whatsappSenderNumber         String?
+  whatsappMetaPhoneNumberId    String?
+  whatsappMetaWabaId           String?
+  whatsappMetaAccessToken      String?  @db.Text
+  whatsappMetaVerifyToken      String?
+  whatsappMetaAppSecret        String?  @db.Text
+  whatsappMetaTemplateName     String?
+  whatsappMetaTemplateLanguage String   @default("pt_BR")
+  openWaApiUrl                 String?
+  openWaApiKey                 String?  @db.Text
+  openWaSessionId              String?  @default("default")
+  openWaConnectedNumber        String?
+  whatsappHealthStatus         String   @default("NOT_CONFIGURED")
+  whatsappHealthMessage        String?  @db.Text
+  whatsappLastCheckedAt        DateTime?
+  whatsappLastTestedAt         DateTime?
   googleMeetClientId           String?
   googleMeetClientSecret       String?
   googleMeetRefreshToken       String?  @db.Text

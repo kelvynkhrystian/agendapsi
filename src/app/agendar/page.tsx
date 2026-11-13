@@ -269,17 +269,17 @@ export default function BookingPage() {
   };
 
   return (
-    <div data-theme="light" className="min-h-screen flex flex-col justify-between bg-slate-50 text-slate-900 selection:bg-[var(--primary)] selection:text-white">
+    <div data-theme="light" className="min-h-[100dvh] flex flex-col justify-between bg-slate-50 text-slate-900 selection:bg-[var(--primary)] selection:text-white">
       {/* Header */}
       <header className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" aria-label="Voltar ao início" className="flex items-center gap-2 font-bold text-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/50 rounded-lg">
-            <Stethoscope className="h-6 w-6" />
-            <span>PSI Consultório</span>
+        <div className="max-w-4xl mx-auto px-3.5 sm:px-4 h-14 sm:h-16 flex items-center justify-between gap-3">
+          <Link href="/" aria-label="Voltar ao início" className="flex items-center gap-2 font-bold text-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/50 rounded-lg min-w-0">
+            <Stethoscope className="h-5 w-5 sm:h-6 sm:w-6 shrink-0" />
+            <span className="truncate text-sm sm:text-base">PSI Consultório</span>
           </Link>
 
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-xs text-slate-500 hover:text-[var(--primary)]">
+          <div className="flex items-center gap-4 shrink-0">
+            <Link href="/" className="text-xs text-slate-500 hover:text-[var(--primary)] whitespace-nowrap">
               Voltar ao Início
             </Link>
           </div>
@@ -287,29 +287,29 @@ export default function BookingPage() {
       </header>
 
       {/* Main Container */}
-      <main className="max-w-4xl mx-auto w-full p-4 sm:p-6 lg:p-8 flex-1">
+      <main className="max-w-4xl mx-auto w-full p-3.5 sm:p-6 lg:p-8 flex-1">
         {/* Progress Bar 3 Passos */}
-        <div className="mb-10 sm:mb-12">
-          <div className="flex items-center justify-between max-w-md mx-auto text-xs font-semibold text-[#737373]">
-            <div className={`flex items-center gap-2 ${step >= 1 ? "text-[var(--primary)] font-bold" : ""}`}>
-              <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 1 ? "bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] shadow-xs" : "bg-[#E5E5E5] text-slate-500"}`}>
+        <div className="mb-7 sm:mb-12">
+          <div className="flex items-center justify-between max-w-md mx-auto text-[11px] sm:text-xs font-semibold text-[#737373]">
+            <div className={`flex flex-col min-[440px]:flex-row items-center gap-1 min-[440px]:gap-2 text-center ${step >= 1 ? "text-[var(--primary)] font-bold" : ""}`}>
+              <span className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[11px] sm:text-xs font-bold shrink-0 ${step >= 1 ? "bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] shadow-xs" : "bg-[#E5E5E5] text-slate-500"}`}>
                 1
               </span>
-              <span>Serviço</span>
+              <span className="leading-tight">Serviço</span>
             </div>
-            <div className={`h-0.5 flex-1 mx-3 ${step >= 2 ? "bg-[var(--primary)]" : "bg-[#E5E5E5]"}`} />
-            <div className={`flex items-center gap-2 ${step >= 2 ? "text-[var(--primary)] font-bold" : ""}`}>
-              <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 2 ? "bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] shadow-xs" : "bg-[#E5E5E5] text-slate-500"}`}>
+            <div className={`h-0.5 flex-1 mx-1.5 sm:mx-3 ${step >= 2 ? "bg-[var(--primary)]" : "bg-[#E5E5E5]"}`} />
+            <div className={`flex flex-col min-[440px]:flex-row items-center gap-1 min-[440px]:gap-2 text-center ${step >= 2 ? "text-[var(--primary)] font-bold" : ""}`}>
+              <span className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[11px] sm:text-xs font-bold shrink-0 ${step >= 2 ? "bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] shadow-xs" : "bg-[#E5E5E5] text-slate-500"}`}>
                 2
               </span>
-              <span>Data e Horário</span>
+              <span className="leading-tight">Data e Horário</span>
             </div>
-            <div className={`h-0.5 flex-1 mx-3 ${step >= 3 ? "bg-[var(--primary)]" : "bg-[#E5E5E5]"}`} />
-            <div className={`flex items-center gap-2 ${step >= 3 ? "text-[var(--primary)] font-bold" : ""}`}>
-              <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${step >= 3 ? "bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] shadow-xs" : "bg-[#E5E5E5] text-slate-500"}`}>
+            <div className={`h-0.5 flex-1 mx-1.5 sm:mx-3 ${step >= 3 ? "bg-[var(--primary)]" : "bg-[#E5E5E5]"}`} />
+            <div className={`flex flex-col min-[440px]:flex-row items-center gap-1 min-[440px]:gap-2 text-center ${step >= 3 ? "text-[var(--primary)] font-bold" : ""}`}>
+              <span className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[11px] sm:text-xs font-bold shrink-0 ${step >= 3 ? "bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] shadow-xs" : "bg-[#E5E5E5] text-slate-500"}`}>
                 3
               </span>
-              <span>Identificação</span>
+              <span className="leading-tight">Identificação</span>
             </div>
           </div>
         </div>
@@ -320,8 +320,8 @@ export default function BookingPage() {
         {step === 1 && (
           <div className="space-y-6">
             <div className="text-center space-y-1">
-              <h1 className="text-2xl font-bold tracking-tight">Escolha o Tipo de Atendimento</h1>
-              <p className="text-sm text-slate-500">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Escolha o Tipo de Atendimento</h1>
+              <p className="text-xs sm:text-sm text-slate-500">
                 Selecione a modalidade e o procedimento desejado para visualizar a agenda disponível
               </p>
             </div>
@@ -333,8 +333,8 @@ export default function BookingPage() {
                   onClick={() => handleSelectService(service)}
                   className="hover:border-[var(--primary)] hover:shadow-md transition-all cursor-pointer border-slate-200 bg-white"
                 >
-                  <CardHeader className="flex flex-row items-start justify-between pb-2">
-                    <div>
+                  <CardHeader className="flex flex-col min-[380px]:flex-row items-start justify-between gap-2 pb-2 p-4 sm:p-6">
+                    <div className="min-w-0">
                       <CardTitle className="text-base">{service.name}</CardTitle>
                       <CardDescription className="text-xs line-clamp-2 mt-1">
                         {service.description || "Atendimento clínico especializado"}
@@ -344,7 +344,7 @@ export default function BookingPage() {
                       {service.isFree ? "Gratuito" : formatBRL(service.priceCents)}
                     </span>
                   </CardHeader>
-                  <CardContent className="pt-0 text-xs text-slate-500 flex items-center justify-between">
+                  <CardContent className="p-4 sm:p-6 pt-0 text-xs text-slate-500 flex flex-wrap items-center justify-between gap-2">
                     <span className="flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5 text-slate-400" />
                       {service.durationMinutes} minutos
@@ -363,14 +363,14 @@ export default function BookingPage() {
         {/* ETAPA 2: DATA E HORÁRIO */}
         {step === 2 && selectedService && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">Escolha o Dia e o Horário</h1>
-                <p className="text-xs text-slate-500 mt-0.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="min-w-0">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Escolha o Dia e o Horário</h1>
+                <p className="text-xs text-slate-500 mt-0.5 break-words">
                   Serviço selecionado: <strong>{selectedService.name}</strong> ({selectedService.durationMinutes} min)
                 </p>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => setStep(1)} className="text-xs gap-1">
+              <Button variant="ghost" size="sm" onClick={() => setStep(1)} className="text-xs gap-1 self-start sm:self-auto shrink-0">
                 <ArrowLeft className="h-3.5 w-3.5" />
                 <span>Trocar Serviço</span>
               </Button>
@@ -439,7 +439,7 @@ export default function BookingPage() {
                       Verificando disponibilidade da agenda...
                     </div>
                   ) : slots.length > 0 ? (
-                    <div className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto p-1">
+                    <div className="grid grid-cols-2 min-[380px]:grid-cols-3 gap-2 max-h-60 overflow-y-auto p-1">
                       {slots.map((slot, i) => (
                         <button
                           key={i}
@@ -467,7 +467,7 @@ export default function BookingPage() {
 
                   {selectedSlot && (
                     <div className="mt-4 pt-4 border-t border-slate-100 flex justify-end">
-                      <Button onClick={handleProceedToStep3} isLoading={isLoading} className="gap-1.5 text-xs">
+                      <Button onClick={handleProceedToStep3} isLoading={isLoading} className="w-full sm:w-auto gap-1.5 text-xs">
                         <span>Avançar para Identificação</span>
                         <ArrowRight className="h-3.5 w-3.5" />
                       </Button>
@@ -478,7 +478,7 @@ export default function BookingPage() {
             </div>
 
             {/* Opção Alternativa: Solicitação WhatsApp */}
-            <div className="p-5 sm:p-6 rounded-2xl bg-amber-50/70 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
+            <div className="p-4 sm:p-6 rounded-2xl bg-amber-50/70 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
               <div className="space-y-1">
                 <span className="font-semibold text-amber-900">
                   Prefere tirar dúvidas antes de reservar?
@@ -492,7 +492,7 @@ export default function BookingPage() {
                 size="sm"
                 onClick={handleWhatsAppInquiry}
                 disabled={!selectedSlot}
-                className="shrink-0 gap-2 text-xs border-amber-300 text-amber-900 bg-white hover:bg-amber-100/50 h-9 min-h-[36px]"
+                className="w-full sm:w-auto shrink-0 gap-2 text-xs border-amber-300 text-amber-900 bg-white hover:bg-amber-100/50 h-9 min-h-[36px]"
               >
                 <MessageSquare className="h-4 w-4" />
                 <span>Solicitar via WhatsApp</span>
@@ -504,14 +504,14 @@ export default function BookingPage() {
         {/* ETAPA 3: IDENTIFICAÇÃO E PAGAMENTO */}
         {step === 3 && selectedService && selectedSlot && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">Finalizar Agendamento</h1>
-                <p className="text-xs text-slate-500 mt-0.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="min-w-0">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Finalizar Agendamento</h1>
+                <p className="text-xs text-slate-500 mt-0.5 break-words">
                   {selectedService.name} • {formatDate(selectedDate)} às {selectedSlot.formattedTime} ({selectedModality})
                 </p>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => setStep(2)} className="text-xs gap-1">
+              <Button variant="ghost" size="sm" onClick={() => setStep(2)} className="text-xs gap-1 self-start sm:self-auto shrink-0">
                 <ArrowLeft className="h-3.5 w-3.5" />
                 <span>Alterar Horário</span>
               </Button>
@@ -527,19 +527,19 @@ export default function BookingPage() {
                   {currentUser ? (
                     <div className="p-4 bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-xl space-y-2 text-xs">
                       <div className="flex items-center gap-2 text-[var(--primary)] font-semibold">
-                        <CheckCircle2 className="h-4 w-4" />
+                        <CheckCircle2 className="h-4 w-4 shrink-0" />
                         <span>Identificado com sucesso</span>
                       </div>
-                      <p>Paciente: <strong>{currentUser.fullName}</strong></p>
-                      <p>E-mail: <strong>{currentUser.email}</strong></p>
+                      <p className="break-words">Paciente: <strong>{currentUser.fullName}</strong></p>
+                      <p className="break-all">E-mail: <strong>{currentUser.email}</strong></p>
                     </div>
                   ) : (
                     <div className="space-y-4 text-xs">
-                      <div className="flex gap-2 p-1 bg-[#F8F8F8] border border-[#E5E5E5] rounded-xl">
+                      <div className="grid grid-cols-2 gap-2 p-1 bg-[#F8F8F8] border border-[#E5E5E5] rounded-xl">
                         <button
                           type="button"
                           onClick={() => setAuthMode("login")}
-                          className={`flex-1 py-2 px-3 rounded-lg font-semibold transition-all cursor-pointer ${
+                          className={`py-2 px-3 rounded-lg font-semibold transition-all cursor-pointer ${
                             authMode === "login"
                               ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-xs"
                               : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45"
@@ -550,7 +550,7 @@ export default function BookingPage() {
                         <button
                           type="button"
                           onClick={() => setAuthMode("register")}
-                          className={`flex-1 py-2 px-3 rounded-lg font-semibold transition-all cursor-pointer ${
+                          className={`py-2 px-3 rounded-lg font-semibold transition-all cursor-pointer ${
                             authMode === "register"
                               ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-xs"
                               : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45"
@@ -610,15 +610,15 @@ export default function BookingPage() {
                 </CardHeader>
                 <CardContent className="space-y-4 text-xs">
                   <div className="p-3 bg-slate-50 rounded-xl space-y-1.5">
-                    <div className="flex justify-between">
+                    <div className="flex justify-between gap-2">
                       <span className="text-slate-500">Valor da Sessão:</span>
                       <span className="font-bold text-sm text-[var(--primary)]">
                         {selectedService.isFree ? "Gratuito" : formatBRL(selectedService.priceCents)}
                       </span>
                     </div>
-                    <div className="flex justify-between text-slate-500">
+                    <div className="flex justify-between gap-2 text-slate-500">
                       <span>Tempo de Reserva Segura:</span>
-                      <span>60 minutos garantidos</span>
+                      <span className="text-right">60 minutos garantidos</span>
                     </div>
                   </div>
 
@@ -626,13 +626,13 @@ export default function BookingPage() {
                     <div className="space-y-2">
                       <label className="block font-semibold">Forma de Pagamento:</label>
                       <div className="space-y-2">
-                        <label className="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50/80">
+                        <label className="flex items-start gap-2.5 p-2.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50/80">
                           <input
                             type="radio"
                             name="paymentMethod"
                             checked={paymentMethod === "ONLINE_SIMULATED"}
                             onChange={() => setPaymentMethod("ONLINE_SIMULATED")}
-                            className="accent-[var(--primary)]"
+                            className="mt-0.5 accent-[var(--primary)] shrink-0"
                           />
                           <div>
                             <div className="font-semibold">Pagamento Online (Cartão / Pix Simulado)</div>
@@ -642,13 +642,13 @@ export default function BookingPage() {
                           </div>
                         </label>
 
-                        <label className="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50/80">
+                        <label className="flex items-start gap-2.5 p-2.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50/80">
                           <input
                             type="radio"
                             name="paymentMethod"
                             checked={paymentMethod === "IN_PERSON"}
                             onChange={() => setPaymentMethod("IN_PERSON")}
-                            className="accent-[var(--primary)]"
+                            className="mt-0.5 accent-[var(--primary)] shrink-0"
                           />
                           <div>
                             <div className="font-semibold">Pagamento Presencial no Consultório</div>

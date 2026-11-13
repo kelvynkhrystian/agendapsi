@@ -95,6 +95,16 @@ test("Modal Progresso Backup & Limpeza Mídias — 1. Contratos UI/API pt-BR, To
     assert.ok(page.includes(requiredText), `admin/arquivos/page.tsx deve conter '${requiredText}'`);
   }
 
+  // Ordem e posicionamento dos 4 botões abaixo da descrição do cabeçalho
+  const descIdx = page.indexOf("mídias do Site.");
+  const idxAtualizar = page.indexOf("Atualizar</span>", descIdx);
+  const idxLimpar = page.indexOf("Limpar Mídias Não Utilizadas</span>", descIdx);
+  const idxImportar = page.indexOf("Importar Backup</span>", descIdx);
+  const idxGerar = page.indexOf("Gerar Novo Backup</span>", descIdx);
+  assert.ok(descIdx > -1 && idxAtualizar > descIdx);
+  assert.ok(idxAtualizar < idxLimpar && idxLimpar < idxImportar && idxImportar < idxGerar);
+  assert.ok(page.includes('role="toolbar"'));
+
   // Tema Check: sem classes teal estáticas ou tons slate proibidos
   assert.equal(/\bteal-[0-9]+/.test(page), false);
 

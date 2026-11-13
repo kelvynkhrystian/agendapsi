@@ -98,8 +98,8 @@ export default function PatientFinancePage() {
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Pagamentos & Pacotes</h1>
-        <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Pagamentos & Pacotes</h1>
+        <p className="text-xs sm:text-sm text-[#737373] dark:text-[#A6A6A6]">
           Consulte seus pagamentos e avalie propostas de pacotes de sessões.
         </p>
       </div>
@@ -117,14 +117,14 @@ export default function PatientFinancePage() {
           <div className="grid grid-cols-1 gap-4">
             {pendingProposals.map((pkg) => (
               <Card key={pkg.id} className="border-[var(--primary)]/60 dark:border-[#393939] shadow-md">
-                <CardHeader className="flex flex-row items-start justify-between pb-2">
-                  <div>
-                    <CardTitle className="text-lg font-bold">{pkg.title}</CardTitle>
+                <CardHeader className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 pb-2">
+                  <div className="min-w-0">
+                    <CardTitle className="text-base sm:text-lg font-bold break-words">{pkg.title}</CardTitle>
                     <CardDescription className="text-xs mt-1">
                       {pkg.description || "Pacote de sessões terapêuticas personalizadas"}
                     </CardDescription>
                   </div>
-                  <span className="text-xl font-extrabold text-[var(--primary)] dark:text-[#F5F5F5]">
+                  <span className="text-lg sm:text-xl font-extrabold text-[var(--primary)] dark:text-[#F5F5F5] shrink-0">
                     {formatBRL(pkg.totalPriceCents)}
                   </span>
                 </CardHeader>
@@ -184,9 +184,9 @@ export default function PatientFinancePage() {
           ) : payments.length > 0 ? (
             <div className="divide-y divide-[#E5E5E5] dark:divide-[#393939]">
               {payments.map((p) => (
-                <div key={p.id} className="p-4 flex items-center justify-between text-xs">
-                  <div>
-                    <span className="font-bold text-sm block text-[#171717] dark:text-[#F5F5F5]">
+                <div key={p.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                  <div className="min-w-0">
+                    <span className="font-bold text-sm block text-[#171717] dark:text-[#F5F5F5] truncate">
                       {p.appointment ? p.appointment.service.name : p.package ? p.package.title : "Consulta"}
                     </span>
                     <span className="text-[#737373] dark:text-[#A6A6A6]">
@@ -194,7 +194,7 @@ export default function PatientFinancePage() {
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
                     <span className="font-bold text-sm font-mono text-[#171717] dark:text-[#F5F5F5]">
                       {formatBRL(p.amountCents)}
                     </span>

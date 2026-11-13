@@ -11,6 +11,7 @@ import {
   RefreshCw,
   AlertTriangle,
   User,
+  SwitchCamera,
 } from "pulsoicon-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -56,6 +57,9 @@ export default function PeerJsRoom({
 
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+  const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
+  const [isSwitchingCamera, setIsSwitchingCamera] = useState(false);
+  const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
 
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -67,6 +71,22 @@ export default function PeerJsRoom({
 
   const otherPersonName =
     config.role === "doctor" ? patientName : professionalName;
+
+  // Verifica dispositivos disponíveis (múltiplas câmeras no mobile/tablet)
+  useEffect(() => {
+    async function checkDevices() {
+      try {
+        if (navigator?.mediaDevices?.enumerateDevices) {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const videoInputs = devices.filter((d) => d.kind === "videoinput");
+          setHasMultipleCameras(videoInputs.length > 1);
+        }
+      } catch {
+        // Ignora falha de enumeração prévia
+      }
+    }
+    checkDevices();
+  }, []);
 
   // 1. Inicializa Stream local e conexão com o servidor de sinalização
   useEffect(() => {
@@ -91,11 +111,22 @@ export default function PeerJsRoom({
               noiseSuppression: true,
             },
           });
-        } catch (mediaErr: unknown) {
+        } catch (mediaErr: any) {
           console.error("Erro ao obter mídia local:", mediaErr);
-          setErrorMessage(
-            "Permissão de câmera ou microfone negada. Verifique as configurações de privacidade do seu navegador."
-          );
+          const errName = mediaErr?.name || "";
+          if (errName === "NotAllowedError" || errName === "PermissionDeniedError") {
+            setErrorMessage(
+              "Permissão de câmera ou microfone negada. Clique no ícone de permissão na barra de endereços para liberar o acesso aos dispositivos."
+            );
+          } else if (errName === "NotFoundError" || errName === "DevicesNotFoundError") {
+            setErrorMessage("Nenhum microfone ou câmera compatível foi detectado neste dispositivo.");
+          } else if (errName === "NotReadableError" || errName === "TrackStartError") {
+            setErrorMessage("Sua câmera ou microfone está sendo utilizado por outro aplicativo.");
+          } else {
+            setErrorMessage(
+              "Não foi possível acessar a câmera e microfone. Verifique as configurações de privacidade do navegador."
+            );
+          }
           setStatus("ERROR");
           return;
         }
@@ -131,15 +162,20 @@ export default function PeerJsRoom({
           });
         }
 
-        const peer = new Peer(config.peerId, {
-          host: config.host,
-          port: Number(config.port),
-          path: config.path || "/peerjs",
-          secure: Boolean(config.secure),
+        const isCloud = !config.host || config.host === "0.peerjs.com";
+        const peerOptions: any = {
           config: {
             iceServers,
           },
-        });
+        };
+        if (!isCloud) {
+          peerOptions.host = config.host;
+          peerOptions.port = Number(config.port) || 9000;
+          peerOptions.path = config.path || "/peerjs";
+          peerOptions.secure = config.secure ?? false;
+        }
+
+        const peer = new Peer(config.peerId, peerOptions);
 
         peerInstanceRef.current = peer;
 
@@ -147,7 +183,7 @@ export default function PeerJsRoom({
           if (!isMounted) return;
           console.log(`[PSI WebRTC] Peer aberto com ID: ${config.peerId}`);
           setStatus("WAITING");
-          setStatusMessage(`Aguardando ${otherPersonName} entrar na sala...`);
+          setStatusMessage(`Sinalização disponível. Aguardando ${otherPersonName} entrar na sala...`);
           // Tenta chamar imediatamente
           tryCallTargetPeer();
         });
@@ -165,7 +201,7 @@ export default function PeerJsRoom({
               remoteVideoRef.current.srcObject = remoteStream;
             }
             setStatus("CONNECTED");
-            setStatusMessage("Conexão P2P estabelecida!");
+            setStatusMessage("Chamada conectada!");
           });
 
           incomingCall.on("close", () => {
@@ -179,7 +215,7 @@ export default function PeerJsRoom({
           });
 
           incomingCall.on("error", (err: unknown) => {
-            console.error("[PSI WebRTC] Erro na chamada:", err);
+            console.error("[PSI WebRTC] Falha na conexão de mídia:", err);
           });
 
           activeCallRef.current = incomingCall;
@@ -191,13 +227,19 @@ export default function PeerJsRoom({
           if (err.type === "peer-unavailable") {
             // A outra ponta ainda não conectou no servidor de sinalização
             setStatus("WAITING");
-            setStatusMessage(`Aguardando ${otherPersonName} entrar na sala...`);
+            setStatusMessage(`Sinalização disponível. Aguardando ${otherPersonName} entrar na sala...`);
           } else if (err.type === "unavailable-id") {
             // Sessão com ID duplicado ou já em uso
             setStatus("WAITING");
             setStatusMessage("Reestabelecendo identificador da sala...");
+          } else if (err.type === "network" || err.type === "disconnected") {
+            setErrorMessage("Sinalização indisponível. Falha de rede ou conexão interrompida.");
+            setStatus("ERROR");
+          } else if (err.type === "server-error" || err.type === "socket-error") {
+            setErrorMessage("Sinalização indisponível. Serviço temporariamente indisponível.");
+            setStatus("ERROR");
           } else {
-            setErrorMessage(`Erro de sinalização WebRTC: ${err.message || err.type}`);
+            setErrorMessage(`Falha na conexão de sinalização: ${err.message || err.type}`);
             setStatus("ERROR");
           }
         });
@@ -293,6 +335,50 @@ export default function PeerJsRoom({
     }
   };
 
+  // Alterna câmera no mobile ou dispositivos com múltiplas câmeras
+  const handleSwitchCamera = async () => {
+    if (isSwitchingCamera || !localStreamRef.current) return;
+    setIsSwitchingCamera(true);
+    try {
+      const nextFacingMode = facingMode === "user" ? "environment" : "user";
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: nextFacingMode,
+        },
+      });
+      const newVideoTrack = newStream.getVideoTracks()[0];
+      if (newVideoTrack) {
+        const oldVideoTrack = localStreamRef.current.getVideoTracks()[0];
+        if (oldVideoTrack) {
+          oldVideoTrack.stop();
+          localStreamRef.current.removeTrack(oldVideoTrack);
+        }
+        localStreamRef.current.addTrack(newVideoTrack);
+        newVideoTrack.enabled = isVideoEnabled;
+
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = localStreamRef.current;
+        }
+
+        if (activeCallRef.current?.peerConnection) {
+          const senders = activeCallRef.current.peerConnection.getSenders();
+          const videoSender = senders.find((s: any) => s.track && s.track.kind === "video");
+          if (videoSender) {
+            await videoSender.replaceTrack(newVideoTrack);
+          }
+        }
+
+        setFacingMode(nextFacingMode);
+      }
+    } catch (err) {
+      console.warn("[PSI WebRTC] Falha ao alternar câmera:", err);
+    } finally {
+      setIsSwitchingCamera(false);
+    }
+  };
+
   // Encerramento da chamada
   const handleHangup = () => {
     if (retryIntervalRef.current) clearInterval(retryIntervalRef.current);
@@ -305,9 +391,9 @@ export default function PeerJsRoom({
   };
 
   return (
-    <div className="w-full h-[82vh] rounded-2xl overflow-hidden border border-[#E5E5E5] dark:border-[#2C2C2C] shadow-2xl bg-[#0C0C0C] relative flex flex-col">
+    <div className="w-full h-[76dvh] sm:h-[82vh] rounded-2xl overflow-hidden border border-[#E5E5E5] dark:border-[#2C2C2C] shadow-2xl bg-[#0C0C0C] relative flex flex-col">
       {/* Top Bar com Status */}
-      <div className="absolute top-0 left-0 right-0 z-20 p-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent flex items-center justify-between text-white">
+      <div className="absolute top-0 left-0 right-0 z-20 p-2.5 sm:p-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent flex flex-wrap items-center justify-between gap-2 text-white">
         <div className="flex items-center gap-2">
           <Badge
             variant={
@@ -398,7 +484,7 @@ export default function PeerJsRoom({
         )}
 
         {/* Local Self-View PiP (Picture in Picture) */}
-        <div className="absolute bottom-20 right-4 z-20 w-32 h-24 sm:w-48 sm:h-36 rounded-xl overflow-hidden border-2 border-[var(--primary)]/60 shadow-xl bg-[#141414]">
+        <div className="absolute bottom-16 sm:bottom-20 right-3 sm:right-4 z-20 w-28 h-20 sm:w-48 sm:h-36 rounded-xl overflow-hidden border-2 border-[var(--primary)]/60 shadow-xl bg-[#141414]">
           <video
             ref={localVideoRef}
             autoPlay
@@ -410,24 +496,24 @@ export default function PeerJsRoom({
           />
           {!isVideoEnabled && (
             <div className="absolute inset-0 flex items-center justify-center bg-[#1A1A1A] text-[#A6A6A6]">
-              <VideoOff className="h-6 w-6" />
+              <VideoOff className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
           )}
-          <div className="absolute bottom-1 left-2 text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded backdrop-blur-sm">
+          <div className="absolute bottom-1 left-1.5 sm:left-2 text-[9px] sm:text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded backdrop-blur-sm">
             Você ({isAudioEnabled ? "Áudio ativo" : "Mudo"})
           </div>
         </div>
       </div>
 
       {/* Bottom Controls Bar */}
-      <div className="p-3 bg-[#141414] border-t border-[#2C2C2C] flex items-center justify-between z-20">
-        <div className="flex items-center gap-2">
+      <div className="p-2.5 sm:p-3 bg-[#141414] border-t border-[#2C2C2C] flex items-center justify-between gap-2 z-20">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Microfone */}
           <Button
             size="sm"
             variant={isAudioEnabled ? "outline" : "destructive"}
             onClick={toggleAudio}
-            className={`h-9 px-3 gap-2 text-xs rounded-full ${
+            className={`h-9 px-2.5 sm:px-3 gap-2 text-xs rounded-full ${
               isAudioEnabled ? "!bg-[#202020] !border-[#393939] !text-white hover:!bg-[#292929]" : ""
             }`}
           >
@@ -440,12 +526,25 @@ export default function PeerJsRoom({
             size="sm"
             variant={isVideoEnabled ? "outline" : "destructive"}
             onClick={toggleVideo}
-            className={`h-9 px-3 gap-2 text-xs rounded-full ${
+            className={`h-9 px-2.5 sm:px-3 gap-2 text-xs rounded-full ${
               isVideoEnabled ? "!bg-[#202020] !border-[#393939] !text-white hover:!bg-[#292929]" : ""
             }`}
           >
             {isVideoEnabled ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
             <span className="hidden sm:inline">{isVideoEnabled ? "Desligar Câmera" : "Ligar Câmera"}</span>
+          </Button>
+
+          {/* Alternar Câmera (Mobile / Múltiplas Câmeras) */}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleSwitchCamera}
+            disabled={isSwitchingCamera || !isVideoEnabled}
+            title="Alternar Câmera Frontal / Traseira"
+            className="h-9 px-2.5 sm:px-3 gap-1.5 text-xs rounded-full !bg-[#202020] !border-[#393939] !text-white hover:!bg-[#292929] cursor-pointer"
+          >
+            <SwitchCamera className={`h-4 w-4 ${isSwitchingCamera ? "animate-spin" : ""}`} />
+            <span className="hidden md:inline">Alternar Câmera</span>
           </Button>
         </div>
 
@@ -454,7 +553,7 @@ export default function PeerJsRoom({
           variant="destructive"
           size="sm"
           onClick={handleHangup}
-          className="h-9 px-4 gap-2 text-xs rounded-full bg-red-600 hover:bg-red-700 text-white font-medium"
+          className="h-9 px-3 sm:px-4 gap-2 text-xs rounded-full bg-red-600 hover:bg-red-700 text-white font-medium shrink-0"
         >
           <PhoneOff className="h-4 w-4" />
           <span>Sair da Chamada</span>

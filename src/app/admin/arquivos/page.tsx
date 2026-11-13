@@ -834,26 +834,30 @@ export default function AdminStoragePage() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto w-full">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
+      <div className="space-y-4">
+        <div className="space-y-1">
+          <h1 className="font-heading text-xl sm:text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
             Backup & Armazenamento
           </h1>
-          <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">
+          <p className="text-xs sm:text-sm text-[#737373] dark:text-[#A6A6A6]">
             Geração, importação e restauração controlada de pacotes portáteis em .zip com banco de dados, documentos privados e mídias do Site.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div
+          className="flex flex-wrap lg:flex-nowrap items-center gap-2 sm:gap-2.5"
+          role="toolbar"
+          aria-label="Ações de backup e armazenamento"
+        >
           <Button
             variant="outline"
             size="sm"
             onClick={() => fetchData()}
             disabled={isLoading || isBackupProcessActive || isExecutingRestore || isExecutingCleanup}
-            className="gap-1.5 text-xs"
+            className="gap-1.5 text-xs flex-1 sm:flex-none whitespace-nowrap shrink-0"
             title="Atualizar listagem de backups e armazenamento"
           >
-            <RefreshCw className="h-3.5 w-3.5" />
+            <RefreshCw className="h-3.5 w-3.5 shrink-0" />
             <span>Atualizar</span>
           </Button>
           <Button
@@ -867,10 +871,10 @@ export default function AdminStoragePage() {
               mediaCleanupInProgress ||
               isExecutingCleanup
             }
-            className="gap-1.5 text-xs"
+            className="gap-1.5 text-xs flex-1 sm:flex-none whitespace-nowrap shrink-0"
             title="Analisar e remover mídias antigas do Site que não estão mais em uso"
           >
-            <Trash2 className="h-3.5 w-3.5" />
+            <Trash2 className="h-3.5 w-3.5 shrink-0" />
             <span>Limpar Mídias Não Utilizadas</span>
           </Button>
           <Button
@@ -878,12 +882,14 @@ export default function AdminStoragePage() {
             size="sm"
             onClick={openImportModal}
             disabled={restoreInProgress || isBackupProcessActive || isExecutingRestore || isExecutingCleanup}
-            className="gap-1.5 text-xs"
+            className="gap-1.5 text-xs flex-1 sm:flex-none whitespace-nowrap shrink-0"
           >
-            <Upload className="h-3.5 w-3.5" />
+            <Upload className="h-3.5 w-3.5 shrink-0" />
             <span>Importar Backup</span>
           </Button>
           <Button
+            variant="primary"
+            size="sm"
             onClick={handleGenerateBackup}
             isLoading={isBackupProcessActive}
             disabled={
@@ -893,9 +899,9 @@ export default function AdminStoragePage() {
               mediaCleanupInProgress ||
               isExecutingCleanup
             }
-            className="gap-1.5 text-xs"
+            className="gap-1.5 text-xs flex-1 sm:flex-none whitespace-nowrap shrink-0"
           >
-            {!isBackupProcessActive && <Database className="h-3.5 w-3.5" />}
+            {!isBackupProcessActive && <Database className="h-3.5 w-3.5 shrink-0" />}
             <span>Gerar Novo Backup</span>
           </Button>
         </div>
@@ -920,53 +926,53 @@ export default function AdminStoragePage() {
       )}
 
       {/* Cards de Métricas de Armazenamento */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-[#737373] dark:text-[#A6A6A6]">
+          <CardHeader className="flex flex-row items-center justify-between gap-1.5 p-3.5 sm:p-6 pb-1.5 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium text-[#737373] dark:text-[#A6A6A6]">
               Total de Arquivos
             </CardTitle>
-            <FolderLock className="h-4 w-4 text-[var(--primary)]" />
+            <FolderLock className="h-4 w-4 text-[var(--primary)] shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold tabular-nums text-[#171717] dark:text-[#F5F5F5]">
+          <CardContent className="p-3.5 sm:p-6 pt-0 sm:pt-0">
+            <div className="text-xl sm:text-2xl font-bold tabular-nums text-[#171717] dark:text-[#F5F5F5]">
               {storageStats.fileCount}
             </div>
-            <p className="text-xs text-[#737373] dark:text-[#A6A6A6] mt-1">
+            <p className="text-[11px] sm:text-xs text-[#737373] dark:text-[#A6A6A6] mt-1">
               {privateCount} doc(s) privados • {mediaCount} mídia(s) e ícones do Site
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-[#737373] dark:text-[#A6A6A6]">
+          <CardHeader className="flex flex-row items-center justify-between gap-1.5 p-3.5 sm:p-6 pb-1.5 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium text-[#737373] dark:text-[#A6A6A6]">
               Espaço Ocupado
             </CardTitle>
-            <HardDrive className="h-4 w-4 text-[var(--primary)]" />
+            <HardDrive className="h-4 w-4 text-[var(--primary)] shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold tabular-nums text-[#171717] dark:text-[#F5F5F5]">
+          <CardContent className="p-3.5 sm:p-6 pt-0 sm:pt-0">
+            <div className="text-xl sm:text-2xl font-bold tabular-nums text-[#171717] dark:text-[#F5F5F5]">
               {formatBytesHuman(storageStats.totalBytes)}
             </div>
-            <p className="text-xs text-[#737373] dark:text-[#A6A6A6] mt-1">
+            <p className="text-[11px] sm:text-xs text-[#737373] dark:text-[#A6A6A6] mt-1">
               Dados persistentes em armazenamento privado e mídias
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-[#737373] dark:text-[#A6A6A6]">
+        <Card className="col-span-2 sm:col-span-1">
+          <CardHeader className="flex flex-row items-center justify-between gap-1.5 p-3.5 sm:p-6 pb-1.5 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium text-[#737373] dark:text-[#A6A6A6]">
               Backups Registrados
             </CardTitle>
-            <Archive className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            <Archive className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold tabular-nums text-[#171717] dark:text-[#F5F5F5]">
+          <CardContent className="p-3.5 sm:p-6 pt-0 sm:pt-0">
+            <div className="text-xl sm:text-2xl font-bold tabular-nums text-[#171717] dark:text-[#F5F5F5]">
               {backups.length}
             </div>
-            <p className="text-xs text-[#737373] dark:text-[#A6A6A6] mt-1">
+            <p className="text-[11px] sm:text-xs text-[#737373] dark:text-[#A6A6A6] mt-1">
               Armazenados fora da pasta pública com hash SHA-256
             </p>
           </CardContent>
@@ -1057,21 +1063,21 @@ export default function AdminStoragePage() {
                       )}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    <div className="grid grid-cols-3 sm:flex sm:flex-wrap items-stretch sm:items-center gap-2 w-full lg:w-auto shrink-0">
                       {b.fileExists ? (
                         <a
                           href={`/api/admin/backup/${encodeURIComponent(b.id)}/download`}
                           download={b.filename}
                           title="Baixar Backup"
                           aria-label={`Baixar Backup ${b.filename}`}
-                          className="inline-flex items-center justify-center gap-1.5 font-heading font-semibold text-xs px-3.5 py-1.5 min-h-[36px] rounded-xl border border-[var(--primary)]/30 dark:border-[#333333] bg-[var(--button-outline-bg,#ffffff)] dark:bg-[#1E1E1E] hover:border-[var(--primary)]/60 hover:bg-[var(--primary)]/[0.04] dark:hover:bg-[#262626] text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] dark:text-[#F5F5F5] transition-all shadow-2xs"
+                          className="inline-flex items-center justify-center gap-1.5 font-heading font-semibold text-xs px-2 sm:px-3.5 py-1.5 min-h-[36px] rounded-xl border border-[var(--primary)]/30 dark:border-[#333333] bg-[var(--button-outline-bg,#ffffff)] dark:bg-[#1E1E1E] hover:border-[var(--primary)]/60 hover:bg-[var(--primary)]/[0.04] dark:hover:bg-[#262626] text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] dark:text-[#F5F5F5] transition-all shadow-2xs"
                         >
-                          <Download className="h-3.5 w-3.5" />
+                          <Download className="h-3.5 w-3.5 shrink-0" />
                           <span>Baixar</span>
                         </a>
                       ) : (
-                        <Button variant="outline" size="sm" disabled title="Arquivo ausente em disco">
-                          <Download className="h-3.5 w-3.5" />
+                        <Button variant="outline" size="sm" disabled title="Arquivo ausente em disco" className="px-2 sm:px-3.5">
+                          <Download className="h-3.5 w-3.5 shrink-0" />
                           <span>Baixar</span>
                         </Button>
                       )}
@@ -1088,9 +1094,9 @@ export default function AdminStoragePage() {
                             : "Validar e iniciar restauração controlada deste backup")
                         }
                         aria-label={`Restaurar backup ${b.filename}`}
-                        className="text-xs"
+                        className="text-xs px-2 sm:px-3.5"
                       >
-                        <RotateCcw className="h-3.5 w-3.5" />
+                        <RotateCcw className="h-3.5 w-3.5 shrink-0" />
                         <span>Restaurar</span>
                       </Button>
 
@@ -1107,10 +1113,10 @@ export default function AdminStoragePage() {
                           b.status === "RESTORING" ||
                           isExecutingRestore
                         }
-                        className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 dark:text-red-400 dark:border-red-500/30 dark:hover:bg-red-950/30 text-xs"
+                        className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 dark:text-red-400 dark:border-red-500/30 dark:hover:bg-red-950/30 text-xs px-2 sm:px-3.5"
                         aria-label={`Excluir backup ${b.filename}`}
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="h-3.5 w-3.5 shrink-0" />
                         <span>Excluir</span>
                       </Button>
                     </div>
@@ -1149,7 +1155,7 @@ export default function AdminStoragePage() {
         description="Envie um pacote .zip completo gerado anteriormente pelo PSI para validar sua integridade e compatibilidade."
         maxWidth="lg"
       >
-        <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
+        <div className="space-y-4">
           {!importedSummary ? (
             <form onSubmit={handleUploadImport} className="space-y-4">
               {importError && <Alert variant="destructive">{importError}</Alert>}
@@ -1192,12 +1198,13 @@ export default function AdminStoragePage() {
                 )}
               </div>
 
-              <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2">
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center sm:justify-end gap-2.5 pt-2 w-full">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={closeImportModal}
                   disabled={isImportingBackup}
+                  className="w-full sm:w-auto"
                 >
                   Cancelar
                 </Button>
@@ -1205,8 +1212,9 @@ export default function AdminStoragePage() {
                   type="submit"
                   isLoading={isImportingBackup}
                   disabled={!selectedImportFile}
+                  className="w-full sm:w-auto"
                 >
-                  <Upload className="h-4 w-4" />
+                  <Upload className="h-4 w-4 shrink-0" />
                   <span>Validar e Importar</span>
                 </Button>
               </div>
@@ -1282,12 +1290,12 @@ export default function AdminStoragePage() {
                 )}
               </div>
 
-              <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2">
-                <Button type="button" variant="outline" onClick={closeImportModal}>
+              <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center sm:justify-end gap-2.5 pt-2 w-full">
+                <Button type="button" variant="outline" onClick={closeImportModal} className="w-full sm:w-auto">
                   Manter apenas no histórico
                 </Button>
-                <Button type="button" onClick={handleProceedImportedToRestore}>
-                  <RotateCcw className="h-4 w-4" />
+                <Button type="button" onClick={handleProceedImportedToRestore} className="w-full sm:w-auto">
+                  <RotateCcw className="h-4 w-4 shrink-0" />
                   <span>Restaurar Backup</span>
                 </Button>
               </div>
@@ -1305,7 +1313,7 @@ export default function AdminStoragePage() {
         maxWidth="lg"
       >
         {restoreTarget && (
-          <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
+          <div className="space-y-4">
             {isLoadingPreview ? (
               <div className="p-6 text-center space-y-2 text-xs text-[#737373] dark:text-[#A6A6A6]">
                 <RefreshCw className="h-5 w-5 animate-spin mx-auto text-[var(--primary)]" />
@@ -1509,12 +1517,13 @@ export default function AdminStoragePage() {
                   />
                 )}
 
-                <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2">
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center sm:justify-end gap-2.5 pt-2 w-full">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={closeRestoreModal}
                     disabled={isExecutingRestore}
+                    className="w-full sm:w-auto"
                   >
                     Cancelar
                   </Button>
@@ -1523,8 +1532,9 @@ export default function AdminStoragePage() {
                     variant="destructive"
                     isLoading={isExecutingRestore}
                     disabled={restoreConfirmInput.trim() !== "RESTAURAR"}
+                    className="w-full sm:w-auto"
                   >
-                    <RotateCcw className="h-4 w-4" />
+                    <RotateCcw className="h-4 w-4 shrink-0" />
                     <span>Restaurar Backup</span>
                   </Button>
                 </div>
@@ -1712,7 +1722,7 @@ export default function AdminStoragePage() {
             )}
 
             {/* Rodapé / Ações */}
-            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center justify-between gap-2.5 pt-2">
               {isBackupProcessActive ? (
                 <>
                   <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
@@ -1733,7 +1743,7 @@ export default function AdminStoragePage() {
                     isLoading={
                       isCancellingBackup || backupProgressJob.status === "CANCELLING"
                     }
-                    className="ml-auto text-xs"
+                    className="w-full sm:w-auto sm:ml-auto text-xs shrink-0"
                   >
                     <span>
                       {isCancellingBackup || backupProgressJob.status === "CANCELLING"
@@ -1743,22 +1753,22 @@ export default function AdminStoragePage() {
                   </Button>
                 </>
               ) : backupProgressJob.status === "COMPLETED" && backupProgressJob.resultBackup ? (
-                <div className="flex flex-wrap items-center justify-end gap-2.5 w-full">
-                  <Button variant="outline" onClick={closeBackupProgressModal} className="text-xs">
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center sm:justify-end gap-2.5 w-full">
+                  <Button variant="outline" onClick={closeBackupProgressModal} className="text-xs w-full sm:w-auto">
                     Fechar
                   </Button>
                   <a
                     href={`/api/admin/backup/${encodeURIComponent(backupProgressJob.resultBackup.id)}/download`}
                     download={backupProgressJob.resultBackup.filename}
-                    className="inline-flex items-center justify-center gap-1.5 font-heading font-semibold text-xs px-4 py-2 min-h-[38px] rounded-xl bg-[var(--button-bg,var(--primary))] hover:opacity-95 text-[var(--button-fg,#ffffff)] shadow-xs transition-all"
+                    className="inline-flex items-center justify-center gap-1.5 font-heading font-semibold text-xs px-4 py-2 min-h-[38px] rounded-xl bg-[var(--button-bg,var(--primary))] hover:opacity-95 text-[var(--button-fg,#ffffff)] shadow-xs transition-all w-full sm:w-auto text-center"
                   >
-                    <Download className="h-4 w-4" />
+                    <Download className="h-4 w-4 shrink-0" />
                     <span>Baixar Backup</span>
                   </a>
                 </div>
               ) : (
                 <div className="flex justify-end w-full">
-                  <Button onClick={closeBackupProgressModal} className="text-xs">
+                  <Button onClick={closeBackupProgressModal} className="text-xs w-full sm:w-auto">
                     Fechar
                   </Button>
                 </div>
@@ -1777,7 +1787,7 @@ export default function AdminStoragePage() {
         description="Remove apenas imagens, vídeos, ZIPs e ícones antigos do Site que não possuem nenhuma referência ativa."
         maxWidth="lg"
       >
-        <div className="space-y-4 text-xs max-h-[75vh] overflow-y-auto pr-1">
+        <div className="space-y-4 text-xs">
           {isScanningOrphanMedia ? (
             <div className="p-6 text-center space-y-2.5 text-[#737373] dark:text-[#A6A6A6]">
               <Loader2 className="h-5 w-5 animate-spin mx-auto text-[var(--primary)] dark:text-[#F5F5F5]" />
@@ -1921,12 +1931,19 @@ export default function AdminStoragePage() {
                 </span>
               </div>
 
-              <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2">
+              <div
+                className={
+                  cleanupPreview.totalCount > 0
+                    ? "grid grid-cols-2 sm:flex sm:flex-wrap items-center sm:justify-end gap-2.5 pt-2 w-full"
+                    : "flex justify-end pt-2 w-full"
+                }
+              >
                 <Button
                   type="button"
                   variant="outline"
                   onClick={closeCleanupMediaModal}
                   disabled={isExecutingCleanup}
+                  className="w-full sm:w-auto"
                 >
                   {cleanupPreview.totalCount === 0 ? "Fechar" : "Cancelar"}
                 </Button>
@@ -1937,9 +1954,9 @@ export default function AdminStoragePage() {
                     onClick={handleConfirmCleanupMedia}
                     disabled={cleanupPreview.blockedByLock || isExecutingCleanup}
                     isLoading={isExecutingCleanup}
-                    className="gap-1.5"
+                    className="gap-1.5 w-full sm:w-auto"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-4 w-4 shrink-0" />
                     <span>Confirmar Limpeza</span>
                   </Button>
                 )}
@@ -1984,11 +2001,12 @@ export default function AdminStoragePage() {
               Apenas este arquivo de backup e o seu registro no histórico serão removidos. Os dados atuais do sistema, prontuários e documentos enviados permanecem intactos.
             </p>
 
-            <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2">
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center sm:justify-end gap-2.5 pt-2 w-full">
               <Button
                 variant="outline"
                 onClick={() => setDeleteTarget(null)}
                 disabled={isDeletingBackup}
+                className="w-full sm:w-auto"
               >
                 Cancelar
               </Button>
@@ -1996,6 +2014,7 @@ export default function AdminStoragePage() {
                 variant="destructive"
                 onClick={handleConfirmDelete}
                 isLoading={isDeletingBackup}
+                className="w-full sm:w-auto"
               >
                 Excluir Backup
               </Button>

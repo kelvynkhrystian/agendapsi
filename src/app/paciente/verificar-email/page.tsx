@@ -65,7 +65,7 @@ function EmailVerificationContent() {
   }, [token]);
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center p-4">
+    <div className="min-h-[70dvh] flex items-center justify-center p-4">
       <Card className="max-w-md w-full shadow-lg border-[#E5E5E5] dark:border-[#2C2C2C]">
         <CardHeader className="text-center pb-2">
           {isLoading && (
@@ -108,7 +108,7 @@ function EmailVerificationContent() {
               <p className="text-sm text-[#525252] dark:text-[#D0D0D0]">
                 O novo endereço de acesso da sua conta é:
               </p>
-              <div className="p-2.5 bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] rounded-lg font-mono text-xs font-semibold text-[#171717] dark:text-[#F5F5F5]">
+              <div className="p-2.5 bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] rounded-lg font-mono text-xs font-semibold text-[#171717] dark:text-[#F5F5F5] break-all">
                 {newEmail}
               </div>
               <p className="text-xs text-[#737373] dark:text-[#A6A6A6]">

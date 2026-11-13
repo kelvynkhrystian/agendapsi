@@ -3,6 +3,51 @@ import fs from "fs";
 import path from "path";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { getEmailCapability } from "@/lib/integrations-email";
+import { getSmsCapability } from "@/lib/integrations-sms";
+import { getWhatsAppCapability } from "@/lib/integrations-whatsapp";
+
+function mapHealthToTechnicalStatus(
+  enabled: boolean,
+  configured: boolean,
+  persistedHealthStatus: string | null | undefined,
+  lastDelivery?: { status: string; simulated: boolean } | null
+): string {
+  if (!enabled) return "DISABLED";
+  if (!configured) return "MISCONFIGURED";
+  switch (persistedHealthStatus) {
+    case "CONNECTED":
+      return "OPERATIONAL";
+    case "INVALID_AUTH":
+      return "AUTH_ERROR";
+    case "DEVICE_OFFLINE":
+      return "DEVICE_OFFLINE";
+    case "AWAITING_QR":
+    case "RECONNECT_REQUIRED":
+      return "AWAITING_PAIRING";
+    case "SERVICE_UNAVAILABLE":
+    case "CONNECTION_FAILED":
+      return "DELIVERY_FAILED";
+    case "PARTIAL_API_ONLY":
+    case "PARTIAL_SESSION_ONLY":
+      return "PARTIAL";
+    default:
+      break;
+  }
+  if (lastDelivery) {
+    if (lastDelivery.status === "DELIVERED" || lastDelivery.status === "ACCEPTED") {
+      return "OPERATIONAL";
+    }
+    if (lastDelivery.status === "SIMULATED") {
+      return "CONFIGURED_SIMULATED";
+    }
+    if (lastDelivery.status === "FAILED") {
+      return "DELIVERY_FAILED";
+    }
+    return "CONFIGURED";
+  }
+  return "CONFIGURED_UNTESTED";
+}
 
 /**
  * Validação rigorosa de condições para acesso não autenticado de desenvolvimento local.
@@ -134,6 +179,7 @@ export async function GET(req: NextRequest) {
       settings,
       paymentAggregates,
       lastEmailDelivery,
+      lastSmsDelivery,
       lastWaDelivery,
     ] = await Promise.all([
       // Dados do administrador apenas são consultados se for acesso autenticado
@@ -161,6 +207,11 @@ export async function GET(req: NextRequest) {
       }),
       prisma.notificationDelivery.findFirst({
         where: { channel: "EMAIL" },
+        orderBy: { sentAt: "desc" },
+        select: { status: true, simulated: true, sentAt: true },
+      }),
+      prisma.notificationDelivery.findFirst({
+        where: { channel: "SMS" },
         orderBy: { sentAt: "desc" },
         select: { status: true, simulated: true, sentAt: true },
       }),
@@ -209,41 +260,30 @@ export async function GET(req: NextRequest) {
     }
 
     // 7. Diagnóstico Real de Integrações
-    let emailStatus = "DISABLED";
-    if (settings?.smtpEnabled) {
-      if (!settings?.smtpHost || !settings?.smtpUser) {
-        emailStatus = "MISCONFIGURED";
-      } else if (lastEmailDelivery) {
-        if (lastEmailDelivery.status === "DELIVERED") {
-          emailStatus = "OPERATIONAL";
-        } else if (lastEmailDelivery.status === "SIMULATED") {
-          emailStatus = "CONFIGURED_SIMULATED";
-        } else if (lastEmailDelivery.status === "FAILED") {
-          emailStatus = "DELIVERY_FAILED";
-        } else {
-          emailStatus = "CONFIGURED";
-        }
-      } else {
-        emailStatus = "CONFIGURED_UNTESTED";
-      }
-    }
+    const emailCap = getEmailCapability(settings);
+    const smsCap = getSmsCapability(settings);
+    const waCap = getWhatsAppCapability(settings);
 
-    let whatsappStatus = "DISABLED";
-    if (settings?.whatsappEnabled) {
-      if (!settings?.whatsappApiUrl || !settings?.whatsappApiToken) {
-        whatsappStatus = "MISCONFIGURED";
-      } else if (lastWaDelivery) {
-        if (lastWaDelivery.status === "DELIVERED") {
-          whatsappStatus = "OPERATIONAL";
-        } else if (lastWaDelivery.status === "SIMULATED") {
-          whatsappStatus = "CONFIGURED_SIMULATED";
-        } else {
-          whatsappStatus = "CONFIGURED";
-        }
-      } else {
-        whatsappStatus = "CONFIGURED_UNTESTED";
-      }
-    }
+    const emailStatus = mapHealthToTechnicalStatus(
+      emailCap.enabled,
+      emailCap.configured,
+      settings?.emailHealthStatus,
+      lastEmailDelivery
+    );
+
+    const smsStatus = mapHealthToTechnicalStatus(
+      smsCap.enabled,
+      smsCap.configured,
+      settings?.smsHealthStatus,
+      lastSmsDelivery
+    );
+
+    const whatsappStatus = mapHealthToTechnicalStatus(
+      waCap.enabled,
+      waCap.configured,
+      settings?.whatsappHealthStatus,
+      lastWaDelivery
+    );
 
     const paymentGatewayStatus = settings?.enableOnlinePayment ? "SIMULATED_ACTIVE" : "DISABLED";
     const paymentIntegrationStatus = settings?.enableOnlinePayment ? "ONLINE_SIMULATED" : "MANUAL_IN_PERSON";
@@ -275,6 +315,7 @@ export async function GET(req: NextRequest) {
         },
         integrations: {
           emailStatus,
+          smsStatus,
           whatsappStatus,
           paymentGatewayStatus,
           videoProvider,
@@ -320,6 +361,7 @@ export async function GET(req: NextRequest) {
       },
       integrations: {
         emailStatus,
+        smsStatus,
         whatsappStatus,
         paymentGatewayStatus,
         videoProvider,

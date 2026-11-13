@@ -46,28 +46,28 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between p-4 sm:p-6 bg-[#F8F8F8] dark:bg-[#0C0C0C]">
-      <div className="flex justify-between items-center max-w-5xl w-full mx-auto">
-        <Link href="/" className="flex items-center gap-2 font-bold text-lg text-[var(--primary)]">
-          <Stethoscope className="h-6 w-6" />
-          <span>PSI Consultório</span>
+    <div className="min-h-[100dvh] flex flex-col justify-between p-4 sm:p-6 bg-[#F8F8F8] dark:bg-[#0C0C0C]">
+      <div className="flex justify-between items-center max-w-5xl w-full mx-auto gap-3">
+        <Link href="/" className="flex items-center gap-2 font-bold text-base sm:text-lg text-[var(--primary)] min-w-0">
+          <Stethoscope className="h-5 w-5 sm:h-6 sm:w-6 shrink-0" />
+          <span className="truncate">PSI Consultório</span>
         </Link>
         <ThemeToggle />
       </div>
 
-      <div className="max-w-md w-full mx-auto my-8">
+      <div className="max-w-md w-full mx-auto my-6 sm:my-8">
         <Card className="border-[#E5E5E5] dark:border-[#2C2C2C] shadow-md">
-          <CardHeader className="text-center space-y-2">
+          <CardHeader className="text-center space-y-2 p-4 sm:p-6">
             <div className="mx-auto w-12 h-12 rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] mb-2">
               <ShieldCheck className="h-6 w-6" />
             </div>
-            <CardTitle className="text-2xl font-bold">Acesse sua Conta</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-xl sm:text-2xl font-bold">Acesse sua Conta</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
               Área de acesso seguro para pacientes e profissional de saúde
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-4 sm:p-6 pt-0">
             {error && <Alert variant="destructive">{error}</Alert>}
 
             <form onSubmit={handleSubmit} className="space-y-4">

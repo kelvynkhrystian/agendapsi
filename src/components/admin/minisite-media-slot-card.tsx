@@ -88,7 +88,7 @@ export function MiniSiteMediaSlotCard({
       </div>
 
       {/* Prévia ao vivo */}
-      <div className="relative h-52 w-full rounded-xl overflow-hidden border border-[#E5E5E5] dark:border-[#2C2C2C] flex items-center justify-center bg-[#F8F8F8] dark:bg-[#1A1A1A]">
+      <div className="relative h-44 sm:h-52 w-full rounded-xl overflow-hidden border border-[#E5E5E5] dark:border-[#2C2C2C] flex items-center justify-center bg-[#F8F8F8] dark:bg-[#1A1A1A]">
         <MiniSiteMediaPlayer
           slot={slot}
           mediaType={mediaType}
@@ -171,7 +171,7 @@ export function MiniSiteMediaSlotCard({
           <div
             role="radiogroup"
             aria-label={`Velocidade de reprodução de ${title}`}
-            className="inline-flex items-center p-1 rounded-lg bg-[#F4F4F5] dark:bg-[#1E1E1E] border border-[#E5E5E5] dark:border-[#2C2C2C] gap-1"
+            className="grid grid-cols-3 sm:inline-flex w-full sm:w-auto items-center p-1 rounded-lg bg-[#F4F4F5] dark:bg-[#1E1E1E] border border-[#E5E5E5] dark:border-[#2C2C2C] gap-1"
           >
             {SPEED_OPTIONS.map((option) => {
               const isSelected = playbackSpeed === option.value;
@@ -182,7 +182,7 @@ export function MiniSiteMediaSlotCard({
                   role="radio"
                   aria-checked={isSelected}
                   onClick={() => onChangePlaybackSpeed(option.value)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                  className={`px-2 sm:px-2.5 py-1.5 sm:py-1 rounded-md text-xs font-semibold transition-all cursor-pointer text-center whitespace-nowrap ${
                     isSelected
                       ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-2xs"
                       : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:bg-[var(--primary)]/[0.04] dark:bg-transparent dark:border-transparent dark:text-[#C0C0C0] dark:hover:bg-[#292929]"

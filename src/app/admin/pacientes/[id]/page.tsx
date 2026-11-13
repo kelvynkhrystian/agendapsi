@@ -123,6 +123,7 @@ interface PatientDetail {
   gender?: string;
   address?: string;
   emergencyContact?: string;
+  smsOptIn?: boolean;
   isActive: boolean;
   createdAt: string;
   guardians: Array<{
@@ -705,18 +706,18 @@ export default function AdminPatientDetailPage({
   return (
     <div className="space-y-6">
       {/* Top Breadcrumb & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <Link
           href="/admin/pacientes"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[var(--primary)]/25 text-xs font-semibold text-[var(--button-outline-fg,var(--primary))] hover:border-[var(--primary)]/60 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1A1A1A] dark:border-[#2C2C2C] dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5] transition-colors w-fit"
+          className="inline-flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-xl bg-white border border-[var(--primary)]/25 text-xs font-semibold text-[var(--button-outline-fg,var(--primary))] hover:border-[var(--primary)]/60 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1A1A1A] dark:border-[#2C2C2C] dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5] transition-colors w-fit"
         >
-          <ArrowLeft className="h-4 w-4 text-current" />
+          <ArrowLeft className="h-4 w-4 text-current shrink-0" />
           <span>Voltar para Lista de Pacientes</span>
         </Link>
 
-        <div className="flex items-center gap-2">
-          <Link href={`/admin/pacientes/${patient.id}/editar`}>
-            <Button variant="outline" size="sm" className="gap-1.5">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full sm:w-auto">
+          <Link href={`/admin/pacientes/${patient.id}/editar`} className="w-full sm:w-auto">
+            <Button variant="outline" size="sm" className="w-full sm:w-auto gap-1.5">
               <Pencil className="h-3.5 w-3.5" />
               <span>Editar Cadastro</span>
             </Button>
@@ -726,7 +727,7 @@ export default function AdminPatientDetailPage({
             <Button
               variant="outline"
               size="sm"
-              className="gap-1.5 text-[var(--primary)] border-[var(--primary)]/30 hover:bg-[var(--primary)]/10"
+              className="w-full sm:w-auto gap-1.5 text-[var(--primary)] border-[var(--primary)]/30 hover:bg-[var(--primary)]/10 col-span-2 sm:col-span-1"
               onClick={handleRestorePatient}
             >
               <RotateCcw className="h-3.5 w-3.5" />
@@ -737,7 +738,7 @@ export default function AdminPatientDetailPage({
           <Button
             variant="destructive"
             size="sm"
-            className="gap-1.5"
+            className="w-full sm:w-auto gap-1.5"
             onClick={handleOpenDeletePatientModal}
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -759,20 +760,20 @@ export default function AdminPatientDetailPage({
 
       {/* Profile Header Card */}
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] font-bold text-xl shrink-0">
+            <div className="flex items-start sm:items-center gap-3.5 sm:gap-4 min-w-0">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] font-bold text-lg sm:text-xl shrink-0">
                 {patient.fullName.charAt(0)}
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-bold">{patient.fullName}</h1>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-lg sm:text-xl font-bold break-words">{patient.fullName}</h1>
                   {patient.isMinor && <Badge variant="warning">Menor de Idade</Badge>}
                   {!patient.isActive && <Badge variant="destructive">Inativo</Badge>}
                 </div>
-                <p className="text-xs text-[#737373] dark:text-[#A6A6A6] mt-1">
-                  {patient.email} • {patient.phone} • Cadastrado em {formatDate(patient.createdAt)}
+                <p className="text-xs text-[#737373] dark:text-[#A6A6A6] mt-1 break-words">
+                  <span className="break-all">{patient.email}</span> • {patient.phone} • Cadastrado em {formatDate(patient.createdAt)}
                 </p>
               </div>
             </div>
@@ -801,19 +802,19 @@ export default function AdminPatientDetailPage({
             {pendingChanges.map((change) => (
               <div
                 key={change.id}
-                className="flex items-center justify-between p-2 rounded-lg bg-white dark:bg-[#1A1A1A] border border-amber-200 dark:border-amber-800/60 text-xs"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-2.5 rounded-lg bg-white dark:bg-[#1A1A1A] border border-amber-200 dark:border-amber-800/60 text-xs"
               >
-                <div>
+                <div className="min-w-0">
                   <span className="font-semibold capitalize">Campo: {change.field}</span>
-                  <div className="text-[#737373] dark:text-[#A6A6A6]">
+                  <div className="text-[#737373] dark:text-[#A6A6A6] break-words">
                     De: <span className="line-through">{change.oldValue || "(vazio)"}</span> ➜ Para:{" "}
                     <strong className="text-[#171717] dark:text-[#F5F5F5]">{change.newValue}</strong>
                   </div>
                 </div>
-                <div className="flex gap-1.5">
+                <div className="grid grid-cols-2 sm:flex gap-1.5 w-full sm:w-auto shrink-0">
                   <Button
                     size="sm"
-                    className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700"
+                    className="h-8 sm:h-7 text-xs bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto"
                     onClick={() => handleReviewProfileChange(change.id, "APPROVED")}
                   >
                     <CheckCircle className="h-3 w-3 mr-1" />
@@ -822,7 +823,7 @@ export default function AdminPatientDetailPage({
                   <Button
                     size="sm"
                     variant="destructive"
-                    className="h-7 text-xs"
+                    className="h-8 sm:h-7 text-xs w-full sm:w-auto"
                     onClick={() => handleReviewProfileChange(change.id, "REJECTED")}
                   >
                     <XCircle className="h-3 w-3 mr-1" />
@@ -836,7 +837,7 @@ export default function AdminPatientDetailPage({
       )}
 
       {/* Navegação por Abas Internas */}
-      <div className="inline-flex flex-wrap items-center gap-1.5 rounded-2xl bg-[#F4F4F5] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] p-1.5 max-w-full overflow-x-auto text-xs font-medium">
+      <div className="grid grid-cols-2 sm:inline-flex sm:flex-wrap items-center gap-1.5 rounded-2xl bg-[#F4F4F5] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] p-1.5 w-full sm:w-fit max-w-full text-[11px] sm:text-xs font-medium">
         {[
           { key: "overview", label: "Visão Geral", icon: User },
           { key: "records", label: "Prontuário Clínico", icon: FileText, count: patient.clinicalRecords.length },
@@ -852,17 +853,17 @@ export default function AdminPatientDetailPage({
               key={tab.key}
               type="button"
               onClick={() => setActiveTab(tab.key as typeof activeTab)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+              className={`flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-2 rounded-xl transition-all whitespace-nowrap shrink-0 cursor-pointer min-w-0 ${
                 isActive
                   ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
                   : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1C1C1C] dark:border-transparent dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5]"
               }`}
             >
-              <Icon className="h-4 w-4 text-current shrink-0" />
-              <span>{tab.label}</span>
+              <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-current shrink-0" />
+              <span className="truncate">{tab.label}</span>
               {typeof tab.count === "number" && (
                 <span
-                  className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold shrink-0 ${
                     isActive
                       ? "bg-white/20 text-white"
                       : "bg-[var(--primary)]/10 text-[var(--button-outline-fg,var(--primary))] dark:bg-[#292929] dark:text-[#D0D0D0]"
@@ -878,11 +879,11 @@ export default function AdminPatientDetailPage({
 
       {/* 1. VISÃO GERAL */}
       {activeTab === "overview" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+            <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-4">
               <CardTitle className="text-base">Dados Cadastrais do Paciente</CardTitle>
-              <Link href={`/admin/pacientes/${patient.id}/editar`}>
+              <Link href={`/admin/pacientes/${patient.id}/editar`} className="shrink-0">
                 <Button variant="outline" size="sm" className="gap-1.5 text-xs">
                   <Pencil className="h-3.5 w-3.5" />
                   <span>Editar</span>
@@ -890,31 +891,37 @@ export default function AdminPatientDetailPage({
               </Link>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div className="grid grid-cols-2 gap-2 pb-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
-                <span className="text-[#737373] dark:text-[#A6A6A6]">Nome:</span>
-                <span className="font-semibold">{patient.fullName}</span>
+              <div className="flex flex-col sm:grid sm:grid-cols-2 gap-0.5 sm:gap-2 pb-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
+                <span className="text-xs sm:text-sm text-[#737373] dark:text-[#A6A6A6]">Nome:</span>
+                <span className="font-semibold break-words">{patient.fullName}</span>
               </div>
-              <div className="grid grid-cols-2 gap-2 pb-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
-                <span className="text-[#737373] dark:text-[#A6A6A6]">E-mail:</span>
-                <span className="font-semibold">{patient.email}</span>
+              <div className="flex flex-col sm:grid sm:grid-cols-2 gap-0.5 sm:gap-2 pb-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
+                <span className="text-xs sm:text-sm text-[#737373] dark:text-[#A6A6A6]">E-mail:</span>
+                <span className="font-semibold break-all">{patient.email}</span>
               </div>
-              <div className="grid grid-cols-2 gap-2 pb-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
-                <span className="text-[#737373] dark:text-[#A6A6A6]">Telefone:</span>
+              <div className="flex flex-col sm:grid sm:grid-cols-2 gap-0.5 sm:gap-2 pb-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
+                <span className="text-xs sm:text-sm text-[#737373] dark:text-[#A6A6A6]">Telefone:</span>
                 <span className="font-semibold">{patient.phone}</span>
               </div>
-              <div className="grid grid-cols-2 gap-2 pb-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
-                <span className="text-[#737373] dark:text-[#A6A6A6]">CPF:</span>
+              <div className="flex flex-col sm:grid sm:grid-cols-2 gap-0.5 sm:gap-2 pb-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
+                <span className="text-xs sm:text-sm text-[#737373] dark:text-[#A6A6A6]">CPF:</span>
                 <span className="font-semibold">{patient.cpf || "Não informado"}</span>
               </div>
-              <div className="grid grid-cols-2 gap-2 pb-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
-                <span className="text-[#737373] dark:text-[#A6A6A6]">Data de Nasc.:</span>
+              <div className="flex flex-col sm:grid sm:grid-cols-2 gap-0.5 sm:gap-2 pb-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
+                <span className="text-xs sm:text-sm text-[#737373] dark:text-[#A6A6A6]">Data de Nasc.:</span>
                 <span className="font-semibold">
                   {patient.birthDate ? formatDate(patient.birthDate) : "Não informada"}
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <span className="text-[#737373] dark:text-[#A6A6A6]">Gênero:</span>
+              <div className="flex flex-col sm:grid sm:grid-cols-2 gap-0.5 sm:gap-2 pb-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
+                <span className="text-xs sm:text-sm text-[#737373] dark:text-[#A6A6A6]">Gênero:</span>
                 <span className="font-semibold">{patient.gender || "Não informado"}</span>
+              </div>
+              <div className="flex flex-col sm:grid sm:grid-cols-2 gap-0.5 sm:gap-2">
+                <span className="text-xs sm:text-sm text-[#737373] dark:text-[#A6A6A6]">Lembretes por SMS:</span>
+                <span className="font-semibold">
+                  {patient.smsOptIn ? "Autorizado (Opt-in)" : "Não autorizado"}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -956,11 +963,11 @@ export default function AdminPatientDetailPage({
                 Anotações clínicas e histórico confidencial da terapia de <strong>{patient.fullName}</strong>.
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="w-full sm:w-auto">
               <Button
                 size="sm"
                 onClick={() => setIsNewRecordModalOpen(true)}
-                className="gap-1.5 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer"
+                className="w-full sm:w-auto gap-1.5 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer"
               >
                 <Plus className="h-4 w-4" />
                 <span>Nova Evolução de Sessão</span>
@@ -979,9 +986,9 @@ export default function AdminPatientDetailPage({
                       key={record.id}
                       className="border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#141414] shadow-xs"
                     >
-                      <CardHeader className="flex flex-row items-start justify-between pb-3">
-                        <div>
-                          <div className="flex items-center gap-2">
+                      <CardHeader className="flex flex-col sm:flex-row items-start justify-between gap-3 pb-3">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
                             <span className="font-bold text-sm text-[#171717] dark:text-[#F5F5F5]">
                               Sessão em {formatDate(record.sessionDate)} às {formatTime(record.sessionDate)}
                             </span>
@@ -998,7 +1005,7 @@ export default function AdminPatientDetailPage({
                           )}
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2 shrink-0">
                           {moodInfo && (
                             <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-full text-xs">
                               <span>{moodInfo.emoji}</span>
@@ -1010,7 +1017,7 @@ export default function AdminPatientDetailPage({
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-7 text-xs gap-1 cursor-pointer"
+                            className="h-8 sm:h-7 text-xs gap-1 cursor-pointer"
                             onClick={() => openEditRecordModal(record)}
                           >
                             <Pencil className="h-3 w-3" />
@@ -1089,7 +1096,7 @@ export default function AdminPatientDetailPage({
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 text-xs text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-600/40 hover:bg-amber-50 dark:hover:bg-amber-950/40 cursor-pointer"
+                className="w-full sm:w-auto gap-1.5 text-xs text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-600/40 hover:bg-amber-50 dark:hover:bg-amber-950/40 cursor-pointer"
                 onClick={() => setIsResetAnamnesisModalOpen(true)}
               >
                 <RotateCcw className="h-3.5 w-3.5" />
@@ -1105,14 +1112,14 @@ export default function AdminPatientDetailPage({
                     key={sub.id}
                     className="p-4 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#141414] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:border-[var(--primary)]/50 transition-colors"
                   >
-                    <div>
-                      <div className="flex items-center gap-2">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="font-bold text-sm text-[#171717] dark:text-[#F5F5F5]">
                           {sub.template.title}
                         </span>
                         {getAnamnesisStatusBadge(sub.status)}
                       </div>
-                      <div className="text-[#737373] dark:text-[#A6A6A6] mt-1 flex items-center gap-2">
+                      <div className="text-[#737373] dark:text-[#A6A6A6] mt-1 flex flex-wrap items-center gap-2">
                         <span>Enviada em {formatDate(sub.createdAt)} às {formatTime(sub.createdAt)}</span>
                         {sub.reviewedAt && (
                           <>
@@ -1131,7 +1138,7 @@ export default function AdminPatientDetailPage({
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-8 text-xs gap-1.5 cursor-pointer self-end sm:self-center"
+                      className="h-9 sm:h-8 text-xs gap-1.5 cursor-pointer w-full sm:w-auto shrink-0"
                       onClick={() => {
                         setSelectedSubmission(sub);
                         setIsViewAnamnesisModalOpen(true);
@@ -1144,7 +1151,7 @@ export default function AdminPatientDetailPage({
                 ))}
               </div>
             ) : (
-              <div className="p-12 text-center text-[#737373] dark:text-[#A6A6A6] space-y-2">
+              <div className="p-8 sm:p-12 text-center text-[#737373] dark:text-[#A6A6A6] space-y-2">
                 <ClipboardList className="h-8 w-8 mx-auto text-[#737373] dark:text-[#A6A6A6]" />
                 <p className="text-sm font-semibold text-[#171717] dark:text-[#F5F5F5]">
                   Nenhuma anamnese preenchida até o momento.
@@ -1168,7 +1175,7 @@ export default function AdminPatientDetailPage({
             {patient.appointments.length > 0 ? (
               <div className="divide-y divide-[#E5E5E5] dark:divide-[#2C2C2C]">
                 {patient.appointments.map((appt) => (
-                  <div key={appt.id} className="py-3 flex items-center justify-between text-xs">
+                  <div key={appt.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
                     <div>
                       <span className="font-bold text-sm block text-[#171717] dark:text-[#F5F5F5]">
                         {formatDate(appt.startAt)} às {formatTime(appt.startAt)}
@@ -1178,6 +1185,7 @@ export default function AdminPatientDetailPage({
                       </span>
                     </div>
                     <Badge
+                      className="w-fit"
                       variant={
                         appt.status === "CONFIRMED"
                           ? "success"
@@ -1206,7 +1214,7 @@ export default function AdminPatientDetailPage({
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
             <div>
               <CardTitle className="text-base font-bold flex items-center gap-2">
-                <FolderLock className="h-4 w-4 text-[var(--primary)]" />
+                <FolderLock className="h-4 w-4 text-[var(--primary)] shrink-0" />
                 <span>Documentos e Atestados do Paciente</span>
               </CardTitle>
               <CardDescription className="text-xs">
@@ -1215,7 +1223,7 @@ export default function AdminPatientDetailPage({
             </div>
             <Button
               size="sm"
-              className="gap-2 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer"
+              className="w-full sm:w-auto gap-2 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer"
               onClick={() => setIsUploadDocModalOpen(true)}
             >
               <Upload className="h-4 w-4" />
@@ -1235,14 +1243,14 @@ export default function AdminPatientDetailPage({
                   return (
                     <div
                       key={share.id}
-                      className="p-4 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#141414] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:border-[#D0D0D0] dark:hover:border-[#404040] transition-colors"
+                      className="p-4 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#141414] flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs hover:border-[#D0D0D0] dark:hover:border-[#404040] transition-colors"
                     >
-                      <div className="space-y-1">
+                      <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-bold text-sm text-[#171717] dark:text-[#F5F5F5]">
+                          <span className="font-bold text-sm text-[#171717] dark:text-[#F5F5F5] break-words">
                             {share.file.title || share.file.originalName}
                           </span>
-                          <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6] font-mono">
+                          <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6] font-mono break-all">
                             ({share.file.originalName})
                           </span>
 
@@ -1276,20 +1284,21 @@ export default function AdminPatientDetailPage({
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                      <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 shrink-0 w-full lg:w-auto">
                         <a
                           href={`/api/files/${share.file.id}/download?view=inline`}
                           target="_blank"
                           rel="noopener noreferrer"
+                          className="w-full sm:w-auto"
                         >
-                          <Button variant="outline" size="sm" className="h-7 text-xs gap-1 cursor-pointer">
+                          <Button variant="outline" size="sm" className="w-full sm:w-auto h-8 sm:h-7 text-xs gap-1 cursor-pointer">
                             <Eye className="h-3 w-3" />
                             <span>Visualizar</span>
                           </Button>
                         </a>
 
-                        <a href={`/api/files/${share.file.id}/download`} download>
-                          <Button variant="outline" size="sm" className="h-7 text-xs gap-1 cursor-pointer">
+                        <a href={`/api/files/${share.file.id}/download`} download className="w-full sm:w-auto">
+                          <Button variant="outline" size="sm" className="w-full sm:w-auto h-8 sm:h-7 text-xs gap-1 cursor-pointer">
                             <Download className="h-3 w-3" />
                             <span>Baixar</span>
                           </Button>
@@ -1299,7 +1308,7 @@ export default function AdminPatientDetailPage({
                           <Button
                             variant="destructive"
                             size="sm"
-                            className="h-7 text-xs cursor-pointer"
+                            className="w-full sm:w-auto h-8 sm:h-7 text-xs cursor-pointer"
                             onClick={() => handleRevokeShare(share.id)}
                           >
                             Revogar acesso
@@ -1308,7 +1317,7 @@ export default function AdminPatientDetailPage({
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-7 text-xs text-[var(--button-outline-fg,var(--primary))] border-[var(--primary)]/30 hover:bg-[var(--primary)]/10 cursor-pointer"
+                            className="w-full sm:w-auto h-8 sm:h-7 text-xs text-[var(--button-outline-fg,var(--primary))] border-[var(--primary)]/30 hover:bg-[var(--primary)]/10 cursor-pointer"
                             onClick={() => handleReactivateShare(share.id)}
                           >
                             Reativar (+30d)
@@ -1318,7 +1327,7 @@ export default function AdminPatientDetailPage({
                         <Button
                           variant="destructive"
                           size="sm"
-                          className="h-7 text-xs gap-1 cursor-pointer"
+                          className="w-full sm:w-auto h-8 sm:h-7 text-xs gap-1 cursor-pointer"
                           onClick={() => setDocToDelete(share.file)}
                           title="Excluir documento"
                         >
@@ -1331,7 +1340,7 @@ export default function AdminPatientDetailPage({
                 })}
               </div>
             ) : (
-              <div className="p-12 text-center text-[#737373] dark:text-[#A6A6A6] space-y-3">
+              <div className="p-8 sm:p-12 text-center text-[#737373] dark:text-[#A6A6A6] space-y-3">
                 <FolderLock className="h-8 w-8 mx-auto text-[#737373] dark:text-[#A6A6A6]" />
                 <div>
                   <p className="text-sm font-semibold text-[#171717] dark:text-[#F5F5F5]">
@@ -1365,7 +1374,7 @@ export default function AdminPatientDetailPage({
             {patient.payments.length > 0 ? (
               <div className="divide-y divide-[#E5E5E5] dark:divide-[#2C2C2C]">
                 {patient.payments.map((p) => (
-                  <div key={p.id} className="py-3 flex items-center justify-between text-xs">
+                  <div key={p.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
                     <div>
                       <span className="font-bold text-sm block text-[#171717] dark:text-[#F5F5F5]">
                         {formatBRL(p.amountCents)}
@@ -1374,7 +1383,7 @@ export default function AdminPatientDetailPage({
                         {formatPaymentMethod(p.method)} • {formatDate(p.createdAt)}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       {p.isSimulated && <Badge variant="simulated">Simulado</Badge>}
                       <Badge variant={p.status === "APPROVED" ? "success" : "warning"}>
                         {formatPaymentStatus(p.status)}
@@ -1504,19 +1513,20 @@ export default function AdminPatientDetailPage({
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
+          <div className="grid grid-cols-2 sm:flex sm:justify-end gap-2.5 sm:gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setIsNewRecordModalOpen(false)}
+              className="w-full sm:w-auto"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
               size="sm"
-              className="bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer"
+              className="w-full sm:w-auto bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer"
               disabled={isSubmittingRecord}
             >
               {isSubmittingRecord ? "Salvando..." : "Gravar no Prontuário"}
@@ -1600,7 +1610,7 @@ export default function AdminPatientDetailPage({
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
+          <div className="grid grid-cols-2 sm:flex sm:justify-end gap-2.5 sm:gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
             <Button
               type="button"
               variant="outline"
@@ -1609,16 +1619,17 @@ export default function AdminPatientDetailPage({
                 setIsEditModalOpen(false);
                 setEditingRecord(null);
               }}
+              className="w-full sm:w-auto"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
               size="sm"
-              className="bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer"
+              className="w-full sm:w-auto bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer"
               disabled={isUpdatingRecord}
             >
-              {isUpdatingRecord ? "Salvando Revisão..." : "Salvar Revisão do Prontuário"}
+              {isUpdatingRecord ? "Salvando..." : "Salvar Revisão"}
             </Button>
           </div>
         </form>
@@ -1635,14 +1646,14 @@ export default function AdminPatientDetailPage({
         description="Cópias de versões anteriores preservadas para integridade do prontuário."
         maxWidth="lg"
       >
-        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+        <div className="space-y-4">
           {viewingRecord && viewingRecord.revisions && viewingRecord.revisions.length > 0 ? (
             viewingRecord.revisions.map((rev, idx) => (
               <div
                 key={rev.id}
                 className="p-4 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#F8F8F8] dark:bg-[#141414] space-y-2 text-xs"
               >
-                <div className="flex items-center justify-between font-semibold text-[#404040] dark:text-[#D0D0D0]">
+                <div className="flex flex-wrap items-center justify-between gap-2 font-semibold text-[#404040] dark:text-[#D0D0D0]">
                   <span>
                     Versão #{viewingRecord.revisions!.length - idx} arquivada em {formatDate(rev.revisedAt)} às {formatTime(rev.revisedAt)}
                   </span>
@@ -1670,6 +1681,7 @@ export default function AdminPatientDetailPage({
                 setIsRevisionsModalOpen(false);
                 setViewingRecord(null);
               }}
+              className="w-full sm:w-auto"
             >
               Fechar
             </Button>
@@ -1754,22 +1766,23 @@ export default function AdminPatientDetailPage({
             </span>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
+          <div className="grid grid-cols-2 sm:flex sm:justify-end gap-2.5 sm:gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setIsUploadDocModalOpen(false)}
+              className="w-full sm:w-auto"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
               size="sm"
-              className="bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer"
+              className="w-full sm:w-auto bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer"
               disabled={isUploadingDoc || !docFile}
             >
-              {isUploadingDoc ? "Enviando arquivo..." : "Enviar e Liberar ao Paciente"}
+              {isUploadingDoc ? "Enviando..." : "Enviar ao Paciente"}
             </Button>
           </div>
         </form>
@@ -1790,7 +1803,7 @@ export default function AdminPatientDetailPage({
         }
         maxWidth="lg"
       >
-        <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-1 text-xs">
+        <div className="space-y-4 text-xs">
           {selectedSubmission && (
             <>
               <div className="p-3 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] flex flex-wrap items-center justify-between gap-2">
@@ -1906,19 +1919,20 @@ export default function AdminPatientDetailPage({
             </p>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#E5E5E5] dark:border-[#2C2C2C]">
+          <div className="grid grid-cols-2 sm:flex sm:justify-end gap-2 pt-2 border-t border-[#E5E5E5] dark:border-[#2C2C2C]">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setIsResetAnamnesisModalOpen(false)}
+              className="w-full sm:w-auto"
             >
               Cancelar
             </Button>
             <Button
               type="button"
               size="sm"
-              className="bg-amber-600 hover:bg-amber-700 text-white cursor-pointer"
+              className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white cursor-pointer"
               disabled={isResettingAnamnesis}
               onClick={handleConfirmResetAnamnesis}
             >
@@ -1941,22 +1955,23 @@ export default function AdminPatientDetailPage({
 
           {docToDelete && (
             <div className="p-3.5 bg-[#F8F8F8] dark:bg-[#1B1B1B] border border-[#E5E5E5] dark:border-[#393939] rounded-xl space-y-1">
-              <div className="text-xs font-bold text-[#171717] dark:text-[#F5F5F5]">
+              <div className="text-xs font-bold text-[#171717] dark:text-[#F5F5F5] break-words">
                 {docToDelete.title || docToDelete.originalName}
               </div>
-              <div className="text-[11px] text-[#737373] dark:text-[#A6A6A6] font-mono">
+              <div className="text-[11px] text-[#737373] dark:text-[#A6A6A6] font-mono break-all">
                 {docToDelete.originalName} • {(docToDelete.sizeBytes / 1024).toFixed(1)} KB
               </div>
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E5E5E5] dark:border-[#393939]">
+          <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-end gap-2.5 sm:gap-3 pt-3 border-t border-[#E5E5E5] dark:border-[#393939]">
             <Button
               type="button"
               variant="outline"
               size="sm"
               disabled={isDeletingDoc}
               onClick={() => setDocToDelete(null)}
+              className="w-full sm:w-auto"
             >
               Cancelar
             </Button>
@@ -1967,7 +1982,7 @@ export default function AdminPatientDetailPage({
               size="sm"
               isLoading={isDeletingDoc}
               onClick={confirmDeleteDocument}
-              className="gap-1.5"
+              className="w-full sm:w-auto gap-1.5"
             >
               <Trash2 className="h-3.5 w-3.5" />
               <span>Excluir documento</span>
@@ -1993,11 +2008,11 @@ export default function AdminPatientDetailPage({
                 <div className="font-bold text-sm text-[#171717] dark:text-[#F5F5F5]">
                   {patient.fullName}
                 </div>
-                <div className="text-xs text-[#737373] dark:text-[#A6A6A6]">{patient.email}</div>
+                <div className="text-xs text-[#737373] dark:text-[#A6A6A6] break-all">{patient.email}</div>
               </div>
 
               {/* Resumo de Dependências */}
-              <div className="grid grid-cols-3 gap-2 text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
                 <div className="p-2.5 rounded-lg border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#202020]">
                   <div className="text-[#737373] dark:text-[#A6A6A6] text-[11px] flex items-center gap-1">
                     <FileText className="h-3 w-3" />
@@ -2014,7 +2029,7 @@ export default function AdminPatientDetailPage({
                   <div className="font-bold text-sm mt-0.5">{deletionInfo.dependencies.appointmentsCount}</div>
                 </div>
 
-                <div className="p-2.5 rounded-lg border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#202020]">
+                <div className="p-2.5 rounded-lg border border-[#E5E5E5] dark:border-[#393939] bg-white dark:bg-[#202020] col-span-2 sm:col-span-1">
                   <div className="text-[#737373] dark:text-[#A6A6A6] text-[11px] flex items-center gap-1">
                     <DollarSign className="h-3 w-3" />
                     <span>Pagamentos</span>
@@ -2036,13 +2051,14 @@ export default function AdminPatientDetailPage({
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E5E5E5] dark:border-[#393939]">
+                  <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-end gap-2.5 sm:gap-3 pt-3 border-t border-[#E5E5E5] dark:border-[#393939]">
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       disabled={isProcessingPatient}
                       onClick={() => setIsDeletePatientModalOpen(false)}
+                      className="w-full sm:w-auto"
                     >
                       Cancelar
                     </Button>
@@ -2053,7 +2069,7 @@ export default function AdminPatientDetailPage({
                       size="sm"
                       isLoading={isProcessingPatient}
                       onClick={() => handleConfirmDeleteOrArchivePatient("ARCHIVE")}
-                      className="gap-1.5"
+                      className="w-full sm:w-auto gap-1.5"
                     >
                       <Archive className="h-3.5 w-3.5" />
                       <span>Arquivar Paciente</span>
@@ -2078,13 +2094,14 @@ export default function AdminPatientDetailPage({
                     />
                   </div>
 
-                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E5E5E5] dark:border-[#393939]">
+                  <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-end gap-2.5 sm:gap-3 pt-3 border-t border-[#E5E5E5] dark:border-[#393939]">
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       disabled={isProcessingPatient}
                       onClick={() => setIsDeletePatientModalOpen(false)}
+                      className="w-full sm:w-auto"
                     >
                       Cancelar
                     </Button>
@@ -2096,10 +2113,10 @@ export default function AdminPatientDetailPage({
                       isLoading={isProcessingPatient}
                       disabled={confirmationInput.trim() !== "EXCLUIR"}
                       onClick={() => handleConfirmDeleteOrArchivePatient("PERMANENT")}
-                      className="gap-1.5"
+                      className="w-full sm:w-auto gap-1.5"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
-                      <span>Excluir permanentemente</span>
+                      <span>Excluir</span>
                     </Button>
                   </div>
                 </div>

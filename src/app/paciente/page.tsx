@@ -150,7 +150,7 @@ export default function PatientAppointmentsPage() {
       {/* ================= 1. WELCOME HEADER ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E5E5E5] dark:border-[#333333]">
         <div className="space-y-1">
-          <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
+          <h1 className="font-heading text-xl sm:text-3xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
             Minhas Consultas
           </h1>
           <p className="text-xs sm:text-sm text-[#525252] dark:text-[#A6A6A6] leading-relaxed">
@@ -158,8 +158,8 @@ export default function PatientAppointmentsPage() {
           </p>
         </div>
 
-        <Link href="/agendar">
-          <Button size="md" className="gap-2 shadow-xs">
+        <Link href="/agendar" className="w-full sm:w-auto">
+          <Button size="md" className="w-full sm:w-auto gap-2 shadow-xs">
             <Plus className="h-4 w-4" />
             <span>Agendar Nova Consulta</span>
           </Button>
@@ -216,26 +216,26 @@ export default function PatientAppointmentsPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+            <div className="grid grid-cols-1 min-[420px]:grid-cols-2 sm:flex sm:flex-wrap items-center justify-between gap-2.5 sm:gap-3 pt-2">
               {nextAppointment.modality === "PRESENTIAL" ? (
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => setSelectedInPersonAppt(nextAppointment)}
-                  className="gap-2 text-xs"
+                  className="w-full sm:w-auto gap-2 text-xs"
                 >
-                  <Info className="h-3.5 w-3.5 text-current" />
+                  <Info className="h-3.5 w-3.5 text-current shrink-0" />
                   <span>Informações da consulta</span>
                 </Button>
               ) : nextAppointment.meetingUrlSnapshot ? (
-                <Link href={nextAppointment.meetingUrlSnapshot} target="_blank">
-                  <Button size="sm" className="gap-2 text-xs shadow-xs">
-                    <Video className="h-3.5 w-3.5" />
+                <Link href={nextAppointment.meetingUrlSnapshot} target="_blank" className="w-full sm:w-auto">
+                  <Button size="sm" className="w-full sm:w-auto gap-2 text-xs shadow-xs">
+                    <Video className="h-3.5 w-3.5 shrink-0" />
                     <span>Entrar na sala virtual</span>
                   </Button>
                 </Link>
               ) : (
-                <span className="text-xs text-[#737373] dark:text-[#A6A6A6] italic">
+                <span className="text-xs text-[#737373] dark:text-[#A6A6A6] italic col-span-full sm:col-span-1">
                   Link da sala sendo preparado pelo profissional
                 </span>
               )}
@@ -244,7 +244,7 @@ export default function PatientAppointmentsPage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setCancellingAppt(nextAppointment)}
-                className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+                className="w-full sm:w-auto text-xs text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 border border-red-200/70 dark:border-red-900/40 sm:border-transparent"
               >
                 Cancelar Consulta
               </Button>
@@ -274,19 +274,19 @@ export default function PatientAppointmentsPage() {
               return (
                 <Card key={appt.id} className="shadow-xs flex flex-col justify-between hover:border-[var(--primary)]/40 dark:hover:border-[#525252] transition-all">
                   <div>
-                    <CardHeader className="flex flex-row items-start justify-between pb-2 p-5">
-                      <div>
-                        <CardTitle className="text-base font-semibold">{appt.service.name}</CardTitle>
+                    <CardHeader className="flex flex-col min-[380px]:flex-row items-start justify-between gap-2 pb-2 p-4 sm:p-5">
+                      <div className="min-w-0">
+                        <CardTitle className="text-base font-semibold break-words">{appt.service.name}</CardTitle>
                         <CardDescription className="text-xs mt-0.5">
                           {isPresential ? "Atendimento Presencial" : "Teleconsulta Online"} • {appt.service.durationMinutes} minutos
                         </CardDescription>
                       </div>
-                      <Badge variant={appt.status === "CONFIRMED" ? "success" : "warning"}>
+                      <Badge variant={appt.status === "CONFIRMED" ? "success" : "warning"} className="shrink-0">
                         {formatAppointmentStatus(appt.status)}
                       </Badge>
                     </CardHeader>
 
-                    <CardContent className="space-y-3 p-5 pt-0">
+                    <CardContent className="space-y-3 p-4 sm:p-5 pt-0">
                       <div className="p-3 bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#393939] rounded-xl space-y-1.5 text-xs">
                         <div className="flex items-center gap-2 font-heading font-semibold text-[#171717] dark:text-[#F5F5F5]">
                           <Calendar className="h-4 w-4 text-[var(--primary)] dark:text-[#C0C0C0]" />
@@ -309,34 +309,34 @@ export default function PatientAppointmentsPage() {
                   </div>
 
                   {/* Actions Bar */}
-                  <div className="p-5 pt-0">
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#E5E5E5] dark:border-[#393939]">
+                  <div className="p-4 sm:p-5 pt-0">
+                    <div className="grid grid-cols-1 min-[420px]:grid-cols-2 sm:flex sm:flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#E5E5E5] dark:border-[#393939]">
                       {isPresential ? (
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => setSelectedInPersonAppt(appt)}
-                          className="gap-1.5 text-xs"
+                          className="w-full sm:w-auto gap-1.5 text-xs"
                         >
-                          <Info className="h-3.5 w-3.5 text-current" />
+                          <Info className="h-3.5 w-3.5 text-current shrink-0" />
                           <span>Informações da consulta</span>
                         </Button>
                       ) : appt.meetingUrlSnapshot ? (
-                        <Link href={appt.meetingUrlSnapshot} target="_blank">
-                          <Button size="sm" className="gap-1.5 text-xs shadow-xs">
-                            <Video className="h-3.5 w-3.5" />
+                        <Link href={appt.meetingUrlSnapshot} target="_blank" className="w-full sm:w-auto">
+                          <Button size="sm" className="w-full sm:w-auto gap-1.5 text-xs shadow-xs">
+                            <Video className="h-3.5 w-3.5 shrink-0" />
                             <span>Entrar na sala</span>
                           </Button>
                         </Link>
                       ) : (
-                        <span className="text-xs text-[#737373] dark:text-[#A6A6A6] italic">Link sendo preparado</span>
+                        <span className="text-xs text-[#737373] dark:text-[#A6A6A6] italic col-span-full sm:col-span-1">Link sendo preparado</span>
                       )}
 
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setCancellingAppt(appt)}
-                        className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+                        className="w-full sm:w-auto text-xs text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 border border-red-200/70 dark:border-red-900/40 sm:border-transparent"
                       >
                         Cancelar Consulta
                       </Button>
@@ -362,9 +362,9 @@ export default function PatientAppointmentsPage() {
       </div>
 
       {/* ================= 4. ATALHOS DO PACIENTE ================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-2">
         <Link href="/paciente/anamnese" className="block">
-          <Card className="p-5 hover:border-[var(--primary)]/50 dark:hover:border-[#525252] hover:shadow-xs transition-all">
+          <Card className="p-4 sm:p-5 hover:border-[var(--primary)]/50 dark:hover:border-[#525252] hover:shadow-xs transition-all">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] dark:bg-[#292929] dark:text-[#C0C0C0] flex items-center justify-center shrink-0">
                 <FileText className="h-5 w-5" />
@@ -382,7 +382,7 @@ export default function PatientAppointmentsPage() {
         </Link>
 
         <Link href="/paciente/documentos" className="block">
-          <Card className="p-5 hover:border-[var(--primary)]/50 dark:hover:border-[#525252] hover:shadow-xs transition-all">
+          <Card className="p-4 sm:p-5 hover:border-[var(--primary)]/50 dark:hover:border-[#525252] hover:shadow-xs transition-all">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-purple-500/10 text-purple-600 dark:bg-[#292929] dark:text-[#C0C0C0] flex items-center justify-center shrink-0">
                 <FolderLock className="h-5 w-5" />
@@ -400,7 +400,7 @@ export default function PatientAppointmentsPage() {
         </Link>
 
         <Link href="/paciente/financeiro" className="block">
-          <Card className="p-5 hover:border-[var(--primary)]/50 dark:hover:border-[#525252] hover:shadow-xs transition-all">
+          <Card className="p-4 sm:p-5 hover:border-[var(--primary)]/50 dark:hover:border-[#525252] hover:shadow-xs transition-all">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:bg-[#292929] dark:text-[#C0C0C0] flex items-center justify-center shrink-0">
                 <Boxes className="h-5 w-5" />
@@ -482,7 +482,7 @@ export default function PatientAppointmentsPage() {
             </div>
 
             {/* Data e Horário */}
-            <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#393939]">
+            <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-3 p-3.5 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#393939]">
               <div className="space-y-1">
                 <span className="text-[#737373] dark:text-[#A6A6A6] block text-[11px]">Data da Sessão</span>
                 <span className="font-heading font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] flex items-center gap-1.5">
@@ -519,9 +519,9 @@ export default function PatientAppointmentsPage() {
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-block"
+                    className="block sm:inline-block"
                   >
-                    <Button size="sm" className="gap-2 text-xs">
+                    <Button size="sm" className="w-full sm:w-auto gap-2 text-xs">
                       <MapPin className="h-3.5 w-3.5" />
                       <span>Ver localização no Google Maps</span>
                       <ExternalLink className="h-3 w-3 ml-0.5" />
@@ -536,7 +536,7 @@ export default function PatientAppointmentsPage() {
             </div>
 
             <div className="flex justify-end pt-2">
-              <Button variant="outline" onClick={() => setSelectedInPersonAppt(null)}>
+              <Button variant="outline" className="w-full sm:w-auto" onClick={() => setSelectedInPersonAppt(null)}>
                 Fechar
               </Button>
             </div>
@@ -579,16 +579,17 @@ export default function PatientAppointmentsPage() {
               />
             </div>
 
-            <div className="flex justify-end gap-2.5 pt-2">
+            <div className="grid grid-cols-2 sm:flex sm:justify-end gap-2.5 pt-2">
               <Button
                 type="button"
                 variant="ghost"
+                className="w-full sm:w-auto border border-[#E5E5E5] dark:border-[#333333] sm:border-transparent"
                 onClick={() => setCancellingAppt(null)}
                 disabled={isSubmitting}
               >
                 Voltar
               </Button>
-              <Button type="submit" variant="destructive" disabled={isSubmitting}>
+              <Button type="submit" variant="destructive" className="w-full sm:w-auto" disabled={isSubmitting}>
                 {isSubmitting ? "Cancelando..." : "Confirmar Cancelamento"}
               </Button>
             </div>

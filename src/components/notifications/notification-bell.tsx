@@ -104,11 +104,12 @@ export function NotificationBell({ role }: { role: "ADMIN" | "PATIENT" }) {
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        type="button"
         onClick={() => {
           setIsOpen(!isOpen);
           if (!isOpen) fetchNotifications();
         }}
-        className="relative p-2 rounded-xl bg-white border border-[#E5E5E5] text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] hover:border-[var(--primary)]/40 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1E1E1E] dark:border-[#2C2C2C] dark:text-[#C0C0C0] dark:hover:bg-[#262626] dark:hover:text-[#F5F5F5] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+        className="relative p-2 rounded-xl bg-white border border-[#E5E5E5] text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] hover:border-[var(--primary)]/40 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1E1E1E] dark:border-[#2C2C2C] dark:text-[#C0C0C0] dark:hover:bg-[#262626] dark:hover:text-[#F5F5F5] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--primary)] min-h-[40px] min-w-[40px] flex items-center justify-center"
         title="Notificações"
         aria-label="Abrir notificações"
       >
@@ -121,7 +122,7 @@ export function NotificationBell({ role }: { role: "ADMIN" | "PATIENT" }) {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white dark:bg-[#202020] shadow-xl border border-[#E5E5E5] dark:border-[#393939] z-50 overflow-hidden text-xs">
+        <div className="absolute right-0 mt-2 w-[min(22rem,calc(100vw-1.5rem))] sm:w-96 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-white dark:bg-[#202020] shadow-xl border border-[#E5E5E5] dark:border-[#393939] z-50 overflow-hidden text-xs">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E5E5] dark:border-[#393939] bg-[#F8F8F8] dark:bg-[#1B1B1B]">
             <div className="flex items-center gap-2">

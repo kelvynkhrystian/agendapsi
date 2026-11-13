@@ -269,7 +269,7 @@ export default function AdminServicesPage() {
         </div>
 
         {activeTab === "services" && (
-          <Button onClick={handleOpenCreate} className="gap-1.5 self-start sm:self-auto">
+          <Button onClick={handleOpenCreate} className="gap-1.5 w-full sm:w-auto">
             <Plus className="h-4 w-4" />
             <span>Novo Serviço</span>
           </Button>
@@ -277,17 +277,17 @@ export default function AdminServicesPage() {
       </div>
 
       {/* ================= NAVEGAÇÃO INTERNA EM ABAS ================= */}
-      <div className="flex items-center gap-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-3 overflow-x-auto">
+      <div className="grid grid-cols-2 sm:flex items-center gap-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-3">
         <button
           type="button"
           onClick={() => setActiveTab("services")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all whitespace-nowrap cursor-pointer ${
+          className={`flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold border transition-all whitespace-nowrap cursor-pointer ${
             activeTab === "services"
               ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] border-transparent shadow-xs"
               : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border-[var(--primary)]/25 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1B1B1B] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5]"
           }`}
         >
-          <Briefcase className="h-4 w-4" />
+          <Briefcase className="h-4 w-4 shrink-0" />
           <span>Serviços</span>
           <span
             className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${
@@ -303,14 +303,14 @@ export default function AdminServicesPage() {
         <button
           type="button"
           onClick={() => setActiveTab("general")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all whitespace-nowrap cursor-pointer ${
+          className={`flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold border transition-all whitespace-nowrap cursor-pointer ${
             activeTab === "general"
               ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] border-transparent shadow-xs"
               : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border-[var(--primary)]/25 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1B1B1B] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5]"
           }`}
         >
-          <Settings className="h-4 w-4" />
-          <span>Configurações Gerais</span>
+          <Settings className="h-4 w-4 shrink-0" />
+          <span className="truncate">Configurações Gerais</span>
         </button>
       </div>
 
@@ -332,10 +332,10 @@ export default function AdminServicesPage() {
                   key={service.id}
                   className={`transition-all ${!service.isActive ? "opacity-60 bg-[#F8F8F8] dark:bg-[#141414]" : "hover:border-[var(--primary)]/50"}`}
                 >
-                  <CardHeader className="flex flex-row items-start justify-between pb-3">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <CardTitle className="text-base font-bold">{service.name}</CardTitle>
+                  <CardHeader className="flex flex-row items-start justify-between gap-2 pb-3">
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <CardTitle className="text-base font-bold break-words">{service.name}</CardTitle>
                         {!service.isActive ? (
                           <Badge variant="destructive" className="text-[10px]">
                             Inativo
@@ -352,14 +352,14 @@ export default function AdminServicesPage() {
                     </div>
 
                     <div className="text-right shrink-0">
-                      <div className="text-lg font-bold text-[var(--primary)]">
+                      <div className="text-base sm:text-lg font-bold text-[var(--primary)] whitespace-nowrap">
                         {service.isFree ? "Gratuito" : formatBRL(service.priceCents)}
                       </div>
                     </div>
                   </CardHeader>
 
                   <CardContent className="space-y-3 pt-0">
-                    <div className="grid grid-cols-2 gap-2 text-xs text-[#525252] dark:text-[#D0D0D0] border-t border-b border-[#E5E5E5] dark:border-[#2C2C2C] py-2.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 text-xs text-[#525252] dark:text-[#D0D0D0] border-t border-b border-[#E5E5E5] dark:border-[#2C2C2C] py-2.5">
                       <div className="flex items-center gap-1.5 font-medium">
                         <Clock className="h-3.5 w-3.5 text-[#737373] dark:text-[#A6A6A6]" />
                         <span>Duração: <strong>{service.durationMinutes} minutos</strong></span>
@@ -367,22 +367,22 @@ export default function AdminServicesPage() {
                       <div>
                         <span>Modalidade: <strong>{formatModality(service.modality)}</strong></span>
                       </div>
-                      <div className="col-span-2 text-[11px] text-[#737373] dark:text-[#A6A6A6]">
+                      <div className="sm:col-span-2 text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                         <span>Confirmação: <strong>{formatConfirmationPolicy(service.confirmationPolicy)}</strong></span>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-1">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
                       <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                         {service.isActive ? "Visível no agendamento público" : "Oculto na agenda pública"}
                       </span>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 ml-auto">
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleOpenEdit(service)}
-                          className="h-8 px-2.5 text-xs gap-1.5"
+                          className="h-9 sm:h-8 px-2.5 text-xs gap-1.5"
                         >
                           <Edit className="h-3.5 w-3.5" />
                           <span>Editar</span>
@@ -391,7 +391,7 @@ export default function AdminServicesPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteService(service.id)}
-                          className="h-8 px-2 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+                          className="h-9 sm:h-8 px-2.5 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
                           title="Desativar serviço"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -503,11 +503,11 @@ export default function AdminServicesPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
-                <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
+              <div className="grid grid-cols-2 sm:flex sm:justify-end gap-2.5 sm:gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
+                <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)} className="w-full sm:w-auto">
                   Cancelar
                 </Button>
-                <Button type="submit" isLoading={isSubmittingService}>
+                <Button type="submit" isLoading={isSubmittingService} className="w-full sm:w-auto">
                   {editingService ? "Salvar Alterações" : "Cadastrar Serviço"}
                 </Button>
               </div>
@@ -721,7 +721,7 @@ export default function AdminServicesPage() {
 
           {/* BOTÃO SALVAR CONFIGURAÇÕES */}
           <div className="flex justify-end pt-3">
-            <Button type="submit" isLoading={isSavingGeneral} className="gap-2">
+            <Button type="submit" isLoading={isSavingGeneral} className="w-full sm:w-auto gap-2">
               <Save className="h-4 w-4" />
               <span>Salvar Configurações Gerais</span>
             </Button>

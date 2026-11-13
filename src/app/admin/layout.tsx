@@ -179,7 +179,7 @@ export default function AdminLayout({
       {/* Mobile Sidebar Backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-xs md:hidden"
+          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-xs lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -187,7 +187,7 @@ export default function AdminLayout({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 bottom-0 left-0 z-50 w-64 border-r border-[#E5E5E5] dark:border-[#242424] bg-white dark:bg-[#141414] flex flex-col transition-transform duration-200 md:translate-x-0 shadow-xs",
+          "fixed top-0 bottom-0 left-0 z-50 w-64 border-r border-[#E5E5E5] dark:border-[#242424] bg-white dark:bg-[#141414] flex flex-col transition-transform duration-200 lg:translate-x-0 shadow-xs",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -215,7 +215,7 @@ export default function AdminLayout({
           <button
             type="button"
             onClick={() => setSidebarOpen(false)}
-            className="md:hidden p-2 rounded-xl bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/25 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1E1E1E] dark:border-[#2C2C2C] dark:text-[#C0C0C0] dark:hover:bg-[#242424] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
+            className="lg:hidden p-2 rounded-xl bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/25 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1E1E1E] dark:border-[#2C2C2C] dark:text-[#C0C0C0] dark:hover:bg-[#242424] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
             aria-label="Fechar menu"
           >
             <X className="h-5 w-5" />
@@ -359,20 +359,20 @@ export default function AdminLayout({
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col md:pl-64 min-w-0">
-        <header className="h-16 border-b border-[#E5E5E5] dark:border-[#242424] bg-white/95 dark:bg-[#141414]/95 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-8 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
+      <div className="flex-1 flex flex-col lg:pl-64 min-w-0">
+        <header className="h-16 border-b border-[#E5E5E5] dark:border-[#242424] bg-white/95 dark:bg-[#141414]/95 backdrop-blur-md sticky top-0 z-30 px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="md:hidden p-2 rounded-xl bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/25 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1E1E1E] dark:border-[#2C2C2C] dark:text-[#D0D0D0] dark:hover:bg-[#242424] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
+              className="lg:hidden p-2 rounded-xl bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/25 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1E1E1E] dark:border-[#2C2C2C] dark:text-[#D0D0D0] dark:hover:bg-[#242424] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0"
               aria-label="Abrir menu"
             >
               <Menu className="h-5 w-5" />
             </button>
-            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-[#737373] dark:text-[#8C8C8C] truncate">
-              <span>Admin</span>
-              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[#737373] dark:text-[#525252]" />
+            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-[#737373] dark:text-[#8C8C8C] min-w-0 truncate">
+              <span className="hidden sm:inline shrink-0">Admin</span>
+              <ChevronRight className="hidden sm:block h-3.5 w-3.5 shrink-0 text-[#737373] dark:text-[#525252]" />
               <span
                 key={breadcrumbLabel}
                 className="font-heading font-semibold text-[#171717] dark:text-[#F5F5F5] truncate animate-admin-crumb"
@@ -382,7 +382,7 @@ export default function AdminLayout({
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {formattedTodayHeader && (
               <div className="hidden lg:inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#F8F8F8] dark:bg-[#1B1B1B] border border-[#E5E5E5] dark:border-[#2C2C2C] text-xs font-medium text-[#525252] dark:text-[#CCCCCC]">
                 <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
@@ -425,7 +425,7 @@ export default function AdminLayout({
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-3.5 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           <div key={pathname} className={cn("w-full", pathname !== "/admin" && "admin-page-stage")}>
             {children}
           </div>

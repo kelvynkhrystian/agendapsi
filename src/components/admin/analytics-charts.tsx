@@ -425,9 +425,12 @@ export function LollipopPerformanceChart({
       {/* Barra / Tooltip contextual ao passar o mouse ou focar ponto */}
       {activeItem && hoveredIdx !== null && (
         <div
-          className="pointer-events-none absolute top-1 z-20 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white/95 dark:bg-[#141414]/95 px-3 py-2 shadow-lg backdrop-blur-xs text-xs transition-all"
+          className="pointer-events-none absolute top-1 z-20 max-w-[calc(100%-0.5rem)] rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white/95 dark:bg-[#141414]/95 px-2.5 sm:px-3 py-1.5 sm:py-2 shadow-lg backdrop-blur-xs text-xs transition-all"
           style={{
-            left: `${Math.min(72, Math.max(8, (hoveredIdx / Math.max(1, safeData.length - 1)) * 78 + 8))}%`,
+            left: `${Math.min(
+              containerWidth > 0 && containerWidth < 460 ? 52 : 72,
+              Math.max(4, (hoveredIdx / Math.max(1, safeData.length - 1)) * 78 + 8)
+            )}%`,
           }}
         >
           <p className="font-heading font-bold text-[#171717] dark:text-[#F5F5F5]">{activeItem.label}</p>

@@ -219,6 +219,8 @@ erDiagram
 | `gender` | `String?` | Não | `null` | Identidade de gênero declarada | `"Feminino"` |
 | `address` | `String?` | Não | `null` | Endereço residencial completo | `"Rua das Flores, 123, São Paulo - SP"` |
 | `emergencyContact` | `String?` | Não | `null` | Nome e telefone de pessoa para contato urgente | `"Carlos Souza (11) 99888-7766"` |
+| `smsOptIn` | `Boolean` | Sim | `false` | Consentimento explícito do paciente para receber notificações via SMS | `false` |
+| `smsOptInAt` | `DateTime?` | Não | `null` | Timestamp UTC da formalização do consentimento de SMS | `2026-11-11T10:00:00.000Z` |
 | `isActive` | `Boolean` | Sim | `true` | Status ativo ou inativado pelo administrador | `true` |
 | `createdAt` | `DateTime` | Sim | `now()` | Data e hora do cadastro | `2026-11-04T10:00:00.000Z` |
 | `updatedAt` | `DateTime` | Sim | Auto | Data e hora da última modificação | `2026-11-04T10:00:00.000Z` |
@@ -1228,7 +1230,7 @@ erDiagram
 | `defaultBufferMinutes` | `Int` | Sim | `10` | Buffer/intervalo padrão em minutos entre atendimentos | `10` |
 | `defaultModality` | `Modality` | Sim | `BOTH` | Modalidade padrão de atendimento do consultório (`PRESENTIAL`, `ONLINE`, `BOTH`) | `BOTH` |
 | `defaultConfirmationPolicy`| `ConfirmationPolicy` | Sim | `AUTOMATIC` | Política padrão de confirmação de consultas do consultório | `AUTOMATIC` |
-| `activeVideoProvider`| `String` | Sim | `"JITSI"` | Provedor de vídeo selecionado: `"JITSI"`, `"PEERJS"`, `"GOOGLE_MEET"` | `"JITSI"` |
+| `activeVideoProvider`| `String` | Sim | `"PEERJS"` | Provedor de vídeo padrão selecionado: `"PEERJS"` (PSI Teleconsulta integrado padrão), `"JITSI"` ou `"GOOGLE_MEET"` | `"PEERJS"` |
 | `jitsiDomain` | `String` | Sim | `"meet.jit.si"` | Domínio do servidor Jitsi Meet utilizado | `"meet.jit.si"` |
 | `enableOnlinePayment`| `Boolean` | Sim | `true` | Habilita fluxo de pagamento online simulado/gateway | `true` |
 | `enableInPersonPayment`| `Boolean` | Sim | `true` | Habilita opção de pagamento presencial | `true` |
@@ -1236,17 +1238,49 @@ erDiagram
 | `smtpHost` | `String?` | Não | `null` | Servidor SMTP para envio de e-mails | `"smtp.mailgun.org"` |
 | `smtpPort` | `Int?` | Não | `null` | Porta de conexão do servidor SMTP | `587` |
 | `smtpUser` | `String?` | Não | `null` | Usuário de autenticação do SMTP | `"postmaster@dominio.com"` |
-| `smtpPass` | `String?` | Não | `null` | Senha ou token de envio SMTP | `"senha_secreta_smtp"` |
+| `smtpPass` | `String?` (Text) | Não | `null` | Senha ou token de envio SMTP (criptografado AES-256-GCM com prefixo `enc:v1:`) | `"enc:v1:..."` |
 | `smtpFrom` | `String?` | Não | `null` | E-mail de remetente exibido nas mensagens | `"nao-responda@consultorio.com.br"`|
 | `smtpEnabled` | `Boolean` | Sim | `false` | Se o envio real de e-mails está habilitado | `false` |
-| `smtpEncryption` | `String` | Sim | `"TLS"` | Tipo de criptografia do SMTP: `"TLS"` ou `"SSL"` | `"TLS"` |
+| `smtpEncryption` | `String` | Sim | `"TLS"` | Tipo de criptografia do SMTP: `"TLS"`, `"SSL"` ou `"NONE"` | `"TLS"` |
 | `smtpSenderName` | `String?` | Não | `null` | Nome de exibição do remetente de e-mail | `"Dra. Helena Martins"` |
-| `whatsappApiUrl` | `String?` | Não | `null` | Endpoint base da API de WhatsApp utilizada | `"https://api.z-api.io/instances/..."` |
-| `whatsappApiToken`| `String?` | Não | `null` | Chave de autorização/Bearer token da API de WhatsApp| `"tok_wh_98a7bc..."` |
+| `emailMode` | `String` | Sim | `"DEFAULT"` | Origem do serviço SMTP: `"DEFAULT"` (variáveis `.env`) ou `"CUSTOM"` (SMTP próprio) | `"DEFAULT"` |
+| `smtpReplyTo` | `String?` | Não | `null` | Endereço de resposta opcional (`Reply-To`) para e-mails personalizados | `"contato@consultorio.com.br"` |
+| `emailHealthStatus` | `String` | Sim | `"NOT_CONFIGURED"` | Estado real verificado do canal E-mail (`DISABLED`, `NOT_CONFIGURED`, `CONNECTED`, `INVALID_AUTH`, `SERVICE_UNAVAILABLE`, `CONNECTION_FAILED`) | `"CONNECTED"` |
+| `emailHealthMessage` | `String?` (Text) | Não | `null` | Diagnóstico higienizado (sem segredos) do último teste ou falha SMTP | `"Conexão SMTP verificada com sucesso"` |
+| `emailLastCheckedAt` | `DateTime?` | Não | `null` | Timestamp UTC da última verificação de conexão SMTP | `2026-11-11T10:00:00.000Z` |
+| `emailLastTestedAt` | `DateTime?` | Não | `null` | Timestamp UTC do último envio real de e-mail de teste bem-sucedido | `2026-11-11T10:05:00.000Z` |
+| `emailDisabledRecoveryStrategy` | `String` | Sim | `"ADMIN_ASSISTED"` | Estratégia de recuperação de conta quando E-mail está desativado: `"ADMIN_ASSISTED"` ou `"SMS"` | `"ADMIN_ASSISTED"` |
+| `smsEnabled` | `Boolean` | Sim | `false` | Se o envio real de SMS via TextBee está habilitado | `false` |
+| `smsProvider` | `String` | Sim | `"TEXTBEE"` | Provedor de gateway SMS ativo (`"TEXTBEE"`) | `"TEXTBEE"` |
+| `textbeeHostingMode` | `String` | Sim | `"CLOUD"` | Modo de hospedagem do TextBee: `"CLOUD"` ou `"SELF_HOSTED"` | `"CLOUD"` |
+| `textbeeApiUrl` | `String?` | Não | `null` | URL base do servidor TextBee quando em modo `"SELF_HOSTED"` | `"https://sms.meuconsultorio.com/api/v1"` |
+| `textbeeApiKey` | `String?` (Text) | Não | `null` | API Key do TextBee criptografada AES-256-GCM (`enc:v1:...`) | `"enc:v1:..."` |
+| `textbeeDeviceId` | `String?` | Não | `null` | Identificador do dispositivo Android selecionado no gateway TextBee | `"672f1c9a8b..."` |
+| `smsHealthStatus` | `String` | Sim | `"NOT_CONFIGURED"` | Estado real verificado do canal SMS (`DISABLED`, `NOT_CONFIGURED`, `CONNECTED`, `PARTIAL_API_ONLY`, `DEVICE_OFFLINE`, `INVALID_AUTH`, `SERVICE_UNAVAILABLE`, `CONNECTION_FAILED`) | `"DEVICE_OFFLINE"` |
+| `smsHealthMessage` | `String?` (Text) | Não | `null` | Diagnóstico higienizado do aparelho Android e API TextBee | `"Dispositivo Android offline no aplicativo TextBee"` |
+| `smsLastCheckedAt` | `DateTime?` | Não | `null` | Timestamp UTC da última verificação do gateway TextBee | `2026-11-11T10:00:00.000Z` |
+| `smsLastTestedAt` | `DateTime?` | Não | `null` | Timestamp UTC do último SMS de teste enviado com sucesso | `2026-11-11T10:05:00.000Z` |
+| `whatsappApiUrl` | `String?` | Não | `null` | Endpoint base legado de API de WhatsApp (mantido por compatibilidade) | `null` |
+| `whatsappApiToken`| `String?` (Text) | Não | `null` | Token legado da API de WhatsApp (mantido por compatibilidade) | `null` |
 | `whatsappEnabled` | `Boolean` | Sim | `false` | Se o envio automático via WhatsApp está habilitado | `false` |
-| `whatsappInstanceId`| `String?`| Não | `null` | Identificador de instância do WhatsApp | `"inst_891238"` |
-| `whatsappProvider`| `String` | Sim | `"GENERIC"` | Provedor de mensageria: `"EVOLUTION"`, `"ZAPI"`, `"GENERIC"` | `"EVOLUTION"` |
-| `whatsappSenderNumber`| `String?`| Não | `null` | Número emissor cadastrado na API | `"5511999998888"` |
+| `whatsappInstanceId`| `String?`| Não | `null` | Identificador legado de instância do WhatsApp | `null` |
+| `whatsappProvider`| `String` | Sim | `"GENERIC"` | Provedor WhatsApp ativo: `"META_OFFICIAL"`, `"OPENWA"` (ou `"GENERIC"` legado) | `"META_OFFICIAL"` |
+| `whatsappSenderNumber`| `String?`| Não | `null` | Número emissor exibido pela conta WhatsApp conectada | `"+55 11 99999-8888"` |
+| `whatsappMetaPhoneNumberId` | `String?` | Não | `null` | Phone Number ID cadastrado na Meta WhatsApp Cloud API | `"102938475610293"` |
+| `whatsappMetaWabaId` | `String?` | Não | `null` | WhatsApp Business Account ID (WABA ID) na Meta | `"998877665544332"` |
+| `whatsappMetaAccessToken` | `String?` (Text) | Não | `null` | Access Token permanente da Meta criptografado AES-256-GCM (`enc:v1:...`) | `"enc:v1:..."` |
+| `whatsappMetaVerifyToken` | `String?` | Não | `null` | Verify Token configurado para validação do webhook da Meta (`GET /api/webhooks/messages`) | `"psi_meta_verify_123"` |
+| `whatsappMetaAppSecret` | `String?` (Text) | Não | `null` | App Secret da Meta criptografado AES-256-GCM para validação HMAC SHA-256 dos webhooks | `"enc:v1:..."` |
+| `whatsappMetaTemplateName` | `String?` | Não | `null` | Nome do modelo aprovado da Meta usado para testes ou notificações fora da janela 24h | `"hello_world"` |
+| `whatsappMetaTemplateLanguage` | `String` | Sim | `"pt_BR"` | Código do idioma do template Meta (ex: `"pt_BR"`, `"en_US"`) | `"pt_BR"` |
+| `openWaApiUrl` | `String?` | Não | `null` | URL base da instância OpenWA (`@open-wa/wa-automate`) | `"https://openwa.meuconsultorio.com"` |
+| `openWaApiKey` | `String?` (Text) | Não | `null` | Chave de API da instância OpenWA criptografada AES-256-GCM (`enc:v1:...`) | `"enc:v1:..."` |
+| `openWaSessionId` | `String?` | Não | `"default"` | Identificador da sessão no servidor OpenWA | `"default"` |
+| `openWaConnectedNumber` | `String?` | Não | `null` | Número WhatsApp conectado na sessão OpenWA ativa | `"+55 (11) 99999-8888"` |
+| `whatsappHealthStatus` | `String` | Sim | `"NOT_CONFIGURED"` | Estado real verificado do canal WhatsApp (`DISABLED`, `NOT_CONFIGURED`, `CONNECTED`, `PARTIAL_API_ONLY`, `PARTIAL_SESSION_ONLY`, `AWAITING_QR`, `RECONNECT_REQUIRED`, `INVALID_AUTH`, `SERVICE_UNAVAILABLE`, `CONNECTION_FAILED`) | `"CONNECTED"` |
+| `whatsappHealthMessage` | `String?` (Text) | Não | `null` | Diagnóstico higienizado do provedor/sessão WhatsApp | `"Meta Cloud API conectada"` |
+| `whatsappLastCheckedAt` | `DateTime?` | Não | `null` | Timestamp UTC da última verificação de conexão/sessão WhatsApp | `2026-11-11T10:00:00.000Z` |
+| `whatsappLastTestedAt` | `DateTime?` | Não | `null` | Timestamp UTC do último envio real de mensagem de teste WhatsApp | `2026-11-11T10:05:00.000Z` |
 | `googleMeetClientId`| `String?`| Não | `null` | Client ID para integração com API do Google Meet | `null` |
 | `googleMeetClientSecret` | `String?` | Não | `null` | Client Secret do aplicativo OAuth no Google Cloud Console | `"••••••••"` |
 | `googleMeetRefreshToken` | `String?` | Não | `null` | Refresh token OAuth persistido para renovação de acesso | `null` |
@@ -1409,8 +1443,9 @@ erDiagram
 ### 4.9 Enum: `NotificationChannel`
 - **Finalidade:** Meio externo de envio de notificações.
 - **Valores:**
-  - `EMAIL`: Mensagem enviada via protocolo SMTP.
-  - `WHATSAPP`: Mensagem enviada via API de mensageria instantânea WhatsApp.
+  - `EMAIL`: Mensagem enviada via protocolo SMTP (Padrão do servidor ou SMTP personalizado).
+  - `WHATSAPP`: Mensagem enviada via API oficial Meta Cloud API ou sessão OpenWA.
+  - `SMS`: Mensagem de texto enviada via gateway Android TextBee (mediante `Patient.smsOptIn`).
 
 ### 4.10 Enum: `NotificationType`
 - **Finalidade:** Classificação do evento de notificação gerado pelo sistema.

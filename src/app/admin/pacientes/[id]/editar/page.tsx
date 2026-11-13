@@ -38,6 +38,7 @@ interface PatientData {
   emergencyContact?: string | null;
   isActive: boolean;
   isMinor: boolean;
+  smsOptIn?: boolean;
   guardians?: Array<{
     id: string;
     fullName: string;
@@ -67,6 +68,7 @@ export default function AdminEditarPacientePage({
   const [address, setAddress] = useState("");
   const [emergencyContact, setEmergencyContact] = useState("");
   const [isActive, setIsActive] = useState(true);
+  const [smsOptIn, setSmsOptIn] = useState(false);
 
   // Estados de Envio e Feedback
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -96,6 +98,7 @@ export default function AdminEditarPacientePage({
         setAddress(data.address || "");
         setEmergencyContact(data.emergencyContact || "");
         setIsActive(data.isActive ?? true);
+        setSmsOptIn(Boolean(data.smsOptIn));
 
         setInitialData(
           JSON.stringify({
@@ -107,6 +110,7 @@ export default function AdminEditarPacientePage({
             address: data.address || "",
             emergencyContact: data.emergencyContact || "",
             isActive: data.isActive ?? true,
+            smsOptIn: Boolean(data.smsOptIn),
           })
         );
         setIsLoading(false);
@@ -128,6 +132,7 @@ export default function AdminEditarPacientePage({
       address,
       emergencyContact,
       isActive,
+      smsOptIn,
     });
     return initialData !== "" && current !== initialData;
   };
@@ -159,6 +164,7 @@ export default function AdminEditarPacientePage({
           address: address || undefined,
           emergencyContact: emergencyContact || undefined,
           isActive,
+          smsOptIn,
         }),
       });
 
@@ -206,22 +212,22 @@ export default function AdminEditarPacientePage({
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-12">
       {/* ================= BARRA DE TOPO & VOLTAR ================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E5E5E5] dark:border-[#333333]">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[#E5E5E5] dark:border-[#333333]">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={handleCancel}
-            className="gap-1.5 text-xs"
+            className="gap-1.5 text-xs px-2 sm:px-3"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Voltar para a Ficha do Paciente</span>
           </Button>
 
-          <span className="text-[#D4D4D4] dark:text-[#404040]">|</span>
+          <span className="hidden sm:inline text-[#D4D4D4] dark:text-[#404040]">|</span>
 
-          <nav className="text-xs text-[#737373] dark:text-[#A6A6A6] flex items-center gap-1.5 truncate">
+          <nav className="hidden sm:flex text-xs text-[#737373] dark:text-[#A6A6A6] items-center gap-1.5 truncate">
             <Link href="/admin/pacientes" className="hover:underline">
               Pacientes
             </Link>
@@ -239,7 +245,7 @@ export default function AdminEditarPacientePage({
 
       {/* ================= TÍTULO DA PÁGINA ================= */}
       <div>
-        <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
+        <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5] break-words">
           Editar Cadastro: {patient.fullName}
         </h1>
         <p className="text-xs sm:text-sm text-[#525252] dark:text-[#A6A6A6] mt-1">
@@ -373,6 +379,20 @@ export default function AdminEditarPacientePage({
                   placeholder="Nome do contato e telefone"
                 />
               </div>
+
+              <div className="sm:col-span-2 pt-2 border-t border-[#E5E5E5] dark:border-[#333333]">
+                <label className="flex items-start gap-2.5 cursor-pointer text-xs text-[#404040] dark:text-[#D0D0D0]">
+                  <input
+                    type="checkbox"
+                    checked={smsOptIn}
+                    onChange={(e) => setSmsOptIn(e.target.checked)}
+                    className="mt-0.5 rounded border-[#E5E5E5] dark:border-[#525252] accent-[var(--primary)] h-4 w-4 shrink-0 cursor-pointer"
+                  />
+                  <span>
+                    <strong>Recebimento de lembretes por SMS (opt-in):</strong> Permite o envio de confirmações e lembretes por SMS quando o canal estiver ativo.
+                  </span>
+                </label>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -442,12 +462,13 @@ export default function AdminEditarPacientePage({
           <p className="text-[#737373] dark:text-[#A6A6A6]">
             Se você sair agora, as alterações feitas neste formulário serão descartadas. Deseja continuar editando ou sair sem salvar?
           </p>
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#E5E5E5] dark:border-[#333333]">
+          <div className="grid grid-cols-2 sm:flex sm:justify-end gap-2 pt-2 border-t border-[#E5E5E5] dark:border-[#333333]">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setShowExitConfirm(false)}
+              className="w-full sm:w-auto"
             >
               Continuar Editando
             </Button>
@@ -459,6 +480,7 @@ export default function AdminEditarPacientePage({
                 setShowExitConfirm(false);
                 router.push(`/admin/pacientes/${id}`);
               }}
+              className="w-full sm:w-auto"
             >
               Descartar e Sair
             </Button>

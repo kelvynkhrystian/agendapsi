@@ -179,7 +179,7 @@ export default function AdminPackagesPage() {
           </p>
         </div>
 
-        <Button onClick={() => setIsModalOpen(true)} className="gap-1.5">
+        <Button onClick={() => setIsModalOpen(true)} className="gap-1.5 w-full sm:w-auto">
           <Plus className="h-4 w-4" />
           <span>Criar Proposta de Pacote</span>
         </Button>
@@ -191,10 +191,10 @@ export default function AdminPackagesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {packages.map((pkg) => (
             <Card key={pkg.id}>
-              <CardHeader className="flex flex-row items-start justify-between pb-2">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="text-base">{pkg.title}</CardTitle>
+              <CardHeader className="flex flex-row items-start justify-between gap-2 pb-2">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <CardTitle className="text-base break-words">{pkg.title}</CardTitle>
                     <Badge
                       variant={
                         pkg.status === "ACCEPTED"
@@ -211,8 +211,8 @@ export default function AdminPackagesPage() {
                     Paciente: <strong>{pkg.patient.fullName}</strong>
                   </CardDescription>
                 </div>
-                <div className="text-right">
-                  <span className="text-base font-bold text-[var(--primary)]">
+                <div className="text-right shrink-0">
+                  <span className="text-base font-bold text-[var(--primary)] whitespace-nowrap">
                     {formatBRL(pkg.totalPriceCents)}
                   </span>
                 </div>
@@ -326,61 +326,63 @@ export default function AdminPackagesPage() {
 
           {/* Seletor de Sessões Pré-definidas */}
           <div className="space-y-3 pt-3 border-t border-[#E5E5E5] dark:border-[#333333]">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <span className="font-semibold block uppercase text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                 Datas e Horários Pré-definidos ({slotsList.length} sessões)
               </span>
-              <Button type="button" variant="outline" size="sm" onClick={handleAddSlot} className="text-xs gap-1.5">
+              <Button type="button" variant="outline" size="sm" onClick={handleAddSlot} className="w-full sm:w-auto text-xs gap-1.5">
                 + Adicionar Sessão
               </Button>
             </div>
 
-            <div className="space-y-2.5 max-h-56 overflow-y-auto p-1">
+            <div className="space-y-2.5 max-h-60 overflow-y-auto p-1">
               {slotsList.map((slot, i) => (
-                <div key={i} className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 p-2.5 bg-[#F8F8F8] dark:bg-[#141414] rounded-xl border border-[#E5E5E5] dark:border-[#333333]">
-                  <span className="font-bold text-[#737373] dark:text-[#A6A6A6] w-5 text-center">{i + 1}.</span>
+                <div key={i} className="grid grid-cols-[1.5rem_1fr_auto] sm:flex sm:items-center gap-2 p-2.5 bg-[#F8F8F8] dark:bg-[#141414] rounded-xl border border-[#E5E5E5] dark:border-[#333333]">
+                  <span className="font-bold text-[#737373] dark:text-[#A6A6A6] text-center">{i + 1}.</span>
                   <input
                     type="date"
-                    className="flex h-10 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] px-3 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
+                    className="flex h-10 w-full sm:w-auto min-w-0 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] px-2.5 sm:px-3 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
                     value={slot.date}
                     onChange={(e) => handleSlotChange(i, "date", e.target.value)}
                     required
                   />
+                  {slotsList.length > 1 ? (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSlot(i)}
+                      className="sm:order-last text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer"
+                      aria-label="Remover sessão"
+                    >
+                      ✕
+                    </button>
+                  ) : (
+                    <span className="hidden sm:inline" />
+                  )}
                   <input
                     type="time"
-                    className="flex h-10 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] px-3 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
+                    className="col-start-2 flex h-10 w-full sm:w-auto rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] px-2.5 sm:px-3 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
                     value={slot.time}
                     onChange={(e) => handleSlotChange(i, "time", e.target.value)}
                     required
                   />
                   <select
-                    className="flex h-10 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] px-3 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30 cursor-pointer"
+                    className="col-span-1 flex h-10 w-full sm:w-auto rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#191919] px-2.5 sm:px-3 text-xs text-[#171717] dark:text-[#F5F5F5] outline-none focus:ring-2 focus:ring-[var(--primary)]/30 cursor-pointer"
                     value={slot.modality}
                     onChange={(e) => handleSlotChange(i, "modality", e.target.value)}
                   >
                     <option value="ONLINE">Online</option>
                     <option value="PRESENTIAL">Presencial</option>
                   </select>
-                  {slotsList.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSlot(i)}
-                      className="text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
-                      aria-label="Remover sessão"
-                    >
-                      ✕
-                    </button>
-                  )}
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
-            <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5 sm:gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
+            <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)} className="w-full sm:w-auto">
               Cancelar
             </Button>
-            <Button type="submit" isLoading={isSubmitting}>
+            <Button type="submit" isLoading={isSubmitting} className="w-full sm:w-auto">
               Gerar Proposta e Reservar Horários
             </Button>
           </div>

@@ -47,6 +47,7 @@ export default function AdminNovoPacientePage() {
 
   // Menor de Idade & Responsável Legal
   const [isMinor, setIsMinor] = useState(false);
+  const [smsOptIn, setSmsOptIn] = useState(false);
   const [guardianFullName, setGuardianFullName] = useState("");
   const [guardianCpf, setGuardianCpf] = useState("");
   const [guardianPhone, setGuardianPhone] = useState("");
@@ -107,6 +108,7 @@ export default function AdminNovoPacientePage() {
           gender: gender || undefined,
           address: address || undefined,
           emergencyContact: emergencyContact || undefined,
+          smsOptIn,
           isMinor,
           guardianFullName: isMinor ? guardianFullName : undefined,
           guardianCpf: isMinor ? guardianCpf : undefined,
@@ -148,22 +150,22 @@ export default function AdminNovoPacientePage() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-12">
       {/* ================= BARRA DE TOPO & VOLTAR ================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E5E5E5] dark:border-[#333333]">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[#E5E5E5] dark:border-[#333333]">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={handleCancel}
-            className="gap-1.5 text-xs"
+            className="gap-1.5 text-xs px-2 sm:px-3"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Voltar para Pacientes</span>
           </Button>
 
-          <span className="text-[#D4D4D4] dark:text-[#404040]">|</span>
+          <span className="hidden sm:inline text-[#D4D4D4] dark:text-[#404040]">|</span>
 
-          <nav className="text-xs text-[#737373] dark:text-[#A6A6A6] flex items-center gap-1.5">
+          <nav className="hidden sm:flex text-xs text-[#737373] dark:text-[#A6A6A6] items-center gap-1.5">
             <Link href="/admin/pacientes" className="hover:underline">
               Pacientes
             </Link>
@@ -194,13 +196,13 @@ export default function AdminNovoPacientePage() {
       {/* ================= RESULTADO COM SENHA TEMPORÁRIA ================= */}
       {createdPatient ? (
         <Card className="border-emerald-500/40 shadow-md">
-          <CardHeader className="p-6 pb-4">
+          <CardHeader className="p-4 sm:p-6 pb-4">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                 <CheckCircle2 className="h-6 w-6" />
               </div>
-              <div>
-                <CardTitle className="text-lg font-bold text-emerald-700 dark:text-emerald-300">
+              <div className="min-w-0">
+                <CardTitle className="text-base sm:text-lg font-bold text-emerald-700 dark:text-emerald-300">
                   Paciente Cadastrado com Sucesso!
                 </CardTitle>
                 <CardDescription className="text-xs">
@@ -210,15 +212,15 @@ export default function AdminNovoPacientePage() {
             </div>
           </CardHeader>
 
-          <CardContent className="p-6 pt-0 space-y-6">
+          <CardContent className="p-4 sm:p-6 pt-0 space-y-5 sm:space-y-6">
             <Alert variant="success">
               Uma senha temporária de primeiro acesso foi gerada automaticamente. Forneça estas credenciais para que o paciente acesse o Painel do Paciente e complete sua ficha de anamnese:
             </Alert>
 
-            <div className="p-4 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#333333] space-y-3 font-mono text-xs sm:text-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E5E5] dark:border-[#333333] pb-2.5">
+            <div className="p-3.5 sm:p-4 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#333333] space-y-3 font-mono text-xs sm:text-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 border-b border-[#E5E5E5] dark:border-[#333333] pb-2.5">
                 <span className="text-[#737373] dark:text-[#A6A6A6]">E-mail de Acesso:</span>
-                <span className="font-bold text-[#171717] dark:text-[#F5F5F5]">
+                <span className="font-bold text-[#171717] dark:text-[#F5F5F5] break-all">
                   {createdPatient.email}
                 </span>
               </div>
@@ -226,8 +228,8 @@ export default function AdminNovoPacientePage() {
               {createdPatient.tempPassword && (
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <span className="text-[#737373] dark:text-[#A6A6A6]">Senha Temporária:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-lg text-[var(--primary)] bg-[var(--primary)]/10 px-3 py-1 rounded-lg tracking-wider">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-bold text-base sm:text-lg text-[var(--primary)] bg-[var(--primary)]/10 px-3 py-1 rounded-lg tracking-wider">
                       {createdPatient.tempPassword}
                     </span>
                     <Button
@@ -257,13 +259,13 @@ export default function AdminNovoPacientePage() {
               * Por segurança e em conformidade com as diretrizes do CFP/LGPD, o paciente será convidado a definir uma nova senha definitiva e pessoal logo no primeiro acesso.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
-              <Link href="/admin/pacientes">
+            <div className="grid grid-cols-1 sm:flex items-center justify-end gap-2.5 sm:gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
+              <Link href="/admin/pacientes" className="w-full sm:w-auto">
                 <Button variant="ghost" size="sm" className="w-full sm:w-auto">
                   Voltar para Lista de Pacientes
                 </Button>
               </Link>
-              <Link href={`/admin/pacientes/${createdPatient.id}`}>
+              <Link href={`/admin/pacientes/${createdPatient.id}`} className="w-full sm:w-auto">
                 <Button size="sm" className="w-full sm:w-auto gap-2">
                   <User className="h-4 w-4" />
                   <span>Acessar Ficha do Paciente</span>
@@ -382,17 +384,31 @@ export default function AdminNovoPacientePage() {
                     onChange={(e) => setEmergencyContact(e.target.value)}
                   />
                 </div>
+
+                <div className="sm:col-span-2 pt-2 border-t border-[#E5E5E5] dark:border-[#333333]">
+                  <label className="flex items-start gap-2.5 cursor-pointer text-xs text-[#404040] dark:text-[#D0D0D0]">
+                    <input
+                      type="checkbox"
+                      checked={smsOptIn}
+                      onChange={(e) => setSmsOptIn(e.target.checked)}
+                      className="mt-0.5 rounded border-[#E5E5E5] dark:border-[#525252] accent-[var(--primary)] h-4 w-4 shrink-0 cursor-pointer"
+                    />
+                    <span>
+                      <strong>Recebimento de lembretes por SMS autorizado (opcional):</strong> Marque apenas se o paciente consentiu explicitamente em receber SMS.
+                    </span>
+                  </label>
+                </div>
               </div>
             </CardContent>
           </Card>
 
           {/* SEÇÃO 3: PROTEÇÃO AO MENOR DE IDADE */}
           <Card className={`shadow-xs transition-colors ${isMinor ? "border-amber-400/60 dark:border-amber-700/60" : ""}`}>
-            <CardHeader className="p-5 pb-3 border-b border-[#E5E5E5] dark:border-[#333333]">
-              <div className="flex items-center justify-between">
+            <CardHeader className="p-4 sm:p-5 pb-3 border-b border-[#E5E5E5] dark:border-[#333333]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <CardTitle className="text-base font-bold flex items-center gap-2">
-                    <HeartHandshake className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                    <HeartHandshake className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
                     <span>Proteção e Atendimento de Menor de Idade</span>
                   </CardTitle>
                   <CardDescription className="text-xs">
@@ -400,7 +416,7 @@ export default function AdminNovoPacientePage() {
                   </CardDescription>
                 </div>
 
-                <label className="flex items-center gap-2 cursor-pointer bg-[#F8F8F8] dark:bg-[#141414] px-3 py-1.5 rounded-xl border border-[#E5E5E5] dark:border-[#333333]">
+                <label className="flex items-center gap-2 cursor-pointer bg-[#F8F8F8] dark:bg-[#141414] px-3 py-2 sm:py-1.5 rounded-xl border border-[#E5E5E5] dark:border-[#333333] w-fit">
                   <input
                     type="checkbox"
                     checked={isMinor}
@@ -515,12 +531,13 @@ export default function AdminNovoPacientePage() {
           <p className="text-[#737373] dark:text-[#A6A6A6]">
             Se você sair agora, todos os dados preenchidos neste formulário serão perdidos. Deseja continuar editando ou sair sem salvar?
           </p>
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#E5E5E5] dark:border-[#333333]">
+          <div className="grid grid-cols-2 sm:flex sm:justify-end gap-2 pt-2 border-t border-[#E5E5E5] dark:border-[#333333]">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setShowExitConfirm(false)}
+              className="w-full sm:w-auto"
             >
               Continuar Editando
             </Button>
@@ -532,6 +549,7 @@ export default function AdminNovoPacientePage() {
                 setShowExitConfirm(false);
                 router.push("/admin/pacientes");
               }}
+              className="w-full sm:w-auto"
             >
               Descartar e Sair
             </Button>

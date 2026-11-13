@@ -646,9 +646,10 @@ export async function rescheduleAppointmentAtomic({
 
     const prevReminders = await tx.notificationDelivery.findMany({
       where: {
-        idempotencyKey: {
-          in: [`reminder_24h_${appointmentId}`, `reminder_2h_${appointmentId}`],
-        },
+        OR: [
+          { idempotencyKey: { startsWith: `reminder_24h_${appointmentId}` } },
+          { idempotencyKey: { startsWith: `reminder_2h_${appointmentId}` } },
+        ],
       },
       select: { id: true, idempotencyKey: true },
     });

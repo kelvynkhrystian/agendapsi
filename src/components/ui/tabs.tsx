@@ -52,7 +52,7 @@ export function TabsList({
     <div
       role="tablist"
       className={cn(
-        "inline-flex h-11 items-center justify-start rounded-xl bg-[#F2F2F2] dark:bg-[#1B1B1B] p-1 border border-[#E5E5E5] dark:border-[#393939] text-[#737373] dark:text-[#A6A6A6]",
+        "flex flex-wrap items-center gap-2 p-1.5 rounded-2xl bg-[#F4F4F5] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] w-fit max-w-full text-xs font-heading font-semibold",
         className
       )}
       {...props}
@@ -80,10 +80,10 @@ export function TabsTrigger({
       disabled={disabled}
       onClick={() => context.onValueChange(value)}
       className={cn(
-        "inline-flex items-center justify-center whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
+        "flex items-center justify-center gap-2 whitespace-nowrap px-3.5 py-2 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] disabled:pointer-events-none disabled:opacity-50 cursor-pointer shrink-0",
         isSelected
-          ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-xs font-semibold"
-          : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:bg-[var(--primary)]/[0.04] dark:bg-transparent dark:border-transparent dark:text-[#C0C0C0] dark:hover:bg-[#242424] dark:hover:text-[#FFFFFF]",
+          ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] border border-transparent shadow-xs"
+          : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1E1E1E] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:text-[#F5F5F5] dark:hover:bg-[#262626]",
         className
       )}
       {...props}

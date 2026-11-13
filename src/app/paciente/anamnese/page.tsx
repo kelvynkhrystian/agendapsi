@@ -136,7 +136,7 @@ export default function PatientAnamnesisPage() {
           </CardHeader>
 
           <CardContent className="space-y-6 pt-2">
-            <div className="flex flex-col sm:flex-row items-center justify-between p-4 rounded-xl bg-white dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#393939] gap-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl bg-white dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#393939] gap-3">
               <div className="flex items-center gap-3">
                 <FileCheck2 className="h-5 w-5 text-emerald-600 dark:text-[#C0C0C0] shrink-0" />
                 <div>
@@ -176,8 +176,8 @@ export default function PatientAnamnesisPage() {
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Ficha de Anamnese</h1>
-        <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Ficha de Anamnese</h1>
+        <p className="text-xs sm:text-sm text-[#737373] dark:text-[#A6A6A6]">
           Por favor, preencha as questões abaixo com sinceridade para auxiliar o profissional a compreender seu histórico e necessidades clínicas.
         </p>
       </div>
@@ -196,7 +196,7 @@ export default function PatientAnamnesisPage() {
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit} className="space-y-6 text-xs">
               {fields.map((field) => (
-                <div key={field.id} className="space-y-3 p-5 sm:p-6 rounded-2xl border border-[#E5E5E5] dark:border-[#393939] bg-[#F8F8F8]/60 dark:bg-[#141414]/60">
+                <div key={field.id} className="space-y-3 p-4 sm:p-6 rounded-2xl border border-[#E5E5E5] dark:border-[#393939] bg-[#F8F8F8]/60 dark:bg-[#141414]/60">
                   <label className="block font-semibold text-sm text-[#171717] dark:text-[#F5F5F5]">
                     {field.label} {field.required && <span className="text-red-500">*</span>}
                   </label>
@@ -243,7 +243,7 @@ export default function PatientAnamnesisPage() {
                 </div>
               ))}
 
-              <div className="pt-5 border-t border-[#E5E5E5] dark:border-[#393939] flex items-center justify-between">
+              <div className="pt-5 border-t border-[#E5E5E5] dark:border-[#393939] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
                   Após o envio, as respostas não poderão ser editadas diretamente.
                 </span>
@@ -251,7 +251,7 @@ export default function PatientAnamnesisPage() {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="gap-2 text-xs"
+                  className="w-full sm:w-auto gap-2 text-xs shrink-0"
                 >
                   <Send className="h-3.5 w-3.5" />
                   <span>{isSubmitting ? "Enviando..." : "Enviar Ficha de Anamnese"}</span>

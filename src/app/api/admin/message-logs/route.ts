@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     const where: any = {};
 
     // 1. Filtro por Canal
-    if (channelParam === "EMAIL" || channelParam === "WHATSAPP") {
+    if (channelParam === "EMAIL" || channelParam === "WHATSAPP" || channelParam === "SMS") {
       where.channel = channelParam as NotificationChannel;
     }
 

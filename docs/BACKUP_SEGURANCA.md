@@ -80,8 +80,9 @@ Para que o arquivo `.zip` portátil possa ser guardado pelo profissional sem exp
 
 | Entidade / Origem | Campo Omitido no Backup | Comportamento após Restauração |
 |---|---|---|
-| `SystemSettings` | `smtpPass` | `smtpEnabled` é ajustado para `false` caso esteja sem senha; reconfigurar em *Admin → Integrações*. |
-| `SystemSettings` | `whatsappApiToken` | `whatsappEnabled` é ajustado para `false` caso esteja sem token; reconfigurar em *Admin → Integrações*. |
+| `SystemSettings` | `smtpPass` | `smtpEnabled` é ajustado para `false` caso esteja sem senha (exceto modo `DEFAULT` sem host customizado); reconfigurar em *Admin → Integrações*. |
+| `SystemSettings` | `textbeeApiKey` | `smsEnabled` é ajustado para `false` e `smsHealthStatus` volta para `NOT_CONFIGURED`; reinserir a API Key em *Admin → Integrações*. |
+| `SystemSettings` | `whatsappApiToken`, `whatsappMetaAccessToken`, `whatsappMetaAppSecret`, `openWaApiKey` | `whatsappEnabled` é ajustado para `false` e `whatsappHealthStatus` volta para `NOT_CONFIGURED`; reconfigurar em *Admin → Integrações*. |
 | `SystemSettings` | `googleMeetClientSecret`, `googleMeetRefreshToken`, `googleMeetAccessToken` | `googleMeetStatus` é limpo quando sem token; reconectar OAuth em *Admin → Configurações → Consultas Virtuais*. |
 | `SystemSettings` | `peerJsTurnSecret` | Servidor TURN personalizado exige reinserção do segredo (caso utilizado). |
 | `GatewayConfiguration` | `configDataEncrypted` | `isEnabled` é ajustado para `false` até reinserção das credenciais do gateway. |

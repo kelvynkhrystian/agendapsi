@@ -24,7 +24,7 @@ Este guia prático foi criado para permitir que desenvolvedores, operadores e pr
 | **Notificações no App (Sininho)**| `Notification` | `Notification` | `recipientId` -> `AdminAccount` ou `Patient` | `src/components/NotificationBell.tsx`, `/api/notifications` |
 | **Templates de Mensagens** | `SharedNotificationTemplate`, `NotificationTemplate` | `SharedNotificationTemplate`, `NotificationTemplate` | Isoladas por tipo de evento | `src/app/admin/configuracoes/page.tsx?tab=mensagens` |
 | **Configurações da Clínica / Site** | `SiteSettings`, `ProfessionalProfile` | `SiteSettings`, `ProfessionalProfile` | Singleton com `id = "default"` | `src/app/admin/minisite/page.tsx`, `src/app/admin/configuracoes/page.tsx?tab=aparencia` |
-| **Configurações Técnicas e SMTP/WhatsApp** | `SystemSettings` | `SystemSettings` | Singleton com `id = "default"` | `src/app/admin/integracoes/page.tsx` |
+| **Configurações Técnicas e Integrações (E-mail/SMS/WhatsApp)** | `SystemSettings` | `SystemSettings` | Singleton com `id = "default"` | `src/app/admin/integracoes/page.tsx` |
 | **Trilha de Auditoria (LGPD)** | `AuditLog`, `TechnicalAccessLog` | `AuditLog`, `TechnicalAccessLog` | `userId` -> Autor da ação | `src/app/admin/auditoria/page.tsx` |
 | **Backups do Sistema** | `BackupJob` | `BackupJob` | Isolada por execução | `src/app/admin/backup/page.tsx`, `storage/backups/` |
 
@@ -87,7 +87,7 @@ Na tabela **`Payment`** (modelo Prisma `Payment`).
 ### 10. Onde ficam as notificações?
 Em duas tabelas, dependendo do tipo:
 - **Notificações internas (sininho do cabeçalho):** ficam na tabela **`Notification`** (modelo Prisma `Notification`), com `recipientId`, `title`, `message`, `isRead` e `targetUrl`.
-- **Registro de e-mails e WhatsApp externos:** ficam na tabela **`NotificationDelivery`** (modelo Prisma `NotificationDelivery`), que grava para quem foi enviado, o canal e se foi real ou simulado.
+- **Registro de e-mails, SMS e WhatsApp externos:** ficam na tabela **`NotificationDelivery`** (modelo Prisma `NotificationDelivery`), que grava para quem foi enviado (mascarado para LGPD), o canal (`EMAIL`, `SMS` ou `WHATSAPP`), o provedor e o status real de aceitação, entrega ou falha.
 - **Arquivo de referência:** `src/components/NotificationBell.tsx`, `src/app/api/notifications/route.ts`.
 
 ### 11. Onde ficam as mensagens personalizadas?

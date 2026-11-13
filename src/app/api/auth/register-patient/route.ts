@@ -20,6 +20,7 @@ const registerSchema = z
     guardianPhone: z.string().optional(),
     guardianEmail: z.string().optional(),
     guardianRelationship: z.string().optional(),
+    smsOptIn: z.boolean().optional().default(false),
     acceptTerms: z.boolean().refine((val) => val === true, {
       message: "Você deve aceitar os termos de uso e política de privacidade",
     }),
@@ -85,6 +86,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const smsOptIn = Boolean(data.smsOptIn);
+
     const patient = await prisma.patient.create({
       data: {
         fullName: data.fullName,
@@ -96,6 +99,8 @@ export async function POST(req: NextRequest) {
         isMinor,
         gender: data.gender,
         address: data.address,
+        smsOptIn,
+        smsOptInAt: smsOptIn ? new Date() : null,
         guardians: isMinor && data.guardianFullName
           ? {
               create: {
@@ -132,7 +137,7 @@ export async function POST(req: NextRequest) {
         action: "PATIENT_REGISTERED",
         resource: "Patient",
         resourceId: patient.id,
-        details: JSON.stringify({ isMinor }),
+        details: JSON.stringify({ isMinor, smsOptIn }),
         ipAddress: req.headers.get("x-forwarded-for") || "127.0.0.1",
       },
     });

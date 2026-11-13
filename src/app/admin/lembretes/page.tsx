@@ -165,25 +165,25 @@ export default function AdminRemindersPage() {
           <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Lembretes & Mensagens</h1>
         </div>
         <p className="text-sm text-[#737373] dark:text-[#A6A6A6] mt-1">
-          Configure os templates de mensagens, lembretes de consultas e regras de disparo (Aplicativo, E-mail e WhatsApp).
+          Configure os templates de mensagens, lembretes de consultas e regras de disparo (Aplicativo, E-mail, WhatsApp e SMS opt-in).
         </p>
       </div>
 
       {/* Subnavegação de Lembretes & Registros */}
-      <div className="flex flex-wrap items-center gap-2 p-1.5 rounded-2xl bg-[#F4F4F5] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] w-fit text-xs font-heading font-semibold">
+      <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 p-1.5 rounded-2xl bg-[#F4F4F5] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] w-full sm:w-fit text-xs font-heading font-semibold">
         <Link
           href="/admin/lembretes"
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-xs"
+          className="flex items-center justify-center sm:justify-start gap-2 px-3.5 py-2 rounded-xl bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-xs"
         >
-          <BellRing className="h-4 w-4" />
-          <span>Configurações de Lembretes</span>
+          <BellRing className="h-4 w-4 shrink-0" />
+          <span>Lembretes</span>
         </Link>
         <Link
           href="/admin/lembretes/registros"
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1E1E1E] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:text-[#F5F5F5] dark:hover:bg-[#262626] transition-colors"
+          className="flex items-center justify-center sm:justify-start gap-2 px-3.5 py-2 rounded-xl bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1E1E1E] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:text-[#F5F5F5] dark:hover:bg-[#262626] transition-colors"
         >
-          <History className="h-4 w-4" />
-          <span>Registros de Mensagens</span>
+          <History className="h-4 w-4 shrink-0" />
+          <span>Registros</span>
         </Link>
       </div>
 
@@ -308,7 +308,7 @@ export default function AdminRemindersPage() {
                       <span>App + Email + WhatsApp</span>
                     </div>
                     <span className="text-[10px] text-[#737373] dark:text-[#A6A6A6] font-normal leading-relaxed">
-                      Envia por todos os 3 canais simultaneamente.
+                      Envia pelos canais externos ativos (inclui SMS para pacientes com opt-in).
                     </span>
                   </label>
                 </div>
@@ -382,24 +382,24 @@ export default function AdminRemindersPage() {
               </div>
 
               {/* Ações */}
-              <div className="flex items-center justify-between pt-4 border-t border-[#E5E5E5] dark:border-[#393939] gap-3">
+              <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between pt-4 border-t border-[#E5E5E5] dark:border-[#393939] gap-2.5 sm:gap-3">
                 <Button
                   type="button"
                   variant="ghost"
                   onClick={handleRestoreTemplateDefault}
                   disabled={isSavingTemplate}
-                  className="text-xs gap-1.5"
+                  className="text-xs gap-1.5 w-full sm:w-auto"
                 >
-                  <RotateCcw className="h-3.5 w-3.5" />
+                  <RotateCcw className="h-3.5 w-3.5 shrink-0" />
                   <span>Restaurar Padrão</span>
                 </Button>
 
                 <Button
                   onClick={handleSaveTemplate}
                   disabled={isSavingTemplate}
-                  className="gap-2 text-xs"
+                  className="gap-2 text-xs w-full sm:w-auto"
                 >
-                  <Save className="h-4 w-4" />
+                  <Save className="h-4 w-4 shrink-0" />
                   <span>{isSavingTemplate ? "Salvando..." : "Salvar Template"}</span>
                 </Button>
               </div>

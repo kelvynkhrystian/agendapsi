@@ -205,23 +205,23 @@ export default function AdminEditarPaginaInformativaPage({
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
       {/* ================= BARRA DE TOPO & NAVEGAÇÃO ================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-3 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
+        <div className="flex items-center gap-3 min-w-0">
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={handleBack}
-            className="gap-1.5 text-xs"
+            className="gap-1.5 text-xs w-full sm:w-auto justify-center sm:justify-start"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 shrink-0" />
             <span>Voltar para Páginas Informativas</span>
           </Button>
 
-          <span className="text-[#D4D4D4] dark:text-[#404040]">|</span>
+          <span className="hidden md:inline text-[#D4D4D4] dark:text-[#404040]">|</span>
 
-          <nav className="text-xs text-[#737373] dark:text-[#A6A6A6] flex items-center gap-1.5">
-            <Link href="/admin/paginas-informativas" className="hover:underline">
+          <nav className="hidden md:flex text-xs text-[#737373] dark:text-[#A6A6A6] items-center gap-1.5 min-w-0">
+            <Link href="/admin/paginas-informativas" className="hover:underline shrink-0">
               Páginas Informativas
             </Link>
             <span>&gt;</span>
@@ -232,8 +232,8 @@ export default function AdminEditarPaginaInformativaPage({
         </div>
 
         {page?.publicSlug && (
-          <Link href={page.publicSlug} target="_blank">
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+          <Link href={page.publicSlug} target="_blank" className="w-full sm:w-auto">
+            <Button variant="outline" size="sm" className="w-full sm:w-auto gap-1.5 text-xs">
               <ExternalLink className="h-3.5 w-3.5" />
               <span>Ver Página Pública</span>
             </Button>
@@ -243,34 +243,34 @@ export default function AdminEditarPaginaInformativaPage({
 
       {/* ================= TÍTULO E AÇÕES DE SALVAMENTO ================= */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">{title || "Editar Página"}</h1>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5] break-words">{title || "Editar Página"}</h1>
             {isPublished ? (
-              <Badge variant="outline" className="text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10 text-xs">
+              <Badge variant="outline" className="text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10 text-xs shrink-0">
                 Publicada
               </Badge>
             ) : (
-              <Badge variant="warning" className="text-xs">
+              <Badge variant="warning" className="text-xs shrink-0">
                 Rascunho
               </Badge>
             )}
           </div>
-          <p className="text-xs text-[#737373] dark:text-[#A6A6A6] mt-1 font-mono">
+          <p className="text-xs text-[#737373] dark:text-[#A6A6A6] mt-1 font-mono break-all">
             Identificador: <strong>{id}</strong> • Slug oficial: {page?.publicSlug}
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:flex-wrap w-full md:w-auto">
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={handleRestoreDefault}
-            className="gap-1.5 text-xs"
+            className="w-full sm:w-auto gap-1.5 text-xs border border-[#E5E5E5] dark:border-[#2C2C2C] sm:border-transparent"
             title="Restaura o modelo oficial pré-definido"
           >
-            <RotateCcw className="h-3.5 w-3.5" />
+            <RotateCcw className="h-3.5 w-3.5 shrink-0" />
             <span>Restaurar Padrão</span>
           </Button>
 
@@ -283,16 +283,16 @@ export default function AdminEditarPaginaInformativaPage({
               setIsPublished(nextState);
               handleSave(nextState);
             }}
-            className="gap-1.5 text-xs"
+            className="w-full sm:w-auto gap-1.5 text-xs"
           >
             {isPublished ? (
               <>
-                <EyeOff className="h-3.5 w-3.5 text-amber-500" />
+                <EyeOff className="h-3.5 w-3.5 text-amber-500 shrink-0" />
                 <span>Despublicar</span>
               </>
             ) : (
               <>
-                <Eye className="h-3.5 w-3.5 text-emerald-500" />
+                <Eye className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
                 <span>Publicar</span>
               </>
             )}
@@ -303,9 +303,9 @@ export default function AdminEditarPaginaInformativaPage({
             size="sm"
             onClick={() => handleSave()}
             isLoading={isSaving}
-            className="gap-1.5 text-xs"
+            className="col-span-2 sm:col-span-1 w-full sm:w-auto gap-1.5 text-xs"
           >
-            <Save className="h-3.5 w-3.5" />
+            <Save className="h-3.5 w-3.5 shrink-0" />
             <span>Salvar Alterações</span>
           </Button>
         </div>
@@ -365,12 +365,12 @@ export default function AdminEditarPaginaInformativaPage({
       </Card>
 
       {/* ================= SELETOR DE MODOS DE VISUALIZAÇÃO ================= */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-3">
-        <div className="flex items-center gap-1.5 bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] p-1 rounded-xl">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center justify-between gap-3 border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-3">
+        <div className="grid grid-cols-2 md:flex items-center gap-1.5 bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] p-1 rounded-xl w-full sm:w-auto">
           <button
             type="button"
             onClick={() => setViewMode("edit")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               viewMode === "edit"
                 ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-xs"
                 : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 dark:bg-transparent dark:border-transparent dark:text-[#A6A6A6] dark:hover:text-[#F5F5F5]"
@@ -383,7 +383,7 @@ export default function AdminEditarPaginaInformativaPage({
           <button
             type="button"
             onClick={() => setViewMode("preview")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               viewMode === "preview"
                 ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-xs"
                 : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 dark:bg-transparent dark:border-transparent dark:text-[#A6A6A6] dark:hover:text-[#F5F5F5]"
@@ -412,7 +412,7 @@ export default function AdminEditarPaginaInformativaPage({
             <button
               type="button"
               onClick={() => insertTag("<h2>", "</h2>", "Título de Seção")}
-              className="p-1.5 text-xs bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:bg-[#292929] dark:hover:text-[#F5F5F5] rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+              className="p-2 sm:p-1.5 min-h-[34px] min-w-[34px] sm:min-h-0 sm:min-w-0 justify-center text-xs bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:bg-[#292929] dark:hover:text-[#F5F5F5] rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
               title="Título H2"
             >
               <Heading2 className="h-4 w-4" />
@@ -420,7 +420,7 @@ export default function AdminEditarPaginaInformativaPage({
             <button
               type="button"
               onClick={() => insertTag("<h3>", "</h3>", "Subtítulo")}
-              className="p-1.5 text-xs bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:bg-[#292929] dark:hover:text-[#F5F5F5] rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+              className="p-2 sm:p-1.5 min-h-[34px] min-w-[34px] sm:min-h-0 sm:min-w-0 justify-center text-xs bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:bg-[#292929] dark:hover:text-[#F5F5F5] rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
               title="Subtítulo H3"
             >
               <Heading3 className="h-4 w-4" />
@@ -428,7 +428,7 @@ export default function AdminEditarPaginaInformativaPage({
             <button
               type="button"
               onClick={() => insertTag("<strong>", "</strong>", "negrito")}
-              className="p-1.5 text-xs bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:bg-[#292929] dark:hover:text-[#F5F5F5] rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+              className="p-2 sm:p-1.5 min-h-[34px] min-w-[34px] sm:min-h-0 sm:min-w-0 justify-center text-xs bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:bg-[#292929] dark:hover:text-[#F5F5F5] rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
               title="Negrito"
             >
               <Bold className="h-4 w-4" />
@@ -436,7 +436,7 @@ export default function AdminEditarPaginaInformativaPage({
             <button
               type="button"
               onClick={() => insertTag("<em>", "</em>", "itálico")}
-              className="p-1.5 text-xs bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:bg-[#292929] dark:hover:text-[#F5F5F5] rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+              className="p-2 sm:p-1.5 min-h-[34px] min-w-[34px] sm:min-h-0 sm:min-w-0 justify-center text-xs bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:bg-[#292929] dark:hover:text-[#F5F5F5] rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
               title="Itálico"
             >
               <Italic className="h-4 w-4" />
@@ -444,7 +444,7 @@ export default function AdminEditarPaginaInformativaPage({
             <button
               type="button"
               onClick={() => insertTag("<ul>\n  <li>", "</li>\n</ul>", "Item da lista")}
-              className="p-1.5 text-xs bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:bg-[#292929] dark:hover:text-[#F5F5F5] rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+              className="p-2 sm:p-1.5 min-h-[34px] min-w-[34px] sm:min-h-0 sm:min-w-0 justify-center text-xs bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:bg-[#292929] dark:hover:text-[#F5F5F5] rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
               title="Lista com Marcadores"
             >
               <List className="h-4 w-4" />
@@ -452,7 +452,7 @@ export default function AdminEditarPaginaInformativaPage({
             <button
               type="button"
               onClick={() => insertTag("<ol>\n  <li>", "</li>\n</ol>", "Primeiro item")}
-              className="p-1.5 text-xs bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:bg-[#292929] dark:hover:text-[#F5F5F5] rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+              className="p-2 sm:p-1.5 min-h-[34px] min-w-[34px] sm:min-h-0 sm:min-w-0 justify-center text-xs bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:bg-[#292929] dark:hover:text-[#F5F5F5] rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
               title="Lista Numerada"
             >
               <ListOrdered className="h-4 w-4" />
@@ -460,7 +460,7 @@ export default function AdminEditarPaginaInformativaPage({
             <button
               type="button"
               onClick={() => insertTag('<a href="https://" target="_blank" rel="noopener noreferrer">', "</a>", "Link do site")}
-              className="p-1.5 text-xs bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:bg-[#292929] dark:hover:text-[#F5F5F5] rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+              className="p-2 sm:p-1.5 min-h-[34px] min-w-[34px] sm:min-h-0 sm:min-w-0 justify-center text-xs bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:bg-[#292929] dark:hover:text-[#F5F5F5] rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
               title="Link Seguro"
             >
               <Link2 className="h-4 w-4" />
@@ -468,7 +468,7 @@ export default function AdminEditarPaginaInformativaPage({
             <button
               type="button"
               onClick={() => insertTag("<blockquote>", "</blockquote>", "Texto em destaque")}
-              className="p-1.5 text-xs bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:bg-[#292929] dark:hover:text-[#F5F5F5] rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+              className="p-2 sm:p-1.5 min-h-[34px] min-w-[34px] sm:min-h-0 sm:min-w-0 justify-center text-xs bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45 hover:bg-[var(--primary)]/[0.04] dark:bg-[#202020] dark:border-[#333333] dark:text-[#D0D0D0] dark:hover:bg-[#292929] dark:hover:text-[#F5F5F5] rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
               title="Destaque / Citação"
             >
               <Quote className="h-4 w-4" />
@@ -486,8 +486,8 @@ export default function AdminEditarPaginaInformativaPage({
               id="page-content-editor"
               value={contentHtml}
               onChange={(e) => setContentHtml(e.target.value)}
-              rows={22}
-              className="w-full font-mono text-xs sm:text-sm leading-relaxed p-4 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] text-[#171717] dark:text-[#F5F5F5] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] resize-y shadow-xs"
+              rows={16}
+              className="w-full min-h-[300px] sm:min-h-[440px] font-mono text-xs sm:text-sm leading-relaxed p-3.5 sm:p-4 rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#141414] text-[#171717] dark:text-[#F5F5F5] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] resize-y shadow-xs"
               placeholder="Digite o conteúdo da página formatado em HTML..."
             />
             <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
@@ -499,20 +499,20 @@ export default function AdminEditarPaginaInformativaPage({
         {/* PAINEL DE PREVIEW */}
         {(viewMode === "preview" || viewMode === "split") && (
           <Card className="bg-white dark:bg-[#1A1A1A] shadow-sm border-[#E5E5E5] dark:border-[#2C2C2C] overflow-hidden">
-            <CardHeader className="p-6 pb-4 border-b border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#F8F8F8] dark:bg-[#141414]">
+            <CardHeader className="p-4 sm:p-6 pb-4 border-b border-[#E5E5E5] dark:border-[#2C2C2C] bg-[#F8F8F8] dark:bg-[#141414]">
               <span className="text-[10px] uppercase tracking-wider font-bold text-[var(--primary)]">
                 Pré-visualização Pública (Modo Claro)
               </span>
-              <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">
                 {title || "Título da Página"}
               </h1>
               {description && (
                 <p className="text-xs text-[#737373] dark:text-[#A6A6A6] mt-1">{description}</p>
               )}
             </CardHeader>
-            <CardContent className="p-6 sm:p-8">
+            <CardContent className="p-4 sm:p-8">
               <div
-                className="prose prose-slate max-w-none text-xs sm:text-sm text-[#404040] dark:text-[#D0D0D0] leading-relaxed space-y-4"
+                className="prose prose-slate max-w-none text-xs sm:text-sm text-[#404040] dark:text-[#D0D0D0] leading-relaxed space-y-4 break-words"
                 dangerouslySetInnerHTML={{ __html: cleanPreviewHtml }}
               />
             </CardContent>
@@ -536,11 +536,12 @@ export default function AdminEditarPaginaInformativaPage({
             </p>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="grid grid-cols-2 sm:flex sm:justify-end gap-2 pt-2">
             <Button
               type="button"
               variant="outline"
               size="sm"
+              className="w-full sm:w-auto"
               onClick={() => setShowExitConfirm(false)}
             >
               Continuar Editando
@@ -549,6 +550,7 @@ export default function AdminEditarPaginaInformativaPage({
               type="button"
               variant="destructive"
               size="sm"
+              className="w-full sm:w-auto"
               onClick={() => router.push("/admin/paginas-informativas")}
             >
               Sair Sem Salvar

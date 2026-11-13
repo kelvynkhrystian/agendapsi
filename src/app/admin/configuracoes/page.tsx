@@ -38,6 +38,8 @@ import {
   Lock,
   MessageCircle,
   Sparkles,
+  ChevronDown,
+  ExternalLink,
 } from "pulsoicon-react";
 
 interface VideoProviderItem {
@@ -261,6 +263,27 @@ export default function AdminSettingsPage() {
   const [videoFeedback, setVideoFeedback] = useState<string | null>(null);
   const [videoError, setVideoError] = useState<string | null>(null);
   const [savedVideoSnapshot, setSavedVideoSnapshot] = useState<string>("");
+  const [isGoogleGuideOpen, setIsGoogleGuideOpen] = useState(false);
+  const [copiedGoogleUri, setCopiedGoogleUri] = useState(false);
+
+  // Ref para teste de sinalização PeerJS ativo e limpeza de conexões pendentes
+  const activePeerTestRef = useRef<{ destroy: () => void } | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (activePeerTestRef.current) {
+        try {
+          activePeerTestRef.current.destroy();
+        } catch {}
+        activePeerTestRef.current = null;
+      }
+    };
+  }, []);
+
+  const googleRedirectUri =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/api/admin/integrations/google/callback`
+      : "http://localhost:3000/api/admin/integrations/google/callback";
 
   // Security / Technical State
   const [copiedUrl, setCopiedUrl] = useState(false);
@@ -305,14 +328,6 @@ export default function AdminSettingsPage() {
   const buildVideoSnapshot = (params: {
     activeVideoKey: string;
     jitsiDomain: string;
-    peerJsHost: string;
-    peerJsPort: number;
-    peerJsPath: string;
-    peerJsSecure: boolean;
-    peerJsStunServer: string;
-    peerJsTurnServer: string;
-    peerJsTurnUser: string;
-    peerJsTurnSecret: string;
     googleMeetClientId: string;
     googleMeetClientSecret: string;
   }) => JSON.stringify(params);
@@ -644,14 +659,6 @@ export default function AdminSettingsPage() {
           buildVideoSnapshot({
             activeVideoKey: nextActiveVideo,
             jitsiDomain: nextJitsiDomain,
-            peerJsHost: nextPeerHost,
-            peerJsPort: nextPeerPort,
-            peerJsPath: nextPeerPath,
-            peerJsSecure: nextPeerSecure,
-            peerJsStunServer: nextPeerStun,
-            peerJsTurnServer: nextPeerTurn,
-            peerJsTurnUser: nextPeerUser,
-            peerJsTurnSecret: nextPeerSecret,
             googleMeetClientId: nextGmeetId,
             googleMeetClientSecret: nextGmeetSecret,
           })
@@ -723,14 +730,6 @@ export default function AdminSettingsPage() {
   const currentVideoSnapshot = buildVideoSnapshot({
     activeVideoKey,
     jitsiDomain,
-    peerJsHost,
-    peerJsPort,
-    peerJsPath,
-    peerJsSecure,
-    peerJsStunServer,
-    peerJsTurnServer,
-    peerJsTurnUser,
-    peerJsTurnSecret,
     googleMeetClientId,
     googleMeetClientSecret,
   });
@@ -1692,14 +1691,6 @@ export default function AdminSettingsPage() {
         buildVideoSnapshot({
           activeVideoKey: nextActiveVideo,
           jitsiDomain: nextJitsiDomain,
-          peerJsHost: nextPeerHost,
-          peerJsPort: nextPeerPort,
-          peerJsPath: nextPeerPath,
-          peerJsSecure: nextPeerSecure,
-          peerJsStunServer: nextPeerStun,
-          peerJsTurnServer: nextPeerTurn,
-          peerJsTurnUser: nextPeerUser,
-          peerJsTurnSecret: nextPeerSecret,
           googleMeetClientId: nextGmeetId,
           googleMeetClientSecret: nextGmeetSecret,
         })
@@ -1812,41 +1803,143 @@ export default function AdminSettingsPage() {
     }
   };
 
-  // Testar Conexão de Sinalização PeerJS
+  // Testar Conexão Real de Sinalização PeerJS (WebRTC Signaling Test)
   const handleTestPeerJs = async () => {
+    if (isTestingPeerJs) return;
+
+    // Se já havia um teste ativo em andamento, encerra antes de iniciar outro
+    if (activePeerTestRef.current) {
+      try {
+        activePeerTestRef.current.destroy();
+      } catch {}
+      activePeerTestRef.current = null;
+    }
+
     setIsTestingPeerJs(true);
     setPeerJsTestFeedback(null);
+
+    let isCompleted = false;
+    let timeoutId: NodeJS.Timeout | null = null;
+    let peerInstance: any = null;
+
+    const cleanup = () => {
+      if (isCompleted) return;
+      isCompleted = true;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+      if (peerInstance) {
+        try {
+          peerInstance.removeAllListeners();
+          peerInstance.destroy();
+        } catch (e) {
+          console.warn("[PSI WebRTC Test] Erro ao destruir peer de teste:", e);
+        }
+        peerInstance = null;
+      }
+      activePeerTestRef.current = null;
+    };
+
     try {
-      const res = await fetch("/api/admin/video-providers/test", {
+      // Import dinâmico do peerjs para execução estrita no client
+      const { default: Peer } = await import("peerjs");
+
+      // Bounded timeout de 7 segundos
+      const testPromise = new Promise<{ success: boolean; message: string; date: string }>((resolve, reject) => {
+        timeoutId = setTimeout(() => {
+          reject(new Error("TIMEOUT"));
+        }, 7000);
+
+        try {
+          // Utiliza padrão oficial da nuvem PeerJS (zero configuração) ou servidor dedicado caso configurado
+          const isCloud = !peerJsHost || peerJsHost === "0.peerjs.com";
+          const testPeer = isCloud
+            ? new Peer()
+            : new Peer({
+                host: peerJsHost,
+                port: Number(peerJsPort) || 9000,
+                path: peerJsPath || "/peerjs",
+                secure: peerJsSecure,
+              });
+
+          peerInstance = testPeer;
+          activePeerTestRef.current = testPeer;
+
+          testPeer.on("open", (assignedId) => {
+            console.log(`[PSI WebRTC Test] Conexão de sinalização validada com sucesso. ID temporário: ${assignedId}`);
+            resolve({
+              success: true,
+              message: "Sinalização disponível e conectada com sucesso.",
+              date: new Date().toISOString(),
+            });
+          });
+
+          testPeer.on("error", (err: any) => {
+            console.warn("[PSI WebRTC Test] Erro reportado pelo PeerJS:", err);
+            const errType = err?.type || "";
+            let userMsg = "Não foi possível conectar à sinalização.";
+            if (errType === "network" || errType === "disconnected") {
+              userMsg = "Falha de rede ao conectar à sinalização.";
+            } else if (errType === "server-error" || errType === "socket-error" || errType === "socket-closed") {
+              userMsg = "Serviço de sinalização temporariamente indisponível.";
+            } else if (err?.message) {
+              userMsg = `Falha na sinalização (${err.message})`;
+            }
+            resolve({
+              success: false,
+              message: userMsg,
+              date: new Date().toISOString(),
+            });
+          });
+        } catch (initErr: any) {
+          reject(initErr);
+        }
+      });
+
+      const result = await testPromise;
+      cleanup();
+
+      setPeerJsTestFeedback({
+        success: result.success,
+        message: result.message,
+        date: result.date,
+      });
+
+      // Persiste o status no servidor
+      await fetch("/api/admin/video-providers/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          host: peerJsHost,
-          port: Number(peerJsPort) || 9000,
-          path: peerJsPath || "/peerjs",
-          secure: peerJsSecure,
+          clientTestStatus: result.success ? "SUCCESS" : "FAILED",
+          clientErrorMessage: result.success ? undefined : result.message,
         }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setPeerJsTestFeedback({
-          success: true,
-          message: data.message || "Conexão de sinalização validada com sucesso!",
-          date: data.lastTestedAt,
-        });
-        await refreshVideoProviders();
-      } else {
-        setPeerJsTestFeedback({
-          success: false,
-          message: data.error || "Falha ao conectar no servidor de sinalização.",
-          date: data.lastTestedAt,
-        });
-      }
-    } catch {
+      }).catch(() => {});
+
+      await refreshVideoProviders();
+    } catch (err: any) {
+      cleanup();
+      const isTimeout = err?.message === "TIMEOUT";
+      const errorMsg = isTimeout
+        ? "Tempo limite de conexão esgotado ao contatar o servidor de sinalização."
+        : "Não foi possível conectar à sinalização.";
+
       setPeerJsTestFeedback({
         success: false,
-        message: "Erro de rede ao conectar no servidor de sinalização.",
+        message: errorMsg,
+        date: new Date().toISOString(),
       });
+
+      await fetch("/api/admin/video-providers/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clientTestStatus: "FAILED",
+          clientErrorMessage: errorMsg,
+        }),
+      }).catch(() => {});
+
+      await refreshVideoProviders();
     } finally {
       setIsTestingPeerJs(false);
     }
@@ -1866,14 +1959,6 @@ export default function AdminSettingsPage() {
         body: JSON.stringify({
           activeVideoProvider: activeVideoKey,
           jitsiDomain,
-          peerJsServerHost: peerJsHost || null,
-          peerJsServerPort: Number(peerJsPort) || 9000,
-          peerJsPath: peerJsPath || "/peerjs",
-          peerJsSecure: peerJsSecure,
-          peerJsStunServer: peerJsStunServer || null,
-          peerJsTurnServer: peerJsTurnServer || null,
-          peerJsTurnUser: peerJsTurnUser || null,
-          peerJsTurnSecret: peerJsTurnSecret || null,
           googleMeetClientId: googleMeetClientId || null,
           googleMeetClientSecret: googleMeetClientSecret || null,
         }),
@@ -1909,64 +1994,64 @@ export default function AdminSettingsPage() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto w-full">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Configurações do Consultório</h1>
-        <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Configurações do Consultório</h1>
+        <p className="text-xs sm:text-sm text-[#737373] dark:text-[#A6A6A6]">
           Personalize o perfil do consultório, a identidade visual, a teleconsulta e o monitoramento técnico.
         </p>
       </div>
 
       {/* Tabs Principais — Brancas com letra tema quando inativas; preenchidas com letra branca quando ativas */}
-      <div className="inline-flex flex-wrap items-center gap-1.5 rounded-2xl bg-[#F4F4F5] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] p-1.5 text-xs font-medium">
+      <div className="grid grid-cols-2 sm:inline-flex sm:flex-wrap items-center gap-1.5 rounded-2xl bg-[#F4F4F5] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] p-1.5 text-xs font-medium w-full sm:w-fit">
         <button
           type="button"
           onClick={() => setActiveTab("profile")}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
+          className={`flex items-center justify-center sm:justify-start gap-2 px-2.5 sm:px-3.5 py-2 rounded-xl transition-all sm:shrink-0 cursor-pointer min-w-0 ${
             activeTab === "profile"
               ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
               : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1C1C1C] dark:border-transparent dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5]"
           }`}
         >
-          <UserCircle className="h-4 w-4 text-current" />
-          <span>Perfil</span>
+          <UserCircle className="h-4 w-4 text-current shrink-0" />
+          <span className="truncate">Perfil</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("appearance")}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
+          className={`flex items-center justify-center sm:justify-start gap-2 px-2.5 sm:px-3.5 py-2 rounded-xl transition-all sm:shrink-0 cursor-pointer min-w-0 ${
             activeTab === "appearance"
               ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
               : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1C1C1C] dark:border-transparent dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5]"
           }`}
         >
-          <Palette className="h-4 w-4 text-current" />
-          <span>Aparência</span>
+          <Palette className="h-4 w-4 text-current shrink-0" />
+          <span className="truncate">Aparência</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("video")}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
+          className={`flex items-center justify-center sm:justify-start gap-2 px-2.5 sm:px-3.5 py-2 rounded-xl transition-all sm:shrink-0 cursor-pointer min-w-0 ${
             activeTab === "video"
               ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
               : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1C1C1C] dark:border-transparent dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5]"
           }`}
         >
-          <Video className="h-4 w-4 text-current" />
-          <span>Consultas Virtuais</span>
+          <Video className="h-4 w-4 text-current shrink-0" />
+          <span className="truncate">Consultas Virtuais</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("security")}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all shrink-0 cursor-pointer ${
+          className={`flex items-center justify-center sm:justify-start gap-2 px-2.5 sm:px-3.5 py-2 rounded-xl transition-all sm:shrink-0 cursor-pointer min-w-0 ${
             activeTab === "security"
               ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
               : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1C1C1C] dark:border-transparent dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5]"
           }`}
         >
-          <ShieldCheck className="h-4 w-4 text-current" />
-          <span>Segurança & Monitoramento</span>
+          <ShieldCheck className="h-4 w-4 text-current shrink-0" />
+          <span className="truncate">Segurança & Monitoramento</span>
         </button>
       </div>
 
@@ -2028,13 +2113,13 @@ export default function AdminSettingsPage() {
                     <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5] mb-2 text-xs sm:text-sm">
                       Versão da Aplicação
                     </label>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                       <Input
                         value={`v${appVersion}`}
                         disabled
                         className="bg-[#F8F8F8] dark:bg-[#141414] font-mono text-xs cursor-not-allowed"
                       />
-                      <Badge variant="outline" className="shrink-0 text-[11px] py-1 border-[#E5E5E5] dark:border-[#333333]">
+                      <Badge variant="outline" className="w-fit shrink-0 text-[11px] py-1 border-[#E5E5E5] dark:border-[#333333]">
                         <Lock className="h-3 w-3 mr-1 text-[#737373]" />
                         Metadado do Projeto
                       </Badge>
@@ -2050,7 +2135,7 @@ export default function AdminSettingsPage() {
                     type="submit"
                     disabled={!isAppDirty || isSavingApp}
                     isLoading={isSavingApp}
-                    className="gap-2 text-xs"
+                    className="w-full sm:w-auto gap-2 text-xs"
                   >
                     {!isSavingApp && <Save className="h-4 w-4" />}
                     <span>{isSavingApp ? "Salvando..." : "Salvar Alterações"}</span>
@@ -2134,13 +2219,13 @@ export default function AdminSettingsPage() {
                     <label className="font-semibold block text-[#404040] dark:text-[#E5E5E5] mb-2 text-xs sm:text-sm">
                       E-mail Administrativo de Acesso
                     </label>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                       <Input
                         value={adminEmail}
                         disabled
                         className="bg-[#F8F8F8] dark:bg-[#141414] font-mono text-xs cursor-not-allowed"
                       />
-                      <Badge variant="outline" className="shrink-0 text-[11px] py-1 border-[#E5E5E5] dark:border-[#333333]">
+                      <Badge variant="outline" className="w-fit shrink-0 text-[11px] py-1 border-[#E5E5E5] dark:border-[#333333]">
                         <Lock className="h-3 w-3 mr-1 text-[#737373]" />
                         Autenticação Segura
                       </Badge>
@@ -2156,7 +2241,7 @@ export default function AdminSettingsPage() {
                     type="submit"
                     disabled={!isProfDirty || isSavingProf}
                     isLoading={isSavingProf}
-                    className="gap-2 text-xs"
+                    className="w-full sm:w-auto gap-2 text-xs"
                   >
                     {!isSavingProf && <Save className="h-4 w-4" />}
                     <span>{isSavingProf ? "Salvando..." : "Salvar Alterações"}</span>
@@ -2249,7 +2334,7 @@ export default function AdminSettingsPage() {
                     type="submit"
                     disabled={!isContactDirty || isSavingContact}
                     isLoading={isSavingContact}
-                    className="gap-2 text-xs"
+                    className="w-full sm:w-auto gap-2 text-xs"
                   >
                     {!isSavingContact && <Save className="h-4 w-4" />}
                     <span>{isSavingContact ? "Salvando..." : "Salvar Alterações"}</span>
@@ -2368,7 +2453,7 @@ export default function AdminSettingsPage() {
                   {/* Caixa de Preview em Tempo Real refletindo todos os 6 tokens do rascunho */}
                   <div
                     data-testid="theme-preview-box"
-                    className="flex-1 min-w-0 p-5 rounded-2xl border border-[#E5E5E5] dark:border-[#333333] space-y-4 shadow-2xs transition-colors"
+                    className="flex-1 min-w-0 p-4 sm:p-5 rounded-2xl border border-[#E5E5E5] dark:border-[#333333] space-y-4 shadow-2xs transition-colors"
                     style={{ backgroundColor: normalizedPreviewBg }}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -2410,11 +2495,11 @@ export default function AdminSettingsPage() {
                     </div>
 
                     {/* Botões de Preview — Principal com contraste branco acessível e Secundário claro e harmônico */}
-                    <div className="flex flex-wrap items-center gap-3 pt-1">
+                    <div className="grid grid-cols-1 min-[360px]:grid-cols-2 sm:flex sm:flex-wrap items-center gap-2.5 sm:gap-3 pt-1">
                       <button
                         type="button"
                         data-testid="theme-preview-primary-btn"
-                        className="flex-1 min-w-[140px] px-4 py-2.5 rounded-xl font-semibold text-xs text-white shadow-xs transition-colors text-center cursor-default"
+                        className="sm:flex-1 sm:min-w-[140px] px-4 py-2.5 rounded-xl font-semibold text-xs text-white shadow-xs transition-colors text-center cursor-default"
                         style={{
                           backgroundColor: accessiblePreviewButtonBg,
                           color: "#ffffff",
@@ -2425,7 +2510,7 @@ export default function AdminSettingsPage() {
                       <button
                         type="button"
                         data-testid="theme-preview-secondary-btn"
-                        className="flex-1 min-w-[140px] px-4 py-2.5 rounded-xl font-semibold text-xs bg-white border shadow-xs transition-colors text-center cursor-default"
+                        className="sm:flex-1 sm:min-w-[140px] px-4 py-2.5 rounded-xl font-semibold text-xs bg-white border shadow-xs transition-colors text-center cursor-default"
                         style={{
                           color: accessiblePreviewButtonBg,
                           borderColor: `${accessiblePreviewButtonBg}4D`,
@@ -2720,7 +2805,7 @@ export default function AdminSettingsPage() {
               {imagesFeedback && <Alert variant="success">{imagesFeedback}</Alert>}
               {imagesError && <Alert variant="destructive">{imagesError}</Alert>}
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
                 {/* 1. Favicon (32x32px) */}
                 <div className="p-4 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#141414] flex flex-col justify-between space-y-3">
                   <div>
@@ -2927,7 +3012,7 @@ export default function AdminSettingsPage() {
                   onClick={handleSaveSystemImages}
                   disabled={!isImagesDirty || isSavingImages || uploadingAsset !== null}
                   isLoading={isSavingImages}
-                  className="gap-2 text-xs"
+                  className="w-full sm:w-auto gap-2 text-xs"
                 >
                   {!isSavingImages && <Save className="h-4 w-4" />}
                   <span>{isSavingImages ? "Salvando..." : "Salvar Alterações"}</span>
@@ -3043,7 +3128,7 @@ export default function AdminSettingsPage() {
                   onClick={handleSaveMediaSettings}
                   disabled={!isMediaDirty || isSavingMedia || uploadingSlot !== null}
                   isLoading={isSavingMedia}
-                  className="gap-2 text-xs"
+                  className="w-full sm:w-auto gap-2 text-xs"
                 >
                   {!isSavingMedia && <Save className="h-4 w-4" />}
                   <span>{isSavingMedia ? "Salvando Mídias..." : "Salvar Mídias do Site"}</span>
@@ -3070,78 +3155,174 @@ export default function AdminSettingsPage() {
           {videoFeedback && <Alert variant="success">{videoFeedback}</Alert>}
           {videoError && <Alert variant="destructive">{videoError}</Alert>}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {videoProviders.map((provider) => {
-              const isSelected = activeVideoKey === provider.key;
+          {(() => {
+            const googleProvider = videoProviders.find((p) => p.key === "GOOGLE_MEET");
 
-              return (
-                <Card
-                  key={provider.key}
-                  className={`flex flex-col justify-between transition-all ${
-                    isSelected
-                      ? "border-[var(--primary)] ring-2 ring-[var(--primary)]/20 bg-[var(--primary)]/10"
-                      : "border-[#E5E5E5] dark:border-[#2C2C2C]"
-                  }`}
-                >
-                  <div>
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <CardTitle className="text-base">{provider.name}</CardTitle>
-                        <Badge
-                          variant={
-                            provider.key === "JITSI"
-                              ? "success"
-                              : provider.key === "PEERJS"
-                              ? provider.status === "OPERATIONAL"
-                                ? "success"
-                                : provider.status === "FAILED"
-                                ? "destructive"
-                                : provider.status === "CONFIGURED"
-                                ? "outline"
-                                : "default"
-                              : provider.key === "GOOGLE_MEET"
-                              ? provider.status === "CONNECTED"
-                                ? "success"
-                                : provider.status === "REVOKED"
-                                ? "destructive"
-                                : provider.status === "CONFIGURED"
-                                ? "outline"
-                                : "default"
-                              : provider.status === "CONFIGURED"
-                              ? "outline"
-                              : "default"
-                          }
-                        >
-                          {provider.key === "JITSI"
-                            ? "Funcional (Ativo)"
-                            : provider.key === "PEERJS"
-                            ? provider.status === "OPERATIONAL"
-                              ? "Sinalização Operacional"
-                              : provider.status === "FAILED"
-                              ? "Falha na Conexão"
-                              : provider.status === "CONFIGURED"
-                              ? "Configurado (Não Testado)"
-                              : "Configuração Necessária"
-                            : provider.key === "GOOGLE_MEET"
-                            ? provider.status === "CONNECTED"
-                              ? "Conectado via Google OAuth"
-                              : provider.status === "REVOKED"
-                              ? "Autorização Revogada"
-                              : provider.status === "CONFIGURED"
-                              ? "Credenciais Salvas (Pendente Autorização)"
-                              : "Configuração Necessária"
-                            : provider.status === "CONFIGURED"
-                            ? "Configurado"
-                            : "Configuração Necessária"}
-                        </Badge>
-                      </div>
-                      <CardDescription className="text-xs pt-1 leading-relaxed">
-                        {provider.description}
-                      </CardDescription>
-                    </CardHeader>
+            return (
+              <>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 items-stretch">
+                  {/* ================= CARD 1: PSI TELECONSULTA (PEERJS) ================= */}
+                  <Card
+                    className={`flex flex-col justify-between transition-all ${
+                      activeVideoKey === "PEERJS"
+                        ? "border-[var(--primary)] ring-2 ring-[var(--primary)]/20 bg-[var(--primary)]/10"
+                        : "border-[#E5E5E5] dark:border-[#2C2C2C]"
+                    }`}
+                  >
+                    <div className="flex-1 flex flex-col">
+                      <CardHeader className="pb-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <CardTitle className="text-base font-bold">PSI Teleconsulta</CardTitle>
+                            <Badge
+                              variant="outline"
+                              className="border-orange-500/30 text-orange-600 dark:text-orange-400 bg-orange-500/10 text-[10px] font-semibold"
+                            >
+                              Padrão PSI
+                            </Badge>
+                          </div>
+                          {activeVideoKey === "PEERJS" ? (
+                            <Badge variant="success" className="text-[10px]">
+                              Provedor Ativo
+                            </Badge>
+                          ) : isTestingPeerJs ? (
+                            <Badge variant="outline" className="text-[10px] animate-pulse">
+                              Verificando conexão...
+                            </Badge>
+                          ) : peerJsTestFeedback?.success === true ? (
+                            <Badge variant="success" className="text-[10px]">
+                              Sinalização disponível
+                            </Badge>
+                          ) : peerJsTestFeedback?.success === false ? (
+                            <Badge variant="destructive" className="text-[10px]">
+                              Sinalização indisponível
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px]">
+                              Pronto para Uso
+                            </Badge>
+                          )}
+                        </div>
+                        <CardDescription className="text-xs pt-1 leading-relaxed">
+                          Videochamadas integradas diretamente ao PSI.
+                        </CardDescription>
+                      </CardHeader>
 
-                    <CardContent className="space-y-3 text-xs pt-0">
-                      {provider.key === "JITSI" && (
+                      <CardContent className="space-y-3 text-xs pt-0 flex-1 flex flex-col justify-between">
+                        <div className="space-y-3">
+                          <div className="p-3 bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] rounded-xl space-y-2 text-[11px] text-[#525252] dark:text-[#A6A6A6]">
+                            <div className="font-semibold text-[#171717] dark:text-[#F5F5F5] flex items-center gap-1.5">
+                              <Sparkles className="h-3.5 w-3.5 text-[var(--primary)]" />
+                              <span>Teleconsulta Nativa e Privada:</span>
+                            </div>
+                            <ul className="space-y-1.5 pl-1 text-[11px] leading-relaxed text-[#525252] dark:text-[#A6A6A6]">
+                              <li className="flex items-start gap-1.5">
+                                <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                                <span>
+                                  <strong>Zero configuração manual:</strong> sinalização WebRTC provisionada de forma automática pelo sistema.
+                                </span>
+                              </li>
+                              <li className="flex items-start gap-1.5">
+                                <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                                <span>
+                                  <strong>Privacidade clínica:</strong> transmissão direta (P2P) criptografada ponta a ponta entre psicólogo e paciente.
+                                </span>
+                              </li>
+                              <li className="flex items-start gap-1.5">
+                                <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                                <span>
+                                  <strong>Navegador nativo:</strong> funciona em computadores, celulares e tablets sem necessidade de instalar aplicativos externos.
+                                </span>
+                              </li>
+                            </ul>
+                          </div>
+
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleTestPeerJs}
+                            disabled={isTestingPeerJs}
+                            className="w-full gap-2 text-xs"
+                          >
+                            <Activity className={`h-3.5 w-3.5 ${isTestingPeerJs ? "animate-spin" : ""}`} />
+                            <span>
+                              {isTestingPeerJs ? "Verificando conexão..." : "Verificar Conexão de Sinalização"}
+                            </span>
+                          </Button>
+
+                          {peerJsTestFeedback && (
+                            <Alert
+                              variant={peerJsTestFeedback.success ? "success" : "destructive"}
+                              title={peerJsTestFeedback.success ? "Sinalização Disponível" : "Sinalização Indisponível"}
+                            >
+                              <div className="text-[11px] space-y-0.5">
+                                <p>{peerJsTestFeedback.message}</p>
+                                {peerJsTestFeedback.date && (
+                                  <p className="text-[10px] opacity-75">
+                                    Verificado em: {new Date(peerJsTestFeedback.date).toLocaleString("pt-BR")}
+                                  </p>
+                                )}
+                              </div>
+                            </Alert>
+                          )}
+                        </div>
+                      </CardContent>
+                    </div>
+
+                    <div className="p-4 pt-0">
+                      <Button
+                        type="button"
+                        variant={activeVideoKey === "PEERJS" ? "primary" : "secondary"}
+                        onClick={() => {
+                          setActiveVideoKey("PEERJS");
+                          setVideoError(null);
+                          setVideoFeedback(
+                            'Provedor padrão alterado para "PSI Teleconsulta". Clique em "Salvar Alterações" para persistir.'
+                          );
+                        }}
+                        className="w-full text-xs gap-1.5"
+                      >
+                        {activeVideoKey === "PEERJS" ? (
+                          <>
+                            <Check className="h-3.5 w-3.5" />
+                            <span>Provedor Ativo</span>
+                          </>
+                        ) : (
+                          <span>Definir como Padrão</span>
+                        )}
+                      </Button>
+                    </div>
+                  </Card>
+
+                  {/* ================= CARD 2: JITSI MEET ================= */}
+                  <Card
+                    className={`flex flex-col justify-between transition-all ${
+                      activeVideoKey === "JITSI"
+                        ? "border-[var(--primary)] ring-2 ring-[var(--primary)]/20 bg-[var(--primary)]/10"
+                        : "border-[#E5E5E5] dark:border-[#2C2C2C]"
+                    }`}
+                  >
+                    <div className="flex-1 flex flex-col">
+                      <CardHeader className="pb-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <CardTitle className="text-base font-bold">Jitsi Meet</CardTitle>
+                          {activeVideoKey === "JITSI" ? (
+                            <Badge variant="success" className="text-[10px]">
+                              Provedor Ativo
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px]">
+                              Alternativa
+                            </Badge>
+                          )}
+                        </div>
+                        <CardDescription className="text-xs pt-1 leading-relaxed">
+                          Salas abertas ou servidor dedicado Jitsi.
+                        </CardDescription>
+                      </CardHeader>
+
+                      <CardContent className="space-y-3 text-xs pt-0 flex-1 flex flex-col justify-between">
                         <div className="space-y-3">
                           <div className="space-y-1">
                             <label className="font-medium text-[#404040] dark:text-[#D0D0D0]">
@@ -3157,23 +3338,21 @@ export default function AdminSettingsPage() {
                               }}
                             />
                             <p className="text-[10px] text-[#737373] dark:text-[#A6A6A6]">
-                              Padrão público <code>meet.jit.si</code> ou seu servidor Jitsi dedicado.
+                              Padrão público <code>meet.jit.si</code> ou servidor corporativo dedicado.
                             </p>
                           </div>
 
-                          <div className="pt-1">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={handleTestJitsi}
-                              disabled={isTestingJitsi || !jitsiDomain}
-                              className="w-full gap-2 text-xs"
-                            >
-                              <Activity className="h-3.5 w-3.5" />
-                              <span>{isTestingJitsi ? "Testando Jitsi..." : "Testar Servidor Jitsi"}</span>
-                            </Button>
-                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleTestJitsi}
+                            disabled={isTestingJitsi || !jitsiDomain}
+                            className="w-full gap-2 text-xs"
+                          >
+                            <Activity className="h-3.5 w-3.5" />
+                            <span>{isTestingJitsi ? "Testando Jitsi..." : "Testar Servidor Jitsi"}</span>
+                          </Button>
 
                           {jitsiTestFeedback && (
                             <Alert
@@ -3184,126 +3363,66 @@ export default function AdminSettingsPage() {
                             </Alert>
                           )}
                         </div>
-                      )}
+                      </CardContent>
+                    </div>
 
-                      {provider.key === "PEERJS" && (
-                        <div className="space-y-3">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <div className="space-y-1">
-                              <label className="font-medium text-[#404040] dark:text-[#D0D0D0]">
-                                Host do Servidor PeerJS
-                              </label>
-                              <Input
-                                placeholder="localhost ou peerjs.meuconsultorio.com"
-                                value={peerJsHost}
-                                onChange={(e) => setPeerJsHost(e.target.value)}
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <label className="font-medium text-[#404040] dark:text-[#D0D0D0]">Porta</label>
-                              <Input
-                                type="number"
-                                value={peerJsPort}
-                                onChange={(e) => setPeerJsPort(Number(e.target.value))}
-                              />
-                            </div>
-                          </div>
+                    <div className="p-4 pt-0">
+                      <Button
+                        type="button"
+                        variant={activeVideoKey === "JITSI" ? "primary" : "secondary"}
+                        onClick={() => {
+                          setActiveVideoKey("JITSI");
+                          setVideoError(null);
+                          setVideoFeedback(
+                            'Provedor padrão alterado para "Jitsi Meet". Clique em "Salvar Alterações" para persistir.'
+                          );
+                        }}
+                        className="w-full text-xs gap-1.5"
+                      >
+                        {activeVideoKey === "JITSI" ? (
+                          <>
+                            <Check className="h-3.5 w-3.5" />
+                            <span>Provedor Ativo</span>
+                          </>
+                        ) : (
+                          <span>Definir como Padrão</span>
+                        )}
+                      </Button>
+                    </div>
+                  </Card>
 
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <div className="space-y-1">
-                              <label className="font-medium text-[#404040] dark:text-[#D0D0D0]">Caminho (Path)</label>
-                              <Input
-                                placeholder="/peerjs"
-                                value={peerJsPath}
-                                onChange={(e) => setPeerJsPath(e.target.value)}
-                              />
-                            </div>
-                            <div className="space-y-1 flex flex-col justify-end">
-                              <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-[#404040] dark:text-[#D0D0D0] pb-2">
-                                <input
-                                  type="checkbox"
-                                  checked={peerJsSecure}
-                                  onChange={(e) => setPeerJsSecure(e.target.checked)}
-                                  className="rounded border-[#D4D4D4] dark:border-[#404040] text-[var(--primary)] focus:ring-[var(--primary)]"
-                                />
-                                <span>Conexão Segura SSL/TLS (HTTPS/WSS)</span>
-                              </label>
-                            </div>
-                          </div>
-
-                          <div className="space-y-1">
-                            <label className="font-medium text-[#404040] dark:text-[#D0D0D0]">
-                              Servidor STUN (Público ou Dedicado)
-                            </label>
-                            <Input
-                              placeholder="stun:stun.l.google.com:19302"
-                              value={peerJsStunServer}
-                              onChange={(e) => setPeerJsStunServer(e.target.value)}
-                            />
-                            <p className="text-[10px] text-[#737373] dark:text-[#A6A6A6]">
-                              Utilizado para descoberta de IP reflexivo através de NAT.
-                            </p>
-                          </div>
-
-                          <div className="space-y-2 pt-1 border-t border-[#E5E5E5] dark:border-[#262626]">
-                            <label className="font-semibold text-[#404040] dark:text-[#D0D0D0] text-[11px]">
-                              Servidor TURN Opcional (Para NATs Restritivos e Firewalls)
-                            </label>
-                            <div className="space-y-1">
-                              <Input
-                                placeholder="turn:turn.meuconsultorio.com:3478"
-                                value={peerJsTurnServer}
-                                onChange={(e) => setPeerJsTurnServer(e.target.value)}
-                              />
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                              <Input
-                                placeholder="Usuário TURN"
-                                value={peerJsTurnUser}
-                                onChange={(e) => setPeerJsTurnUser(e.target.value)}
-                              />
-                              <Input
-                                type="password"
-                                placeholder="Senha / Secret TURN"
-                                value={peerJsTurnSecret}
-                                onChange={(e) => setPeerJsTurnSecret(e.target.value)}
-                              />
-                            </div>
-                          </div>
-
-                          <div className="pt-2">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={handleTestPeerJs}
-                              disabled={isTestingPeerJs || !peerJsHost}
-                              className="w-full gap-2 text-xs"
-                            >
-                              <Activity className="h-3.5 w-3.5" />
-                              <span>{isTestingPeerJs ? "Testando Sinalização..." : "Testar Servidor de Sinalização"}</span>
-                            </Button>
-                          </div>
-
-                          {peerJsTestFeedback && (
-                            <Alert
-                              variant={peerJsTestFeedback.success ? "success" : "destructive"}
-                              title={peerJsTestFeedback.success ? "Sinalização Validada" : "Falha na Sinalização"}
-                            >
-                              <div className="text-[11px] space-y-0.5">
-                                <p>{peerJsTestFeedback.message}</p>
-                                {peerJsTestFeedback.date && (
-                                  <p className="text-[10px] opacity-75">
-                                    Testado em: {new Date(peerJsTestFeedback.date).toLocaleString("pt-BR")}
-                                  </p>
-                                )}
-                              </div>
-                            </Alert>
+                  {/* ================= CARD 3: GOOGLE MEET ================= */}
+                  <Card
+                    className={`flex flex-col justify-between transition-all ${
+                      activeVideoKey === "GOOGLE_MEET"
+                        ? "border-[var(--primary)] ring-2 ring-[var(--primary)]/20 bg-[var(--primary)]/10"
+                        : "border-[#E5E5E5] dark:border-[#2C2C2C]"
+                    }`}
+                  >
+                    <div className="flex-1 flex flex-col">
+                      <CardHeader className="pb-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <CardTitle className="text-base font-bold">Google Meet</CardTitle>
+                          {activeVideoKey === "GOOGLE_MEET" ? (
+                            <Badge variant="success" className="text-[10px]">
+                              Provedor Ativo
+                            </Badge>
+                          ) : googleMeetStatus === "CONNECTED" ? (
+                            <Badge variant="success" className="text-[10px]">
+                              Conectado
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px]">
+                              Alternativa
+                            </Badge>
                           )}
                         </div>
-                      )}
+                        <CardDescription className="text-xs pt-1 leading-relaxed">
+                          Geração de links de reunião via Google Calendar.
+                        </CardDescription>
+                      </CardHeader>
 
-                      {provider.key === "GOOGLE_MEET" && (
+                      <CardContent className="space-y-3 text-xs pt-0 flex-1 flex flex-col justify-between">
                         <div className="space-y-3">
                           <div className="space-y-1">
                             <label className="font-medium text-[#404040] dark:text-[#D0D0D0]">
@@ -3322,47 +3441,31 @@ export default function AdminSettingsPage() {
                             </label>
                             <Input
                               type="password"
-                              placeholder={provider.config?.hasClientSecret ? "••••••••" : "Cole o Client Secret aqui"}
+                              placeholder={
+                                googleProvider?.config?.hasClientSecret ? "••••••••" : "Cole o Client Secret aqui"
+                              }
                               value={googleMeetClientSecret}
                               onChange={(e) => setGoogleMeetClientSecret(e.target.value)}
                             />
                             <p className="text-[10px] text-[#737373] dark:text-[#A6A6A6]">
-                              Armazenado com segurança no servidor. Nunca exposto na interface do usuário.
+                              Armazenado com segurança no servidor. Nunca exposto na interface.
                             </p>
-                          </div>
-
-                          {/* Caixa de Instruções Google Cloud Console */}
-                          <div className="p-3 bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] rounded-xl space-y-2 text-[11px] text-[#525252] dark:text-[#A6A6A6]">
-                            <div className="font-semibold text-[#171717] dark:text-[#F5F5F5] flex items-center gap-1.5">
-                              <Info className="h-3.5 w-3.5 text-[var(--primary)]" />
-                              <span>Passo a passo no Google Cloud Console:</span>
-                            </div>
-                            <ol className="list-decimal list-inside space-y-1 pl-1 text-[10px] leading-relaxed">
-                              <li>Acesse o <strong>Google Cloud Console</strong> (<code>console.cloud.google.com</code>) e selecione seu projeto.</li>
-                              <li>Ative a <strong>Google Calendar API</strong> no menu <em>APIs e Serviços &gt; Biblioteca</em>.</li>
-                              <li>Em <em>Tela de consentimento OAuth</em>, configure como <em>Externo</em> e inclua o escopo <code>calendar.events</code>.</li>
-                              <li>Em <em>Credenciais</em>, crie um <strong>ID do cliente OAuth</strong> do tipo <em>Aplicativo da Web</em>.</li>
-                              <li>Adicione em <strong>URIs de redirecionamento autorizados</strong>:
-                                <div className="mt-1 font-mono text-[10px] bg-white dark:bg-[#1E1E1E] p-1.5 rounded border border-[#E5E5E5] dark:border-[#333333] break-all select-all text-[var(--primary)]">
-                                  {typeof window !== "undefined" ? `${window.location.origin}/api/admin/integrations/google/callback` : "http://localhost:3000/api/admin/integrations/google/callback"}
-                                </div>
-                              </li>
-                              <li>Cole o Client ID e Client Secret nos campos acima, clique em <strong>Salvar Alterações</strong> e depois em <strong>Conectar Conta Google</strong>.</li>
-                            </ol>
                           </div>
 
                           {/* Se conectado, exibe conta e ações */}
                           {googleMeetStatus === "CONNECTED" && googleMeetAccountEmail ? (
                             <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-xl space-y-2 text-xs">
-                              <div className="flex items-center justify-between">
+                              <div className="flex flex-wrap items-center justify-between gap-2">
                                 <span className="font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
-                                  <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                                  <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                                   Conta Google Conectada
                                 </span>
-                                <Badge variant="success" className="text-[10px]">Ativo</Badge>
+                                <Badge variant="success" className="text-[10px]">
+                                  Ativo
+                                </Badge>
                               </div>
-                              <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
-                                Conectado como: <strong>{googleMeetAccountEmail}</strong>
+                              <p className="text-[11px] text-emerald-700 dark:text-emerald-400 break-words">
+                                <strong className="break-all">{googleMeetAccountEmail}</strong>
                                 {googleMeetConnectedAt && (
                                   <span className="block text-[10px] opacity-75 mt-0.5">
                                     Conectado em: {new Date(googleMeetConnectedAt).toLocaleString("pt-BR")}
@@ -3370,17 +3473,17 @@ export default function AdminSettingsPage() {
                                 )}
                               </p>
 
-                              <div className="pt-2 flex flex-col sm:flex-row gap-2">
+                              <div className="pt-1 flex flex-col sm:flex-row gap-2">
                                 <Button
                                   type="button"
                                   variant="secondary"
                                   size="sm"
                                   onClick={handleTestGoogleMeet}
                                   disabled={isTestingGoogleMeet}
-                                  className="gap-1.5 text-xs"
+                                  className="flex-1 gap-1.5 text-xs"
                                 >
                                   <Calendar className="h-3.5 w-3.5" />
-                                  <span>{isTestingGoogleMeet ? "Testando Google Meet..." : "Testar Emissão Google Meet"}</span>
+                                  <span>{isTestingGoogleMeet ? "Testando..." : "Testar Emissão"}</span>
                                 </Button>
 
                                 <Button
@@ -3389,10 +3492,10 @@ export default function AdminSettingsPage() {
                                   size="sm"
                                   onClick={handleDisconnectGoogle}
                                   disabled={isDisconnectingGoogle}
-                                  className="gap-1.5 text-xs"
+                                  className="w-full sm:w-auto gap-1.5 text-xs"
                                 >
                                   <Unlink className="h-3.5 w-3.5" />
-                                  <span>{isDisconnectingGoogle ? "Desconectando..." : "Desconectar Conta"}</span>
+                                  <span>{isDisconnectingGoogle ? "Desconectando..." : "Desconectar"}</span>
                                 </Button>
                               </div>
                             </div>
@@ -3401,15 +3504,19 @@ export default function AdminSettingsPage() {
                               <Button
                                 type="button"
                                 onClick={handleConnectGoogle}
-                                disabled={!googleMeetClientId || (!googleMeetClientSecret && !provider.config?.hasClientSecret)}
+                                disabled={
+                                  !googleMeetClientId ||
+                                  (!googleMeetClientSecret && !googleProvider?.config?.hasClientSecret)
+                                }
                                 className="w-full gap-2 text-xs"
                               >
                                 <Link2 className="h-3.5 w-3.5" />
                                 <span>Conectar Conta Google via OAuth</span>
                               </Button>
-                              {(!googleMeetClientId || (!googleMeetClientSecret && !provider.config?.hasClientSecret)) && (
+                              {(!googleMeetClientId ||
+                                (!googleMeetClientSecret && !googleProvider?.config?.hasClientSecret)) && (
                                 <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1.5 text-center">
-                                  * Preencha e salve o Client ID e Client Secret antes de autorizar a conta.
+                                  * Preencha e salve o Client ID e Client Secret antes de autorizar.
                                 </p>
                               )}
                             </div>
@@ -3431,46 +3538,137 @@ export default function AdminSettingsPage() {
                             </Alert>
                           )}
                         </div>
-                      )}
-                    </CardContent>
-                  </div>
+                      </CardContent>
+                    </div>
 
-                  <div className="p-4 pt-0">
-                    <Button
-                      type="button"
-                      variant={isSelected ? "primary" : "secondary"}
-                      onClick={() => {
-                        setActiveVideoKey(provider.key);
-                        setVideoError(null);
-                        setVideoFeedback(`Provedor padrão alterado para "${provider.name}". Clique em "Salvar Alterações" para persistir no servidor.`);
-                      }}
-                      disabled={!provider.isFunctional}
-                      className="w-full text-xs gap-1.5"
-                    >
-                      {isSelected ? (
-                        <>
-                          <Check className="h-3.5 w-3.5" />
-                          <span>Provedor Ativo</span>
-                        </>
-                      ) : (
-                        <span>Definir como Padrão</span>
-                      )}
-                    </Button>
+                    <div className="p-4 pt-0">
+                      <Button
+                        type="button"
+                        variant={activeVideoKey === "GOOGLE_MEET" ? "primary" : "secondary"}
+                        onClick={() => {
+                          setActiveVideoKey("GOOGLE_MEET");
+                          setVideoError(null);
+                          setVideoFeedback(
+                            'Provedor padrão alterado para "Google Meet". Clique em "Salvar Alterações" para persistir.'
+                          );
+                        }}
+                        disabled={googleMeetStatus !== "CONNECTED"}
+                        className="w-full text-xs gap-1.5"
+                      >
+                        {activeVideoKey === "GOOGLE_MEET" ? (
+                          <>
+                            <Check className="h-3.5 w-3.5" />
+                            <span>Provedor Ativo</span>
+                          </>
+                        ) : (
+                          <span>Definir como Padrão</span>
+                        )}
+                      </Button>
 
-                    {!provider.isFunctional && (
-                      <p className="text-[10px] text-amber-600 dark:text-amber-400 text-center pt-1.5 leading-tight">
-                        {provider.key === "PEERJS"
-                          ? "* Requer host configurado e teste de sinalização aprovado."
-                          : provider.key === "GOOGLE_MEET"
-                          ? "* Requer Client ID, Client Secret e conta Google conectada."
-                          : "* Configuração incompleta."}
+                      {googleMeetStatus !== "CONNECTED" && (
+                        <p className="text-[10px] text-amber-600 dark:text-amber-400 text-center pt-1.5 leading-tight">
+                          * Requer conta Google conectada via OAuth.
+                        </p>
+                      )}
+                    </div>
+                  </Card>
+                </div>
+
+                {/* ================= GUIA GOOGLE MEET (ACCORDION ABAIXO DOS 3 CARDS) ================= */}
+                <Card className="border-[#E5E5E5] dark:border-[#2C2C2C] overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setIsGoogleGuideOpen((prev) => !prev)}
+                    className="w-full flex items-center justify-between p-4 text-left hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Info className="h-4 w-4 text-[var(--primary)] shrink-0" />
+                      <span className="font-semibold text-sm text-[#171717] dark:text-[#F5F5F5]">
+                        Como configurar o Google Meet
+                      </span>
+                    </div>
+                    <ChevronDown
+                      className={`h-4 w-4 text-[#737373] transition-transform duration-200 ${
+                        isGoogleGuideOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {isGoogleGuideOpen && (
+                    <CardContent className="pt-0 pb-4 px-4 border-t border-[#E5E5E5] dark:border-[#2C2C2C] space-y-4 text-xs">
+                      <p className="text-[#525252] dark:text-[#A6A6A6] pt-3 leading-relaxed">
+                        Siga o passo a passo abaixo para criar as credenciais do Google Meet no console de desenvolvedor do Google:
                       </p>
-                    )}
-                  </div>
+
+                      <ol className="list-decimal list-inside space-y-2 pl-1 text-[11px] text-[#404040] dark:text-[#D0D0D0] leading-relaxed">
+                        <li>
+                          Acesse o{" "}
+                          <a
+                            href="https://console.cloud.google.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[var(--primary)] font-medium underline inline-flex items-center gap-0.5"
+                          >
+                            Google Cloud Console <ExternalLink className="h-3 w-3 inline" />
+                          </a>{" "}
+                          e selecione ou crie seu projeto.
+                        </li>
+                        <li>
+                          No menu lateral, navegue até <strong>APIs e Serviços &gt; Biblioteca</strong> e ative a <strong>Google Calendar API</strong>.
+                        </li>
+                        <li>
+                          Em <strong>Tela de consentimento OAuth</strong>, selecione o tipo de usuário <strong>Externo</strong> e preencha as informações básicas do seu consultório.
+                        </li>
+                        <li>
+                          Adicione o escopo <code>https://www.googleapis.com/auth/calendar.events</code> na lista de permissões solicitadas.
+                        </li>
+                        <li>
+                          Em <strong>Credenciais</strong>, clique em <strong>Criar Credenciais &gt; ID do cliente OAuth</strong>.
+                        </li>
+                        <li>
+                          Escolha o tipo de aplicativo <strong>Aplicativo da Web</strong> e atribua um nome (ex: <em>PSI Consultório</em>).
+                        </li>
+                        <li>
+                          No campo <strong>URIs de redirecionamento autorizados</strong>, adicione exatamente o endereço abaixo:
+                          <div className="mt-2 flex items-center gap-2 p-2 bg-[#F8F8F8] dark:bg-[#1E1E1E] rounded-lg border border-[#E5E5E5] dark:border-[#333333]">
+                            <code className="text-[11px] font-mono text-[var(--primary)] break-all flex-1 select-all">
+                              {googleRedirectUri}
+                            </code>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                navigator.clipboard.writeText(googleRedirectUri);
+                                setCopiedGoogleUri(true);
+                                setTimeout(() => setCopiedGoogleUri(false), 2000);
+                              }}
+                              className="shrink-0 gap-1 text-[11px] h-7 px-2"
+                            >
+                              {copiedGoogleUri ? (
+                                <>
+                                  <Check className="h-3 w-3 text-emerald-600" />
+                                  <span>Copiado!</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="h-3 w-3" />
+                                  <span>Copiar URI</span>
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </li>
+                        <li>
+                          Copie o <strong>Client ID</strong> e o <strong>Client Secret</strong> gerados, cole-os no cartão do Google Meet acima, clique em <strong>Salvar Alterações</strong> e, em seguida, em <strong>Conectar Conta Google via OAuth</strong>.
+                        </li>
+                      </ol>
+                    </CardContent>
+                  )}
                 </Card>
-              );
-            })}
-          </div>
+              </>
+            );
+          })()}
 
           <div className="flex justify-end pt-2">
             <Button
@@ -3478,7 +3676,7 @@ export default function AdminSettingsPage() {
               onClick={handleSaveVideoProviders}
               disabled={!isVideoDirty || isSavingVideo}
               isLoading={isSavingVideo}
-              className="gap-2 text-xs"
+              className="w-full sm:w-auto gap-2 text-xs"
             >
               {!isSavingVideo && <Save className="h-4 w-4" />}
               <span>{isSavingVideo ? "Salvando..." : "Salvar Alterações"}</span>
@@ -3500,14 +3698,14 @@ export default function AdminSettingsPage() {
 
             <CardContent className="space-y-4 text-xs">
               <div className="p-4 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="font-semibold text-[#171717] dark:text-[#F5F5F5]">
                     URL do Endpoint Operacional:
                   </span>
                   <Badge variant="success">Pull Only (GET)</Badge>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Input
                     readOnly
                     value={typeof window !== "undefined" ? `${window.location.origin}/api/technical/status` : ""}
@@ -3523,7 +3721,7 @@ export default function AdminSettingsPage() {
                         setTimeout(() => setCopiedUrl(false), 2000);
                       }
                     }}
-                    className="shrink-0 gap-1.5 text-xs"
+                    className="w-full sm:w-auto shrink-0 gap-1.5 text-xs"
                   >
                     {copiedUrl ? <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
                     <span>{copiedUrl ? "Copiado!" : "Copiar URL"}</span>

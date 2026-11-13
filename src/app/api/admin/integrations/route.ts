@@ -1,41 +1,84 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
+import { checkActionCooldown } from "@/lib/integrations-health";
+import { getEmailCapability, verifyEmailConnection } from "@/lib/integrations-email";
+import { getSmsCapability, verifySmsConnection } from "@/lib/integrations-sms";
+import { getWhatsAppCapability, verifyWhatsAppConnection } from "@/lib/integrations-whatsapp";
+import { buildIntegrationSnapshot, handleAdminApiError } from "@/lib/integrations-response";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    await requireAdmin();
+    const admin = await requireAdmin();
+    const shouldRefresh = req.nextUrl.searchParams.get("refresh") === "1";
 
-    const sys = await prisma.systemSettings.findFirst();
+    let sys = await prisma.systemSettings.findFirst();
 
-    // Retorna configurações com segredos mascarados para proteção no frontend
-    return NextResponse.json({
-      email: {
-        enabled: sys?.smtpEnabled ?? false,
-        host: sys?.smtpHost || "",
-        port: sys?.smtpPort || 587,
-        encryption: sys?.smtpEncryption || "TLS",
-        user: sys?.smtpUser || "",
-        hasPassword: !!sys?.smtpPass,
-        senderName: sys?.smtpSenderName || "",
-        senderEmail: sys?.smtpFrom || "",
-        status: sys?.smtpEnabled && sys?.smtpHost && sys?.smtpUser ? "CONNECTED" : "NOT_CONFIGURED",
-      },
-      whatsapp: {
-        enabled: sys?.whatsappEnabled ?? false,
-        provider: sys?.whatsappProvider || "EVOLUTION_API",
-        apiUrl: sys?.whatsappApiUrl || "",
-        hasToken: !!sys?.whatsappApiToken,
-        instanceId: sys?.whatsappInstanceId || "",
-        senderNumber: sys?.whatsappSenderNumber || "",
-        status: sys?.whatsappEnabled && sys?.whatsappApiUrl ? "CONNECTED" : "NOT_CONFIGURED",
-      },
-    });
-  } catch (error: unknown) {
-    if (error instanceof Error && error.message === "FORBIDDEN") {
-      return NextResponse.json({ error: "Acesso restrito ao administrador." }, { status: 403 });
+    if (shouldRefresh && sys) {
+      const cooldown = checkActionCooldown(`passive-refresh:${admin.userId}`, 4000);
+      if (cooldown.allowed) {
+        const emailCap = getEmailCapability(sys);
+        const smsCap = getSmsCapability(sys);
+        const waCap = getWhatsAppCapability(sys);
+
+        const updates: Record<string, unknown> = {};
+        const now = new Date();
+
+        const [emailProbe, smsProbe, waProbe] = await Promise.all([
+          emailCap.enabled && emailCap.configured ? verifyEmailConnection(sys) : Promise.resolve(null),
+          smsCap.enabled && smsCap.configured ? verifySmsConnection(sys) : Promise.resolve(null),
+          waCap.enabled && waCap.configured ? verifyWhatsAppConnection(sys) : Promise.resolve(null),
+        ]);
+
+        if (emailProbe) {
+          updates.emailHealthStatus = emailProbe.healthStatus;
+          updates.emailHealthMessage = emailProbe.message;
+          updates.emailLastCheckedAt = now;
+        }
+        if (smsProbe) {
+          updates.smsHealthStatus = smsProbe.healthStatus;
+          updates.smsHealthMessage = smsProbe.message;
+          updates.smsLastCheckedAt = now;
+        }
+        if (waProbe) {
+          updates.whatsappHealthStatus = waProbe.healthStatus;
+          updates.whatsappHealthMessage = waProbe.message;
+          updates.whatsappLastCheckedAt = now;
+          if (waProbe.provider === "OPENWA") {
+            if (waProbe.healthStatus === "CONNECTED" && waProbe.displayPhone) {
+              updates.openWaConnectedNumber = waProbe.displayPhone;
+            } else if (
+              waProbe.healthStatus === "AWAITING_QR" ||
+              waProbe.healthStatus === "RECONNECT_REQUIRED" ||
+              waProbe.healthStatus === "CONNECTION_FAILED"
+            ) {
+              updates.openWaConnectedNumber = null;
+            }
+          }
+        }
+
+        if (Object.keys(updates).length > 0) {
+          sys = await prisma.systemSettings.update({
+            where: { id: sys.id },
+            data: updates,
+          });
+        }
+      }
     }
-    console.error("Erro ao obter integrações:", error);
-    return NextResponse.json({ error: "Erro interno." }, { status: 500 });
+
+    const [totalActivePatients, smsOptInPatientsCount] = await Promise.all([
+      prisma.patient.count({ where: { isActive: true } }),
+      prisma.patient.count({ where: { isActive: true, smsOptIn: true } }),
+    ]);
+
+    return NextResponse.json(
+      buildIntegrationSnapshot(sys, {
+        req,
+        totalActivePatients,
+        smsOptInPatientsCount,
+      })
+    );
+  } catch (error: unknown) {
+    return handleAdminApiError(error, "Erro ao obter integrações.");
   }
 }

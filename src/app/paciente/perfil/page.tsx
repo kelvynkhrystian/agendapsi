@@ -28,6 +28,8 @@ interface PatientProfile {
   gender?: string | null;
   address?: string | null;
   emergencyContact?: string | null;
+  smsOptIn?: boolean;
+  smsOptInAt?: string | null;
   guardians?: GuardianInfo[];
 }
 
@@ -59,6 +61,7 @@ export default function PatientProfilePage() {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [emergencyContact, setEmergencyContact] = useState("");
+  const [smsOptIn, setSmsOptIn] = useState(false);
 
   // Estados de feedback do Perfil
   const [isSavingProfile, setIsSavingProfile] = useState(false);
@@ -91,6 +94,7 @@ export default function PatientProfilePage() {
           setPhone(data.patient.phone ? maskPhone(data.patient.phone) : "");
           setAddress(data.patient.address || "");
           setEmergencyContact(data.patient.emergencyContact || "");
+          setSmsOptIn(Boolean(data.patient.smsOptIn));
         }
       }
     } catch (e) {
@@ -123,6 +127,7 @@ export default function PatientProfilePage() {
           phone,
           address: address || null,
           emergencyContact: emergencyContact || null,
+          smsOptIn,
         }),
       });
 
@@ -207,8 +212,8 @@ export default function PatientProfilePage() {
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Meu Perfil de Paciente</h1>
-        <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Meu Perfil de Paciente</h1>
+        <p className="text-xs sm:text-sm text-[#737373] dark:text-[#A6A6A6]">
           Gerencie suas informações cadastrais, canais de contato e credenciais de segurança.
         </p>
       </div>
@@ -334,13 +339,38 @@ export default function PatientProfilePage() {
                 onChange={(e) => setEmergencyContact(e.target.value)}
                 placeholder="Nome e telefone de pessoa próxima"
               />
+
+              <div className="pt-2 border-t border-[#E5E5E5] dark:border-[#2C2C2C]">
+                <label className="flex items-start gap-2.5 cursor-pointer text-xs text-[#404040] dark:text-[#D0D0D0]">
+                  <input
+                    type="checkbox"
+                    checked={smsOptIn}
+                    onChange={(e) => setSmsOptIn(e.target.checked)}
+                    className="mt-0.5 rounded border-[#CCCCCC] dark:border-[#525252] accent-[var(--primary)] h-4 w-4 shrink-0 cursor-pointer"
+                  />
+                  <span className="space-y-0.5">
+                    <span className="font-semibold block text-[#171717] dark:text-[#F5F5F5]">
+                      Receber lembretes de consultas por SMS (opcional)
+                    </span>
+                    <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6] block leading-relaxed">
+                      Autoriza o consultório a enviar confirmações e lembretes por SMS para o celular informado.
+                      {profile.smsOptIn && profile.smsOptInAt ? (
+                        <span className="block tabular-nums">
+                          Autorizado em{" "}
+                          {new Intl.DateTimeFormat("pt-BR").format(new Date(profile.smsOptInAt))}.
+                        </span>
+                      ) : null}
+                    </span>
+                  </span>
+                </label>
+              </div>
             </CardContent>
           </Card>
         </div>
 
         {/* BOTÃO DE SALVAMENTO DIRETO DO PERFIL */}
         <div className="flex justify-end">
-          <Button type="submit" size="md" isLoading={isSavingProfile}>
+          <Button type="submit" size="md" isLoading={isSavingProfile} className="w-full sm:w-auto">
             Salvar alterações
           </Button>
         </div>
@@ -361,12 +391,12 @@ export default function PatientProfilePage() {
           <div className="p-4 bg-[#F8F8F8] dark:bg-[#141414] rounded-xl space-y-4 border border-[#E5E5E5] dark:border-[#2C2C2C]">
             {/* E-MAIL DE ACESSO */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-2">
+              <div className="space-y-0.5 min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs font-semibold text-[#404040] dark:text-[#E5E5E5]">
                     E-mail de Login:
                   </span>
-                  <Badge variant="outline" className="font-mono text-[11px]">
+                  <Badge variant="outline" className="font-mono text-[11px] break-all max-w-full">
                     {profile.email}
                   </Badge>
                 </div>
@@ -375,7 +405,7 @@ export default function PatientProfilePage() {
                 </p>
               </div>
 
-              <Badge variant="outline" className="text-[11px] text-[#737373] dark:text-[#A6A6A6] self-start sm:self-center">
+              <Badge variant="outline" className="text-[11px] text-[#737373] dark:text-[#A6A6A6] self-start sm:self-center shrink-0">
                 Edição desabilitada nesta etapa
               </Badge>
             </div>
@@ -395,7 +425,7 @@ export default function PatientProfilePage() {
                 type="button"
                 variant="outline"
                 size="sm"
-                className="gap-1.5 shrink-0"
+                className="w-full sm:w-auto gap-1.5 shrink-0"
                 onClick={() => {
                   setPasswordErrorMessage(null);
                   setPasswordSuccessMessage(null);
@@ -448,16 +478,17 @@ export default function PatientProfilePage() {
             required
           />
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
+          <div className="grid grid-cols-2 sm:flex sm:justify-end gap-2.5 sm:gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#333333]">
             <Button
               type="button"
               variant="ghost"
+              className="w-full sm:w-auto border border-[#E5E5E5] dark:border-[#333333] sm:border-transparent"
               onClick={() => setIsPasswordModalOpen(false)}
               disabled={isSubmittingPassword}
             >
               Cancelar
             </Button>
-            <Button type="submit" isLoading={isSubmittingPassword}>
+            <Button type="submit" isLoading={isSubmittingPassword} className="w-full sm:w-auto">
               Salvar Nova Senha
             </Button>
           </div>

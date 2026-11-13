@@ -62,22 +62,41 @@ export async function GET(
 
     const settings = await prisma.systemSettings.findUnique({ where: { id: "default" } });
     const profile = await prisma.professionalProfile.findUnique({ where: { id: "default" } });
+    const site = await prisma.siteSettings.findUnique({ where: { id: "default" } });
+
+    // Correção: identifica se o agendamento é estritamente presencial
+    const isPresential =
+      appointment.modality === "PRESENTIAL" ||
+      appointment.service.name.toLowerCase().includes("(presencial)") ||
+      appointment.service.modality === "PRESENTIAL";
 
     const role = isAdmin ? "doctor" : "patient";
     const peerId = `${videoMeeting.roomName}-${role}`;
     const targetPeerId = isAdmin ? `${videoMeeting.roomName}-patient` : `${videoMeeting.roomName}-doctor`;
 
+    const peerHost = settings?.peerJsServerHost || process.env.PEERJS_SERVER_HOST || process.env.PEERJS_HOST || "0.peerjs.com";
+    const isDefaultCloud = !settings?.peerJsServerHost || peerHost === "0.peerjs.com";
+    const peerPort = isDefaultCloud
+      ? 443
+      : (settings?.peerJsServerPort || (process.env.PEERJS_SERVER_PORT ? Number(process.env.PEERJS_SERVER_PORT) : 9000));
+    const peerPath = isDefaultCloud
+      ? "/"
+      : (settings?.peerJsPath || process.env.PEERJS_PATH || "/peerjs");
+    const peerSecure = isDefaultCloud
+      ? true
+      : (settings?.peerJsSecure ?? (process.env.PEERJS_SECURE !== undefined ? process.env.PEERJS_SECURE === "true" : true));
+
     const peerJsConfig =
       videoMeeting.provider === "PEERJS"
         ? {
-            host: settings?.peerJsServerHost || "localhost",
-            port: settings?.peerJsServerPort || 9000,
-            path: settings?.peerJsPath || "/peerjs",
-            secure: settings?.peerJsSecure ?? false,
-            stunServer: settings?.peerJsStunServer || "stun:stun.l.google.com:19302",
-            turnServer: settings?.peerJsTurnServer || null,
-            turnUser: settings?.peerJsTurnUser || null,
-            turnSecret: settings?.peerJsTurnSecret || null,
+            host: peerHost,
+            port: peerPort,
+            path: peerPath,
+            secure: peerSecure,
+            stunServer: settings?.peerJsStunServer || process.env.PEERJS_STUN_SERVER || "stun:stun.l.google.com:19302",
+            turnServer: settings?.peerJsTurnServer || process.env.PEERJS_TURN_SERVER || null,
+            turnUser: settings?.peerJsTurnUser || process.env.PEERJS_TURN_USER || null,
+            turnSecret: settings?.peerJsTurnSecret || process.env.PEERJS_TURN_SECRET || null,
             role,
             peerId,
             targetPeerId,
@@ -102,12 +121,15 @@ export async function GET(
       minutesUntilOpen: access.minutesUntilOpen,
       message: access.message,
       currentUserRole: session.role,
+      isPresential,
       appointment: {
         startAt: appointment.startAt,
         endAt: appointment.endAt,
+        modality: appointment.modality,
         serviceName: appointment.service.name,
         professionalName: profile?.fullName || "Profissional de Saúde",
         patientName: appointment.patient.fullName,
+        address: site?.address || "Consultório do Profissional (endereço cadastrado no sistema)",
       },
     });
   } catch (error) {

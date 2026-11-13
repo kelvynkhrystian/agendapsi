@@ -1,6 +1,9 @@
 import { prisma } from "./prisma";
 import { NotificationChannel, NotificationType } from "@prisma/client";
 import { formatBRL, formatDate, formatTime } from "./utils";
+import { getEmailCapability, sendEmailMessage } from "./integrations-email";
+import { getSmsCapability, sendSmsMessage } from "./integrations-sms";
+import { getWhatsAppCapability, sendWhatsAppMessage } from "./integrations-whatsapp";
 
 export type DeliveryMode = "APP_ONLY" | "APP_EMAIL" | "ALL_CHANNELS";
 
@@ -234,7 +237,7 @@ export function maskRecipient(recipient: string, channel?: string): string {
   if (!recipient) return "***";
 
   // Se for e-mail
-  if (recipient.includes("@")) {
+  if (channel === "EMAIL" || recipient.includes("@")) {
     const [user, domain] = recipient.split("@");
     if (!domain) return recipient;
     if (user.length <= 2) {
@@ -264,6 +267,24 @@ export function maskRecipient(recipient: string, channel?: string): string {
   return "***";
 }
 
+function escapeHtml(raw: string): string {
+  return raw
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function buildCleanEmailHtml(title: string, body: string): string {
+  const safeTitle = escapeHtml(title);
+  const paragraphs = body
+    .split(/\n{2,}/)
+    .map((p) => `<p style="margin:0 0 12px;color:#333333;font-size:14px;line-height:1.6;">${escapeHtml(p).replace(/\n/g, "<br/>")}</p>`)
+    .join("");
+  return `<!DOCTYPE html><html lang="pt-BR"><body style="margin:0;padding:24px;background:#F8F8F8;font-family:Arial,Helvetica,sans-serif;"><div style="max-width:560px;margin:0 auto;background:#FFFFFF;border:1px solid #E5E5E5;border-radius:16px;padding:28px;"><h2 style="margin:0 0 16px;font-size:18px;color:#171717;">${safeTitle}</h2>${paragraphs}<hr style="border:none;border-top:1px solid #E5E5E5;margin:20px 0 12px;"/><p style="margin:0;color:#737373;font-size:11px;">Mensagem automática enviada pelo Consultório PSI.</p></div></body></html>`;
+}
+
 function resolveNotificationTemplateType(eventType: string): NotificationType {
   switch (eventType) {
     case "APPOINTMENT_REGISTERED":
@@ -290,8 +311,23 @@ function resolveNotificationTemplateType(eventType: string): NotificationType {
   }
 }
 
+async function persistHealthTelemetry(
+  sysId: string | undefined,
+  data: Record<string, unknown>
+): Promise<void> {
+  if (!sysId) return;
+  try {
+    await prisma.systemSettings.update({
+      where: { id: sysId },
+      data,
+    });
+  } catch {
+    // Telemetria auxiliar não deve interromper o fluxo transacional
+  }
+}
+
 /**
- * Disparador unificado de notificações com suporte a in-app, email e whatsapp
+ * Disparador unificado de notificações com suporte real a In-App, E-mail (SMTP), SMS (TextBee) e WhatsApp (Meta / OpenWA)
  */
 export async function dispatchNotification(params: DispatchNotificationParams) {
   try {
@@ -302,6 +338,7 @@ export async function dispatchNotification(params: DispatchNotificationParams) {
           OR: [
             { idempotencyKey: `email-${params.idempotencyKey}` },
             { idempotencyKey: `wa-${params.idempotencyKey}` },
+            { idempotencyKey: `sms-${params.idempotencyKey}` },
           ],
         },
         select: { id: true },
@@ -344,112 +381,285 @@ export async function dispatchNotification(params: DispatchNotificationParams) {
     });
 
     const deliveryMode = (template.deliveryMode || "APP_ONLY") as DeliveryMode;
+    if (deliveryMode === "APP_ONLY") {
+      return notification;
+    }
+
+    const sys = await prisma.systemSettings.findFirst();
+
+    // Resolve dados de contato reais do destinatário
+    let recipientEmail = params.recipientId.includes("@") ? params.recipientId : "";
+    let recipientPhone =
+      !params.recipientId.includes("@") && /^\+?[\d\s()-]{8,}$/.test(params.recipientId)
+        ? params.recipientId
+        : "";
+    let patientSmsOptIn = false;
+
+    if (params.recipientRole === "ADMIN") {
+      const admin = await prisma.adminAccount.findUnique({
+        where: { id: params.recipientId },
+        select: { email: true, phone: true },
+      });
+      if (admin?.email) recipientEmail = admin.email;
+      if (admin?.phone) recipientPhone = admin.phone;
+    } else {
+      const patient = await prisma.patient.findUnique({
+        where: { id: params.recipientId },
+        select: { email: true, phone: true, smsOptIn: true },
+      });
+      if (patient?.email) recipientEmail = patient.email;
+      if (patient?.phone) recipientPhone = patient.phone;
+      patientSmsOptIn = Boolean(patient?.smsOptIn);
+    }
 
     // 3. E-mail se APP_EMAIL ou ALL_CHANNELS
     if (deliveryMode === "APP_EMAIL" || deliveryMode === "ALL_CHANNELS") {
       try {
-        const sys = await prisma.systemSettings.findFirst();
-        const emailConfigured = !!(sys?.smtpEnabled && sys?.smtpHost && sys?.smtpUser);
-
-        // Busca e-mail real do paciente caso recipientId seja um ID
-        let recipientEmail = params.recipientId;
-        if (!recipientEmail.includes("@")) {
-          const patient = await prisma.patient.findUnique({
-            where: { id: params.recipientId },
-            select: { email: true },
-          });
-          if (patient?.email) recipientEmail = patient.email;
-        }
-
-        const masked = maskRecipient(recipientEmail, "EMAIL");
-        const status = emailConfigured ? "ACCEPTED" : "SIMULATED";
+        const emailCap = getEmailCapability(sys);
         const now = new Date();
+        const targetEmail = recipientEmail || params.recipientId;
+        const masked = maskRecipient(targetEmail, "EMAIL");
 
-        await prisma.notificationDelivery.create({
-          data: {
-            recipient: recipientEmail,
-            maskedRecipient: masked,
-            channel: "EMAIL",
-            templateType: resolvedTemplateType,
-            messageType: params.eventType,
-            subjectOrCategory: title,
-            recipientReference: params.recipientId,
-            relatedAppointmentId:
-              params.relatedEntityType === "Appointment" ? params.relatedEntityId : undefined,
-            status,
-            simulated: !emailConfigured,
-            provider: emailConfigured ? "SMTP" : "SIMULATED",
-            attemptedAt: now,
-            acceptedAt: emailConfigured ? now : undefined,
-            attemptCount: 1,
-            errorDetails: emailConfigured
-              ? null
-              : "Servidor SMTP não configurado; entrega simulada no aplicativo.",
-            idempotencyKey: params.idempotencyKey ? `email-${params.idempotencyKey}` : undefined,
-            metadataJson: JSON.stringify({
-              title,
-              message,
-              eventType: params.eventType,
-              vars: params.vars,
-            }),
-          },
-        });
+        if (!emailCap.canSendRealEmails) {
+          await prisma.notificationDelivery.create({
+            data: {
+              recipient: targetEmail,
+              maskedRecipient: masked,
+              channel: "EMAIL",
+              templateType: resolvedTemplateType,
+              messageType: params.eventType,
+              subjectOrCategory: title,
+              recipientReference: params.recipientId,
+              relatedAppointmentId:
+                params.relatedEntityType === "Appointment" ? params.relatedEntityId : undefined,
+              status: "SIMULATED",
+              simulated: true,
+              provider: "SIMULATED",
+              attemptedAt: now,
+              attemptCount: 1,
+              errorDetails: emailCap.reason || "Canal de e-mail desativado ou não configurado; entrega simulada.",
+              idempotencyKey: params.idempotencyKey ? `email-${params.idempotencyKey}` : undefined,
+              metadataJson: JSON.stringify({
+                title,
+                message,
+                eventType: params.eventType,
+                vars: params.vars,
+              }),
+            },
+          });
+        } else if (!targetEmail || !targetEmail.includes("@")) {
+          await prisma.notificationDelivery.create({
+            data: {
+              recipient: targetEmail || "ausente",
+              maskedRecipient: masked,
+              channel: "EMAIL",
+              templateType: resolvedTemplateType,
+              messageType: params.eventType,
+              subjectOrCategory: title,
+              recipientReference: params.recipientId,
+              relatedAppointmentId:
+                params.relatedEntityType === "Appointment" ? params.relatedEntityId : undefined,
+              status: "FAILED",
+              simulated: false,
+              provider: emailCap.mode === "DEFAULT" ? "SMTP_DEFAULT" : "SMTP_CUSTOM",
+              attemptedAt: now,
+              failedAt: now,
+              attemptCount: 1,
+              errorCode: "INVALID_EMAIL",
+              sanitizedErrorMessage: "Destinatário sem endereço de e-mail válido.",
+              errorDetails: "Destinatário sem endereço de e-mail válido.",
+              idempotencyKey: params.idempotencyKey ? `email-${params.idempotencyKey}` : undefined,
+              metadataJson: JSON.stringify({ title, message, eventType: params.eventType }),
+            },
+          });
+        } else {
+          const emailRes = await sendEmailMessage(sys, {
+            to: targetEmail,
+            subject: title,
+            text: message,
+            html: buildCleanEmailHtml(title, message),
+          });
+          const doneAt = new Date();
+
+          await prisma.notificationDelivery.create({
+            data: {
+              recipient: targetEmail,
+              maskedRecipient: masked,
+              channel: "EMAIL",
+              templateType: resolvedTemplateType,
+              messageType: params.eventType,
+              subjectOrCategory: title,
+              recipientReference: params.recipientId,
+              relatedAppointmentId:
+                params.relatedEntityType === "Appointment" ? params.relatedEntityId : undefined,
+              status: emailRes.ok ? "ACCEPTED" : "FAILED",
+              simulated: false,
+              provider: emailRes.provider,
+              providerMessageId: emailRes.providerMessageId || undefined,
+              attemptedAt: doneAt,
+              acceptedAt: emailRes.ok ? doneAt : undefined,
+              failedAt: emailRes.ok ? undefined : doneAt,
+              attemptCount: 1,
+              errorCode: emailRes.ok ? null : emailRes.errorCode || "EMAIL_SEND_FAILED",
+              sanitizedErrorMessage: emailRes.ok ? null : emailRes.sanitizedErrorMessage || "Falha ao enviar e-mail.",
+              errorDetails: emailRes.ok ? null : emailRes.sanitizedErrorMessage || "Falha ao enviar e-mail.",
+              idempotencyKey: params.idempotencyKey ? `email-${params.idempotencyKey}` : undefined,
+              metadataJson: JSON.stringify({
+                title,
+                message,
+                eventType: params.eventType,
+                vars: params.vars,
+              }),
+            },
+          });
+
+          await persistHealthTelemetry(sys?.id, {
+            emailHealthStatus: emailRes.healthStatus,
+            emailHealthMessage: emailRes.ok ? null : emailRes.sanitizedErrorMessage || null,
+            emailLastCheckedAt: doneAt,
+          });
+        }
       } catch (e) {
-        console.error("Falha ao registrar entrega de email:", e);
+        console.error("Falha ao processar entrega de email:", e);
       }
     }
 
     // 4. WhatsApp se ALL_CHANNELS
     if (deliveryMode === "ALL_CHANNELS") {
       try {
-        const sys = await prisma.systemSettings.findFirst();
-        const waConfigured = !!(sys?.whatsappEnabled && sys?.whatsappApiUrl);
-
-        // Busca telefone real do paciente caso recipientId seja um ID
-        let recipientPhone = params.recipientId;
-        if (recipientPhone.includes("@") || recipientPhone.length < 8) {
-          const patient = await prisma.patient.findUnique({
-            where: { id: params.recipientId },
-            select: { phone: true },
-          });
-          if (patient?.phone) recipientPhone = patient.phone;
-        }
-
-        const masked = maskRecipient(recipientPhone, "WHATSAPP");
-        const status = waConfigured ? "ACCEPTED" : "SIMULATED";
+        const waCap = getWhatsAppCapability(sys);
         const now = new Date();
+        const targetPhone = recipientPhone || params.recipientId;
+        const masked = maskRecipient(targetPhone, "WHATSAPP");
 
-        await prisma.notificationDelivery.create({
-          data: {
-            recipient: recipientPhone,
-            maskedRecipient: masked,
-            channel: "WHATSAPP",
-            templateType: resolvedTemplateType,
-            messageType: params.eventType,
-            subjectOrCategory: title,
-            recipientReference: params.recipientId,
-            relatedAppointmentId:
-              params.relatedEntityType === "Appointment" ? params.relatedEntityId : undefined,
-            status,
-            simulated: !waConfigured,
-            provider: waConfigured ? sys?.whatsappProvider || "WHATSAPP_API" : "SIMULATED",
-            attemptedAt: now,
-            acceptedAt: waConfigured ? now : undefined,
-            attemptCount: 1,
-            errorDetails: waConfigured
-              ? null
-              : "API de WhatsApp não configurada; entrega simulada no aplicativo.",
-            idempotencyKey: params.idempotencyKey ? `wa-${params.idempotencyKey}` : undefined,
-            metadataJson: JSON.stringify({
-              title,
-              message,
-              eventType: params.eventType,
-              vars: params.vars,
-            }),
-          },
-        });
+        if (!waCap.canSendRealMessages) {
+          await prisma.notificationDelivery.create({
+            data: {
+              recipient: targetPhone,
+              maskedRecipient: masked,
+              channel: "WHATSAPP",
+              templateType: resolvedTemplateType,
+              messageType: params.eventType,
+              subjectOrCategory: title,
+              recipientReference: params.recipientId,
+              relatedAppointmentId:
+                params.relatedEntityType === "Appointment" ? params.relatedEntityId : undefined,
+              status: "SIMULATED",
+              simulated: true,
+              provider: "SIMULATED",
+              attemptedAt: now,
+              attemptCount: 1,
+              errorDetails: waCap.reason || "API de WhatsApp desativada ou não configurada; entrega simulada.",
+              idempotencyKey: params.idempotencyKey ? `wa-${params.idempotencyKey}` : undefined,
+              metadataJson: JSON.stringify({
+                title,
+                message,
+                eventType: params.eventType,
+                vars: params.vars,
+              }),
+            },
+          });
+        } else {
+          const waRes = await sendWhatsAppMessage(sys, {
+            to: targetPhone,
+            message: `*${title}*\n\n${message}`,
+          });
+          const doneAt = new Date();
+
+          await prisma.notificationDelivery.create({
+            data: {
+              recipient: targetPhone,
+              maskedRecipient: masked,
+              channel: "WHATSAPP",
+              templateType: resolvedTemplateType,
+              messageType: params.eventType,
+              subjectOrCategory: title,
+              recipientReference: params.recipientId,
+              relatedAppointmentId:
+                params.relatedEntityType === "Appointment" ? params.relatedEntityId : undefined,
+              status: waRes.ok ? "ACCEPTED" : "FAILED",
+              simulated: false,
+              provider: waRes.provider,
+              providerMessageId: waRes.providerMessageId || undefined,
+              attemptedAt: doneAt,
+              acceptedAt: waRes.ok ? doneAt : undefined,
+              failedAt: waRes.ok ? undefined : doneAt,
+              attemptCount: 1,
+              errorCode: waRes.ok ? null : waRes.errorCode || "WHATSAPP_SEND_FAILED",
+              sanitizedErrorMessage: waRes.ok ? null : waRes.sanitizedErrorMessage || "Falha ao enviar WhatsApp.",
+              errorDetails: waRes.ok ? null : waRes.sanitizedErrorMessage || "Falha ao enviar WhatsApp.",
+              idempotencyKey: params.idempotencyKey ? `wa-${params.idempotencyKey}` : undefined,
+              metadataJson: JSON.stringify({
+                title,
+                message,
+                eventType: params.eventType,
+                vars: params.vars,
+              }),
+            },
+          });
+
+          await persistHealthTelemetry(sys?.id, {
+            whatsappHealthStatus: waRes.healthStatus,
+            whatsappHealthMessage: waRes.ok ? null : waRes.sanitizedErrorMessage || null,
+            whatsappLastCheckedAt: doneAt,
+          });
+        }
       } catch (e) {
-        console.error("Falha ao registrar entrega de whatsapp:", e);
+        console.error("Falha ao processar entrega de whatsapp:", e);
+      }
+
+      // 5. SMS (TextBee) se ativo, paciente com smsOptIn === true e modo ALL_CHANNELS
+      try {
+        const smsCap = getSmsCapability(sys);
+        const allowSmsForRecipient = params.recipientRole === "PATIENT" ? patientSmsOptIn : true;
+
+        if (smsCap.enabled && allowSmsForRecipient && recipientPhone && !recipientPhone.includes("@")) {
+          const maskedSms = maskRecipient(recipientPhone, "SMS");
+          const smsRes = await sendSmsMessage(sys, {
+            to: recipientPhone,
+            message: `${title}: ${message}`,
+          });
+          const doneAt = new Date();
+
+          await prisma.notificationDelivery.create({
+            data: {
+              recipient: recipientPhone,
+              maskedRecipient: maskedSms,
+              channel: "SMS",
+              templateType: resolvedTemplateType,
+              messageType: params.eventType,
+              subjectOrCategory: title,
+              recipientReference: params.recipientId,
+              relatedAppointmentId:
+                params.relatedEntityType === "Appointment" ? params.relatedEntityId : undefined,
+              status: smsRes.ok ? "ACCEPTED" : "FAILED",
+              simulated: false,
+              provider: smsRes.provider,
+              providerMessageId: smsRes.providerMessageId || undefined,
+              attemptedAt: doneAt,
+              acceptedAt: smsRes.ok ? doneAt : undefined,
+              failedAt: smsRes.ok ? undefined : doneAt,
+              attemptCount: 1,
+              errorCode: smsRes.ok ? null : smsRes.errorCode || "SMS_SEND_FAILED",
+              sanitizedErrorMessage: smsRes.ok ? null : smsRes.sanitizedErrorMessage || "Falha ao enviar SMS.",
+              errorDetails: smsRes.ok ? null : smsRes.sanitizedErrorMessage || "Falha ao enviar SMS.",
+              idempotencyKey: params.idempotencyKey ? `sms-${params.idempotencyKey}` : undefined,
+              metadataJson: JSON.stringify({
+                title,
+                message,
+                eventType: params.eventType,
+              }),
+            },
+          });
+
+          await persistHealthTelemetry(sys?.id, {
+            smsHealthStatus: smsRes.healthStatus,
+            smsHealthMessage: smsRes.ok ? null : smsRes.sanitizedErrorMessage || null,
+            smsLastCheckedAt: doneAt,
+          });
+        }
+      } catch (e) {
+        console.error("Falha ao processar entrega de SMS:", e);
       }
     }
 
@@ -460,8 +670,32 @@ export async function dispatchNotification(params: DispatchNotificationParams) {
   }
 }
 
+function buildFallbackTextFromVariables(
+  templateType: NotificationType,
+  subject: string | undefined,
+  variables: Record<string, string>
+): string {
+  const patientName = variables.patientName || "Paciente";
+  const dt = variables.appointmentDateTime || "";
+  if (variables.customBody) return variables.customBody;
+
+  if (templateType === "REMINDER_24H") {
+    return `Olá, ${patientName}! Lembrete: sua consulta no Consultório PSI está agendada para ${dt}.${
+      variables.entryUrl ? ` Link da sessão: ${variables.entryUrl}` : ""
+    }`;
+  }
+  if (templateType === "REMINDER_2H") {
+    return `Olá, ${patientName}! Sua consulta no Consultório PSI começará em breve (${dt}).${
+      variables.entryUrl ? ` Link da sessão: ${variables.entryUrl}` : ""
+    }`;
+  }
+  return `${subject || "Comunicação Consultório PSI"}\n\nOlá, ${patientName}!${
+    dt ? `\nReferência: ${dt}` : ""
+  }`;
+}
+
 /**
- * Compatibilidade legada com chamadas antigas de sendNotification
+ * Envios diretos por canal específico (e-mail, WhatsApp ou SMS) com validação real de provedores.
  */
 export async function sendNotification({
   recipient,
@@ -471,6 +705,13 @@ export async function sendNotification({
   variables,
   idempotencyKey,
   relatedAppointmentId,
+  customMessage,
+  customHtml,
+  patientId,
+  patientSmsOptIn,
+  enforceSmsOptIn = true,
+  useTemplateIfConfigured = false,
+  messageType,
 }: {
   recipient: string;
   channel: NotificationChannel;
@@ -479,49 +720,288 @@ export async function sendNotification({
   variables: Record<string, string>;
   idempotencyKey?: string;
   relatedAppointmentId?: string;
+  customMessage?: string;
+  customHtml?: string;
+  patientId?: string;
+  patientSmsOptIn?: boolean;
+  enforceSmsOptIn?: boolean;
+  useTemplateIfConfigured?: boolean;
+  messageType?: string;
 }) {
   if (idempotencyKey) {
     const existing = await prisma.notificationDelivery.findUnique({
       where: { idempotencyKey },
     });
     if (existing) {
-      return { alreadySent: true, deliveryId: existing.id, status: existing.status };
+      return {
+        alreadySent: true,
+        skipped: false,
+        success: existing.status === "ACCEPTED" || existing.status === "DELIVERED" || existing.status === "SIMULATED",
+        deliveryId: existing.id,
+        status: existing.status,
+        simulated: existing.simulated,
+      };
     }
   }
 
   const sys = await prisma.systemSettings.findFirst();
-  const isReal =
-    channel === "EMAIL"
-      ? !!(sys?.smtpEnabled && sys?.smtpHost && sys?.smtpUser)
-      : !!(sys?.whatsappEnabled && sys?.whatsappApiUrl);
-
-  const status = isReal ? "ACCEPTED" : "SIMULATED";
+  const bodyText = customMessage || buildFallbackTextFromVariables(templateType, subject, variables);
+  const title = subject || `Notificação ${templateType}`;
+  const masked = maskRecipient(recipient, channel);
   const now = new Date();
+
+  if (channel === "EMAIL") {
+    const emailCap = getEmailCapability(sys);
+    if (!emailCap.canSendRealEmails) {
+      const record = await prisma.notificationDelivery.create({
+        data: {
+          recipient,
+          maskedRecipient: masked,
+          channel,
+          templateType,
+          messageType: messageType || templateType.toString(),
+          subjectOrCategory: title,
+          recipientReference: patientId,
+          relatedAppointmentId,
+          status: "SIMULATED",
+          simulated: true,
+          provider: "SIMULATED",
+          attemptedAt: now,
+          attemptCount: 1,
+          errorDetails: emailCap.reason || "Canal de e-mail desativado ou não configurado.",
+          idempotencyKey,
+          metadataJson: JSON.stringify({ subject: title, message: bodyText, variables }),
+        },
+      });
+      return {
+        success: true,
+        alreadySent: false,
+        skipped: false,
+        deliveryId: record.id,
+        simulated: true,
+        status: record.status,
+      };
+    }
+
+    const emailRes = await sendEmailMessage(sys, {
+      to: recipient,
+      subject: title,
+      text: bodyText,
+      html: customHtml || buildCleanEmailHtml(title, bodyText),
+    });
+    const doneAt = new Date();
+
+    const record = await prisma.notificationDelivery.create({
+      data: {
+        recipient,
+        maskedRecipient: masked,
+        channel,
+        templateType,
+        messageType: messageType || templateType.toString(),
+        subjectOrCategory: title,
+        recipientReference: patientId,
+        relatedAppointmentId,
+        status: emailRes.ok ? "ACCEPTED" : "FAILED",
+        simulated: false,
+        provider: emailRes.provider,
+        providerMessageId: emailRes.providerMessageId || undefined,
+        attemptedAt: doneAt,
+        acceptedAt: emailRes.ok ? doneAt : undefined,
+        failedAt: emailRes.ok ? undefined : doneAt,
+        attemptCount: 1,
+        errorCode: emailRes.ok ? null : emailRes.errorCode || "EMAIL_SEND_FAILED",
+        sanitizedErrorMessage: emailRes.ok ? null : emailRes.sanitizedErrorMessage,
+        errorDetails: emailRes.ok ? null : emailRes.sanitizedErrorMessage,
+        idempotencyKey,
+        metadataJson: JSON.stringify({ subject: title, message: bodyText, variables }),
+      },
+    });
+
+    await persistHealthTelemetry(sys?.id, {
+      emailHealthStatus: emailRes.healthStatus,
+      emailHealthMessage: emailRes.ok ? null : emailRes.sanitizedErrorMessage || null,
+      emailLastCheckedAt: doneAt,
+    });
+
+    return {
+      success: emailRes.ok,
+      alreadySent: false,
+      skipped: false,
+      deliveryId: record.id,
+      simulated: false,
+      status: record.status,
+      providerMessageId: record.providerMessageId,
+      error: emailRes.sanitizedErrorMessage,
+    };
+  }
+
+  if (channel === "SMS") {
+    // Valida consentimento explícito de SMS do paciente antes de qualquer envio transacional
+    if (enforceSmsOptIn) {
+      let optedIn = patientSmsOptIn === true;
+      if (patientSmsOptIn === undefined && patientId) {
+        const patient = await prisma.patient.findUnique({
+          where: { id: patientId },
+          select: { smsOptIn: true },
+        });
+        optedIn = Boolean(patient?.smsOptIn);
+      }
+      if (!optedIn) {
+        return {
+          success: false,
+          alreadySent: false,
+          skipped: true,
+          reason: "PATIENT_SMS_OPT_OUT",
+          deliveryId: null,
+          simulated: false,
+          status: "SKIPPED",
+        };
+      }
+    }
+
+    const smsCap = getSmsCapability(sys);
+    if (!smsCap.enabled) {
+      return {
+        success: false,
+        alreadySent: false,
+        skipped: true,
+        reason: "SMS_DISABLED",
+        deliveryId: null,
+        simulated: false,
+        status: "SKIPPED",
+      };
+    }
+
+    const smsRes = await sendSmsMessage(sys, {
+      to: recipient,
+      message: bodyText,
+    });
+    const doneAt = new Date();
+
+    const record = await prisma.notificationDelivery.create({
+      data: {
+        recipient,
+        maskedRecipient: masked,
+        channel: "SMS",
+        templateType,
+        messageType: messageType || templateType.toString(),
+        subjectOrCategory: title,
+        recipientReference: patientId,
+        relatedAppointmentId,
+        status: smsRes.ok ? "ACCEPTED" : "FAILED",
+        simulated: false,
+        provider: smsRes.provider,
+        providerMessageId: smsRes.providerMessageId || undefined,
+        attemptedAt: doneAt,
+        acceptedAt: smsRes.ok ? doneAt : undefined,
+        failedAt: smsRes.ok ? undefined : doneAt,
+        attemptCount: 1,
+        errorCode: smsRes.ok ? null : smsRes.errorCode || "SMS_SEND_FAILED",
+        sanitizedErrorMessage: smsRes.ok ? null : smsRes.sanitizedErrorMessage,
+        errorDetails: smsRes.ok ? null : smsRes.sanitizedErrorMessage,
+        idempotencyKey,
+        metadataJson: JSON.stringify({ subject: title, message: bodyText, variables }),
+      },
+    });
+
+    await persistHealthTelemetry(sys?.id, {
+      smsHealthStatus: smsRes.healthStatus,
+      smsHealthMessage: smsRes.ok ? null : smsRes.sanitizedErrorMessage || null,
+      smsLastCheckedAt: doneAt,
+    });
+
+    return {
+      success: smsRes.ok,
+      alreadySent: false,
+      skipped: false,
+      deliveryId: record.id,
+      simulated: false,
+      status: record.status,
+      providerMessageId: record.providerMessageId,
+      error: smsRes.sanitizedErrorMessage,
+    };
+  }
+
+  // Canal WHATSAPP
+  const waCap = getWhatsAppCapability(sys);
+  if (!waCap.canSendRealMessages) {
+    const record = await prisma.notificationDelivery.create({
+      data: {
+        recipient,
+        maskedRecipient: masked,
+        channel: "WHATSAPP",
+        templateType,
+        messageType: messageType || templateType.toString(),
+        subjectOrCategory: title,
+        recipientReference: patientId,
+        relatedAppointmentId,
+        status: "SIMULATED",
+        simulated: true,
+        provider: "SIMULATED",
+        attemptedAt: now,
+        attemptCount: 1,
+        errorDetails: waCap.reason || "API de WhatsApp desativada ou não configurada.",
+        idempotencyKey,
+        metadataJson: JSON.stringify({ subject: title, message: bodyText, variables }),
+      },
+    });
+    return {
+      success: true,
+      alreadySent: false,
+      skipped: false,
+      deliveryId: record.id,
+      simulated: true,
+      status: record.status,
+    };
+  }
+
+  const waRes = await sendWhatsAppMessage(sys, {
+    to: recipient,
+    message: bodyText,
+    useTemplateIfConfigured,
+  });
+  const doneAt = new Date();
 
   const record = await prisma.notificationDelivery.create({
     data: {
       recipient,
-      maskedRecipient: maskRecipient(recipient, channel),
-      channel,
+      maskedRecipient: masked,
+      channel: "WHATSAPP",
       templateType,
-      messageType: templateType.toString(),
-      subjectOrCategory: subject || `Notificação ${templateType}`,
+      messageType: messageType || templateType.toString(),
+      subjectOrCategory: title,
+      recipientReference: patientId,
       relatedAppointmentId,
-      status,
-      simulated: !isReal,
-      provider: isReal ? (channel === "EMAIL" ? "SMTP" : "WHATSAPP_API") : "SIMULATED",
-      attemptedAt: now,
-      acceptedAt: isReal ? now : undefined,
+      status: waRes.ok ? "ACCEPTED" : "FAILED",
+      simulated: false,
+      provider: waRes.provider,
+      providerMessageId: waRes.providerMessageId || undefined,
+      attemptedAt: doneAt,
+      acceptedAt: waRes.ok ? doneAt : undefined,
+      failedAt: waRes.ok ? undefined : doneAt,
       attemptCount: 1,
+      errorCode: waRes.ok ? null : waRes.errorCode || "WHATSAPP_SEND_FAILED",
+      sanitizedErrorMessage: waRes.ok ? null : waRes.sanitizedErrorMessage,
+      errorDetails: waRes.ok ? null : waRes.sanitizedErrorMessage,
       idempotencyKey,
-      metadataJson: JSON.stringify({ subject, variables }),
+      metadataJson: JSON.stringify({ subject: title, message: bodyText, variables }),
     },
   });
 
+  await persistHealthTelemetry(sys?.id, {
+    whatsappHealthStatus: waRes.healthStatus,
+    whatsappHealthMessage: waRes.ok ? null : waRes.sanitizedErrorMessage || null,
+    whatsappLastCheckedAt: doneAt,
+  });
+
   return {
-    success: true,
+    success: waRes.ok,
+    alreadySent: false,
+    skipped: false,
     deliveryId: record.id,
-    simulated: !isReal,
+    simulated: false,
     status: record.status,
+    providerMessageId: waRes.providerMessageId,
+    error: waRes.sanitizedErrorMessage,
   };
 }

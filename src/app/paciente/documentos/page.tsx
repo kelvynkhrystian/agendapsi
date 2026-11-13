@@ -94,8 +94,8 @@ export default function PatientDocumentsPage() {
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Meus Documentos & Declarações</h1>
-        <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Meus Documentos & Declarações</h1>
+        <p className="text-xs sm:text-sm text-[#737373] dark:text-[#A6A6A6]">
           Atestados, relatórios e declarações liberados pelo seu profissional de saúde para visualização e download seguro.
         </p>
       </div>
@@ -108,12 +108,12 @@ export default function PatientDocumentsPage() {
       </div>
 
       {errorMessage && (
-        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 flex items-center justify-between text-xs text-red-900 dark:text-red-200">
+        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-red-900 dark:text-red-200">
           <div className="flex items-center gap-2">
             <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
             <span>{errorMessage}</span>
           </div>
-          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={fetchDocuments}>
+          <Button size="sm" variant="outline" className="w-full sm:w-auto h-8 sm:h-7 text-xs shrink-0" onClick={fetchDocuments}>
             Tentar Novamente
           </Button>
         </div>
@@ -122,7 +122,7 @@ export default function PatientDocumentsPage() {
       {/* Lista de Documentos Ativos */}
       <Card className="border-[#E5E5E5] dark:border-[#393939] shadow-xs">
         <CardHeader className="pb-3 border-b border-[#E5E5E5] dark:border-[#393939]">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <CardTitle className="text-base font-bold flex items-center gap-2">
                 <FileCheck2 className="h-4 w-4 text-[var(--primary)] dark:text-[#C0C0C0]" />
@@ -151,7 +151,7 @@ export default function PatientDocumentsPage() {
               {activeDocs.map((doc) => (
                 <div
                   key={doc.shareId}
-                  className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#F2F2F2]/50 dark:hover:bg-[#292929]/50 transition-colors"
+                  className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#F2F2F2]/50 dark:hover:bg-[#292929]/50 transition-colors"
                 >
                   <div className="flex items-start gap-4">
                     <div className="p-3 rounded-xl bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#393939] shrink-0 mt-0.5">
@@ -194,19 +194,20 @@ export default function PatientDocumentsPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                  <div className="grid grid-cols-2 sm:flex items-center gap-2.5 sm:gap-3 shrink-0 w-full sm:w-auto">
                     <a
                       href={`/api/files/${doc.id}/download?view=inline`}
                       target="_blank"
                       rel="noopener noreferrer"
+                      className="block sm:inline-block"
                     >
-                      <Button variant="outline" size="sm" className="h-9 min-h-[36px] px-3.5 text-xs gap-1.5 cursor-pointer">
+                      <Button variant="outline" size="sm" className="w-full sm:w-auto h-9 min-h-[36px] px-3.5 text-xs gap-1.5 cursor-pointer">
                         <Eye className="h-3.5 w-3.5" />
                         <span>Visualizar</span>
                       </Button>
                     </a>
-                    <a href={`/api/files/${doc.id}/download`} download>
-                      <Button size="sm" className="h-9 min-h-[36px] px-3.5 text-xs gap-1.5 cursor-pointer">
+                    <a href={`/api/files/${doc.id}/download`} download className="block sm:inline-block">
+                      <Button size="sm" className="w-full sm:w-auto h-9 min-h-[36px] px-3.5 text-xs gap-1.5 cursor-pointer">
                         <Download className="h-3.5 w-3.5 text-current" />
                         <span>Baixar</span>
                       </Button>
@@ -247,7 +248,7 @@ export default function PatientDocumentsPage() {
           <CardContent className="p-0">
             <div className="divide-y divide-[#E5E5E5] dark:divide-[#393939] text-xs">
               {archivedDocs.map((doc) => (
-                <div key={doc.shareId} className="p-4 flex items-center justify-between gap-3 text-[#737373] dark:text-[#A6A6A6]">
+                <div key={doc.shareId} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 text-[#737373] dark:text-[#A6A6A6]">
                   <div className="space-y-0.5">
                     <span className="font-semibold text-[#525252] dark:text-[#D0D0D0] block line-through opacity-75">
                       {doc.name}

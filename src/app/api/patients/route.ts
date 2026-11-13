@@ -19,6 +19,7 @@ const createPatientAdminSchema = z.object({
   guardianPhone: z.string().optional(),
   guardianEmail: z.string().optional(),
   guardianRelationship: z.string().optional(),
+  smsOptIn: z.boolean().optional().default(false),
 });
 
 export async function GET(req: NextRequest) {
@@ -131,6 +132,8 @@ export async function POST(req: NextRequest) {
         gender: data.gender,
         address: data.address,
         emergencyContact: data.emergencyContact,
+        smsOptIn: Boolean(data.smsOptIn),
+        smsOptInAt: data.smsOptIn ? new Date() : null,
         guardians: isMinor && data.guardianFullName
           ? {
               create: {

@@ -92,15 +92,14 @@ Este documento detalha as políticas de funcionamento, transições de estado e 
 ## 6. Teleconsulta e Controle de Provedores de Vídeo
 
 ### 6.1 Seleção Exclusiva de Provedor Padrão de Vídeo (Task 9 / Phase 1, 2 e 3)
-- **Um Único Provedor Ativo:** O sistema suporta 3 provedores de teleconsulta arquitetados e totalmente integrados, porém **apenas um provedor é configurado como o padrão ativo** em cada momento:
-  1. `JITSI`: **Jitsi Meet** (salas integradas nativas criptografadas, padrão V1);
-  2. `PEERJS`: **PeerJS / WebRTC Direto** (chamadas P2P ponta a ponta sem servidores intermediários de mídia, com sinalização STUN/TURN);
-  3. `GOOGLE_MEET`: **Google Meet** (salas oficiais geradas automaticamente na Google Agenda do consultório via Google OAuth 2.0 e Google Calendar API).
+- **Um Único Provedor Ativo:** O sistema suporta 3 provedores de teleconsulta arquitetados e totalmente integrados, porém **apenas um provedor é configurado como o padrão ativo** em cada momento, na seguinte ordem prioritária:
+  1. `PEERJS`: **PSI Teleconsulta (PeerJS / WebRTC)** — Provedor padrão oficial integrado diretamente ao PSI. Sinalização provisionada automaticamente pelo sistema (sem configuração manual pelo profissional de saúde), com suporte transparente a STUN/TURN sob gestão interna de infraestrutura;
+  2. `JITSI`: **Jitsi Meet** — Alternativa mantida com salas integradas nativas criptografadas e domínio customizável;
+  3. `GOOGLE_MEET`: **Google Meet** — Alternativa para geração automática de reuniões na Google Agenda do consultório via Google OAuth 2.0 e Google Calendar API.
 - **Validação Estrita de Ativação (Gating):**
-  - Nenhum provedor incompleto ou não testado pode se tornar o padrão ativo.
-  - O PeerJS exige host de sinalização configurado e teste de conectividade aprovado (`testStatus === "SUCCESS"`).
+  - O PSI Teleconsulta (PeerJS) opera como padrão nativo do PSI com sinalização automática interna, pronto para novas instalações e atendimentos.
   - O Google Meet exige Client ID, Client Secret e autorização OAuth concluída com refresh token válido (`googleMeetStatus === "CONNECTED"`).
-  - Em caso de falha ou credenciais ausentes, a seleção é rejeitada e o provedor anterior (ou Jitsi) é preservado.
+  - Em caso de falha ou credenciais ausentes em provedores externos, a seleção é rejeitada e o provedor anterior é preservado.
 - **Imutabilidade e Preservação de Consultas Históricas:**
   - Alterar o provedor padrão afeta **exclusivamente consultas futuras**.
   - Consultas já agendadas preservam permanentemente o provedor, a sala e o token original com os quais foram criadas (`VideoMeeting.provider`).
@@ -137,6 +136,13 @@ A ação de reenvio de mensagens (`POST /api/admin/message-logs/[id]/resend`) po
 - **Agendamentos Inativos:** É estritamente vedado reenviar lembretes ou confirmações associadas a consultas com status `COMPLETED`, `CANCELLED`, `LATE_CANCELLED` ou `NO_SHOW`.
 - **Tokens de Senha Expirados:** Notificações de recuperação de senha com tokens já utilizados ou expirados não podem ser reenviadas; o usuário deve iniciar uma nova solicitação.
 - **Auditoria Obrigatória:** Todo reenvio manual incrementa `attemptCount`, atualiza `attemptedAt` e gera um registro detalhado em `AuditLog`.
+
+### 7.5 Controles Independentes de Integrações de Comunicação (E-mail, SMS e WhatsApp)
+- **Ativação vs. Conexão Real vs. Capacidade Funcional:** O sistema distingue explicitamente se um canal está **Ativado**, se a **Conexão** com a API/servidor foi verificada em tempo real e se está **Funcional** para envios (ex.: TextBee conectado à API porém com dispositivo Android offline = `DEVICE_OFFLINE`; OpenWA acessível porém aguardando leitura do QR Code = `AWAITING_QR`). Nenhum estado `"Conectado"` simulado é exibido sem verificação real prévia.
+- **Consentimento Explícito de SMS (`Patient.smsOptIn`):** Pacientes existentes iniciam com `smsOptIn = false` por padrão e **nunca** recebem SMS transacionais ou lembretes automáticos sem consentimento explícito registrado (`smsOptIn = true`, `smsOptInAt`).
+- **Política ao Desativar E-mail (`emailDisabledRecoveryStrategy`):** Caso o canal de E-mail seja desativado, o administrador é advertido sobre impactos em verificação de alteração de e-mail e recuperação de acesso de pacientes, escolhendo entre atendimento manual pelo profissional (`ADMIN_ASSISTED`) ou fallback controlado por `SMS` (bloqueado se SMS estiver inativo ou sem dispositivo pronto).
+- **Lembretes de Consultas Futuras:** A rotina `/api/notifications/run-reminders` processa exclusivamente consultas com `startAt > now`, ignorando janelas já expiradas sem disparar mensagens atrasadas para sessões passadas.
+- **Privacidade e Criptografia de Credenciais:** Senhas SMTP, chaves TextBee, tokens da Meta Cloud API (`whatsappMetaAccessToken`, `whatsappMetaAppSecret`) e chave OpenWA (`openWaApiKey`) são criptografados com **AES-256-GCM** antes da gravação em banco (`enc:v1:...`), mascarados nas respostas `GET` administrativas e omitidos dos pacotes de backup.
 
 ---
 

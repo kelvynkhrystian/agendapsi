@@ -91,8 +91,8 @@ export default function AdminInformationPagesPage() {
       {/* ================= CABEÇALHO PRINCIPAL ================= */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Páginas Informativas</h1>
-          <p className="text-sm text-[#737373] dark:text-[#A6A6A6]">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#171717] dark:text-[#F5F5F5]">Páginas Informativas</h1>
+          <p className="text-xs sm:text-sm text-[#737373] dark:text-[#A6A6A6]">
             Gerencie os termos de uso, políticas de privacidade, proteção de dados (LGPD) e o compromisso de ética profissional do consultório.
           </p>
         </div>
@@ -117,24 +117,24 @@ export default function AdminInformationPagesPage() {
             <Card key={page.id} className="hover:border-[var(--primary)]/50 transition-all flex flex-col justify-between">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-start gap-3 min-w-0">
                     <div className="p-2.5 rounded-xl bg-[#F8F8F8] dark:bg-[#242424] border border-[#E5E5E5] dark:border-[#333333] shrink-0">
                       {getPageIcon(page.id)}
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <CardTitle className="text-base font-bold">{page.title}</CardTitle>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <CardTitle className="text-base font-bold break-words">{page.title}</CardTitle>
                         {page.isPublished ? (
-                          <Badge variant="outline" className="text-[10px] text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10">
+                          <Badge variant="outline" className="text-[10px] text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10 shrink-0">
                             Publicada
                           </Badge>
                         ) : (
-                          <Badge variant="warning" className="text-[10px]">
+                          <Badge variant="warning" className="text-[10px] shrink-0">
                             Rascunho
                           </Badge>
                         )}
                       </div>
-                      <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6] font-mono">
+                      <span className="text-[11px] text-[#737373] dark:text-[#A6A6A6] font-mono break-all block mt-0.5">
                         Versão {page.version} • URL: {page.publicSlug}
                       </span>
                     </div>
@@ -147,45 +147,45 @@ export default function AdminInformationPagesPage() {
               </CardHeader>
 
               <CardContent className="space-y-3 pt-0">
-                <div className="flex items-center justify-between text-xs text-[#737373] dark:text-[#A6A6A6] border-t border-[#E5E5E5] dark:border-[#2C2C2C] pt-2.5">
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5 text-[#737373] dark:text-[#A6A6A6]" />
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#737373] dark:text-[#A6A6A6] border-t border-[#E5E5E5] dark:border-[#2C2C2C] pt-2.5">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <Clock className="h-3.5 w-3.5 text-[#737373] dark:text-[#A6A6A6] shrink-0" />
                     <span>Última revisão: {formatDate(page.updatedAt)}</span>
                   </div>
 
                   <Link
                     href={page.publicSlug}
                     target="_blank"
-                    className="inline-flex items-center gap-1 text-[11px] text-[var(--primary)] hover:underline"
+                    className="inline-flex items-center gap-1 text-[11px] text-[var(--primary)] hover:underline shrink-0"
                   >
                     <span>Visualizar</span>
                     <ExternalLink className="h-3 w-3" />
                   </Link>
                 </div>
 
-                <div className="flex items-center justify-between pt-1">
+                <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-2 pt-1">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => handleTogglePublish(page.id)}
-                    className="h-8 px-2.5 text-xs gap-1.5"
+                    className="w-full sm:w-auto h-9 sm:h-8 px-2.5 text-xs gap-1.5 border border-[#E5E5E5] dark:border-[#2C2C2C] sm:border-transparent"
                   >
                     {page.isPublished ? (
                       <>
-                        <EyeOff className="h-3.5 w-3.5" />
+                        <EyeOff className="h-3.5 w-3.5 shrink-0" />
                         <span>Despublicar</span>
                       </>
                     ) : (
                       <>
-                        <Eye className="h-3.5 w-3.5 text-emerald-600" />
+                        <Eye className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
                         <span>Publicar</span>
                       </>
                     )}
                   </Button>
 
-                  <Link href={`/admin/paginas-informativas/${page.id}`}>
-                    <Button size="sm" className="h-8 px-3 text-xs gap-1.5">
-                      <Edit className="h-3.5 w-3.5" />
+                  <Link href={`/admin/paginas-informativas/${page.id}`} className="block sm:inline-block">
+                    <Button size="sm" className="w-full sm:w-auto h-9 sm:h-8 px-3 text-xs gap-1.5">
+                      <Edit className="h-3.5 w-3.5 shrink-0" />
                       <span>Editar Página</span>
                     </Button>
                   </Link>
