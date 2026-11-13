@@ -7,6 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  serverExternalPackages: ["pdf-parse", "pdfkit", "pdfjs-dist"],
   turbopack: {
     resolveAlias: {
       "motion/react": "./src/lib/safe-motion-react.ts",

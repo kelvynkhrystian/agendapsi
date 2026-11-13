@@ -127,6 +127,7 @@ model Patient {
   fileShares         StoredFileShare[]
   payments           Payment[]
   sessions           Session[]
+  formAssignments    PatientFormAssignment[]
 }
 
 model Guardian {
@@ -775,3 +776,88 @@ model SharedNotificationTemplate {
   deliveryMode String   @default("APP_ONLY")
   updatedAt    DateTime @updatedAt
 }
+
+enum FormTemplateStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum FormQuestionType {
+  SHORT_TEXT
+  LONG_TEXT
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  DROPDOWN
+  NUMBER
+  DATE
+  YES_NO
+  INFO_SECTION
+}
+
+enum FormAssignmentStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  EXPIRED
+  CANCELLED
+}
+
+model FormTemplate {
+  id           String             @id @default(cuid())
+  title        String
+  description  String?            @db.Text
+  instructions String?            @db.Text
+  status       FormTemplateStatus @default(DRAFT)
+  version      Int                @default(1)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  questions    FormQuestion[]
+  assignments  PatientFormAssignment[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model FormQuestion {
+  id          String           @id @default(cuid())
+  templateId  String
+  type        FormQuestionType
+  label       String           @db.Text
+  description String?          @db.Text
+  placeholder String?
+  isRequired  Boolean          @default(false)
+  orderIndex  Int              @default(0)
+  options     Json?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  template    FormTemplate     @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId, orderIndex])
+}
+
+model PatientFormAssignment {
+  id           String               @id @default(cuid())
+  patientId    String
+  templateId   String
+  formVersion  Int                  @default(1)
+  status       FormAssignmentStatus @default(PENDING)
+  snapshot     Json
+  answers      Json?
+  expiresAt    DateTime?
+  submittedAt  DateTime?
+  notes        String?              @db.Text
+  pdfPath      String?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  patient      Patient              @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  template     FormTemplate         @relation(fields: [templateId], references: [id], onDelete: Restrict)
+
+  @@index([patientId, status])
+  @@index([templateId])
+  @@index([createdAt])
+}
+

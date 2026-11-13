@@ -203,9 +203,21 @@ export default function AdminPatientDetailPage({
   const router = useRouter();
   const [patient, setPatient] = useState<PatientDetail | null>(null);
   const [activeTab, setActiveTab] = useState<
-    "overview" | "anamnesis" | "records" | "documents" | "appointments" | "payments"
+    "overview" | "anamnesis" | "records" | "documents" | "forms" | "appointments" | "payments"
   >("overview");
   const [isLoading, setIsLoading] = useState(true);
+
+  // Estados dos Formulários do Paciente
+  const [formAssignments, setFormAssignments] = useState<any[]>([]);
+  const [isLoadingForms, setIsLoadingForms] = useState(false);
+  const [isAssignFormModalOpen, setIsAssignFormModalOpen] = useState(false);
+  const [publishedTemplates, setPublishedTemplates] = useState<any[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState("");
+  const [assignExpiresDays, setAssignExpiresDays] = useState("30");
+  const [assignNotes, setAssignNotes] = useState("");
+  const [isAssigningForm, setIsAssigningForm] = useState(false);
+  const [viewingAssignmentAnswers, setViewingAssignmentAnswers] = useState<any | null>(null);
+  const [isLoadingAnswers, setIsLoadingAnswers] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -283,17 +295,138 @@ export default function AdminPatientDetailPage({
       });
   };
 
+  const fetchFormAssignments = () => {
+    setIsLoadingForms(true);
+    fetch(`/api/patients/${id}/forms`, { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        setFormAssignments(data.assignments || []);
+        setIsLoadingForms(false);
+      })
+      .catch((e) => {
+        console.error("Erro ao carregar formulários do paciente:", e);
+        setIsLoadingForms(false);
+      });
+  };
+
+  const fetchPublishedTemplates = () => {
+    fetch("/api/admin/forms", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        const published = (data.forms || []).filter((f: any) => f.status === "PUBLISHED");
+        setPublishedTemplates(published);
+        if (published.length > 0) {
+          setSelectedTemplateId((prev) => prev || published[0].id);
+        }
+      })
+      .catch((e) => console.error("Erro ao carregar modelos:", e));
+  };
+
   useEffect(() => {
     fetchPatient();
+    fetchFormAssignments();
     // Ativa aba via parâmetro ?tab=records na URL se presente
     if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
       const tab = urlParams.get("tab");
-      if (tab && ["overview", "anamnesis", "records", "documents", "appointments", "payments"].includes(tab)) {
+      if (tab && ["overview", "anamnesis", "records", "documents", "forms", "appointments", "payments"].includes(tab)) {
         setActiveTab(tab as typeof activeTab);
       }
     }
   }, [id]);
+
+  const handleOpenAssignModal = (preselectedTemplateId?: string) => {
+    fetchPublishedTemplates();
+    if (preselectedTemplateId) {
+      setSelectedTemplateId(preselectedTemplateId);
+    }
+    setAssignNotes("");
+    setIsAssignFormModalOpen(true);
+  };
+
+  const handleAssignForm = async () => {
+    if (!selectedTemplateId) {
+      alert("Por favor, selecione um modelo de formulário publicado.");
+      return;
+    }
+
+    setIsAssigningForm(true);
+    try {
+      let expiresAt: string | null = null;
+      if (assignExpiresDays !== "none") {
+        const d = new Date();
+        d.setDate(d.getDate() + parseInt(assignExpiresDays, 10));
+        expiresAt = d.toISOString();
+      }
+
+      const res = await fetch(`/api/patients/${id}/forms`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          templateId: selectedTemplateId,
+          expiresAt,
+          notes: assignNotes.trim() || null,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Erro ao atribuir formulário.");
+      }
+
+      setIsAssignFormModalOpen(false);
+      setStatusMessage("Formulário atribuído e notificação gerada com sucesso!");
+      fetchFormAssignments();
+    } catch (err: any) {
+      alert(err.message || "Erro ao atribuir formulário.");
+    } finally {
+      setIsAssigningForm(false);
+    }
+  };
+
+  const handleResendFormNotification = async (assignmentId: string) => {
+    try {
+      const res = await fetch(`/api/admin/forms/assignments/${assignmentId}/resend`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao reenviar notificação.");
+      setStatusMessage("Lembrete do formulário reenviado com sucesso para o paciente.");
+      fetchFormAssignments();
+    } catch (err: any) {
+      alert(err.message || "Erro ao reenviar notificação.");
+    }
+  };
+
+  const handleCancelFormAssignment = async (assignmentId: string) => {
+    if (!confirm("Deseja realmente cancelar este envio de formulário para o paciente?")) return;
+    try {
+      const res = await fetch(`/api/admin/forms/assignments/${assignmentId}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao cancelar atribuição.");
+      setStatusMessage("Atribuição do formulário cancelada com sucesso.");
+      fetchFormAssignments();
+    } catch (err: any) {
+      alert(err.message || "Erro ao cancelar.");
+    }
+  };
+
+  const handleOpenAnswersModal = async (assignmentId: string) => {
+    setIsLoadingAnswers(true);
+    setViewingAssignmentAnswers(null);
+    try {
+      const res = await fetch(`/api/admin/forms/assignments/${assignmentId}`);
+      if (!res.ok) throw new Error("Erro ao buscar detalhes das respostas.");
+      const data = await res.json();
+      setViewingAssignmentAnswers(data.assignment);
+    } catch (err: any) {
+      alert(err.message || "Não foi possível carregar as respostas.");
+    } finally {
+      setIsLoadingAnswers(false);
+    }
+  };
 
   const handleToggleActive = async () => {
     if (!patient) return;
@@ -844,6 +977,7 @@ export default function AdminPatientDetailPage({
           { key: "anamnesis", label: "Anamnese", icon: ClipboardList, count: patient.anamnesisSubmits.length },
           { key: "appointments", label: "Agendamentos", icon: Calendar, count: patient.appointments.length },
           { key: "documents", label: "Documentos", icon: FolderLock, count: patient.fileShares.length },
+          { key: "forms", label: "Formulários", icon: ClipboardList, count: formAssignments.length },
           { key: "payments", label: "Financeiro", icon: DollarSign, count: patient.payments.length },
         ].map((tab) => {
           const Icon = tab.icon;
@@ -1357,6 +1491,209 @@ export default function AdminPatientDetailPage({
                 >
                   <Upload className="h-4 w-4" />
                   <span>Enviar primeiro documento</span>
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 5.1 FORMULÁRIOS E QUESTIONÁRIOS DO PACIENTE */}
+      {activeTab === "forms" && (
+        <Card className="border-[#E5E5E5] dark:border-[#2C2C2C] shadow-xs">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E5E5] dark:border-[#2C2C2C]">
+            <div>
+              <CardTitle className="text-base font-bold flex items-center gap-2">
+                <ClipboardList className="h-4 w-4 text-[var(--primary)] shrink-0" />
+                <span>Formulários e Questionários do Paciente</span>
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Escalas, fichas de acompanhamento e questionários atribuídos a <strong>{patient.fullName}</strong>.
+              </CardDescription>
+            </div>
+
+            <Button
+              size="sm"
+              className="gap-2 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer w-full sm:w-auto"
+              onClick={() => handleOpenAssignModal()}
+            >
+              <Plus className="h-4 w-4" />
+              <span>Atribuir Formulário</span>
+            </Button>
+          </CardHeader>
+
+          <CardContent className="p-4 sm:p-6">
+            {isLoadingForms ? (
+              <div className="py-12 text-center text-xs text-[#737373]">
+                Carregando formulários do paciente...
+              </div>
+            ) : formAssignments.length > 0 ? (
+              <div className="divide-y divide-[#E5E5E5] dark:divide-[#2C2C2C]">
+                {formAssignments.map((a) => {
+                  const isCompleted = a.status === "COMPLETED";
+                  const isPending = a.status === "PENDING";
+                  const isInProgress = a.status === "IN_PROGRESS";
+                  const isExpired = a.status === "EXPIRED";
+                  const isCancelled = a.status === "CANCELLED";
+
+                  return (
+                    <div
+                      key={a.id}
+                      className="py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4"
+                    >
+                      <div className="space-y-1.5 flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h4 className="text-sm font-bold text-[#171717] dark:text-[#F5F5F5] truncate">
+                            {a.formTitle}
+                          </h4>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[#F4F4F5] dark:bg-[#2C2C2C] text-[#737373] dark:text-[#A6A6A6]">
+                            v{a.formVersion}
+                          </span>
+                          <Badge
+                            className={
+                              isCompleted
+                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[11px]"
+                                : isInProgress
+                                ? "bg-blue-500/10 text-blue-500 border-blue-500/20 text-[11px]"
+                                : isPending
+                                ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 text-[11px]"
+                                : isExpired
+                                ? "bg-zinc-500/10 text-zinc-500 border-zinc-500/20 text-[11px]"
+                                : "bg-red-500/10 text-red-500 border-red-500/20 text-[11px]"
+                            }
+                          >
+                            {isCompleted
+                              ? "Concluído"
+                              : isInProgress
+                              ? "Em andamento"
+                              : isPending
+                              ? "Pendente"
+                              : isExpired
+                              ? "Expirado"
+                              : "Cancelado"}
+                          </Badge>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-[#737373] dark:text-[#A6A6A6]">
+                          <span>Atribuído em: {formatDate(a.createdAt)}</span>
+                          {a.submittedAt && (
+                            <>
+                              <span>•</span>
+                              <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                                Respondido em: {formatDate(a.submittedAt)}
+                              </span>
+                            </>
+                          )}
+                          {a.expiresAt && !isCompleted && (
+                            <>
+                              <span>•</span>
+                              <span className={isExpired ? "text-red-500 font-medium" : ""}>
+                                Expira em: {formatDate(a.expiresAt)}
+                              </span>
+                            </>
+                          )}
+                          {a.totalQuestions > 0 && (
+                            <>
+                              <span>•</span>
+                              <span>
+                                {a.answeredQuestions} de {a.totalQuestions} questões respondidas
+                              </span>
+                            </>
+                          )}
+                        </div>
+
+                        {a.notes && (
+                          <p className="text-xs text-[#525252] dark:text-[#D0D0D0] bg-[#F9F9F9] dark:bg-[#1E1E1E] p-2 rounded-lg mt-1 border border-[#E5E5E5] dark:border-[#2C2C2C]">
+                            <strong>Observações:</strong> {a.notes}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Ações */}
+                      <div className="flex flex-wrap items-center gap-2 shrink-0">
+                        {isCompleted && (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 sm:h-7 text-xs gap-1 cursor-pointer"
+                              onClick={() => handleOpenAnswersModal(a.id)}
+                            >
+                              <Eye className="h-3 w-3" />
+                              <span>Ver Respostas</span>
+                            </Button>
+
+                            <a href={`/api/admin/forms/assignments/${a.id}/pdf`} download>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 sm:h-7 text-xs gap-1 text-[var(--button-outline-fg,var(--primary))] border-[var(--primary)]/30 hover:bg-[var(--primary)]/10 cursor-pointer"
+                              >
+                                <Download className="h-3 w-3" />
+                                <span>Baixar PDF</span>
+                              </Button>
+                            </a>
+                          </>
+                        )}
+
+                        {(isPending || isInProgress || isExpired) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 sm:h-7 text-xs gap-1 cursor-pointer"
+                            onClick={() => handleResendFormNotification(a.id)}
+                            title="Reenviar notificação de lembrete"
+                          >
+                            <RotateCcw className="h-3 w-3" />
+                            <span>Reenviar Notificação</span>
+                          </Button>
+                        )}
+
+                        {!isCompleted && !isCancelled && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="h-8 sm:h-7 text-xs gap-1 cursor-pointer"
+                            onClick={() => handleCancelFormAssignment(a.id)}
+                            title="Cancelar atribuição"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            <span>Cancelar</span>
+                          </Button>
+                        )}
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 sm:h-7 text-xs text-[#737373] hover:text-[#171717] dark:hover:text-[#F5F5F5] cursor-pointer"
+                          onClick={() => handleOpenAssignModal(a.templateId)}
+                          title="Enviar este mesmo formulário novamente"
+                        >
+                          <span>Atribuir Novamente</span>
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-8 sm:p-12 text-center text-[#737373] dark:text-[#A6A6A6] space-y-3">
+                <ClipboardList className="h-8 w-8 mx-auto text-[#737373] dark:text-[#A6A6A6]" />
+                <div>
+                  <p className="text-sm font-semibold text-[#171717] dark:text-[#F5F5F5]">
+                    Nenhum formulário atribuído a este paciente.
+                  </p>
+                  <p className="text-xs text-[#737373] dark:text-[#A6A6A6] mt-1">
+                    Atribua questionários de avaliação para que o paciente responda diretamente pela sua Área do Paciente.
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  className="gap-2 text-xs bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white cursor-pointer mt-2"
+                  onClick={() => handleOpenAssignModal()}
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Atribuir Primeiro Formulário</span>
                 </Button>
               </div>
             )}
@@ -2126,6 +2463,212 @@ export default function AdminPatientDetailPage({
             <div className="py-4 text-center text-xs text-red-500">
               Não foi possível carregar as informações do paciente.
             </div>
+          )}
+        </div>
+      </Modal>
+
+      {/* MODAL ATRIBUIR FORMULÁRIO AO PACIENTE */}
+      <Modal
+        isOpen={isAssignFormModalOpen}
+        onClose={() => setIsAssignFormModalOpen(false)}
+        title={`Atribuir Formulário a ${patient.fullName}`}
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-[#737373] dark:text-[#A6A6A6]">
+            Selecione um questionário publicado. O paciente receberá uma notificação na sua área e poderá responder diretamente pela plataforma.
+          </p>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-[#171717] dark:text-[#F5F5F5] uppercase tracking-wider">
+              Modelo de Formulário <span className="text-destructive">*</span>
+            </label>
+            {publishedTemplates.length === 0 ? (
+              <div className="p-3 rounded-xl border border-amber-500/20 bg-amber-500/10 text-xs text-amber-600 dark:text-amber-400">
+                Nenhum formulário publicado encontrado. Acesse <strong>Formulários</strong> no menu lateral para publicar um questionário primeiro.
+              </div>
+            ) : (
+              <select
+                value={selectedTemplateId}
+                onChange={(e) => setSelectedTemplateId(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                {publishedTemplates.map((tpl) => (
+                  <option key={tpl.id} value={tpl.id}>
+                    {tpl.title} (v{tpl.version} • {tpl.questionsCount} perguntas)
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-[#171717] dark:text-[#F5F5F5] uppercase tracking-wider">
+              Prazo de Validade / Expiração
+            </label>
+            <select
+              value={assignExpiresDays}
+              onChange={(e) => setAssignExpiresDays(e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              <option value="7">7 dias a partir de hoje</option>
+              <option value="15">15 dias a partir de hoje</option>
+              <option value="30">30 dias a partir de hoje (Padrão)</option>
+              <option value="60">60 dias a partir de hoje</option>
+              <option value="none">Sem data limite (permanente até resposta)</option>
+            </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-[#171717] dark:text-[#F5F5F5] uppercase tracking-wider">
+              Observações ou Instruções Especiais (Opcional)
+            </label>
+            <textarea
+              rows={2}
+              placeholder="Ex: Por favor, responda antes da nossa próxima sessão na quinta-feira..."
+              value={assignNotes}
+              onChange={(e) => setAssignNotes(e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-4 border-t border-[#E5E5E5] dark:border-[#2C2C2C]">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsAssignFormModalOpen(false)}
+              disabled={isAssigningForm}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleAssignForm}
+              disabled={isAssigningForm || publishedTemplates.length === 0}
+              className="bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white"
+            >
+              {isAssigningForm ? "Enviando..." : "Confirmar e Atribuir"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* MODAL VISUALIZAR RESPOSTAS DO FORMULÁRIO */}
+      <Modal
+        isOpen={!!viewingAssignmentAnswers}
+        onClose={() => setViewingAssignmentAnswers(null)}
+        title={
+          viewingAssignmentAnswers
+            ? (viewingAssignmentAnswers.snapshot as any)?.title || viewingAssignmentAnswers.template?.title || "Respostas do Formulário"
+            : "Respostas do Formulário"
+        }
+      >
+        <div className="space-y-6 max-h-[75vh] overflow-y-auto pr-1">
+          {viewingAssignmentAnswers && (
+            <>
+              {/* Header do preenchimento */}
+              <div className="p-3.5 rounded-xl bg-[#F9F9F9] dark:bg-[#1E1E1E] border border-border/50 text-xs text-[#737373] dark:text-[#A6A6A6] space-y-1">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span>
+                    <strong>Paciente:</strong> {viewingAssignmentAnswers.patient?.fullName}
+                  </span>
+                  <span>
+                    <strong>Versão respondida:</strong> v{viewingAssignmentAnswers.formVersion}
+                  </span>
+                </div>
+                <div>
+                  <strong>Data de envio:</strong>{" "}
+                  {viewingAssignmentAnswers.submittedAt
+                    ? new Date(viewingAssignmentAnswers.submittedAt).toLocaleString("pt-BR")
+                    : "Pendente"}
+                </div>
+              </div>
+
+              {/* Lista de perguntas e respostas gravadas */}
+              <div className="space-y-4">
+                {Array.isArray((viewingAssignmentAnswers.snapshot as any)?.questions) ? (
+                  (viewingAssignmentAnswers.snapshot as any).questions.map((q: any, idx: number) => {
+                    const ans = (viewingAssignmentAnswers.answers as any)?.[q.id];
+                    const hasAnswer =
+                      ans !== undefined &&
+                      ans !== null &&
+                      ans !== "" &&
+                      !(Array.isArray(ans) && ans.length === 0);
+
+                    if (q.type === "INFO_SECTION") {
+                      return (
+                        <div key={q.id} className="pt-2">
+                          <h4 className="font-bold text-[var(--primary)] text-sm">{q.label}</h4>
+                          {q.description && (
+                            <p className="text-xs text-[#737373] mt-0.5">{q.description}</p>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    let answerDisplay = "Não respondido";
+                    if (hasAnswer) {
+                      if (Array.isArray(ans)) {
+                        answerDisplay = ans.join(", ");
+                      } else if (typeof ans === "boolean") {
+                        answerDisplay = ans ? "Sim" : "Não";
+                      } else {
+                        answerDisplay = String(ans);
+                      }
+                    }
+
+                    return (
+                      <div
+                        key={q.id}
+                        className="p-3.5 rounded-xl border border-[#E5E5E5] dark:border-[#2C2C2C] bg-white dark:bg-[#161616] space-y-1.5"
+                      >
+                        <p className="text-xs font-semibold text-[#171717] dark:text-[#F5F5F5]">
+                          {idx + 1}. {q.label}
+                        </p>
+                        {q.description && (
+                          <p className="text-[11px] text-[#737373] dark:text-[#A6A6A6]">
+                            {q.description}
+                          </p>
+                        )}
+                        <div className="p-2.5 rounded-lg bg-[#F4F4F5] dark:bg-[#202020] text-xs text-[#171717] dark:text-[#E0E0E0] font-medium mt-1">
+                          {answerDisplay}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p className="text-xs text-center text-[#737373]">
+                    Não há perguntas salvas neste formulário.
+                  </p>
+                )}
+              </div>
+
+              {/* Botões do Rodapé */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-[#E5E5E5] dark:border-[#2C2C2C]">
+                <a
+                  href={`/api/admin/forms/assignments/${viewingAssignmentAnswers.id}/pdf`}
+                  download
+                >
+                  <Button
+                    size="sm"
+                    className="gap-2 bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-white text-xs"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    <span>Baixar Relatório em PDF</span>
+                  </Button>
+                </a>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setViewingAssignmentAnswers(null)}
+                  className="text-xs"
+                >
+                  Fechar
+                </Button>
+              </div>
+            </>
           )}
         </div>
       </Modal>

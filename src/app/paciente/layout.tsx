@@ -20,11 +20,13 @@ import {
   ChevronRight,
   Bell,
   HeartHandshake,
+  ClipboardList,
 } from "pulsoicon-react";
 import { WhatsAppIcon } from "@/components/ui/whatsapp-icon";
 
 const patientNavItems = [
   { href: "/paciente", label: "Painel & Consultas", icon: LayoutDashboard },
+  { href: "/paciente/formularios", label: "Formulários", icon: ClipboardList },
   { href: "/paciente/financeiro", label: "Meus Pacotes & Faturas", icon: Boxes },
   { href: "/paciente/documentos", label: "Documentos Liberados", icon: FolderLock },
   { href: "/paciente/anamnese", label: "Ficha de Anamnese", icon: FileText },

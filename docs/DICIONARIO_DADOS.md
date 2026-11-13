@@ -222,6 +222,7 @@ erDiagram
 | `smsOptIn` | `Boolean` | Sim | `false` | Consentimento explícito do paciente para receber notificações via SMS | `false` |
 | `smsOptInAt` | `DateTime?` | Não | `null` | Timestamp UTC da formalização do consentimento de SMS | `2026-11-11T10:00:00.000Z` |
 | `isActive` | `Boolean` | Sim | `true` | Status ativo ou inativado pelo administrador | `true` |
+| `formAssignments` | `PatientFormAssignment[]` | Não | `[]` | Formulários e questionários clínicos atribuídos ao paciente | `[]` |
 | `createdAt` | `DateTime` | Sim | `now()` | Data e hora do cadastro | `2026-11-04T10:00:00.000Z` |
 | `updatedAt` | `DateTime` | Sim | Auto | Data e hora da última modificação | `2026-11-04T10:00:00.000Z` |
 
@@ -1374,6 +1375,97 @@ erDiagram
 
 ---
 
+### 3.35 Modelo: `FormTemplate`
+
+#### A. Identificação
+- **Modelo Prisma:** `FormTemplate`
+- **Tabela MySQL:** `FormTemplate`
+- **Descrição sucinta:** Modelos de formulários e questionários personalizados criados pelo profissional.
+- **Finalidade de negócio:** Permitir que o profissional crie, organize, edite, duplique e arquive modelos de questionários reutilizáveis para envio a pacientes.
+- **Módulo do PSI:** Formulários (`/admin/formularios`).
+
+#### B. Dicionário Completo de Campos
+
+| Campo | Tipo | Obrigatório? | Padrão | Significado | Exemplo |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `id` | `String` (cuid) | Sim | `cuid()` | Identificador único do modelo de formulário | `"cly78a35e003008l0h9z8e01"` |
+| `title` | `String` | Sim | Nenhum | Título do formulário | `"Questionário de Avaliação Inicial"` |
+| `description` | `String?` (Text) | Não | `null` | Descrição do formulário para o profissional | `"Ficha para triagem de sintomas de ansiedade e rotina"` |
+| `instructions` | `String?` (Text) | Não | `null` | Instruções exibidas ao paciente antes do preenchimento | `"Responda com sinceridade considerando as últimas duas semanas."` |
+| `status` | `FormTemplateStatus` | Sim | `DRAFT` | Status: `DRAFT`, `PUBLISHED` ou `ARCHIVED` | `PUBLISHED` |
+| `version` | `Int` | Sim | `1` | Versão incremental do modelo de formulário | `1` |
+| `createdAt` | `DateTime` | Sim | `now()` | Data de criação do modelo | `2026-11-13T10:00:00.000Z` |
+| `updatedAt` | `DateTime` | Sim | Auto | Data da última alteração | `2026-11-13T10:00:00.000Z` |
+
+#### C. Relacionamentos
+- `questions` (`FormQuestion[]`): 1:N — Perguntas associadas ao modelo (`onDelete: Cascade`).
+- `assignments` (`PatientFormAssignment[]`): 1:N — Atribuições e envios do formulário a pacientes (`onDelete: Restrict`).
+
+---
+
+### 3.36 Modelo: `FormQuestion`
+
+#### A. Identificação
+- **Modelo Prisma:** `FormQuestion`
+- **Tabela MySQL:** `FormQuestion`
+- **Descrição sucinta:** Perguntas e seções informativas pertencentes a um modelo de formulário.
+- **Finalidade de negócio:** Armazenar cada questão com seu tipo, enunciado, alternativas e ordem de exibição.
+- **Módulo do PSI:** Formulários (`/admin/formularios`).
+
+#### B. Dicionário Completo de Campos
+
+| Campo | Tipo | Obrigatório? | Padrão | Significado | Exemplo |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `id` | `String` (cuid) | Sim | `cuid()` | Identificador único da questão | `"cly78a36f003108l0h9z9f12"` |
+| `templateId` | `String` | Sim | Nenhum | ID do modelo de formulário proprietário | `"cly78a35e003008l0h9z8e01"` |
+| `type` | `FormQuestionType` | Sim | Nenhum | Tipo da pergunta: `SHORT_TEXT`, `LONG_TEXT`, `SINGLE_CHOICE`, `MULTIPLE_CHOICE`, `DROPDOWN`, `NUMBER`, `DATE`, `YES_NO`, `INFO_SECTION` | `SINGLE_CHOICE` |
+| `label` | `String` (Text) | Sim | Nenhum | Enunciado da questão ou título da seção | `"Com que frequência você sente palpitações?"` |
+| `description` | `String?` (Text) | Não | `null` | Texto de ajuda ou instrução específica da questão | `"Considere episódios em repouso."` |
+| `placeholder` | `String?` | Não | `null` | Texto de preenchimento sugerido para o campo | `"Digite sua resposta..."` |
+| `isRequired` | `Boolean` | Sim | `false` | Se a resposta é obrigatória para o paciente | `true` |
+| `orderIndex` | `Int` | Sim | `0` | Índice numérico de ordenação da questão no formulário | `1` |
+| `options` | `Json?` | Não | `null` | Lista de alternativas em JSON para tipos de seleção | `["Nunca", "Raramente", "Frequentemente", "Sempre"]` |
+| `createdAt` | `DateTime` | Sim | `now()` | Data de criação da questão | `2026-11-13T10:00:00.000Z` |
+| `updatedAt` | `DateTime` | Sim | Auto | Data da última alteração | `2026-11-13T10:00:00.000Z` |
+
+#### C. Relacionamentos
+- `template` (`FormTemplate`): N:1 — Modelo ao qual a questão pertence (`onDelete: Cascade`).
+
+---
+
+### 3.37 Modelo: `PatientFormAssignment`
+
+#### A. Identificação
+- **Modelo Prisma:** `PatientFormAssignment`
+- **Tabela MySQL:** `PatientFormAssignment`
+- **Descrição sucinta:** Atribuição, preenchimento e respostas de formulários por paciente.
+- **Finalidade de negócio:** Rastrear o ciclo de vida do formulário enviado ao paciente (`PENDING`, `IN_PROGRESS`, `COMPLETED`, `EXPIRED`, `CANCELLED`), garantindo snapshot imutável da estrutura e respostas protegidas.
+- **Módulo do PSI:** Pacientes (`/admin/pacientes/[id]?tab=formularios`), Portal do Paciente (`/paciente/formularios`).
+
+#### B. Dicionário Completo de Campos
+
+| Campo | Tipo | Obrigatório? | Padrão | Significado | Exemplo |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `id` | `String` (cuid) | Sim | `cuid()` | Identificador único da atribuição de formulário | `"cly78a37g003208l0h9z0g23"` |
+| `patientId` | `String` | Sim | Nenhum | ID do paciente destinatário | `"cly78a02x000108l0h8a9bc12"` |
+| `templateId` | `String` | Sim | Nenhum | ID do modelo de formulário | `"cly78a35e003008l0h9z8e01"` |
+| `formVersion` | `Int` | Sim | `1` | Versão do modelo no momento do envio | `1` |
+| `status` | `FormAssignmentStatus` | Sim | `PENDING` | Status: `PENDING`, `IN_PROGRESS`, `COMPLETED`, `EXPIRED`, `CANCELLED` | `COMPLETED` |
+| `snapshot` | `Json` | Sim | Nenhum | Snapshot imutável do modelo e questões no envio | `{"title":"Triagem","questions":[...]}` |
+| `answers` | `Json?` | Não | `null` | Respostas fornecidas pelo paciente indexadas por ID da questão | `{"q1":"Sim","q2":["Opção A"]}` |
+| `expiresAt` | `DateTime?` | Não | `null` | Data limite de expiração para resposta | `2026-11-20T23:59:59.000Z` |
+| `submittedAt` | `DateTime?` | Não | `null` | Timestamp UTC do envio das respostas | `2026-11-13T14:30:00.000Z` |
+| `notes` | `String?` (Text) | Não | `null` | Anotações internas do profissional sobre o envio | `"Enviado pós 1ª sessão"` |
+| `pdfPath` | `String?` | Não | `null` | Caminho de arquivo do PDF exportado gerado | `"/storage/uploads/forms/form_cly78a37g.pdf"` |
+| `createdAt` | `DateTime` | Sim | `now()` | Data de envio do formulário | `2026-11-13T10:00:00.000Z` |
+| `updatedAt` | `DateTime` | Sim | Auto | Data da última alteração de status/respostas | `2026-11-13T14:30:00.000Z` |
+
+#### C. Relacionamentos
+- `patient` (`Patient`): N:1 — Paciente dono do envio (`onDelete: Cascade`).
+- `template` (`FormTemplate`): N:1 — Modelo de formulário base (`onDelete: Restrict`).
+
+---
+
 ## 4. Dicionário Completo de Enums e Status
 
 ### 4.1 Enum: `Role`
@@ -1459,6 +1551,35 @@ erDiagram
   - `VIDEO_ACCESS`: Envio de link seguro de acesso à teleconsulta.
   - `REMINDER_24H`: Lembrete automático de consulta enviado 24 horas antes do início.
   - `REMINDER_2H`: Lembrete automático de consulta enviado 2 horas antes do início.
+
+### 4.11 Enum: `FormTemplateStatus`
+- **Finalidade:** Ciclo de vida do modelo de formulário personalizado.
+- **Valores:**
+  - `DRAFT`: Rascunho em edição pelo profissional. Não disponível para envio a pacientes.
+  - `PUBLISHED`: Publicado e validado, pronto para ser atribuído a pacientes.
+  - `ARCHIVED`: Arquivado pelo profissional. Preserva histórico de envios anteriores, mas não aceita novos envios.
+
+### 4.12 Enum: `FormQuestionType`
+- **Finalidade:** Tipos de questões suportados pelo construtor de formulários.
+- **Valores:**
+  - `SHORT_TEXT`: Resposta curta em linha única.
+  - `LONG_TEXT`: Parágrafo multilinhas (textarea).
+  - `SINGLE_CHOICE`: Escolha única com botões de rádio.
+  - `MULTIPLE_CHOICE`: Múltipla escolha com caixas de seleção (checkboxes).
+  - `DROPDOWN`: Lista suspensa de seleção única (select).
+  - `NUMBER`: Entrada numérica com validação de dígitos.
+  - `DATE`: Seletor de data com formatação brasileira.
+  - `YES_NO`: Opção binária simples (Sim ou Não).
+  - `INFO_SECTION`: Título ou texto explicativo/informativo sem coleta de resposta.
+
+### 4.13 Enum: `FormAssignmentStatus`
+- **Finalidade:** Ciclo de vida da atribuição de formulário enviada ao paciente.
+- **Valores:**
+  - `PENDING`: Formulário atribuído ao paciente, aguardando início do preenchimento.
+  - `IN_PROGRESS`: Rascunho de respostas salvo pelo paciente, ainda não finalizado.
+  - `COMPLETED`: Formulário finalizado e submetido pelo paciente. Respostas imutáveis.
+  - `EXPIRED`: Prazo limite (`expiresAt`) atingido sem preenchimento.
+  - `CANCELLED`: Atribuição cancelada ou revogada pelo profissional antes da conclusão.
 
 ---
 

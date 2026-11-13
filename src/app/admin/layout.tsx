@@ -26,6 +26,7 @@ import {
   BellRing,
   Share2,
   FileText,
+  ClipboardList,
   Plus,
 } from "pulsoicon-react";
 
@@ -46,6 +47,7 @@ const navGroups: NavGroup[] = [
       { href: "/admin/agenda", label: "Agenda", icon: Calendar },
       { href: "/admin/pacientes", label: "Pacientes", icon: Users },
       { href: "/admin/documentos", label: "Documentos", icon: FileText },
+      { href: "/admin/formularios", label: "Formulários", icon: ClipboardList },
     ],
   },
   {
@@ -75,6 +77,7 @@ function getAdminBreadcrumbLabel(pathname: string): string {
   if (pathname.startsWith("/admin/notificacoes")) return "Notificações";
   if (pathname.startsWith("/admin/lembretes/registros")) return "Registros de Lembretes";
   if (pathname.startsWith("/admin/pacientes/")) return "Detalhes do Paciente";
+  if (pathname.startsWith("/admin/formularios")) return "Formulários";
   if (pathname.startsWith("/admin/prontuarios")) return "Prontuários";
 
   const direct = allNavItems.find((n) => n.href === pathname);

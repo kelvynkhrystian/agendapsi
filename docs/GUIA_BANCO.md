@@ -139,3 +139,9 @@ No PSI, a comunicação entre o banco e as telas do frontend segue um fluxo prev
   - Deve atualizar o esquema Zod e a tipagem TypeScript da API;
   - Deve ajustar a tela que exibe aquele campo para ler o novo nome;
   - E executar `npm run docs:db:check` para garantir que a documentação foi atualizada!
+
+### 17. Como funciona a persistência de Formulários Clínicos?
+- `FormTemplate`: Mantém o modelo e versão do questionário (`DRAFT`, `PUBLISHED`, `ARCHIVED`).
+- `FormQuestion`: Guarda as perguntas ordenadas (`orderIndex`) com seus 9 tipos suportados e alternativas (`options` em JSON).
+- `PatientFormAssignment`: Registra a atribuição para um paciente específico com um `snapshot` imutável da estrutura do formulário no instante do envio, garantindo que edições posteriores no modelo não alterem respostas históricas.
+

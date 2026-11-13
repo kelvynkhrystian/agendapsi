@@ -210,3 +210,30 @@ A ação de reenvio de mensagens (`POST /api/admin/message-logs/[id]/resend`) po
 - Em imagens estáticas, analisa-se uma cópia reduzida priorizando bordas e cantos por clustering quantizado e estimação robusta por mediana dentro do cluster predominante. Em vídeos e animações ZIP, analisam-se múltiplos quadros representativos ao longo da duração/sequência para isolar o fundo estável e evitar sujeitos em movimento.
 - A cor permanece estável durante toda a reprodução (sem piscar frame a frame), aplica-se exclusivamente via `--hero-background-color` (Desktop e Mobile independentes, com o Hero Mobile herdando a cor do Desktop em caso de fallback) sem alterar a paleta global de aparência ou a seção **Sobre Mim**, e recorre ao fallback neutro seguro `#FAF7F2` (ou última cor válida) se falhar.
 
+---
+
+## 11. Módulo de Formulários Clínicos Personalizados e Importação de PDF
+
+### 11.1 Construtor e Ciclo de Vida de Modelos
+- Os modelos de formulários (`FormTemplate`) são criados exclusivamente em `/admin/formularios`.
+- Suportam 9 tipos de campos: Resposta curta, Parágrafo, Escolha única (radio), Múltipla escolha (checkbox), Lista suspensa (select), Número, Data, Sim ou Não, e Título/Texto informativo.
+- Modelos possuem status `DRAFT`, `PUBLISHED` e `ARCHIVED`. Somente modelos com status `PUBLISHED` podem ser atribuídos a pacientes.
+
+### 11.2 Imutabilidade e Versionamento de Atribuições
+- Cada atribuição a paciente (`PatientFormAssignment`) armazena um snapshot imutável (`snapshot`) de todas as perguntas, opções e enunciados no instante do envio.
+- Edições subsequentes no modelo original geram novas versões e nunca corrompem ou alteram questionários respondidos anteriormente.
+- Um mesmo formulário pode ser reenviado ao paciente múltiplas vezes ao longo do tratamento, criando novos registros independentes sem sobrescrever respostas anteriores.
+
+### 11.3 Importação Inteligente de Questionários em PDF
+- O profissional pode importar arquivos PDF em `/admin/formularios/importar`. O extrator lê o texto estruturado, detecta numerações e enunciados, identifica alternativas de escolha e sugere os tipos de campo correspondentes.
+- A importação gera obrigatoriamente um rascunho para revisão humana (`/admin/formularios/revisar`), permitindo correções, adição ou remoção de questões antes de salvar ou publicar. Documentos puramente digitalizados/escaneados sem texto selecionável reportam limitação honesta.
+
+### 11.4 Preenchimento no Portal do Paciente e Sigilo
+- O paciente visualiza e responde formulários diretamente na sua área restrita (`/paciente/formularios`).
+- O sistema suporta salvamento de rascunhos parciais (`IN_PROGRESS`). Na submissão (`COMPLETED`), os campos obrigatórios são validados e as respostas tornam-se imutáveis.
+- Notificações de formulários nunca trafegam respostas clínicas por e-mail, SMS ou WhatsApp.
+
+### 11.5 Exportação Profissional em PDF
+- Respostas submetidas podem ser exportadas em PDF formatado no padrão A4 com cabeçalho contendo identificação visual do profissional (logo, nome, CRP/CRM), dados do paciente, data de preenchimento, paginação e corpo estruturado com perguntas e respostas.
+
+
