@@ -57,7 +57,7 @@ function mapHealthToTechnicalStatus(
  * 3. Requisição restrita a loopback (127.0.0.1, localhost, ::1)
  * 4. Ausência de proxy reverso público, túneis (ngrok/Cloudflare) ou origens externas
  */
-export function isLocalTechnicalStatusPublicAllowed(req: NextRequest): boolean {
+function isLocalTechnicalStatusPublicAllowed(req: NextRequest): boolean {
   // 1. Apenas em ambiente de desenvolvimento
   if (process.env.NODE_ENV !== "development") {
     return false;
