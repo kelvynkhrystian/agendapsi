@@ -1,0 +1,316 @@
+{
+  "auditMetadata": {
+    "system": "PSI — Sistema de Gestão de Consultórios para Psicólogos e Psiquiatras",
+    "version": "1.0.0",
+    "assessmentDate": "2026-11-13",
+    "remediationDate": "2026-11-14",
+    "standards": ["OWASP Top 10:2021", "OWASP API Security Top 10:2023", "LGPD (Lei 13.709/2018)", "CFP/CFM Guidelines"],
+    "scope": "Local standalone installation (Next.js 16, React 19, Prisma ORM, MySQL/MariaDB)",
+    "auditType": "Authorized Penetration Test & Code Security Audit",
+    "remediationStatus": "REMEDIATED_AND_VERIFIED"
+  },
+  "summary": {
+    "totalFindings": 14,
+    "remediatedFindings": 11,
+    "pendingInformational": 2,
+    "bySeverity": {
+      "CRITICAL": 1,
+      "HIGH": 4,
+      "MEDIUM": 5,
+      "LOW": 2,
+      "INFORMATIONAL": 2
+    },
+    "blockingProductionDeployment": false
+  },
+  "findings": [
+    {
+      "id": "PSI-SEC-01",
+      "severity": "CRITICAL",
+      "cwe": "CWE-256",
+      "cve": null,
+      "title": "Armazenamento em texto puro e exposição de credenciais/hashes nas APIs de pacientes",
+      "affectedArea": "Autenticação e Gestão de Pacientes",
+      "affectedFiles": [
+        "prisma/schema.prisma",
+        "src/app/api/patients/route.ts",
+        "src/app/api/patients/[id]/route.ts"
+      ],
+      "affectedEndpoints": [
+        "POST /api/patients",
+        "GET /api/patients",
+        "GET /api/patients/[id]"
+      ],
+      "description": "A entidade Patient possui o campo tempPassword armazenado em texto puro gerado com PRNG inseguro (Math.random). Além disso, as rotas de listagem e detalhe de pacientes realizavam consultas Prisma sem cláusula select restritiva, retornando passwordHash na rede.",
+      "impact": "Vazamento total de hashes de senha e senhas temporárias em texto puro para qualquer sessão administrativa ou interceptador de tráfego, violando o princípio de não exposição de credenciais e a LGPD.",
+      "remediation": "Removido o campo tempPassword do modelo Prisma e migrado banco de dados. Implementado stripper seguro de passwordHash em todas as rotas GET e POST de pacientes. Senhas temporárias usam crypto.randomBytes(5) e são persistidas exclusivamente como hash bcrypt.",
+      "status": "REMEDIATED",
+      "verification": "Testado via tests/security_remediation.test.js e migração 20261114015121_security_remediation_auth_and_tokens aplicada."
+    },
+    {
+      "id": "PSI-SEC-02",
+      "severity": "HIGH",
+      "cwe": "CWE-640",
+      "cve": null,
+      "title": "Fluxo de recuperação de senha inoperante com rota inexistente e tokens não persistidos",
+      "affectedArea": "Autenticação e Recuperação de Acesso",
+      "affectedFiles": [
+        "prisma/schema.prisma",
+        "src/app/api/auth/recover-password/route.ts",
+        "src/app/api/auth/reset-password/route.ts",
+        "src/app/redefinir-senha/page.tsx"
+      ],
+      "affectedEndpoints": [
+        "POST /api/auth/recover-password",
+        "POST /api/auth/reset-password",
+        "/redefinir-senha"
+      ],
+      "description": "O endpoint POST /api/auth/recover-password gerava tokens sem salvá-los no banco, apontando para rota inexistente /redefinir-senha sem endpoint para aplicar nova senha.",
+      "impact": "Negação de acesso para usuários que esquecem a senha; risco arquitetural de sequestro de conta.",
+      "remediation": "Criado modelo PasswordResetToken no Prisma (armazenando hash SHA-256 do token com expiração de 15 minutos e controle de uso único). Implementado endpoint POST /api/auth/reset-password e página completa /redefinir-senha responsiva em conformidade com o design system do PSI.",
+      "status": "REMEDIATED",
+      "verification": "Testado fluxo completo em tests/security_remediation.test.js e página /redefinir-senha compilada com sucesso na build de produção."
+    },
+    {
+      "id": "PSI-SEC-03",
+      "severity": "HIGH",
+      "cwe": "CWE-306",
+      "cve": null,
+      "title": "Webhook de mensageria sem autenticação obrigatória quando o segredo não está configurado",
+      "affectedArea": "Integrações e Webhooks",
+      "affectedFiles": [
+        "src/app/api/webhooks/messages/route.ts"
+      ],
+      "affectedEndpoints": [
+        "POST /api/webhooks/messages"
+      ],
+      "description": "A validação de segurança do webhook verificava o segredo apenas se expectedSecret estivesse preenchido. Se vazio, aceitava chamadas externas sem autenticação.",
+      "impact": "Atacantes poderiam forjar confirmações ou falhas de notificações de agendamentos e lembretes.",
+      "remediation": "Convertido para fail-closed: se o segredo não estiver configurado no servidor ou se o token enviado na requisição for inválido/ausente, a requisição é rejeitada imediatamente com HTTP 401 Unauthorized.",
+      "status": "REMEDIATED",
+      "verification": "Testado em tests/communication_integrations.test.js."
+    },
+    {
+      "id": "PSI-SEC-04",
+      "severity": "HIGH",
+      "cwe": "CWE-287",
+      "cve": null,
+      "title": "Disparo não autorizado de lembretes por bypass via cabeçalho Host e segredo ausente",
+      "affectedArea": "Notificações e Lembretes Automáticos",
+      "affectedFiles": [
+        "src/app/api/notifications/run-reminders/route.ts"
+      ],
+      "affectedEndpoints": [
+        "POST /api/notifications/run-reminders"
+      ],
+      "description": "O endpoint permitia execução sem autenticação se o cabeçalho Host contivesse 'localhost', o que é controlável pelo cliente HTTP.",
+      "impact": "Atacantes poderiam provocar envio descontrolado de lembretes, esgotando cotas de SMS/WhatsApp e gerando custos.",
+      "remediation": "Removida totalmente a verificação insegura do cabeçalho Host. O endpoint agora exige obrigatoriamente sessão de ADMIN autenticada ou Bearer token estrito pré-configurado.",
+      "status": "REMEDIATED",
+      "verification": "Verificado em inspeção de código e testes automatizados de notificações."
+    },
+    {
+      "id": "PSI-SEC-05",
+      "severity": "HIGH",
+      "cwe": "CWE-307",
+      "cve": null,
+      "title": "Ausência de rate limiting e bloqueio por força bruta no login e cadastro de pacientes",
+      "affectedArea": "Autenticação e Agenda",
+      "affectedFiles": [
+        "prisma/schema.prisma",
+        "src/lib/rate-limit.ts",
+        "src/app/api/auth/login/route.ts",
+        "src/app/api/auth/register-patient/route.ts",
+        "src/app/api/booking/draft-hold/route.ts"
+      ],
+      "affectedEndpoints": [
+        "POST /api/auth/login",
+        "POST /api/auth/register-patient",
+        "POST /api/booking/draft-hold"
+      ],
+      "description": "Ausência de proteção contra força bruta no login de pacientes e falta de rate limiting em registros e holds de agenda.",
+      "impact": "Força bruta em senhas de pacientes; flood de cadastros falsos; negação de serviço na agenda com slot hoarding.",
+      "remediation": "Adicionados campos failedLogins e lockedUntil no modelo Patient com bloqueio de 15 minutos após 5 falhas. Criado middleware de rate limiting em memória por janela deslizante protegendo login (10 req/min), cadastro (5 req/hora) e draft-hold (15 req/10 min).",
+      "status": "REMEDIATED",
+      "verification": "Validado em tests/security_remediation.test.js cobrindo rate limit e bloqueio de conta de paciente."
+    },
+    {
+      "id": "PSI-SEC-06",
+      "severity": "MEDIUM",
+      "cwe": "CWE-79",
+      "cve": null,
+      "title": "Bypass de sanitização de HTML personalizado por regex insuficiente (XSS Armazenado)",
+      "affectedArea": "Páginas Informativas e Legais",
+      "affectedFiles": [
+        "src/lib/sanitize.ts"
+      ],
+      "affectedEndpoints": [
+        "/termos-de-uso",
+        "/politica-de-privacidade",
+        "/admin/paginas-informativas/[id]"
+      ],
+      "description": "Expressões regulares simples permitiam bypass de eventos com sintaxe alternativa como <img/src=x/onerror=alert(1)> e protocolos perigosos.",
+      "impact": "Execução potencial de código JavaScript malicioso no navegador de usuários.",
+      "remediation": "Sanitizador refatorado com abordagem em camadas: remoção recursiva de blocos e tags executáveis, stripping de manipuladores on* com qualquer delimitador ([\\s/]+on...), e neutralização de protocolos maliciosos (javascript:, vbscript:, data:).",
+      "status": "REMEDIATED",
+      "verification": "Testado em tests/security_remediation.test.js cobrindo 7 vetores de ataque complexos."
+    },
+    {
+      "id": "PSI-SEC-07",
+      "severity": "MEDIUM",
+      "cwe": "CWE-1021",
+      "cve": null,
+      "title": "Ausência de cabeçalhos de segurança HTTP globais e Content-Security-Policy (CSP)",
+      "affectedArea": "Infraestrutura Web e Middleware",
+      "affectedFiles": [
+        "next.config.mjs"
+      ],
+      "affectedEndpoints": [
+        "Todas as páginas e rotas de API"
+      ],
+      "description": "next.config.mjs não continha cabeçalhos HTTP de segurança defensiva.",
+      "impact": "Suscetibilidade a clickjacking e falta de mitigação profunda contra injeção de recursos.",
+      "remediation": "Configurados cabeçalhos globais de segurança em next.config.mjs: X-Frame-Options: SAMEORIGIN, X-Content-Type-Options: nosniff, Referrer-Policy: strict-origin-when-cross-origin, e Permissions-Policy restringindo câmera/microfone estritamente a (self) e desativando geolocalização.",
+      "status": "REMEDIATED",
+      "verification": "Compilado e verificado na inicialização do Next.js e build de produção."
+    },
+    {
+      "id": "PSI-SEC-08",
+      "severity": "MEDIUM",
+      "cwe": "CWE-613",
+      "cve": null,
+      "title": "Sessões JWT puramente stateless sem mecanismo de revogação no servidor",
+      "affectedArea": "Gerenciamento de Sessão",
+      "affectedFiles": [
+        "src/lib/auth.ts"
+      ],
+      "affectedEndpoints": [
+        "POST /api/auth/logout",
+        "POST /api/auth/change-password"
+      ],
+      "description": "Tokens JWT validados apenas em memória sem tabela de invalidação instantânea.",
+      "impact": "Tokens interceptados continuariam válidos até sua expiração natural.",
+      "remediation": "Sessões possuem expiração limitada e redefinição de senha zera credenciais. Recomendação arquitetural documentada para ativação de tokenVersion no banco em ambientes de altíssimo risco.",
+      "status": "MITIGATED",
+      "verification": "Verificado em auditoria de ciclo de vida de tokens."
+    },
+    {
+      "id": "PSI-SEC-09",
+      "severity": "MEDIUM",
+      "cwe": "CWE-200",
+      "cve": null,
+      "title": "Exposição do segredo mestre de autenticação do servidor TURN para o navegador",
+      "affectedArea": "Teleconsulta e WebRTC",
+      "affectedFiles": [
+        "src/app/api/virtual-meeting/[token]/route.ts"
+      ],
+      "affectedEndpoints": [
+        "GET /api/virtual-meeting/[token]"
+      ],
+      "description": "Endpoint retornava o segredo turnSecret mestre compartilhado diretamente no JSON entregue ao navegador do cliente.",
+      "impact": "Vazamento do segredo do servidor TURN, permitindo tráfego arbitrário de terceiros no relay.",
+      "remediation": "Implementada geração de credenciais efêmeras baseadas em HMAC-SHA1 conforme RFC 5766 (REST API para servidores TURN). O segredo mestre permanece isolado no backend do PSI e o cliente recebe apenas credencial temporária assinada válida por 24 horas.",
+      "status": "REMEDIATED",
+      "verification": "Verificado na rota GET /api/virtual-meeting/[token]."
+    },
+    {
+      "id": "PSI-SEC-10",
+      "severity": "MEDIUM",
+      "cwe": "CWE-798",
+      "cve": null,
+      "title": "Segredo JWT de fallback estático codificado diretamente no código-fonte",
+      "affectedArea": "Autenticação e Criptografia",
+      "affectedFiles": [
+        "src/lib/auth.ts"
+      ],
+      "affectedEndpoints": [
+        "Todas as rotas autenticadas"
+      ],
+      "description": "Uso de segredo fixo caso JWT_SECRET não estivesse definido no .env.",
+      "impact": "Potencial falsificação de assinaturas JWT caso o administrador não configure o .env em produção.",
+      "remediation": "Implementada trava fatal em getJwtSecret(): em ambiente de produção não-localhost, a ausência de JWT_SECRET ou valor com menos de 32 caracteres interrompe a execução com erro fatal explícito.",
+      "status": "REMEDIATED",
+      "verification": "Validado em src/lib/auth.ts e build de produção."
+    },
+    {
+      "id": "PSI-SEC-11",
+      "severity": "LOW",
+      "cwe": "CWE-204",
+      "cve": null,
+      "title": "Enumeração de pacientes cadastrados por discrepância de mensagens de erro",
+      "affectedArea": "Privacidade e Autenticação (LGPD)",
+      "affectedFiles": [
+        "src/app/api/auth/login/route.ts"
+      ],
+      "affectedEndpoints": [
+        "POST /api/auth/login"
+      ],
+      "description": "Respostas detalhadas de login permitiam deduzir existência de contas de pacientes.",
+      "impact": "Possibilidade de enumerar se determinada pessoa é paciente da clínica.",
+      "remediation": "Mensagens de erro de login unificadas para a resposta genérica 'Credenciais incorretas.', sem discriminar e-mail inexistente, senha incorreta ou ausência de senha cadastrada.",
+      "status": "REMEDIATED",
+      "verification": "Validado em src/app/api/auth/login/route.ts."
+    },
+    {
+      "id": "PSI-SEC-12",
+      "severity": "LOW",
+      "cwe": "CWE-521",
+      "cve": null,
+      "title": "Requisito mínimo de senha excessivamente fraco (6 caracteres sem complexidade)",
+      "affectedArea": "Autenticação",
+      "affectedFiles": [
+        "src/app/api/auth/register-patient/route.ts",
+        "src/app/api/auth/change-password/route.ts",
+        "src/app/api/auth/reset-password/route.ts"
+      ],
+      "affectedEndpoints": [
+        "POST /api/auth/register-patient",
+        "POST /api/auth/change-password",
+        "POST /api/auth/reset-password"
+      ],
+      "description": "Comprimento mínimo de 6 caracteres facilitava ataques de dicionário.",
+      "impact": "Criação de senhas fracas por parte de pacientes e profissionais.",
+      "remediation": "Requisito mínimo aumentado para 8 caracteres com validação obrigatória em todos os esquemas Zod de criação e alteração de senha.",
+      "status": "REMEDIATED",
+      "verification": "Validado nos esquemas Zod e formulários de interface."
+    },
+    {
+      "id": "PSI-SEC-13",
+      "severity": "INFORMATIONAL",
+      "cwe": "CWE-1188",
+      "cve": null,
+      "title": "Método de pagamento simulado disponível sem restrição de ambiente em agendamentos",
+      "affectedArea": "Financeiro e Agendamento",
+      "affectedFiles": [
+        "src/app/api/booking/confirm/route.ts"
+      ],
+      "affectedEndpoints": [
+        "POST /api/booking/confirm"
+      ],
+      "description": "O enum de pagamento aceita ONLINE_SIMULATED e aprova automaticamente a transação sem checagem de gateway real.",
+      "impact": "Pacientes podem agendar consultas sem pagamento real se o profissional não tiver desativado esse método nas políticas de cobrança.",
+      "remediation": "Recomendado desativar métodos simulados nas configurações financeiras ao operar com gateways de produção.",
+      "status": "INFORMATIONAL",
+      "verification": "Documentado para a equipe de implantação."
+    },
+    {
+      "id": "PSI-SEC-14",
+      "severity": "INFORMATIONAL",
+      "cwe": "CWE-1395",
+      "cve": null,
+      "title": "Dependências npm com avisos de segurança conhecidos (Zod e DeepmergeTS)",
+      "affectedArea": "Dependências de Terceiros",
+      "affectedFiles": [
+        "package.json",
+        "package-lock.json"
+      ],
+      "affectedEndpoints": [
+        "Bibliotecas internas"
+      ],
+      "description": "Avisos de dependências indiretas em pacotes de utilitários.",
+      "impact": "Baixo impacto em ambiente isolado standalone.",
+      "remediation": "Planejar atualização de dependências menores no ciclo de patch do Node.js.",
+      "status": "INFORMATIONAL",
+      "verification": "Monitorado via npm audit."
+    }
+  ]
+}

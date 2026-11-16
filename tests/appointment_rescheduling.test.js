@@ -166,6 +166,7 @@ test("Remarcação de Consultas — 2. Fluxo Completo, Concorrência, Buffers, L
       getAvailableSlotsForDate,
       rescheduleAppointmentAtomic,
     } = require(path.join(tmpLibDir, "schedule.js"));
+    const { zonedTimeToUtc } = require(path.join(tmpLibDir, "utils.js"));
     const { dispatchNotification } = require(path.join(tmpLibDir, "notifications.js"));
 
     // Seed mínimo isolado
@@ -259,8 +260,8 @@ test("Remarcação de Consultas — 2. Fluxo Completo, Concorrência, Buffers, L
     });
 
     // Agendamento ONLINE A1 (alvo principal) com sala Jitsi, pagamento e prontuário vinculado
-    const a1Start = new Date(`${day1Str}T08:00:00.000Z`);
-    const a1End = new Date(`${day1Str}T09:00:00.000Z`);
+    const a1Start = zonedTimeToUtc(day1Str, "08:00", "America/Sao_Paulo");
+    const a1End = zonedTimeToUtc(day1Str, "09:00", "America/Sao_Paulo");
     const apptOnline = await prisma.appointment.create({
       data: {
         patientId: patient.id,
@@ -324,8 +325,8 @@ test("Remarcação de Consultas — 2. Fluxo Completo, Concorrência, Buffers, L
       data: {
         patientId: patient.id,
         serviceId: svcPresential.id,
-        startAt: new Date(`${day1Str}T10:20:00.000Z`),
-        endAt: new Date(`${day1Str}T11:20:00.000Z`),
+        startAt: zonedTimeToUtc(day1Str, "10:20", "America/Sao_Paulo"),
+        endAt: zonedTimeToUtc(day1Str, "11:20", "America/Sao_Paulo"),
         modality: "PRESENTIAL",
         status: "CONFIRMED",
         meetingUrlSnapshot: null,
@@ -341,16 +342,16 @@ test("Remarcação de Consultas — 2. Fluxo Completo, Concorrência, Buffers, L
         {
           patientId: patient.id,
           serviceId: svcOnline.id,
-          startAt: new Date(`${day2Str}T08:00:00.000Z`),
-          endAt: new Date(`${day2Str}T09:00:00.000Z`),
+          startAt: zonedTimeToUtc(day2Str, "08:00", "America/Sao_Paulo"),
+          endAt: zonedTimeToUtc(day2Str, "09:00", "America/Sao_Paulo"),
           modality: "ONLINE",
           status: "LATE_CANCELLED",
         },
         {
           patientId: patient.id,
           serviceId: svcOnline.id,
-          startAt: new Date(`${day2Str}T09:30:00.000Z`),
-          endAt: new Date(`${day2Str}T10:30:00.000Z`),
+          startAt: zonedTimeToUtc(day2Str, "09:30", "America/Sao_Paulo"),
+          endAt: zonedTimeToUtc(day2Str, "10:30", "America/Sao_Paulo"),
           modality: "ONLINE",
           status: "CONFIRMED",
         },
@@ -362,8 +363,8 @@ test("Remarcação de Consultas — 2. Fluxo Completo, Concorrência, Buffers, L
         holdToken: "hold-bloqueio-day2",
         serviceId: svcOnline.id,
         patientId: patient.id,
-        startAt: new Date(`${day2Str}T12:40:00.000Z`),
-        endAt: new Date(`${day2Str}T13:40:00.000Z`),
+        startAt: zonedTimeToUtc(day2Str, "12:40", "America/Sao_Paulo"),
+        endAt: zonedTimeToUtc(day2Str, "13:40", "America/Sao_Paulo"),
         expiresAt: new Date(Date.now() + 30 * 60000),
       },
     });
@@ -373,8 +374,8 @@ test("Remarcação de Consultas — 2. Fluxo Completo, Concorrência, Buffers, L
       data: {
         patientId: patient.id,
         serviceId: svcOnline.id,
-        startAt: new Date(`${day1Str}T12:40:00.000Z`),
-        endAt: new Date(`${day1Str}T13:40:00.000Z`),
+        startAt: zonedTimeToUtc(day1Str, "12:40", "America/Sao_Paulo"),
+        endAt: zonedTimeToUtc(day1Str, "13:40", "America/Sao_Paulo"),
         modality: "ONLINE",
         status: "COMPLETED",
       },
@@ -411,7 +412,7 @@ test("Remarcação de Consultas — 2. Fluxo Completo, Concorrência, Buffers, L
     await assert.rejects(
       rescheduleAppointmentAtomic({
         appointmentId: apptCompleted.id,
-        newStartAt: new Date(`${day3Str}T09:10:00.000Z`),
+        newStartAt: zonedTimeToUtc(day3Str, "09:10", "America/Sao_Paulo"),
         adminUserId: admin.id,
       }),
       /STATUS_NAO_PERMITE_REMARCACAO/
@@ -429,7 +430,7 @@ test("Remarcação de Consultas — 2. Fluxo Completo, Concorrência, Buffers, L
     await assert.rejects(
       rescheduleAppointmentAtomic({
         appointmentId: apptOnline.id,
-        newStartAt: new Date(`${day2Str}T10:20:00.000Z`),
+        newStartAt: zonedTimeToUtc(day2Str, "10:20", "America/Sao_Paulo"),
         adminUserId: admin.id,
       }),
       /HORARIO_INDISPONIVEL/
@@ -438,14 +439,14 @@ test("Remarcação de Consultas — 2. Fluxo Completo, Concorrência, Buffers, L
     await assert.rejects(
       rescheduleAppointmentAtomic({
         appointmentId: apptOnline.id,
-        newStartAt: new Date(`${blockedDayStr}T09:10:00.000Z`),
+        newStartAt: zonedTimeToUtc(blockedDayStr, "09:10", "America/Sao_Paulo"),
         adminUserId: admin.id,
       }),
       /HORARIO_INDISPONIVEL/
     );
 
     // Verificação 4: Primeira remarcação válida de consulta ONLINE
-    const firstNewStart = new Date(`${day3Str}T09:10:00.000Z`);
+    const firstNewStart = zonedTimeToUtc(day3Str, "09:10", "America/Sao_Paulo");
     const res1 = await rescheduleAppointmentAtomic({
       appointmentId: apptOnline.id,
       newStartAt: firstNewStart,
@@ -456,7 +457,7 @@ test("Remarcação de Consultas — 2. Fluxo Completo, Concorrência, Buffers, L
     assert.equal(res1.appointment.startAt.toISOString(), firstNewStart.toISOString());
     assert.equal(
       res1.appointment.endAt.toISOString(),
-      new Date(`${day3Str}T10:10:00.000Z`).toISOString(),
+      zonedTimeToUtc(day3Str, "10:10", "America/Sao_Paulo").toISOString(),
       "Duração do serviço deve ser recalculada com exatidão"
     );
     assert.equal(res1.appointment.videoMeeting?.provider, "JITSI", "Provedor de vídeo deve ser preservado");
@@ -518,7 +519,7 @@ test("Remarcação de Consultas — 2. Fluxo Completo, Concorrência, Buffers, L
     assert.ok(notif1 && notif1Retry, "Notificações devem ser processadas");
 
     // Verificação 5: Segunda remarcação consecutiva para day4 NÃO deve ter notificação suprimida
-    const secondNewStart = new Date(`${day4Str}T08:00:00.000Z`);
+    const secondNewStart = zonedTimeToUtc(day4Str, "08:00", "America/Sao_Paulo");
     const res2 = await rescheduleAppointmentAtomic({
       appointmentId: apptOnline.id,
       newStartAt: secondNewStart,
@@ -566,7 +567,7 @@ test("Remarcação de Consultas — 2. Fluxo Completo, Concorrência, Buffers, L
     // Verificação 6: Consulta PRESENCIAL remarcada não cria VideoMeeting nem link
     const presRes = await rescheduleAppointmentAtomic({
       appointmentId: apptPresential.id,
-      newStartAt: new Date(`${day3Str}T11:30:00.000Z`),
+      newStartAt: zonedTimeToUtc(day3Str, "11:30", "America/Sao_Paulo"),
       adminUserId: admin.id,
     });
     assert.equal(presRes.appointment.modality, "PRESENTIAL");

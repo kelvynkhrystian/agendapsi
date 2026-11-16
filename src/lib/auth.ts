@@ -4,9 +4,22 @@ import { cookies } from "next/headers";
 import { prisma } from "./prisma";
 import { Role } from "@prisma/client";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "psi_dev_jwt_secret_98fbc9823e47a21cd678e012fae84321_secure"
-);
+function getJwtSecret(): Uint8Array {
+  const secret = process.env.JWT_SECRET;
+  const isProduction = process.env.NODE_ENV === "production";
+  const isLocalhost = !process.env.APP_URL || process.env.APP_URL.includes("localhost") || process.env.APP_URL.includes("127.0.0.1");
+
+  if (isProduction && !isLocalhost) {
+    if (!secret || secret.trim().length < 32 || secret.includes("psi_dev_jwt_secret")) {
+      throw new Error(
+        "FATAL DE SEGURANÇA: A variável de ambiente JWT_SECRET é obrigatória em produção e deve possuir no mínimo 32 caracteres com alta entropia."
+      );
+    }
+  }
+  return new TextEncoder().encode(secret || "psi_dev_jwt_secret_98fbc9823e47a21cd678e012fae84321_secure");
+}
+
+const JWT_SECRET = getJwtSecret();
 
 export const AUTH_COOKIE_NAME = "psi_auth_token";
 

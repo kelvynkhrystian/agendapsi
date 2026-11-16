@@ -1141,15 +1141,15 @@ export default function AdminIntegrationsPage() {
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-5 sm:space-y-6">
         {/* Navegação em Abas no padrão exato de Admin -> Lembretes */}
         <TabsList aria-label="Canais de comunicação" className="grid grid-cols-3 sm:inline-flex w-full sm:w-fit">
-          <TabsTrigger value="email" className="justify-center px-2.5 sm:px-4">
+          <TabsTrigger value="email">
             <Mail className="h-4 w-4 shrink-0" />
             <span>E-mail</span>
           </TabsTrigger>
-          <TabsTrigger value="sms" className="justify-center px-2.5 sm:px-4">
+          <TabsTrigger value="sms">
             <Smartphone className="h-4 w-4 shrink-0" />
             <span>SMS</span>
           </TabsTrigger>
-          <TabsTrigger value="whatsapp" className="justify-center px-2.5 sm:px-4">
+          <TabsTrigger value="whatsapp">
             <MessageCircle className="h-4 w-4 shrink-0" />
             <span>WhatsApp</span>
           </TabsTrigger>

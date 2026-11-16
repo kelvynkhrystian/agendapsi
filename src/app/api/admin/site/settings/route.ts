@@ -13,7 +13,7 @@ import {
 const siteSettingsSchema = z.object({
   clinicName: z.string().min(2).optional(),
   tagline: z.string().optional(),
-  heroTitle: z.string().min(2),
+  heroTitle: z.string().min(2).optional(),
   heroSubtitle: z.string().optional(),
   aboutText: z.string().optional(),
   primaryColor: z.string().optional(),
@@ -96,8 +96,26 @@ export async function PUT(req: NextRequest) {
       ? data.benefitsJson
       : undefined;
 
-    const computedSectionsConfigJson = data.sectionsConfig
-      ? JSON.stringify(data.sectionsConfig)
+    // Se sectionsConfig fornecido parcialmente, faz merge com o existente no banco
+    let mergedSectionsConfig = undefined;
+    if (data.sectionsConfig) {
+      if (previousSite?.sectionsConfigJson) {
+        try {
+          const currentConfig = parseSiteSectionsConfig(previousSite.sectionsConfigJson);
+          mergedSectionsConfig = {
+            ...currentConfig,
+            ...data.sectionsConfig,
+          };
+        } catch {
+          mergedSectionsConfig = data.sectionsConfig;
+        }
+      } else {
+        mergedSectionsConfig = data.sectionsConfig;
+      }
+    }
+
+    const computedSectionsConfigJson = mergedSectionsConfig
+      ? JSON.stringify(mergedSectionsConfig)
       : data.sectionsConfigJson !== undefined
       ? JSON.stringify(parseSiteSectionsConfig(data.sectionsConfigJson))
       : undefined;
@@ -106,26 +124,30 @@ export async function PUT(req: NextRequest) {
       prisma.siteSettings.upsert({
         where: { id: "default" },
         update: {
-          ...(data.clinicName ? { clinicName: data.clinicName } : {}),
+          ...(data.clinicName !== undefined ? { clinicName: data.clinicName } : {}),
           ...(data.tagline !== undefined ? { tagline: data.tagline } : {}),
-          heroTitle: data.heroTitle,
-          heroSubtitle: data.heroSubtitle,
-          aboutText: data.aboutText,
-          primaryColor: data.primaryColor || "#0d9488",
-          address: data.address,
-          addressNumber: data.addressNumber,
-          addressComplement: data.addressComplement,
-          addressNeighborhood: data.addressNeighborhood,
-          addressCity: data.addressCity,
-          addressState: data.addressState,
-          addressPostalCode: data.addressPostalCode,
-          googleMapsUrl: data.googleMapsUrl,
-          googleMapsEmbedUrl: data.googleMapsEmbedUrl,
-          showLocation: data.showLocation ?? true,
+          ...(data.heroTitle !== undefined ? { heroTitle: data.heroTitle } : {}),
+          ...(data.heroSubtitle !== undefined ? { heroSubtitle: data.heroSubtitle } : {}),
+          ...(data.aboutText !== undefined ? { aboutText: data.aboutText } : {}),
+          ...(data.primaryColor !== undefined ? { primaryColor: data.primaryColor } : {}),
+          ...(data.address !== undefined ? { address: data.address } : {}),
+          ...(data.addressNumber !== undefined ? { addressNumber: data.addressNumber } : {}),
+          ...(data.addressComplement !== undefined ? { addressComplement: data.addressComplement } : {}),
+          ...(data.addressNeighborhood !== undefined ? { addressNeighborhood: data.addressNeighborhood } : {}),
+          ...(data.addressCity !== undefined ? { addressCity: data.addressCity } : {}),
+          ...(data.addressState !== undefined ? { addressState: data.addressState } : {}),
+          ...(data.addressPostalCode !== undefined ? { addressPostalCode: data.addressPostalCode } : {}),
+          ...(data.googleMapsUrl !== undefined ? { googleMapsUrl: data.googleMapsUrl } : {}),
+          ...(data.googleMapsEmbedUrl !== undefined ? { googleMapsEmbedUrl: data.googleMapsEmbedUrl } : {}),
+          ...(data.showLocation !== undefined ? { showLocation: data.showLocation } : {}),
           ...(data.phone !== undefined ? { phone: data.phone } : {}),
           ...(data.whatsappNumber !== undefined ? { whatsappNumber: data.whatsappNumber } : {}),
-          whatsappDefaultMessage: data.whatsappDefaultMessage,
-          showFloatingWhatsApp: data.showFloatingWhatsApp ?? true,
+          ...(data.whatsappDefaultMessage !== undefined
+            ? { whatsappDefaultMessage: data.whatsappDefaultMessage }
+            : {}),
+          ...(data.showFloatingWhatsApp !== undefined
+            ? { showFloatingWhatsApp: data.showFloatingWhatsApp }
+            : {}),
           ...(data.email !== undefined ? { email: data.email } : {}),
           ...(data.instagram !== undefined ? { instagram: data.instagram } : {}),
           ...(computedBenefitsJson !== undefined ? { benefitsJson: computedBenefitsJson } : {}),
@@ -135,28 +157,28 @@ export async function PUT(req: NextRequest) {
         },
         create: {
           id: "default",
-          clinicName: data.clinicName,
+          clinicName: data.clinicName || "Consultório",
           tagline: data.tagline || "",
-          heroTitle: data.heroTitle,
+          heroTitle: data.heroTitle || "Atendimento Psicológico e Psiquiátrico Especializado",
           heroSubtitle: data.heroSubtitle || "",
           aboutText: data.aboutText || "",
           primaryColor: data.primaryColor || "#0d9488",
-          address: data.address,
-          addressNumber: data.addressNumber,
-          addressComplement: data.addressComplement,
-          addressNeighborhood: data.addressNeighborhood,
-          addressCity: data.addressCity,
-          addressState: data.addressState,
-          addressPostalCode: data.addressPostalCode,
-          googleMapsUrl: data.googleMapsUrl,
-          googleMapsEmbedUrl: data.googleMapsEmbedUrl,
+          address: data.address || "",
+          addressNumber: data.addressNumber || "",
+          addressComplement: data.addressComplement || "",
+          addressNeighborhood: data.addressNeighborhood || "",
+          addressCity: data.addressCity || "",
+          addressState: data.addressState || "",
+          addressPostalCode: data.addressPostalCode || "",
+          googleMapsUrl: data.googleMapsUrl || "",
+          googleMapsEmbedUrl: data.googleMapsEmbedUrl || "",
           showLocation: data.showLocation ?? true,
-          phone: data.phone,
-          whatsappNumber: data.whatsappNumber,
-          whatsappDefaultMessage: data.whatsappDefaultMessage,
+          phone: data.phone || "",
+          whatsappNumber: data.whatsappNumber || "",
+          whatsappDefaultMessage: data.whatsappDefaultMessage || "",
           showFloatingWhatsApp: data.showFloatingWhatsApp ?? true,
-          email: data.email,
-          instagram: data.instagram,
+          email: data.email || "",
+          instagram: data.instagram || "",
           benefitsJson: computedBenefitsJson || null,
           sectionsConfigJson: computedSectionsConfigJson || null,
         },
@@ -165,10 +187,10 @@ export async function PUT(req: NextRequest) {
       prisma.professionalProfile.upsert({
         where: { id: "default" },
         update: {
-          ...(data.professionalName ? { fullName: data.professionalName } : {}),
+          ...(data.professionalName !== undefined ? { fullName: data.professionalName } : {}),
           ...(data.professionalTitle !== undefined ? { title: data.professionalTitle } : {}),
           ...(data.crpCrm !== undefined ? { crpCrm: data.crpCrm } : {}),
-          bio: data.bio || "",
+          ...(data.bio !== undefined ? { bio: data.bio } : {}),
         },
         create: {
           id: "default",

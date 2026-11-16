@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { AUTH_COOKIE_NAME, signToken, verifyPassword } from "@/lib/auth";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const loginSchema = z.object({
   email: z.string().email("E-mail inválido"),
@@ -10,6 +11,17 @@ const loginSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const clientIp = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "127.0.0.1";
+
+    // Rate Limiting por IP: máximo de 10 tentativas de login por minuto
+    const rateCheck = checkRateLimit("login", clientIp, { windowMs: 60 * 1000, max: 10 });
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: `Muitas tentativas de login a partir deste endereço. Tente novamente em ${rateCheck.retryAfterSeconds} segundo(s).` },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const result = loginSchema.safeParse(body);
 
@@ -137,23 +149,74 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      if (!patient.passwordHash) {
+      // Verifica bloqueio por tentativas excessivas do paciente
+      if (patient.lockedUntil && patient.lockedUntil > new Date()) {
+        const remainingMinutes = Math.ceil(
+          (patient.lockedUntil.getTime() - Date.now()) / (1000 * 60)
+        );
         return NextResponse.json(
           {
-            error:
-              "Esta conta ainda não possui senha configurada. Solicite a recuperação ou use a senha temporária fornecida.",
+            error: `Conta temporariamente bloqueada por excesso de tentativas. Tente novamente em ${remainingMinutes} minuto(s).`,
           },
+          { status: 423 }
+        );
+      }
+
+      if (!patient.passwordHash) {
+        return NextResponse.json(
+          { error: "Credenciais incorretas." },
           { status: 401 }
         );
       }
 
       const isValid = await verifyPassword(password, patient.passwordHash);
       if (!isValid) {
+        const newFailed = (patient.failedLogins || 0) + 1;
+        let lockedUntil = patient.lockedUntil;
+        if (newFailed >= 5) {
+          lockedUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos de bloqueio
+        }
+
+        await prisma.patient.update({
+          where: { id: patient.id },
+          data: { failedLogins: newFailed, lockedUntil },
+        });
+
+        // Registrar auditoria de falha
+        await prisma.auditLog.create({
+          data: {
+            userId: patient.id,
+            userRole: "PATIENT",
+            action: "LOGIN_FAILED",
+            resource: "Patient",
+            resourceId: patient.id,
+            ipAddress: clientIp,
+          },
+        });
+
         return NextResponse.json(
           { error: "Credenciais incorretas." },
           { status: 401 }
         );
       }
+
+      // Login bem-sucedido: zera falhas
+      await prisma.patient.update({
+        where: { id: patient.id },
+        data: { failedLogins: 0, lockedUntil: null },
+      });
+
+      // Registrar auditoria de sucesso
+      await prisma.auditLog.create({
+        data: {
+          userId: patient.id,
+          userRole: "PATIENT",
+          action: "LOGIN_SUCCESS",
+          resource: "Patient",
+          resourceId: patient.id,
+          ipAddress: clientIp,
+        },
+      });
 
       const token = await signToken({
         userId: patient.id,
@@ -189,7 +252,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: "E-mail ou senha incorretos." },
+      { error: "Credenciais incorretas." },
       { status: 401 }
     );
   } catch (error) {

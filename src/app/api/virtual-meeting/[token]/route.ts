@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
@@ -86,6 +87,20 @@ export async function GET(
       ? true
       : (settings?.peerJsSecure ?? (process.env.PEERJS_SECURE !== undefined ? process.env.PEERJS_SECURE === "true" : true));
 
+    const rawTurnSecret = settings?.peerJsTurnSecret || process.env.PEERJS_TURN_SECRET || null;
+    let turnUser = settings?.peerJsTurnUser || process.env.PEERJS_TURN_USER || null;
+    let turnCredential = rawTurnSecret;
+
+    // Se houver turnSecret configurado para COTURN / TURN REST API efêmero, gera credencial efêmera HMAC-SHA1
+    if (rawTurnSecret && !turnUser) {
+      const ephemeralExpiry = Math.floor(Date.now() / 1000) + 24 * 3600; // 24 horas
+      turnUser = `${ephemeralExpiry}:${session.userId}`;
+      turnCredential = crypto
+        .createHmac("sha1", rawTurnSecret)
+        .update(turnUser)
+        .digest("base64");
+    }
+
     const peerJsConfig =
       videoMeeting.provider === "PEERJS"
         ? {
@@ -95,8 +110,8 @@ export async function GET(
             secure: peerSecure,
             stunServer: settings?.peerJsStunServer || process.env.PEERJS_STUN_SERVER || "stun:stun.l.google.com:19302",
             turnServer: settings?.peerJsTurnServer || process.env.PEERJS_TURN_SERVER || null,
-            turnUser: settings?.peerJsTurnUser || process.env.PEERJS_TURN_USER || null,
-            turnSecret: settings?.peerJsTurnSecret || process.env.PEERJS_TURN_SECRET || null,
+            turnUser,
+            turnSecret: turnCredential,
             role,
             peerId,
             targetPeerId,

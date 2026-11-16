@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import FormBuilder, { FormTemplateData } from "@/components/forms/FormBuilder";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle } from "pulsoicon-react";
 
 export default function EditFormPage() {
   const params = useParams();

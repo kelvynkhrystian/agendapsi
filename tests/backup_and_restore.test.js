@@ -347,7 +347,6 @@ test("Backup & Restauração E — 2. Fluxo Completo Isolado: Rejeições de Seg
         fullName: "Machado de Assis",
         email: "machado@psi.local",
         phone: "11988881111",
-        tempPassword: "SenhaTemporariaNaoExportavel",
       },
     });
 
@@ -775,7 +774,7 @@ test("Backup & Restauração E — 2. Fluxo Completo Isolado: Rejeições de Seg
       "Dados posteriores ao backup devem ter sido substituídos"
     );
     const restoredAdult = await prisma.patient.findUnique({ where: { id: adultPatient.id } });
-    assert.equal(restoredAdult.tempPassword, null, "tempPassword não deve ser restaurada em texto puro");
+    assert.equal(restoredAdult.tempPassword ?? null, null, "tempPassword não deve ser restaurada em texto puro");
     const restoredMinor = await prisma.patient.findUnique({
       where: { id: minorPatient.id },
       include: { guardians: true },

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
 import { formatDate, formatTime } from "@/lib/utils";
 import { getOrCreateTemplate, sendNotification } from "@/lib/notifications";
 import { getEmailCapability } from "@/lib/integrations-email";
@@ -8,15 +9,30 @@ import { getWhatsAppCapability } from "@/lib/integrations-whatsapp";
 
 export async function POST(req: NextRequest) {
   try {
-    // Pode ser autenticado por Bearer token ou por cron local
+    // Autenticação estrita: Bearer token dedicado ou Sessão ativa de ADMIN
     const authHeader = req.headers.get("authorization");
-    const secret = process.env.TECHNICAL_STATUS_BEARER_TOKEN;
+    const configuredToken = (process.env.CRON_SECRET || process.env.TECHNICAL_STATUS_BEARER_TOKEN || "").trim();
 
-    if (secret && authHeader !== `Bearer ${secret}`) {
-      const isLocalhost = req.headers.get("host")?.includes("localhost");
-      if (!isLocalhost) {
-        return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+    let isAuthorized = false;
+
+    if (configuredToken && authHeader && authHeader.trim() === `Bearer ${configuredToken}`) {
+      isAuthorized = true;
+    } else {
+      try {
+        const session = await getSession();
+        if (session && session.role === "ADMIN") {
+          isAuthorized = true;
+        }
+      } catch {
+        isAuthorized = false;
       }
+    }
+
+    if (!isAuthorized) {
+      return NextResponse.json(
+        { error: "Não autorizado. Token de disparo ausente ou inválido." },
+        { status: 401 }
+      );
     }
 
     const now = new Date();

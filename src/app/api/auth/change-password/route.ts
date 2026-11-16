@@ -5,7 +5,7 @@ import { getSession, hashPassword, verifyPassword } from "@/lib/auth";
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, "A senha atual é obrigatória"),
-  newPassword: z.string().min(6, "A nova senha deve ter no mínimo 6 caracteres"),
+  newPassword: z.string().min(8, "A nova senha deve ter no mínimo 8 caracteres"),
 });
 
 export async function POST(req: NextRequest) {

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createAtomicHold } from "@/lib/schedule";
 import { getSession } from "@/lib/auth";
 import { isRestoreInProgress, RESTORE_MAINTENANCE_MESSAGE } from "@/lib/backup";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const draftHoldSchema = z.object({
   serviceId: z.string().min(1),
@@ -13,6 +14,17 @@ const draftHoldSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const clientIp = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "127.0.0.1";
+
+    // Rate Limiting anti-slot-hoarding: máximo de 15 reservas preliminares por 10 minutos por IP
+    const rateCheck = checkRateLimit("booking-hold", clientIp, { windowMs: 10 * 60 * 1000, max: 15 });
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: "Limite de reservas preliminares excedido temporariamente. Aguarde alguns minutos." },
+        { status: 429 }
+      );
+    }
+
     if (await isRestoreInProgress()) {
       return NextResponse.json({ error: RESTORE_MAINTENANCE_MESSAGE }, { status: 503 });
     }

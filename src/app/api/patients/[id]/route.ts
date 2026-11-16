@@ -59,7 +59,8 @@ export async function GET(
       return NextResponse.json({ error: "Paciente não encontrado." }, { status: 404 });
     }
 
-    return NextResponse.json(patient);
+    const { passwordHash: _hash, ...safePatient } = patient;
+    return NextResponse.json(safePatient);
   } catch (error: unknown) {
     if (error instanceof Error && (error.message === "UNAUTHORIZED" || error.message === "FORBIDDEN")) {
       return NextResponse.json({ error: "Acesso restrito ao administrador." }, { status: 403 });
@@ -126,7 +127,8 @@ export async function PATCH(
       },
     });
 
-    return NextResponse.json(updated);
+    const { passwordHash: _hash, ...safeUpdated } = updated;
+    return NextResponse.json(safeUpdated);
   } catch (error: unknown) {
     if (error instanceof Error && (error.message === "UNAUTHORIZED" || error.message === "FORBIDDEN")) {
       return NextResponse.json({ error: "Acesso restrito ao administrador." }, { status: 403 });

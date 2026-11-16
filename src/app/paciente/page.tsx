@@ -168,7 +168,67 @@ export default function PatientAppointmentsPage() {
 
       {statusMessage && <Alert variant="info">{statusMessage}</Alert>}
 
-      {/* ================= 2. NEXT APPOINTMENT HIGHLIGHT (SE HOUVER) ================= */}
+      {/* ================= 2. ATALHOS RÁPIDOS DO PACIENTE ================= */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+        <Link href="/paciente/anamnese" className="block group col-span-1">
+          <Card className="p-4 sm:p-5 h-full rounded-2xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#1E1E1E] hover:border-[var(--primary)]/60 dark:hover:border-[#525252] hover:shadow-xs transition-all flex flex-col justify-between">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] dark:bg-[#292929] dark:text-[#C0C0C0] flex items-center justify-center shrink-0">
+                <FileText className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h4 className="font-heading font-semibold text-xs sm:text-sm text-[#171717] dark:text-[#F5F5F5] group-hover:text-[var(--primary)] transition-colors truncate">
+                  Ficha de Anamnese
+                </h4>
+                <p className="text-[11px] sm:text-xs text-[#737373] dark:text-[#A6A6A6] line-clamp-1 sm:line-clamp-2 mt-0.5">
+                  Histórico de saúde e hábitos
+                </p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-[#A3A3A3] group-hover:text-[var(--primary)] group-hover:translate-x-0.5 transition-all shrink-0 hidden sm:block mt-1" />
+            </div>
+          </Card>
+        </Link>
+
+        <Link href="/paciente/documentos" className="block group col-span-1">
+          <Card className="p-4 sm:p-5 h-full rounded-2xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#1E1E1E] hover:border-purple-400 dark:hover:border-purple-600/50 hover:shadow-xs transition-all flex flex-col justify-between">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-purple-500/10 text-purple-600 dark:bg-purple-950/30 dark:text-purple-400 flex items-center justify-center shrink-0">
+                <FolderLock className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h4 className="font-heading font-semibold text-xs sm:text-sm text-[#171717] dark:text-[#F5F5F5] group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors truncate">
+                  Documentos Liberados
+                </h4>
+                <p className="text-[11px] sm:text-xs text-[#737373] dark:text-[#A6A6A6] line-clamp-1 sm:line-clamp-2 mt-0.5">
+                  Declarações e atestados
+                </p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-[#A3A3A3] group-hover:text-purple-600 dark:group-hover:text-purple-400 group-hover:translate-x-0.5 transition-all shrink-0 hidden sm:block mt-1" />
+            </div>
+          </Card>
+        </Link>
+
+        <Link href="/paciente/financeiro" className="block group col-span-2 md:col-span-1">
+          <Card className="p-4 sm:p-5 h-full rounded-2xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#1E1E1E] hover:border-emerald-400 dark:hover:border-emerald-600/50 hover:shadow-xs transition-all flex flex-col justify-between">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-emerald-500/10 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                <Boxes className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h4 className="font-heading font-semibold text-xs sm:text-sm text-[#171717] dark:text-[#F5F5F5] group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
+                  Pacotes & Faturas
+                </h4>
+                <p className="text-[11px] sm:text-xs text-[#737373] dark:text-[#A6A6A6] line-clamp-1 sm:line-clamp-2 mt-0.5">
+                  Sessões contratadas e recibos
+                </p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-[#A3A3A3] group-hover:text-emerald-600 dark:group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all shrink-0 hidden sm:block mt-1" />
+            </div>
+          </Card>
+        </Link>
+      </div>
+
+      {/* ================= 3. NEXT APPOINTMENT HIGHLIGHT (SE HOUVER) ================= */}
       {nextAppointment && !isLoading && (
         <Card className="border-[var(--primary)]/30 bg-gradient-to-br from-white via-white to-[var(--primary)]/5 dark:from-[#202020] dark:via-[#202020] dark:to-[#202020] dark:border-[#393939] shadow-sm">
           <CardHeader className="p-5 sm:p-6 pb-2">
@@ -359,63 +419,6 @@ export default function PatientAppointmentsPage() {
             className="py-10"
           />
         )}
-      </div>
-
-      {/* ================= 4. ATALHOS DO PACIENTE ================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-2">
-        <Link href="/paciente/anamnese" className="block">
-          <Card className="p-4 sm:p-5 hover:border-[var(--primary)]/50 dark:hover:border-[#525252] hover:shadow-xs transition-all">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] dark:bg-[#292929] dark:text-[#C0C0C0] flex items-center justify-center shrink-0">
-                <FileText className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <h4 className="font-heading font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] truncate">
-                  Ficha de Anamnese
-                </h4>
-                <p className="text-xs text-[#737373] dark:text-[#A6A6A6]">
-                  Histórico de saúde e hábitos
-                </p>
-              </div>
-            </div>
-          </Card>
-        </Link>
-
-        <Link href="/paciente/documentos" className="block">
-          <Card className="p-4 sm:p-5 hover:border-[var(--primary)]/50 dark:hover:border-[#525252] hover:shadow-xs transition-all">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-purple-500/10 text-purple-600 dark:bg-[#292929] dark:text-[#C0C0C0] flex items-center justify-center shrink-0">
-                <FolderLock className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <h4 className="font-heading font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] truncate">
-                  Documentos Liberados
-                </h4>
-                <p className="text-xs text-[#737373] dark:text-[#A6A6A6]">
-                  Declarações e atestados
-                </p>
-              </div>
-            </div>
-          </Card>
-        </Link>
-
-        <Link href="/paciente/financeiro" className="block">
-          <Card className="p-4 sm:p-5 hover:border-[var(--primary)]/50 dark:hover:border-[#525252] hover:shadow-xs transition-all">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:bg-[#292929] dark:text-[#C0C0C0] flex items-center justify-center shrink-0">
-                <Boxes className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <h4 className="font-heading font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] truncate">
-                  Pacotes & Faturas
-                </h4>
-                <p className="text-xs text-[#737373] dark:text-[#A6A6A6]">
-                  Sessões contratadas e recibos
-                </p>
-              </div>
-            </div>
-          </Card>
-        </Link>
       </div>
 
       {/* ================= 5. HISTÓRICO DE CONSULTAS PASSADAS ================= */}

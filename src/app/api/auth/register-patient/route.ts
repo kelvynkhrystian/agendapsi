@@ -3,12 +3,13 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { AUTH_COOKIE_NAME, hashPassword, signToken } from "@/lib/auth";
 import { dispatchNotification } from "@/lib/notifications";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const registerSchema = z
   .object({
     fullName: z.string().min(3, "Nome completo é obrigatório"),
     email: z.string().email("E-mail inválido"),
-    password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
+    password: z.string().min(8, "A senha deve ter no mínimo 8 caracteres"),
     phone: z.string().min(8, "Telefone é obrigatório"),
     cpf: z.string().optional(),
     birthDate: z.string().optional(),
@@ -46,6 +47,17 @@ const registerSchema = z
 
 export async function POST(req: NextRequest) {
   try {
+    const clientIp = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "127.0.0.1";
+
+    // Rate Limiting: máximo de 5 cadastros por hora por endereço IP
+    const rateCheck = checkRateLimit("register", clientIp, { windowMs: 60 * 60 * 1000, max: 5 });
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: "Limite de tentativas de cadastro excedido para este endereço IP. Tente novamente mais tarde." },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const result = registerSchema.safeParse(body);
 

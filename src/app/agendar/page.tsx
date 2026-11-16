@@ -1,84 +1,200 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState, useRef, useTransition } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { formatBRL, formatDate } from "@/lib/utils";
+import { useRouter, useSearchParams } from "next/navigation";
+import gsap from "gsap";
+import { formatBRL, formatDate, toLocalDateString } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
-import { Input } from "@/components/ui/input";
+import { MiniSiteHeader } from "@/components/minisite/header";
+import { BookingHeaderWaves } from "@/components/booking/booking-header-waves";
+import { BookingStepper } from "@/components/booking/booking-stepper";
+import {
+  BookingDateTimePicker,
+  Slot,
+} from "@/components/booking/booking-date-time-picker";
 import {
   Calendar,
   Clock,
   CheckCircle2,
   ArrowRight,
   ArrowLeft,
-  MessageSquare,
+  Check,
   CreditCard,
   ShieldCheck,
   Stethoscope,
   Video,
   MapPin,
+  Sparkles,
+  Heart,
+  Brain,
+  MessageSquare,
+  Eye,
+  EyeOff,
+  User,
+  Mail,
+  Phone,
+  Lock,
   AlertTriangle,
 } from "pulsoicon-react";
+
+export const dynamic = "force-dynamic";
 
 interface Service {
   id: string;
   name: string;
-  description?: string;
+  description?: string | null;
   priceCents: number;
   isFree: boolean;
   durationMinutes: number;
   modality: "PRESENTIAL" | "ONLINE" | "BOTH";
 }
 
-interface Slot {
-  startAt: string;
-  endAt: string;
-  formattedTime: string;
-  available: boolean;
-  reason?: string;
+interface SiteSettingsData {
+  clinicName?: string;
+  logoUrl?: string | null;
+  logoHorizontalUrl?: string | null;
+  showLocation?: boolean;
+  themeName?: string;
+  primaryColor?: string;
+  whatsappNumber?: string;
 }
 
-export const dynamic = "force-dynamic";
+interface ProfileData {
+  fullName?: string;
+  displayName?: string;
+  title?: string;
+  crpCrm?: string | null;
+}
 
-export default function BookingPage() {
+function formatPhoneInput(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
+function formatCPFInput(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+}
+
+function formatDateLong(dateStr: string): string {
+  if (!dateStr) return "";
+  try {
+    const [year, month, day] = dateStr.split("-").map(Number);
+    const d = new Date(year, month - 1, day, 12, 0, 0);
+    return new Intl.DateTimeFormat("pt-BR", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    }).format(d);
+  } catch {
+    return dateStr;
+  }
+}
+
+function getServiceIcon(service: Service) {
+  const nameLower = service.name.toLowerCase();
+  if (nameLower.includes("casal") || nameLower.includes("família")) {
+    return Heart;
+  }
+  if (nameLower.includes("avaliação") || nameLower.includes("neuro")) {
+    return Brain;
+  }
+  if (service.modality === "ONLINE") {
+    return Video;
+  }
+  if (service.modality === "PRESENTIAL") {
+    return MapPin;
+  }
+  return Sparkles;
+}
+
+function BookingPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const stepContainerRef = useRef<HTMLDivElement>(null);
 
-  // Etapa atual: 1 = Serviço, 2 = Data/Horário, 3 = Identificação e Pagamento
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  // Etapa do wizard: 1 = Serviço, 2 = Data e Horário, 3 = Identificação, 4 = Pagamento
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
 
-  // Estados de seleção
+  // Dados do consultório e profissional
+  const [site, setSite] = useState<SiteSettingsData | null>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [sectionsConfig, setSectionsConfig] = useState<any>(null);
+
+  // Estados de seleção do agendamento
   const [services, setServices] = useState<Service[]>([]);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [selectedModality, setSelectedModality] = useState<"PRESENTIAL" | "ONLINE" | "BOTH">("ONLINE");
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [slots, setSlots] = useState<Slot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
-  const [selectedModality, setSelectedModality] = useState<"PRESENTIAL" | "ONLINE" | "BOTH">("ONLINE");
-  const [paymentMethod, setPaymentMethod] = useState<"ONLINE_SIMULATED" | "IN_PERSON" | "WHATSAPP_ARRANGED">("ONLINE_SIMULATED");
+  const [paymentMethod, setPaymentMethod] = useState<"ONLINE_SIMULATED" | "IN_PERSON">("ONLINE_SIMULATED");
+  const [holdToken, setHoldToken] = useState<string>("");
 
-  // Sessão do usuário
-  const [currentUser, setCurrentUser] = useState<{ id: string; fullName?: string; email?: string } | null>(null);
+  // Sessão do paciente
+  const [currentUser, setCurrentUser] = useState<{ id: string; fullName?: string; name?: string; email?: string } | null>(null);
 
-  // Form de identificação rápido caso não esteja logado
+  // Formulário de Identificação (Etapa 3)
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
+  // Cadastro de Novo Paciente
+  const [regFullName, setRegFullName] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regPhone, setRegPhone] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regConfirmPassword, setRegConfirmPassword] = useState("");
+  const [showRegPassword, setShowRegPassword] = useState(false);
+  const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
+  const [isMinor, setIsMinor] = useState(false);
+  const [guardianFullName, setGuardianFullName] = useState("");
+  const [guardianCpf, setGuardianCpf] = useState("");
+  const [guardianPhone, setGuardianPhone] = useState("");
+  const [guardianRelationship, setGuardianRelationship] = useState("Mãe");
+  const [acceptTerms, setAcceptTerms] = useState(true);
+
+  // Estados de carregamento e feedback
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [holdToken, setHoldToken] = useState<string>("");
+  const [slotError, setSlotError] = useState<string | null>(null);
+  const [isConfirmed, setIsConfirmed] = useState(false);
 
-  // Carrega serviços públicos e dados de sessão
+  // Carrega configurações do site, perfil e serviços públicos
   useEffect(() => {
+    fetch("/api/site/settings")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.site) setSite(data.site);
+        if (data.profile) setProfile(data.profile);
+        if (data.sectionsConfig) setSectionsConfig(data.sectionsConfig);
+        if (Array.isArray(data.services) && data.services.length > 0) {
+          setServices(data.services);
+        }
+      })
+      .catch((err) => console.error("Erro ao buscar dados do site:", err));
+
     fetch("/api/services?public=true")
       .then((r) => r.json())
-      .then((data) => setServices(Array.isArray(data) ? data : []));
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setServices(data);
+        }
+      })
+      .catch((err) => console.error("Erro ao buscar serviços:", err));
 
     fetch("/api/auth/me")
       .then((r) => r.json())
@@ -95,50 +211,118 @@ export default function BookingPage() {
       try {
         const parsed = JSON.parse(savedDraft);
         if (parsed.service) setSelectedService(parsed.service);
+        if (parsed.modality) setSelectedModality(parsed.modality);
         if (parsed.date) setSelectedDate(parsed.date);
         if (parsed.slot) setSelectedSlot(parsed.slot);
-        if (parsed.modality) setSelectedModality(parsed.modality);
+        if (parsed.holdToken) setHoldToken(parsed.holdToken);
       } catch (e) {
-        console.error(e);
+        console.error("Falha ao recuperar rascunho:", e);
       }
     }
   }, []);
 
-  // Quando o serviço e a data são escolhidos, busca slots disponíveis
+  // Pré-seleciona o serviço se fornecido via query param (?serviceId=...)
+  useEffect(() => {
+    const serviceIdQuery = searchParams.get("serviceId");
+    if (serviceIdQuery && services.length > 0) {
+      const match = services.find((s) => s.id === serviceIdQuery);
+      if (match) {
+        setSelectedService(match);
+        setSelectedModality(match.modality === "BOTH" ? "ONLINE" : match.modality);
+      }
+    }
+  }, [searchParams, services]);
+
+  // Animação GSAP suave de transição entre passos (respeitando prefers-reduced-motion)
+  useEffect(() => {
+    if (!stepContainerRef.current) return;
+    const prefersReduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (prefersReduced) {
+      stepContainerRef.current.style.opacity = "1";
+      stepContainerRef.current.style.transform = "none";
+      return;
+    }
+
+    gsap.fromTo(
+      stepContainerRef.current,
+      { opacity: 0, y: 10 },
+      { opacity: 1, y: 0, duration: 0.28, ease: "power2.out" }
+    );
+  }, [step, isConfirmed]);
+
+  // Consulta horários disponíveis quando serviço e data forem selecionados
   useEffect(() => {
     if (selectedService && selectedDate) {
       setIsLoadingSlots(true);
       setSelectedSlot(null);
+      setSlotError(null);
+
       fetch(`/api/availability/slots?date=${selectedDate}&serviceId=${selectedService.id}`)
-        .then((r) => r.json())
-        .then((data) => {
-          setSlots(Array.isArray(data) ? data : []);
+        .then(async (r) => {
+          const data = await r.json();
+          if (!r.ok) {
+            setSlotError(data.error || "Não foi possível verificar a disponibilidade para esta data.");
+            setSlots([]);
+          } else {
+            setSlots(Array.isArray(data) ? data : []);
+          }
           setIsLoadingSlots(false);
         })
         .catch((e) => {
           console.error(e);
+          setSlotError("Erro de comunicação com o servidor ao consultar horários.");
+          setSlots([]);
           setIsLoadingSlots(false);
         });
+    } else {
+      setSlots([]);
+      setSelectedSlot(null);
+      setSlotError(null);
     }
   }, [selectedService, selectedDate]);
 
-  // Avança para a etapa 2
+  // Comportamento do botão Voltar do cabeçalho
+  const handleBack = () => {
+    setError(null);
+    if (isConfirmed) {
+      router.push("/");
+      return;
+    }
+    if (step === 1) {
+      router.push("/");
+    } else {
+      setStep((prev) => (prev - 1) as 1 | 2 | 3 | 4);
+    }
+  };
+
+  // Seleção de Serviço (Etapa 1)
   const handleSelectService = (s: Service) => {
     setSelectedService(s);
     setSelectedModality(s.modality === "BOTH" ? "ONLINE" : s.modality);
+    setError(null);
+  };
+
+  // Avança para a Etapa 2
+  const handleProceedToStep2 = () => {
+    if (!selectedService) return;
+    setError(null);
     setStep(2);
   };
 
-  // Cria Hold e avança para a etapa 3
+  // Cria Hold seguro e avança para a Etapa 3 (Identificação)
   const handleProceedToStep3 = async () => {
-    if (!selectedService || !selectedSlot) return;
+    if (!selectedService || !selectedSlot || !selectedDate) return;
     setError(null);
     setIsLoading(true);
 
-    const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const token =
+      Math.random().toString(36).substring(2, 15) +
+      Math.random().toString(36).substring(2, 15);
     setHoldToken(token);
 
-    // Salva rascunho no sessionStorage
     sessionStorage.setItem(
       "psi_booking_draft",
       JSON.stringify({
@@ -164,7 +348,7 @@ export default function BookingPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Não foi possível reservar este horário.");
+        setError(data.error || "Não foi possível reservar este horário temporariamente.");
         setIsLoading(false);
         return;
       }
@@ -172,59 +356,111 @@ export default function BookingPage() {
       setIsLoading(false);
       setStep(3);
     } catch {
-      setError("Erro ao comunicar com o servidor.");
+      setError("Erro ao comunicar com o servidor para reserva do horário.");
       setIsLoading(false);
     }
   };
 
-  // Login ou Cadastro rápido durante a Etapa 3
-  const handleInlineAuth = async (e: React.FormEvent) => {
+  // Login de Paciente Existente na Etapa 3
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
 
     try {
-      if (authMode === "login") {
-        const res = await fetch("/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          setError(data.error || "Credenciais inválidas.");
-          setIsLoading(false);
-          return;
-        }
-        setCurrentUser(data.user);
-      } else {
-        const res = await fetch("/api/auth/register-patient", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            fullName,
-            email,
-            password,
-            phone,
-            acceptTerms: true,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          setError(data.error || "Erro no cadastro.");
-          setIsLoading(false);
-          return;
-        }
-        setCurrentUser(data.user);
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Credenciais incorretas.");
+        setIsLoading(false);
+        return;
       }
+      setCurrentUser(data.user);
       setIsLoading(false);
+      setStep(4);
     } catch {
-      setError("Erro ao autenticar.");
+      setError("Erro de comunicação ao realizar login.");
       setIsLoading(false);
     }
   };
 
-  // Conclui Agendamento na Plataforma
+  // Cadastro de Novo Paciente na Etapa 3
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (regPassword !== regConfirmPassword) {
+      setError("As senhas informadas não coincidem.");
+      return;
+    }
+
+    if (regPassword.length < 8) {
+      setError("A senha deve ter no mínimo 8 caracteres.");
+      return;
+    }
+
+    if (isMinor) {
+      if (!guardianFullName || !guardianCpf || !guardianPhone) {
+        setError("Para pacientes menores de 18 anos, todos os dados do responsável legal são obrigatórios.");
+        return;
+      }
+    }
+
+    setIsLoading(true);
+
+    try {
+      const payload: any = {
+        fullName: regFullName,
+        email: regEmail,
+        password: regPassword,
+        phone: regPhone,
+        isMinor,
+        acceptTerms: true,
+      };
+
+      if (isMinor) {
+        payload.guardianFullName = guardianFullName;
+        payload.guardianCpf = guardianCpf.replace(/\D/g, "");
+        payload.guardianPhone = guardianPhone;
+        payload.guardianRelationship = guardianRelationship;
+      }
+
+      const res = await fetch("/api/auth/register-patient", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Não foi possível concluir o cadastro.");
+        setIsLoading(false);
+        return;
+      }
+
+      setCurrentUser(data.user);
+      setIsLoading(false);
+      setStep(4);
+    } catch {
+      setError("Erro de comunicação ao realizar cadastro.");
+      setIsLoading(false);
+    }
+  };
+
+  // Logout para troca de conta
+  const handleLogoutAccount = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } finally {
+      setCurrentUser(null);
+    }
+  };
+
+  // Confirmação final do agendamento (Etapa 4)
   const handleConfirmBooking = async () => {
     if (!currentUser || !holdToken) return;
     setIsLoading(true);
@@ -245,441 +481,928 @@ export default function BookingPage() {
       if (!res.ok) {
         setError(data.error || "Não foi possível concluir o agendamento.");
         setIsLoading(false);
+        // Se a reserva expirou (410), permite voltar para a etapa 2
+        if (res.status === 410) {
+          setTimeout(() => {
+            setStep(2);
+          }, 2500);
+        }
         return;
       }
 
-      // Limpa rascunho
       sessionStorage.removeItem("psi_booking_draft");
-      router.push("/paciente");
+      setIsLoading(false);
+      setIsConfirmed(true);
     } catch {
-      setError("Erro ao finalizar agendamento.");
+      setError("Erro ao finalizar o agendamento. Tente novamente.");
       setIsLoading(false);
     }
   };
 
-  // Solicitação via WhatsApp (Apenas mensagem, sem reserva indevida nem dados clínicos)
+  // Contato via WhatsApp em caso de dúvidas
   const handleWhatsAppInquiry = () => {
-    if (!selectedService || !selectedDate || !selectedSlot) return;
-
-    const professionalPhone = "5511999999999";
-    const msg = `Olá! Gostaria de solicitar informações sobre a disponibilidade para a consulta de ${selectedService.name} na data ${selectedDate} às ${selectedSlot.formattedTime}. Esta é apenas uma solicitação inicial de contato.`;
-
-    const url = `https://wa.me/${professionalPhone}?text=${encodeURIComponent(msg)}`;
+    const rawNumber = site?.whatsappNumber || "5511999999999";
+    const cleanNumber = rawNumber.replace(/\D/g, "");
+    const svcName = selectedService ? selectedService.name : "atendimento";
+    const dateText = selectedDate && selectedSlot ? ` na data ${selectedDate} às ${selectedSlot.formattedTime}` : "";
+    const msg = `Olá! Gostaria de tirar dúvidas sobre o agendamento de ${svcName}${dateText}.`;
+    const url = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(msg)}`;
     window.open(url, "_blank");
   };
 
   return (
-    <div data-theme="light" className="min-h-[100dvh] flex flex-col justify-between bg-slate-50 text-slate-900 selection:bg-[var(--primary)] selection:text-white">
-      {/* Header */}
-      <header className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-4xl mx-auto px-3.5 sm:px-4 h-14 sm:h-16 flex items-center justify-between gap-3">
-          <Link href="/" aria-label="Voltar ao início" className="flex items-center gap-2 font-bold text-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/50 rounded-lg min-w-0">
-            <Stethoscope className="h-5 w-5 sm:h-6 sm:w-6 shrink-0" />
-            <span className="truncate text-sm sm:text-base">PSI Consultório</span>
-          </Link>
+    <div
+      data-theme="light"
+      className="min-h-screen flex flex-col justify-between bg-[#FDFCFB] text-slate-900 selection:bg-[var(--primary)] selection:text-white relative overflow-x-hidden"
+    >
+      {/* 1. Ondas Decorativas Dinâmicas com Cores do Tema */}
+      <BookingHeaderWaves />
 
-          <div className="flex items-center gap-4 shrink-0">
-            <Link href="/" className="text-xs text-slate-500 hover:text-[var(--primary)] whitespace-nowrap">
-              Voltar ao Início
-            </Link>
-          </div>
-        </div>
-      </header>
+      {/* 2. Cabeçalho Oficial do MiniSite com Botão Voltar integrado */}
+      <MiniSiteHeader
+        logoHorizontalUrl={site?.logoHorizontalUrl}
+        logoUrl={site?.logoUrl}
+        clinicName={site?.clinicName}
+        professionalName={profile?.displayName || profile?.fullName}
+        crpCrm={profile?.crpCrm}
+        shouldShowLocation={site?.showLocation}
+        visibleSections={sectionsConfig}
+        currentUser={
+          currentUser
+            ? {
+                name: currentUser.fullName || currentUser.name || "Paciente",
+                role: "PATIENT",
+              }
+            : null
+        }
+        isBookingPage={true}
+        onBack={handleBack}
+      />
 
-      {/* Main Container */}
-      <main className="max-w-4xl mx-auto w-full p-3.5 sm:p-6 lg:p-8 flex-1">
-        {/* Progress Bar 3 Passos */}
-        <div className="mb-7 sm:mb-12">
-          <div className="flex items-center justify-between max-w-md mx-auto text-[11px] sm:text-xs font-semibold text-[#737373]">
-            <div className={`flex flex-col min-[440px]:flex-row items-center gap-1 min-[440px]:gap-2 text-center ${step >= 1 ? "text-[var(--primary)] font-bold" : ""}`}>
-              <span className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[11px] sm:text-xs font-bold shrink-0 ${step >= 1 ? "bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] shadow-xs" : "bg-[#E5E5E5] text-slate-500"}`}>
-                1
-              </span>
-              <span className="leading-tight">Serviço</span>
-            </div>
-            <div className={`h-0.5 flex-1 mx-1.5 sm:mx-3 ${step >= 2 ? "bg-[var(--primary)]" : "bg-[#E5E5E5]"}`} />
-            <div className={`flex flex-col min-[440px]:flex-row items-center gap-1 min-[440px]:gap-2 text-center ${step >= 2 ? "text-[var(--primary)] font-bold" : ""}`}>
-              <span className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[11px] sm:text-xs font-bold shrink-0 ${step >= 2 ? "bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] shadow-xs" : "bg-[#E5E5E5] text-slate-500"}`}>
-                2
-              </span>
-              <span className="leading-tight">Data e Horário</span>
-            </div>
-            <div className={`h-0.5 flex-1 mx-1.5 sm:mx-3 ${step >= 3 ? "bg-[var(--primary)]" : "bg-[#E5E5E5]"}`} />
-            <div className={`flex flex-col min-[440px]:flex-row items-center gap-1 min-[440px]:gap-2 text-center ${step >= 3 ? "text-[var(--primary)] font-bold" : ""}`}>
-              <span className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[11px] sm:text-xs font-bold shrink-0 ${step >= 3 ? "bg-[var(--primary)] text-[var(--primary-foreground,#ffffff)] shadow-xs" : "bg-[#E5E5E5] text-slate-500"}`}>
-                3
-              </span>
-              <span className="leading-tight">Identificação</span>
-            </div>
-          </div>
-        </div>
+      {/* 3. Container Principal de Agendamento (Mobile-First) */}
+      <main className="pt-24 sm:pt-28 pb-12 sm:pb-16 px-3.5 sm:px-6 max-w-xl mx-auto w-full flex-1 relative z-10 flex flex-col justify-start">
+        {/* Stepper Horizontal (Oculto após confirmação de sucesso) */}
+        {!isConfirmed && <BookingStepper currentStep={step} />}
 
-        {error && <Alert variant="destructive" className="mb-6">{error}</Alert>}
-
-        {/* ETAPA 1: ESCOLHER SERVIÇO */}
-        {step === 1 && (
-          <div className="space-y-6">
-            <div className="text-center space-y-1">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Escolha o Tipo de Atendimento</h1>
-              <p className="text-xs sm:text-sm text-slate-500">
-                Selecione a modalidade e o procedimento desejado para visualizar a agenda disponível
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {services.map((service) => (
-                <Card
-                  key={service.id}
-                  onClick={() => handleSelectService(service)}
-                  className="hover:border-[var(--primary)] hover:shadow-md transition-all cursor-pointer border-slate-200 bg-white"
-                >
-                  <CardHeader className="flex flex-col min-[380px]:flex-row items-start justify-between gap-2 pb-2 p-4 sm:p-6">
-                    <div className="min-w-0">
-                      <CardTitle className="text-base">{service.name}</CardTitle>
-                      <CardDescription className="text-xs line-clamp-2 mt-1">
-                        {service.description || "Atendimento clínico especializado"}
-                      </CardDescription>
-                    </div>
-                    <span className="text-base font-bold text-[var(--primary)] shrink-0">
-                      {service.isFree ? "Gratuito" : formatBRL(service.priceCents)}
-                    </span>
-                  </CardHeader>
-                  <CardContent className="p-4 sm:p-6 pt-0 text-xs text-slate-500 flex flex-wrap items-center justify-between gap-2">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5 text-slate-400" />
-                      {service.durationMinutes} minutos
-                    </span>
-                    <Button size="sm" variant="outline" className="text-xs gap-1">
-                      <span>Selecionar</span>
-                      <ArrowRight className="h-3 w-3" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
+        {/* Mensagem de Erro Global */}
+        {error && (
+          <Alert variant="destructive" className="mb-5 rounded-2xl shadow-xs text-xs animate-fade-in">
+            {error}
+          </Alert>
         )}
 
-        {/* ETAPA 2: DATA E HORÁRIO */}
-        {step === 2 && selectedService && (
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div className="min-w-0">
-                <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Escolha o Dia e o Horário</h1>
-                <p className="text-xs text-slate-500 mt-0.5 break-words">
-                  Serviço selecionado: <strong>{selectedService.name}</strong> ({selectedService.durationMinutes} min)
+        {/* Conteúdo Dinâmico do Passo com Animação GSAP */}
+        <div ref={stepContainerRef} className="w-full">
+          {/* ================= TELA DE SUCESSO ================= */}
+          {isConfirmed ? (
+            <div className="text-center py-6 px-4 bg-white border border-slate-200/90 rounded-3xl shadow-sm space-y-6">
+              <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-xs">
+                <CheckCircle2 className="w-9 h-9 stroke-[2.2]" />
+              </div>
+
+              <div className="space-y-1.5">
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+                  Agendamento realizado com sucesso!
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
+                  Sua consulta foi agendada e reservada na agenda do profissional. Enviamos a confirmação para o seu e-mail.
                 </p>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => setStep(1)} className="text-xs gap-1 self-start sm:self-auto shrink-0">
-                <ArrowLeft className="h-3.5 w-3.5" />
-                <span>Trocar Serviço</span>
-              </Button>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Seletor de Data e Modalidade */}
-              <Card className="border-slate-200 bg-white">
-                <CardHeader>
-                  <CardTitle className="text-base">1. Selecione a Data</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Input
-                    label="Data Pretendida"
-                    type="date"
-                    min={new Date().toISOString().split("T")[0]}
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                  />
-
-                  {selectedService.modality === "BOTH" && (
-                    <div className="space-y-1.5 pt-2">
-                      <label className="block text-xs font-medium">Formato do Atendimento</label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedModality("ONLINE")}
-                          className={`p-3 rounded-lg border text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                            selectedModality === "ONLINE"
-                              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] border-[var(--button-bg,var(--primary))] shadow-xs"
-                              : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border-[var(--primary)]/25 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04]"
-                          }`}
-                        >
-                          <Video className="h-4 w-4 text-current" />
-                          <span>Online</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedModality("PRESENTIAL")}
-                          className={`p-3 rounded-lg border text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                            selectedModality === "PRESENTIAL"
-                              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] border-[var(--button-bg,var(--primary))] shadow-xs"
-                              : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border-[var(--primary)]/25 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04]"
-                          }`}
-                        >
-                          <MapPin className="h-4 w-4 text-current" />
-                          <span>Presencial</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Lista de Horários Disponíveis */}
-              <Card className="border-slate-200 bg-white">
-                <CardHeader>
-                  <CardTitle className="text-base">2. Horários Livres</CardTitle>
-                  <CardDescription className="text-xs">
-                    {selectedDate ? `Horários em ${formatDate(selectedDate)}` : "Escolha uma data ao lado"}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingSlots ? (
-                    <div className="py-8 text-center text-xs text-slate-500">
-                      Verificando disponibilidade da agenda...
-                    </div>
-                  ) : slots.length > 0 ? (
-                    <div className="grid grid-cols-2 min-[380px]:grid-cols-3 gap-2 max-h-60 overflow-y-auto p-1">
-                      {slots.map((slot, i) => (
-                        <button
-                          key={i}
-                          disabled={!slot.available}
-                          onClick={() => setSelectedSlot(slot)}
-                          className={`py-2 px-3 rounded-lg text-xs font-mono font-semibold transition-all ${
-                            !slot.available
-                              ? "opacity-30 bg-slate-100 cursor-not-allowed text-slate-400"
-                              : selectedSlot?.startAt === slot.startAt
-                              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-xs"
-                              : "border border-[var(--primary)]/30 hover:border-[var(--primary)] text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] bg-white"
-                          }`}
-                        >
-                          {slot.formattedTime}
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="py-8 text-center text-xs text-slate-400">
-                      {selectedDate
-                        ? "Nenhum horário disponível para a data selecionada."
-                        : "Selecione uma data para carregar os horários."}
-                    </div>
-                  )}
-
-                  {selectedSlot && (
-                    <div className="mt-4 pt-4 border-t border-slate-100 flex justify-end">
-                      <Button onClick={handleProceedToStep3} isLoading={isLoading} className="w-full sm:w-auto gap-1.5 text-xs">
-                        <span>Avançar para Identificação</span>
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Opção Alternativa: Solicitação WhatsApp */}
-            <div className="p-4 sm:p-6 rounded-2xl bg-amber-50/70 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
-              <div className="space-y-1">
-                <span className="font-semibold text-amber-900">
-                  Prefere tirar dúvidas antes de reservar?
-                </span>
-                <p className="text-amber-800 leading-relaxed">
-                  Envie uma mensagem direta pelo WhatsApp para esclarecimentos. Atenção: a mensagem é apenas uma solicitação inicial e não bloqueia a agenda.
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleWhatsAppInquiry}
-                disabled={!selectedSlot}
-                className="w-full sm:w-auto shrink-0 gap-2 text-xs border-amber-300 text-amber-900 bg-white hover:bg-amber-100/50 h-9 min-h-[36px]"
-              >
-                <MessageSquare className="h-4 w-4" />
-                <span>Solicitar via WhatsApp</span>
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* ETAPA 3: IDENTIFICAÇÃO E PAGAMENTO */}
-        {step === 3 && selectedService && selectedSlot && (
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div className="min-w-0">
-                <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Finalizar Agendamento</h1>
-                <p className="text-xs text-slate-500 mt-0.5 break-words">
-                  {selectedService.name} • {formatDate(selectedDate)} às {selectedSlot.formattedTime} ({selectedModality})
-                </p>
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => setStep(2)} className="text-xs gap-1 self-start sm:self-auto shrink-0">
-                <ArrowLeft className="h-3.5 w-3.5" />
-                <span>Alterar Horário</span>
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Identificação do Paciente */}
-              <Card className="border-slate-200 bg-white">
-                <CardHeader>
-                  <CardTitle className="text-base">1. Dados do Paciente</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {currentUser ? (
-                    <div className="p-4 bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-xl space-y-2 text-xs">
-                      <div className="flex items-center gap-2 text-[var(--primary)] font-semibold">
-                        <CheckCircle2 className="h-4 w-4 shrink-0" />
-                        <span>Identificado com sucesso</span>
-                      </div>
-                      <p className="break-words">Paciente: <strong>{currentUser.fullName}</strong></p>
-                      <p className="break-all">E-mail: <strong>{currentUser.email}</strong></p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4 text-xs">
-                      <div className="grid grid-cols-2 gap-2 p-1 bg-[#F8F8F8] border border-[#E5E5E5] rounded-xl">
-                        <button
-                          type="button"
-                          onClick={() => setAuthMode("login")}
-                          className={`py-2 px-3 rounded-lg font-semibold transition-all cursor-pointer ${
-                            authMode === "login"
-                              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-xs"
-                              : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45"
-                          }`}
-                        >
-                          Já sou paciente
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setAuthMode("register")}
-                          className={`py-2 px-3 rounded-lg font-semibold transition-all cursor-pointer ${
-                            authMode === "register"
-                              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] shadow-xs"
-                              : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/45"
-                          }`}
-                        >
-                          Novo paciente
-                        </button>
-                      </div>
-
-                      <form onSubmit={handleInlineAuth} className="space-y-3">
-                        {authMode === "register" && (
-                          <>
-                            <Input
-                              label="Nome Completo *"
-                              value={fullName}
-                              onChange={(e) => setFullName(e.target.value)}
-                              required
-                            />
-                            <Input
-                              label="Telefone / WhatsApp *"
-                              value={phone}
-                              onChange={(e) => setPhone(e.target.value)}
-                              required
-                            />
-                          </>
-                        )}
-
-                        <Input
-                          label="E-mail *"
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          required
-                        />
-
-                        <Input
-                          label="Senha *"
-                          type="password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          required
-                        />
-
-                        <Button type="submit" size="sm" className="w-full" isLoading={isLoading}>
-                          {authMode === "login" ? "Entrar e Continuar" : "Cadastrar e Continuar"}
-                        </Button>
-                      </form>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Pagamento e Confirmação */}
-              <Card className="border-slate-200 bg-white">
-                <CardHeader>
-                  <CardTitle className="text-base">2. Pagamento e Conclusão</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 text-xs">
-                  <div className="p-3 bg-slate-50 rounded-xl space-y-1.5">
-                    <div className="flex justify-between gap-2">
-                      <span className="text-slate-500">Valor da Sessão:</span>
-                      <span className="font-bold text-sm text-[var(--primary)]">
-                        {selectedService.isFree ? "Gratuito" : formatBRL(selectedService.priceCents)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between gap-2 text-slate-500">
-                      <span>Tempo de Reserva Segura:</span>
-                      <span className="text-right">60 minutos garantidos</span>
-                    </div>
+              {/* Card Resumo do Agendamento Concluído */}
+              {selectedService && selectedSlot && (
+                <div className="p-4 bg-slate-50/80 border border-slate-200/70 rounded-2xl text-left space-y-2.5 text-xs text-slate-700">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-200/60">
+                    <span className="font-semibold text-slate-900">{selectedService.name}</span>
+                    <span className="font-bold text-[var(--primary)]">
+                      {selectedService.isFree || selectedService.priceCents === 0
+                        ? "Gratuito"
+                        : formatBRL(selectedService.priceCents)}
+                    </span>
                   </div>
 
-                  {!selectedService.isFree && (
-                    <div className="space-y-2">
-                      <label className="block font-semibold">Forma de Pagamento:</label>
-                      <div className="space-y-2">
-                        <label className="flex items-start gap-2.5 p-2.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50/80">
-                          <input
-                            type="radio"
-                            name="paymentMethod"
-                            checked={paymentMethod === "ONLINE_SIMULATED"}
-                            onChange={() => setPaymentMethod("ONLINE_SIMULATED")}
-                            className="mt-0.5 accent-[var(--primary)] shrink-0"
-                          />
-                          <div>
-                            <div className="font-semibold">Pagamento Online (Cartão / Pix Simulado)</div>
-                            <div className="text-[11px] text-slate-500">
-                              Confirmação imediata no simulador da V1
-                            </div>
-                          </div>
-                        </label>
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Calendar className="w-4 h-4 text-[var(--primary)] shrink-0" />
+                    <span>{formatDateLong(selectedDate)} às {selectedSlot.formattedTime}</span>
+                  </div>
 
-                        <label className="flex items-start gap-2.5 p-2.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50/80">
-                          <input
-                            type="radio"
-                            name="paymentMethod"
-                            checked={paymentMethod === "IN_PERSON"}
-                            onChange={() => setPaymentMethod("IN_PERSON")}
-                            className="mt-0.5 accent-[var(--primary)] shrink-0"
-                          />
-                          <div>
-                            <div className="font-semibold">Pagamento Presencial no Consultório</div>
-                            <div className="text-[11px] text-slate-500">
-                              Acerto realizado no início da sessão (Cartão, Dinheiro ou Pix)
+                  <div className="flex items-center gap-2 text-slate-600">
+                    {selectedModality === "ONLINE" ? (
+                      <>
+                        <Video className="w-4 h-4 text-blue-600 shrink-0" />
+                        <span>Atendimento Online (Link disponível no Portal do Paciente)</span>
+                      </>
+                    ) : (
+                      <>
+                        <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>Atendimento Presencial no Consultório</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Ações Finais */}
+              <div className="space-y-2.5 pt-2">
+                <Link href="/paciente" className="block w-full">
+                  <Button className="w-full h-12 rounded-xl text-sm font-semibold shadow-xs">
+                    Ir para Minhas Consultas
+                  </Button>
+                </Link>
+
+                <Link href="/" className="block w-full">
+                  <Button variant="outline" className="w-full h-12 rounded-xl text-sm font-semibold border-slate-200">
+                    Voltar ao Início
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          ) : step === 1 ? (
+            /* ================= ETAPA 1: ESCOLHA O SERVIÇO ================= */
+            <div className="space-y-6">
+              <div className="text-center space-y-1">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+                  Escolha o serviço
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-500">
+                  Selecione o tipo de atendimento que deseja agendar.
+                </p>
+              </div>
+
+              {/* Lista de Cards de Serviço */}
+              <div className="space-y-3 sm:space-y-3.5">
+                {services.map((service) => {
+                  const isSelected = selectedService?.id === service.id;
+                  const ServiceIcon = getServiceIcon(service);
+
+                  return (
+                    <div
+                      key={service.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => handleSelectService(service)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleSelectService(service);
+                        }
+                      }}
+                      className={`w-full text-left p-4 sm:p-5 rounded-2xl border transition-all duration-200 cursor-pointer select-none ${
+                        isSelected
+                          ? "border-[var(--primary)] bg-[var(--primary)]/[0.04] shadow-sm ring-1 ring-[var(--primary)]"
+                          : "border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-xs"
+                      }`}
+                    >
+                      {/* Topo do Card: Ícone, Nome e Indicador de Seleção */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3 min-w-0">
+                          <div
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                              isSelected
+                                ? "bg-[var(--primary)] text-white shadow-xs"
+                                : "bg-slate-100 text-slate-600"
+                            }`}
+                          >
+                            <ServiceIcon className="w-5 h-5" />
+                          </div>
+
+                          <div className="min-w-0">
+                            <h3 className="font-semibold text-slate-900 text-sm sm:text-base leading-snug">
+                              {service.name}
+                            </h3>
+
+                            {/* Badge de Modalidade */}
+                            <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                              {service.modality === "ONLINE" && (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
+                                  <Video className="w-3 h-3" /> Online
+                                </span>
+                              )}
+                              {service.modality === "PRESENTIAL" && (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                                  <MapPin className="w-3 h-3" /> Presencial
+                                </span>
+                              )}
+                              {service.modality === "BOTH" && (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
+                                  Online ou Presencial
+                                </span>
+                              )}
                             </div>
                           </div>
-                        </label>
+                        </div>
+
+                        {/* Indicador de Seleção (Círculo Preenchido com Check) */}
+                        <div
+                          className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                            isSelected
+                              ? "bg-[var(--primary)] text-white shadow-xs"
+                              : "border-2 border-slate-300 bg-white"
+                          }`}
+                        >
+                          {isSelected && <Check className="w-3.5 h-3.5 stroke-[2.8]" />}
+                        </div>
+                      </div>
+
+                      {/* Descrição do Atendimento (quando houver) */}
+                      {service.description && (
+                        <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">
+                          {service.description}
+                        </p>
+                      )}
+
+                      {/* Linha Inferior: Duração à esquerda e Preço à DIREITA na cor do tema */}
+                      <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100">
+                        <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                          <Clock className="w-3.5 h-3.5 text-slate-400" />
+                          <span>{service.durationMinutes} minutos</span>
+                        </span>
+
+                        <span className="text-base sm:text-lg font-bold text-[var(--primary)]">
+                          {service.isFree || service.priceCents === 0
+                            ? "Gratuito"
+                            : formatBRL(service.priceCents)}
+                        </span>
                       </div>
                     </div>
-                  )}
+                  );
+                })}
+              </div>
+
+              {/* Botão de Avanço */}
+              <div className="pt-2">
+                <Button
+                  onClick={handleProceedToStep2}
+                  disabled={!selectedService}
+                  className="w-full h-12 rounded-xl text-sm font-semibold shadow-xs gap-2"
+                >
+                  <span>Continuar</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ) : step === 2 && selectedService ? (
+            /* ================= ETAPA 2: DATA E HORÁRIO ================= */
+            <div className="space-y-6">
+              <div className="text-center space-y-1">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+                  Escolha a data e o horário
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-500">
+                  Selecione uma data e um horário disponível.
+                </p>
+              </div>
+
+              {/* Seletor de Formato (Online / Presencial) caso o serviço suporte ambos */}
+              {selectedService.modality === "BOTH" && (
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-3 shadow-xs space-y-2">
+                  <label className="block text-xs font-semibold text-slate-700">
+                    Formato de atendimento:
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedModality("ONLINE")}
+                      className={`py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                        selectedModality === "ONLINE"
+                          ? "bg-[var(--primary)] text-white shadow-xs"
+                          : "bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100"
+                      }`}
+                    >
+                      <Video className="w-3.5 h-3.5" />
+                      <span>Online (Vídeo)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedModality("PRESENTIAL")}
+                      className={`py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                        selectedModality === "PRESENTIAL"
+                          ? "bg-[var(--primary)] text-white shadow-xs"
+                          : "bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100"
+                      }`}
+                    >
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span>Presencial</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Seletor Semanal e Grade de Horários */}
+              <BookingDateTimePicker
+                selectedDate={selectedDate}
+                onSelectDate={setSelectedDate}
+                slots={slots}
+                selectedSlot={selectedSlot}
+                onSelectSlot={setSelectedSlot}
+                isLoadingSlots={isLoadingSlots}
+                slotError={slotError}
+              />
+
+              {/* Opção Alternativa: Tirar dúvidas no WhatsApp */}
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <div className="space-y-0.5">
+                  <span className="font-semibold text-amber-900 block">
+                    Dúvidas sobre horários ou atendimento?
+                  </span>
+                  <p className="text-amber-800 text-[11px] leading-relaxed">
+                    Você pode tirar dúvidas diretamente pelo WhatsApp antes de prosseguir.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  onClick={handleWhatsAppInquiry}
+                  className="w-full sm:w-auto shrink-0 gap-1.5 text-xs border-amber-300 text-amber-900 bg-white hover:bg-amber-100/60 h-9"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>WhatsApp</span>
+                </Button>
+              </div>
+
+              {/* Botão de Avanço */}
+              <div className="pt-2">
+                <Button
+                  onClick={handleProceedToStep3}
+                  disabled={!selectedDate || !selectedSlot}
+                  isLoading={isLoading}
+                  className="w-full h-12 rounded-xl text-sm font-semibold shadow-xs gap-2"
+                >
+                  <span>Continuar</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ) : step === 3 && selectedService && selectedSlot ? (
+            /* ================= ETAPA 3: IDENTIFICAÇÃO ================= */
+            <div className="space-y-6">
+              <div className="text-center space-y-1">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+                  Identificação
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-500">
+                  Acesse sua conta para concluir o agendamento.
+                </p>
+              </div>
+
+              {/* Pill Informativa da Consulta em Andamento */}
+              <div className="p-3 bg-slate-50/90 border border-slate-200/80 rounded-xl flex items-center justify-between gap-2 text-xs text-slate-700">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Calendar className="w-4 h-4 text-[var(--primary)] shrink-0" />
+                  <span className="truncate">
+                    <strong>{selectedService.name}</strong> • {formatDate(selectedDate)} às {selectedSlot.formattedTime}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  className="text-[11px] text-[var(--primary)] font-semibold hover:underline shrink-0"
+                >
+                  Alterar
+                </button>
+              </div>
+
+              {/* Caso o Paciente Já Esteja Logado */}
+              {currentUser ? (
+                <div className="bg-white border border-emerald-200/90 rounded-2xl p-5 shadow-xs space-y-4">
+                  <div className="flex items-center gap-2.5 text-emerald-700 font-semibold text-sm">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                    <span>Identificado com sucesso</span>
+                  </div>
+
+                  <div className="space-y-1 text-xs text-slate-600 bg-slate-50/70 p-3 rounded-xl border border-slate-200/60">
+                    <p className="break-words">
+                      Paciente: <strong className="text-slate-900 font-semibold">{currentUser.fullName || currentUser.name}</strong>
+                    </p>
+                    <p className="break-all">
+                      E-mail: <strong className="text-slate-900 font-semibold">{currentUser.email}</strong>
+                    </p>
+                  </div>
 
                   <Button
-                    onClick={handleConfirmBooking}
-                    disabled={!currentUser}
-                    isLoading={isLoading}
-                    className="w-full mt-4 text-xs"
-                    size="lg"
+                    onClick={() => setStep(4)}
+                    className="w-full h-12 rounded-xl text-sm font-semibold shadow-xs gap-2"
                   >
-                    Confirmar e Agendar Consulta
+                    <span>Continuar para Pagamento</span>
+                    <ArrowRight className="w-4 h-4" />
                   </Button>
-                </CardContent>
-              </Card>
+
+                  <button
+                    type="button"
+                    onClick={handleLogoutAccount}
+                    className="text-xs text-slate-500 hover:text-slate-800 underline text-center w-full block pt-1"
+                  >
+                    Não é você? Trocar de conta
+                  </button>
+                </div>
+              ) : (
+                /* Formulário Alternável: Já sou paciente vs Novo paciente */
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
+                  {/* Segmented Control */}
+                  <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-xl gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthMode("login");
+                        setError(null);
+                      }}
+                      className={`py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        authMode === "login"
+                          ? "bg-white text-slate-900 shadow-xs font-bold"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      Já sou paciente
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthMode("register");
+                        setError(null);
+                      }}
+                      className={`py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        authMode === "register"
+                          ? "bg-white text-slate-900 shadow-xs font-bold"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      Novo paciente
+                    </button>
+                  </div>
+
+                  {/* 7.1 Login: Já sou paciente */}
+                  {authMode === "login" ? (
+                    <form onSubmit={handleLoginSubmit} className="space-y-4">
+                      <div className="space-y-1">
+                        <label className="block text-xs font-semibold text-slate-700">
+                          E-mail *
+                        </label>
+                        <div className="relative">
+                          <Input
+                            type="email"
+                            required
+                            placeholder="seu@email.com"
+                            value={loginEmail}
+                            onChange={(e) => setLoginEmail(e.target.value)}
+                            className="h-11 rounded-xl text-xs pl-9"
+                          />
+                          <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3.5 pointer-events-none" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="block text-xs font-semibold text-slate-700">
+                          Senha *
+                        </label>
+                        <div className="relative">
+                          <Input
+                            type={showLoginPassword ? "text" : "password"}
+                            required
+                            placeholder="Sua senha de acesso"
+                            value={loginPassword}
+                            onChange={(e) => setLoginPassword(e.target.value)}
+                            className="h-11 rounded-xl text-xs pl-9 pr-10"
+                          />
+                          <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3.5 pointer-events-none" />
+                          <button
+                            type="button"
+                            onClick={() => setShowLoginPassword((prev) => !prev)}
+                            className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 p-1"
+                            aria-label={showLoginPassword ? "Ocultar senha" : "Ver senha"}
+                          >
+                            {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs pt-1">
+                        <label className="flex items-center gap-2 cursor-pointer select-none text-slate-600">
+                          <input
+                            type="checkbox"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                            className="rounded accent-[var(--primary)]"
+                          />
+                          <span>Lembrar de mim</span>
+                        </label>
+
+                        <Link
+                          href="/recuperar-senha"
+                          target="_blank"
+                          className="text-[var(--primary)] font-semibold hover:underline"
+                        >
+                          Esqueci minha senha
+                        </Link>
+                      </div>
+
+                      <Button
+                        type="submit"
+                        isLoading={isLoading}
+                        className="w-full h-12 rounded-xl text-sm font-semibold shadow-xs mt-2"
+                      >
+                        Entrar e Continuar
+                      </Button>
+                    </form>
+                  ) : (
+                    /* 7.2 Cadastro: Novo paciente */
+                    <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
+                      <div className="space-y-1">
+                        <label className="block text-xs font-semibold text-slate-700">
+                          Nome Completo *
+                        </label>
+                        <div className="relative">
+                          <Input
+                            required
+                            placeholder="Ex: Maria dos Santos"
+                            value={regFullName}
+                            onChange={(e) => setRegFullName(e.target.value)}
+                            className="h-11 rounded-xl text-xs pl-9"
+                          />
+                          <User className="w-4 h-4 text-slate-400 absolute left-3 top-3.5 pointer-events-none" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="block text-xs font-semibold text-slate-700">
+                          E-mail *
+                        </label>
+                        <div className="relative">
+                          <Input
+                            type="email"
+                            required
+                            placeholder="seu@email.com"
+                            value={regEmail}
+                            onChange={(e) => setRegEmail(e.target.value)}
+                            className="h-11 rounded-xl text-xs pl-9"
+                          />
+                          <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3.5 pointer-events-none" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="block text-xs font-semibold text-slate-700">
+                          Telefone / WhatsApp *
+                        </label>
+                        <div className="relative">
+                          <Input
+                            type="tel"
+                            required
+                            placeholder="(11) 99999-9999"
+                            value={regPhone}
+                            onChange={(e) => setRegPhone(formatPhoneInput(e.target.value))}
+                            className="h-11 rounded-xl text-xs pl-9"
+                          />
+                          <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3.5 pointer-events-none" />
+                        </div>
+                      </div>
+
+                      {/* Paciente Menor de Idade (Proteção de Menores e LGPD) */}
+                      <div className="pt-1 pb-1">
+                        <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-slate-700">
+                          <input
+                            type="checkbox"
+                            checked={isMinor}
+                            onChange={(e) => setIsMinor(e.target.checked)}
+                            className="rounded accent-[var(--primary)]"
+                          />
+                          <span className="font-medium">O paciente é menor de 18 anos?</span>
+                        </label>
+
+                        {isMinor && (
+                          <div className="mt-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3">
+                            <span className="text-[11px] font-bold text-slate-800 block">
+                              Dados do Responsável Legal (Obrigatório)
+                            </span>
+
+                            <Input
+                              label="Nome do Responsável *"
+                              required
+                              placeholder="Nome completo do responsável"
+                              value={guardianFullName}
+                              onChange={(e) => setGuardianFullName(e.target.value)}
+                              className="h-10 text-xs"
+                            />
+
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input
+                                label="CPF do Responsável *"
+                                required
+                                placeholder="000.000.000-00"
+                                value={guardianCpf}
+                                onChange={(e) => setGuardianCpf(formatCPFInput(e.target.value))}
+                                className="h-10 text-xs"
+                              />
+
+                              <Input
+                                label="WhatsApp do Responsável *"
+                                type="tel"
+                                required
+                                placeholder="(11) 99999-9999"
+                                value={guardianPhone}
+                                onChange={(e) => setGuardianPhone(formatPhoneInput(e.target.value))}
+                                className="h-10 text-xs"
+                              />
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="block text-[11px] font-medium text-slate-700">
+                                Grau de Parentesco
+                              </label>
+                              <select
+                                value={guardianRelationship}
+                                onChange={(e) => setGuardianRelationship(e.target.value)}
+                                className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs"
+                              >
+                                <option value="Mãe">Mãe</option>
+                                <option value="Pai">Pai</option>
+                                <option value="Tutor Legal">Tutor Legal</option>
+                                <option value="Outro">Outro</option>
+                              </select>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="block text-xs font-semibold text-slate-700">
+                            Senha * (mín. 8 caracteres)
+                          </label>
+                          <div className="relative">
+                            <Input
+                              type={showRegPassword ? "text" : "password"}
+                              required
+                              placeholder="Mínimo 8 dígitos"
+                              value={regPassword}
+                              onChange={(e) => setRegPassword(e.target.value)}
+                              className="h-11 rounded-xl text-xs pl-9 pr-9"
+                            />
+                            <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3.5 pointer-events-none" />
+                            <button
+                              type="button"
+                              onClick={() => setShowRegPassword((p) => !p)}
+                              className="absolute right-2.5 top-3 text-slate-400 hover:text-slate-600 p-1"
+                            >
+                              {showRegPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="block text-xs font-semibold text-slate-700">
+                            Confirmar Senha *
+                          </label>
+                          <div className="relative">
+                            <Input
+                              type={showRegConfirmPassword ? "text" : "password"}
+                              required
+                              placeholder="Repita a senha"
+                              value={regConfirmPassword}
+                              onChange={(e) => setRegConfirmPassword(e.target.value)}
+                              className="h-11 rounded-xl text-xs pl-9 pr-9"
+                            />
+                            <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3.5 pointer-events-none" />
+                            <button
+                              type="button"
+                              onClick={() => setShowRegConfirmPassword((p) => !p)}
+                              className="absolute right-2.5 top-3 text-slate-400 hover:text-slate-600 p-1"
+                            >
+                              {showRegConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <label className="flex items-start gap-2 pt-1 cursor-pointer select-none text-[11px] text-slate-500">
+                        <input
+                          type="checkbox"
+                          checked={acceptTerms}
+                          onChange={(e) => setAcceptTerms(e.target.checked)}
+                          required
+                          className="mt-0.5 rounded accent-[var(--primary)] shrink-0"
+                        />
+                        <span>
+                          Concordo com os{" "}
+                          <Link href="/termos" target="_blank" className="text-[var(--primary)] underline">
+                            Termos de Uso
+                          </Link>{" "}
+                          e a{" "}
+                          <Link href="/privacidade" target="_blank" className="text-[var(--primary)] underline">
+                            Política de Privacidade
+                          </Link>.
+                        </span>
+                      </label>
+
+                      <Button
+                        type="submit"
+                        isLoading={isLoading}
+                        className="w-full h-12 rounded-xl text-sm font-semibold shadow-xs mt-2"
+                      >
+                        Cadastrar e Continuar
+                      </Button>
+                    </form>
+                  )}
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          ) : step === 4 && selectedService && selectedSlot ? (
+            /* ================= ETAPA 4: PAGAMENTO E CONCLUSÃO ================= */
+            <div className="space-y-6">
+              <div className="text-center space-y-1">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+                  Pagamento e Conclusão
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-500">
+                  Revise os dados do agendamento, escolha a forma de pagamento e finalize.
+                </p>
+              </div>
+
+              {/* Card Resumo do Agendamento */}
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+                <span className="text-xs font-bold text-slate-900 uppercase tracking-wider block">
+                  Resumo do Agendamento
+                </span>
+
+                <div className="space-y-2.5 text-xs text-slate-600">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Atendimento:</span>
+                    <span className="font-semibold text-slate-900">{selectedService.name}</span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Data e Horário:</span>
+                    <span className="font-semibold text-slate-900 capitalize">
+                      {formatDateLong(selectedDate)} às {selectedSlot.formattedTime}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Duração:</span>
+                    <span className="font-medium text-slate-900">{selectedService.durationMinutes} minutos</span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Formato:</span>
+                    <span className="font-medium text-slate-900">
+                      {selectedModality === "ONLINE" ? "Online (Vídeo)" : "Presencial (Consultório)"}
+                    </span>
+                  </div>
+
+                  {currentUser && (
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                      <span className="text-slate-500">Paciente:</span>
+                      <span className="font-semibold text-slate-900 truncate max-w-[200px]">
+                        {currentUser.fullName || currentUser.name}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Valor Total */}
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <span className="text-sm font-semibold text-slate-700">Valor da Sessão:</span>
+                  <span className="text-lg font-bold text-[var(--primary)]">
+                    {selectedService.isFree || selectedService.priceCents === 0
+                      ? "Gratuito"
+                      : formatBRL(selectedService.priceCents)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Formas de Pagamento Habilitadas */}
+              {selectedService.isFree || selectedService.priceCents === 0 ? (
+                <div className="p-4 bg-emerald-50/70 border border-emerald-200/80 rounded-2xl flex items-center gap-3 text-xs text-emerald-800">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <span>
+                    Este atendimento é <strong>100% gratuito</strong>. Nenhuma cobrança financeira será realizada.
+                  </span>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                    Forma de Pagamento
+                  </h3>
+
+                  <div className="space-y-2.5">
+                    {/* Opção 1: Pagamento Online */}
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setPaymentMethod("ONLINE_SIMULATED")}
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer select-none flex items-start gap-3 ${
+                        paymentMethod === "ONLINE_SIMULATED"
+                          ? "border-[var(--primary)] bg-[var(--primary)]/[0.04] shadow-xs ring-1 ring-[var(--primary)]"
+                          : "border-slate-200 bg-white hover:border-slate-300"
+                      }`}
+                    >
+                      <div
+                        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+                          paymentMethod === "ONLINE_SIMULATED"
+                            ? "bg-[var(--primary)] text-white"
+                            : "border-2 border-slate-300 bg-white"
+                        }`}
+                      >
+                        {paymentMethod === "ONLINE_SIMULATED" && (
+                          <div className="w-2 h-2 rounded-full bg-white" />
+                        )}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="w-4 h-4 text-[var(--primary)] shrink-0" />
+                          <span className="text-xs font-bold text-slate-900">
+                            Pagamento Online (Cartão de Crédito ou Pix)
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Confirmação imediata com comprovante eletrônico
+                        </p>
+                      </div>
+
+                      <span className="text-[10px] font-bold text-[var(--primary)] bg-[var(--primary)]/10 px-2 py-0.5 rounded-full shrink-0">
+                        Recomendado
+                      </span>
+                    </div>
+
+                    {/* Opção 2: Pagamento Presencial no Consultório */}
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setPaymentMethod("IN_PERSON")}
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer select-none flex items-start gap-3 ${
+                        paymentMethod === "IN_PERSON"
+                          ? "border-[var(--primary)] bg-[var(--primary)]/[0.04] shadow-xs ring-1 ring-[var(--primary)]"
+                          : "border-slate-200 bg-white hover:border-slate-300"
+                      }`}
+                    >
+                      <div
+                        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+                          paymentMethod === "IN_PERSON"
+                            ? "bg-[var(--primary)] text-white"
+                            : "border-2 border-slate-300 bg-white"
+                        }`}
+                      >
+                        {paymentMethod === "IN_PERSON" && (
+                          <div className="w-2 h-2 rounded-full bg-white" />
+                        )}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span className="text-xs font-bold text-slate-900">
+                            Pagamento Presencial no Consultório
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Acerto realizado no início da consulta (Cartão, Dinheiro ou Pix)
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Botão de Confirmação Final */}
+              <div className="space-y-3 pt-2">
+                <Button
+                  onClick={handleConfirmBooking}
+                  disabled={!currentUser}
+                  isLoading={isLoading}
+                  className="w-full h-12 rounded-xl text-sm font-semibold shadow-xs"
+                >
+                  Confirmar Agendamento
+                </Button>
+
+                <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>Ambiente seguro com criptografia de ponta a ponta</span>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </div>
       </main>
 
-      <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-400">
-        &copy; {new Date().getFullYear()} PSI — Sistema de Gestão de Consultórios.
+      {/* 4. Rodapé Limpo e Minimalista */}
+      <footer className="border-t border-slate-200/80 py-6 text-center text-xs text-slate-400 relative z-10 bg-white/60 backdrop-blur-xs">
+        &copy; {new Date().getFullYear()} {site?.clinicName || "PSI"} — Todos os direitos reservados.
       </footer>
     </div>
+  );
+}
+
+export default function BookingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#FDFCFB] text-slate-500 text-xs">
+          Carregando agendamento...
+        </div>
+      }
+    >
+      <BookingPageContent />
+    </Suspense>
   );
 }

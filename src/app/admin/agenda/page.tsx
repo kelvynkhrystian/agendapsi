@@ -3,7 +3,15 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import { animateTabContent } from "@/lib/animation/gsap";
-import { formatTime, formatDate, getDayOfWeekName, formatAppointmentStatus, formatModality } from "@/lib/utils";
+import {
+  formatTime,
+  formatDate,
+  getDayOfWeekName,
+  formatAppointmentStatus,
+  formatModality,
+  toLocalDateString,
+  zonedTimeToUtc,
+} from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -314,10 +322,7 @@ export default function AdminAgendaPage() {
     }
 
     try {
-      const [year, month, day] = appointmentDate.split("-").map(Number);
-      const [hour, minute] = appointmentTime.split(":").map(Number);
-
-      const startAt = new Date(Date.UTC(year, month - 1, day, hour, minute));
+      const startAt = zonedTimeToUtc(appointmentDate, appointmentTime);
       const endAt = new Date(startAt.getTime() + appointmentDuration * 60000);
 
       const res = await fetch("/api/appointments", {
@@ -432,8 +437,8 @@ export default function AdminAgendaPage() {
 
   const handleStartReschedule = () => {
     if (!selectedAppt) return;
-    const todayStr = new Date().toISOString().split("T")[0];
-    const currentApptDateStr = new Date(selectedAppt.startAt).toISOString().split("T")[0];
+    const todayStr = toLocalDateString(new Date());
+    const currentApptDateStr = toLocalDateString(selectedAppt.startAt);
     const initialDate = currentApptDateStr >= todayStr ? currentApptDateStr : todayStr;
 
     setIsRescheduling(true);
@@ -684,7 +689,7 @@ export default function AdminAgendaPage() {
           <Button
             size="md"
             onClick={() => {
-              setAppointmentDate(new Date().toISOString().split("T")[0]);
+              setAppointmentDate(toLocalDateString(new Date()));
               setIsModalOpen(true);
             }}
             className="col-span-2 sm:col-span-1 w-full sm:w-auto justify-center gap-2 shadow-xs"
@@ -915,7 +920,7 @@ export default function AdminAgendaPage() {
                         action={{
                           label: "Agendar Neste Dia",
                           onClick: () => {
-                            setAppointmentDate(selectedDayDate.toISOString().split("T")[0]);
+                            setAppointmentDate(toLocalDateString(selectedDayDate));
                             setIsModalOpen(true);
                           },
                           icon: <Plus className="h-4 w-4" />,
@@ -1234,7 +1239,7 @@ export default function AdminAgendaPage() {
                 <Input
                   label="Novo Dia"
                   type="date"
-                  min={new Date().toISOString().split("T")[0]}
+                  min={toLocalDateString(new Date())}
                   value={rescheduleDate}
                   onChange={(e) => handleRescheduleDateChange(e.target.value)}
                 />

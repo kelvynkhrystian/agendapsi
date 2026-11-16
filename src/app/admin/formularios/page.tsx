@@ -13,16 +13,12 @@ import {
   Copy,
   Trash2,
   Archive,
-  CheckCircle2,
-  Clock,
   Send,
   AlertCircle,
   FileText,
-  X,
-} from "lucide-react";
+} from "pulsoicon-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 
@@ -56,7 +52,6 @@ export default function AdminFormsPage() {
   const [forms, setForms] = useState<FormTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"ALL" | "PUBLISHED" | "DRAFT" | "ARCHIVED">("ALL");
 
   // Modal de Pré-visualização
   const [previewForm, setPreviewForm] = useState<FormTemplate | null>(null);
@@ -137,56 +132,31 @@ export default function AdminFormsPage() {
     }
   };
 
-  // Filtros
+  // Filtragem exclusivamente por título ou descrição
   const filteredForms = forms.filter((form) => {
-    const matchesSearch =
-      form.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (form.description && form.description.toLowerCase().includes(searchQuery.toLowerCase()));
-
-    const matchesStatus =
-      statusFilter === "ALL" ? true : form.status === statusFilter;
-
-    return matchesSearch && matchesStatus;
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      form.title.toLowerCase().includes(q) ||
+      (form.description && form.description.toLowerCase().includes(q))
+    );
   });
-
-  // Estatísticas de resumo
-  const totalCount = forms.length;
-  const publishedCount = forms.filter((f) => f.status === "PUBLISHED").length;
-  const draftCount = forms.filter((f) => f.status === "DRAFT").length;
-  const totalAssignments = forms.reduce((acc, f) => acc + (f.assignmentsCount || 0), 0);
 
   return (
     <div className="space-y-6">
-      {/* CABEÇALHO */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-border/40">
-        <div>
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-primary/10 text-primary">
-              <ClipboardList className="w-6 h-6" />
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              Formulários
-            </h1>
+      {/* CABEÇALHO LIMPO: TÍTULO E DESCRIÇÃO */}
+      <div className="pb-2 border-b border-border/40">
+        <div className="flex items-center gap-2">
+          <div className="p-2 rounded-lg bg-primary/10 text-primary">
+            <ClipboardList className="w-6 h-6" />
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            Crie questionários clínicos personalizados, importe avaliações via PDF e envie para os pacientes.
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Formulários
+          </h1>
         </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Link href="/admin/formularios/importar">
-            <Button variant="outline" className="gap-2">
-              <FileUp className="w-4 h-4 text-primary" />
-              <span>Importar PDF</span>
-            </Button>
-          </Link>
-          <Link href="/admin/formularios/novo">
-            <Button className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-sm">
-              <Plus className="w-4 h-4" />
-              <span>Novo Formulário</span>
-            </Button>
-          </Link>
-        </div>
+        <p className="text-sm text-muted-foreground mt-1">
+          Crie questionários clínicos personalizados, importe avaliações via PDF e envie para os pacientes.
+        </p>
       </div>
 
       {actionError && (
@@ -196,127 +166,87 @@ export default function AdminFormsPage() {
         </div>
       )}
 
-      {/* CARDS DE RESUMO (2x2 no mobile, 4 no desktop) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <Card className="border border-border/60 bg-card/60 backdrop-blur-sm">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Modelos Totais</p>
-              <h3 className="text-2xl font-bold text-foreground mt-1">{totalCount}</h3>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-muted/60 flex items-center justify-center text-muted-foreground">
-              <ClipboardList className="w-5 h-5" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-border/60 bg-card/60 backdrop-blur-sm">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Publicados</p>
-              <h3 className="text-2xl font-bold text-emerald-500 mt-1">{publishedCount}</h3>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-border/60 bg-card/60 backdrop-blur-sm">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Rascunhos</p>
-              <h3 className="text-2xl font-bold text-amber-500 mt-1">{draftCount}</h3>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
-              <Clock className="w-5 h-5" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-border/60 bg-card/60 backdrop-blur-sm">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total de Envios</p>
-              <h3 className="text-2xl font-bold text-primary mt-1">{totalAssignments}</h3>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              <Send className="w-5 h-5" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* BARRA DE PESQUISA E ABAS DE FILTRO */}
+      {/* NOVA TOOLBAR HORIZONTAL: BUSCA (ESQUERDA) + AÇÕES (DIREITA) */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        {/* Campo de Busca com Ícone de Lupa Integrado */}
+        <div className="relative flex-1 sm:max-w-md w-full">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           <Input
-            placeholder="Pesquisar por título ou descrição..."
+            type="text"
+            placeholder="Pesquisar formulários..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 bg-card border-border/60"
+            className="pl-10 h-10 bg-card border-border/60 text-sm"
           />
         </div>
 
-        {/* Abas Pílula */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-muted/60 border border-border/50 self-start sm:self-auto overflow-x-auto max-w-full">
-          {(
-            [
-              { id: "ALL", label: "Todos" },
-              { id: "PUBLISHED", label: "Publicados" },
-              { id: "DRAFT", label: "Rascunhos" },
-              { id: "ARCHIVED", label: "Arquivados" },
-            ] as const
-          ).map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setStatusFilter(tab.id)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap ${
-                statusFilter === tab.id
-                  ? "bg-primary text-primary-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground hover:bg-background/50"
-              }`}
+        {/* Botões de Ação Alinhados à Direita no Desktop; Lado a Lado (50% cada) no Mobile */}
+        <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
+          <Link href="/admin/formularios/importar" className="w-full sm:w-auto">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto h-10 gap-2 text-xs sm:text-sm font-medium border-border/60 hover:bg-muted/50"
             >
-              {tab.label}
-            </button>
-          ))}
+              <FileUp className="w-4 h-4 text-primary" />
+              <span>Importar PDF</span>
+            </Button>
+          </Link>
+          <Link href="/admin/formularios/novo" className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto h-10 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground text-xs sm:text-sm font-medium shadow-xs">
+              <Plus className="w-4 h-4" />
+              <span>Novo Formulário</span>
+            </Button>
+          </Link>
         </div>
       </div>
 
-      {/* LISTAGEM DE FORMULÁRIOS */}
+      {/* LISTAGEM DE FORMULÁRIOS CRIADOS */}
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-16 space-y-3">
           <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-muted-foreground">Carregando formulários...</p>
         </div>
-      ) : filteredForms.length === 0 ? (
+      ) : forms.length === 0 ? (
+        /* Empty State: Nenhum formulário cadastrado no sistema */
         <div className="flex flex-col items-center justify-center py-16 px-4 text-center rounded-2xl border border-dashed border-border/80 bg-card/40">
           <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4">
             <ClipboardList className="w-7 h-7" />
           </div>
-          <h3 className="text-lg font-semibold text-foreground">Nenhum formulário encontrado</h3>
+          <h3 className="text-lg font-semibold text-foreground">Nenhum formulário criado</h3>
           <p className="text-sm text-muted-foreground max-w-md mt-1 mb-6">
-            {searchQuery || statusFilter !== "ALL"
-              ? "Nenhum formulário corresponde aos filtros de busca aplicados."
-              : "Você ainda não possui formulários cadastrados. Comece criando um formulário manual ou importando um questionário via PDF."}
+            Crie seu primeiro formulário ou importe um PDF para começar.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link href="/admin/formularios/novo">
               <Button className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground">
                 <Plus className="w-4 h-4" />
-                <span>Criar Primeiro Formulário</span>
+                <span>Novo Formulário</span>
               </Button>
             </Link>
             <Link href="/admin/formularios/importar">
               <Button variant="outline" className="gap-2">
-                <FileUp className="w-4 h-4" />
-                <span>Importar via PDF</span>
+                <FileUp className="w-4 h-4 text-primary" />
+                <span>Importar PDF</span>
               </Button>
             </Link>
           </div>
         </div>
+      ) : filteredForms.length === 0 ? (
+        /* Empty State: Busca sem resultados */
+        <div className="flex flex-col items-center justify-center py-16 px-4 text-center rounded-2xl border border-dashed border-border/80 bg-card/40">
+          <div className="w-14 h-14 rounded-2xl bg-muted/60 text-muted-foreground flex items-center justify-center mb-4">
+            <Search className="w-7 h-7" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground">Nenhum formulário encontrado</h3>
+          <p className="text-sm text-muted-foreground max-w-md mt-1 mb-4">
+            Nenhum formulário corresponde à sua pesquisa &ldquo;{searchQuery}&rdquo;.
+          </p>
+          <Button variant="outline" size="sm" onClick={() => setSearchQuery("")}>
+            Limpar pesquisa
+          </Button>
+        </div>
       ) : (
+        /* Grid de Formulários Criados */
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filteredForms.map((form) => (
             <Card
@@ -325,40 +255,16 @@ export default function AdminFormsPage() {
             >
               <CardContent className="p-5 flex-1 flex flex-col justify-between space-y-4">
                 <div>
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <h4 className="font-semibold text-foreground text-base leading-snug line-clamp-2">
-                      {form.title}
-                    </h4>
-                    <Badge
-                      variant={
-                        form.status === "PUBLISHED"
-                          ? "default"
-                          : form.status === "DRAFT"
-                          ? "secondary"
-                          : "outline"
-                      }
-                      className={
-                        form.status === "PUBLISHED"
-                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
-                          : form.status === "DRAFT"
-                          ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
-                          : "bg-muted text-muted-foreground"
-                      }
-                    >
-                      {form.status === "PUBLISHED"
-                        ? "Publicado"
-                        : form.status === "DRAFT"
-                        ? "Rascunho"
-                        : "Arquivado"}
-                    </Badge>
-                  </div>
+                  <h4 className="font-semibold text-foreground text-base leading-snug line-clamp-2 mb-2">
+                    {form.title}
+                  </h4>
 
                   <p className="text-xs text-muted-foreground line-clamp-2 min-h-[32px]">
                     {form.description || "Sem descrição informada."}
                   </p>
 
-                  <div className="flex items-center gap-3 mt-4 pt-3 border-t border-border/40 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
+                  <div className="flex items-center gap-2.5 mt-4 pt-3 border-t border-border/40 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1 font-medium">
                       <FileText className="w-3.5 h-3.5" />
                       {form.questionsCount} {form.questionsCount === 1 ? "questão" : "questões"}
                     </span>
@@ -367,8 +273,6 @@ export default function AdminFormsPage() {
                       <Send className="w-3.5 h-3.5" />
                       {form.assignmentsCount} {form.assignmentsCount === 1 ? "envio" : "envios"}
                     </span>
-                    <span>•</span>
-                    <span>v{form.version}</span>
                   </div>
                 </div>
 
@@ -412,7 +316,7 @@ export default function AdminFormsPage() {
                       variant="ghost"
                       onClick={() => setDeleteTarget(form)}
                       className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                      title="Excluir ou arquivar"
+                      title={form.assignmentsCount > 0 ? "Arquivar formulário" : "Excluir formulário"}
                     >
                       {form.assignmentsCount > 0 ? (
                         <Archive className="w-3.5 h-3.5" />

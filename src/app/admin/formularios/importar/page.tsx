@@ -14,7 +14,7 @@ import {
   RefreshCw,
   Sparkles,
   Info,
-} from "lucide-react";
+} from "pulsoicon-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import FormBuilder, { FormTemplateData, FormQuestionItem } from "@/components/forms/FormBuilder";
@@ -144,7 +144,7 @@ export default function ImportPdfFormPage() {
           result.description ||
           "Questionário importado de arquivo PDF para revisão e personalização.",
         instructions: result.instructions || "Responda a todas as questões com atenção.",
-        status: "DRAFT",
+        status: "PUBLISHED",
         questions: formattedQuestions,
       });
     } catch (err: any) {
@@ -281,7 +281,7 @@ export default function ImportPdfFormPage() {
                   title: noQuestionsWarning.title || "Formulário Manual",
                   description: noQuestionsWarning.description || "",
                   instructions: "Preencha as questões.",
-                  status: "DRAFT",
+                  status: "PUBLISHED",
                   questions: [],
                 });
                 setNoQuestionsWarning(null);

@@ -155,15 +155,19 @@ export async function POST(req: NextRequest) {
         }
       } else {
         const expectedSecret = process.env.MESSAGE_WEBHOOK_SECRET;
-        if (expectedSecret) {
-          const provided =
-            req.headers.get("x-webhook-secret") ||
-            req.headers.get("x-api-key") ||
-            req.nextUrl.searchParams.get("secret") ||
-            "";
-          if (!provided || !constantTimeEquals(provided, expectedSecret)) {
-            return NextResponse.json({ error: "Token de webhook inválido." }, { status: 401 });
-          }
+        if (!expectedSecret) {
+          return NextResponse.json(
+            { error: "Autenticação de webhook obrigatória. Chave Meta ou MESSAGE_WEBHOOK_SECRET não configurados." },
+            { status: 401 }
+          );
+        }
+        const provided =
+          req.headers.get("x-webhook-secret") ||
+          req.headers.get("x-api-key") ||
+          req.nextUrl.searchParams.get("secret") ||
+          "";
+        if (!provided || !constantTimeEquals(provided, expectedSecret)) {
+          return NextResponse.json({ error: "Token de webhook inválido." }, { status: 401 });
         }
       }
 
@@ -200,16 +204,21 @@ export async function POST(req: NextRequest) {
 
     // 2. Webhooks de TextBee / OpenWA / Provedores Genéricos
     const expectedSecret = process.env.MESSAGE_WEBHOOK_SECRET;
-    if (expectedSecret) {
-      const providedSecret =
-        req.headers.get("x-webhook-secret") ||
-        req.headers.get("x-api-key") ||
-        req.nextUrl.searchParams.get("secret") ||
-        "";
+    if (!expectedSecret) {
+      return NextResponse.json(
+        { error: "Autenticação de webhook obrigatória. MESSAGE_WEBHOOK_SECRET não configurado no servidor." },
+        { status: 401 }
+      );
+    }
 
-      if (!providedSecret || !constantTimeEquals(providedSecret, expectedSecret)) {
-        return NextResponse.json({ error: "Assinatura ou token do webhook inválido." }, { status: 401 });
-      }
+    const providedSecret =
+      req.headers.get("x-webhook-secret") ||
+      req.headers.get("x-api-key") ||
+      req.nextUrl.searchParams.get("secret") ||
+      "";
+
+    if (!providedSecret || !constantTimeEquals(providedSecret, expectedSecret)) {
+      return NextResponse.json({ error: "Assinatura ou token do webhook inválido." }, { status: 401 });
     }
 
     const nestedData =

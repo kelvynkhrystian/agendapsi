@@ -15,6 +15,7 @@ import {
   resolveAccessibleButtonBg,
 } from "@/lib/theme-presets";
 import { MiniSiteMediaSlotCard } from "@/components/admin/minisite-media-slot-card";
+import { HorariosSettingsSection } from "@/components/admin/settings/HorariosSettingsSection";
 import {
   Palette,
   Video,
@@ -74,7 +75,7 @@ function isValidHex6(value: string): boolean {
 export default function AdminSettingsPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<
-    "profile" | "appearance" | "video" | "security"
+    "profile" | "appearance" | "horarios" | "video" | "security"
   >("profile");
 
   // Profile State — Seção A (Dados da Aplicação)
@@ -297,7 +298,7 @@ export default function AdminSettingsPage() {
       const tabParam = params.get("tab");
       if (
         tabParam &&
-        ["profile", "appearance", "video", "security"].includes(tabParam)
+        ["profile", "appearance", "horarios", "video", "security"].includes(tabParam)
       ) {
         setActiveTab(tabParam as any);
       }
@@ -2030,6 +2031,19 @@ export default function AdminSettingsPage() {
 
         <button
           type="button"
+          onClick={() => setActiveTab("horarios")}
+          className={`flex items-center justify-center sm:justify-start gap-2 px-2.5 sm:px-3.5 py-2 rounded-xl transition-all sm:shrink-0 cursor-pointer min-w-0 ${
+            activeTab === "horarios"
+              ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
+              : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1C1C1C] dark:border-transparent dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5]"
+          }`}
+        >
+          <Calendar className="h-4 w-4 text-current shrink-0" />
+          <span className="truncate">Horários</span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => setActiveTab("video")}
           className={`flex items-center justify-center sm:justify-start gap-2 px-2.5 sm:px-3.5 py-2 rounded-xl transition-all sm:shrink-0 cursor-pointer min-w-0 ${
             activeTab === "video"
@@ -3138,6 +3152,9 @@ export default function AdminSettingsPage() {
           </Card>
         </div>
       )}
+
+      {/* ================= ABA: HORÁRIOS & DISPONIBILIDADE ================= */}
+      {activeTab === "horarios" && <HorariosSettingsSection />}
 
       {/* ================= ABA 3: CONSULTAS VIRTUAIS ================= */}
       {activeTab === "video" && (

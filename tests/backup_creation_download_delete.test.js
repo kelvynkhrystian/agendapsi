@@ -261,7 +261,6 @@ test("Backup Completo D — 2. Geração .zip Real, Higienização de Segredos, 
         fullName: "Carlos Drummond",
         email: "carlos@psi.local",
         phone: "11988776655",
-        tempPassword: SECRET_TEMP_PASS,
       },
     });
 

@@ -102,7 +102,25 @@ export async function POST(req: NextRequest) {
     const userName = patient ? patient.fullName : admin ? admin.name : null;
 
     if (targetUser && userName) {
-      const resetToken = crypto.randomBytes(24).toString("hex");
+      const resetToken = crypto.randomBytes(32).toString("hex");
+      const tokenHash = crypto.createHash("sha256").update(resetToken).digest("hex");
+
+      // Invalida tokens pendentes anteriores para este e-mail
+      await prisma.passwordResetToken.deleteMany({
+        where: { email: normalizedEmail, usedAt: null },
+      });
+
+      // Registra o novo token com hash e validade de 15 minutos
+      await prisma.passwordResetToken.create({
+        data: {
+          email: normalizedEmail,
+          tokenHash,
+          role: targetUser.id === patient?.id ? "PATIENT" : "ADMIN",
+          expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+          ipAddress: req.headers.get("x-forwarded-for") || "127.0.0.1",
+        },
+      });
+
       const baseUrl = (process.env.APP_URL || "http://localhost:3000").replace(/\/+$/, "");
       const resetLink = `${baseUrl}/redefinir-senha?token=${resetToken}&email=${encodeURIComponent(normalizedEmail)}`;
 
@@ -124,7 +142,7 @@ export async function POST(req: NextRequest) {
               professionalName: availability.clinicContact.clinicName,
               appointmentDateTime: resetLink,
             },
-            customMessage: `Consultorio PSI: Ola ${userName}, use o link para redefinir sua senha (1h): ${resetLink}`,
+            customMessage: `Consultorio PSI: Ola ${userName}, use o link para redefinir sua senha (valido por 15 min): ${resetLink}`,
           });
 
           await prisma.auditLog.create({

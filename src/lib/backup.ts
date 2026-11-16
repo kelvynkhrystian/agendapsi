@@ -25,7 +25,6 @@ export const MAX_SINGLE_ENTRY_BYTES = 200 * 1024 * 1024; // 200 MB
 export const MAX_ARCHIVE_ENTRIES = 25000;
 
 export const REDACTED_SECRET_FIELDS = [
-  "Patient.tempPassword",
   "GatewayConfiguration.configDataEncrypted",
   "SystemSettings.smtpPass",
   "SystemSettings.textbeeApiKey",
@@ -966,10 +965,10 @@ export async function createFullBackupArchive({
           tx.auditLog.findMany({ orderBy: { createdAt: "asc" } })
         );
 
-        const patients = patientsRaw.map((p) => ({
-          ...p,
-          tempPassword: null,
-        }));
+        const patients = patientsRaw.map((p) => {
+          const { tempPassword: _tp, ...rest } = p as any;
+          return rest;
+        });
 
         const gatewayConfigurations = gatewayConfigurationsRaw.map((g) => ({
           ...g,
@@ -2108,7 +2107,7 @@ const TABLE_DATE_FIELDS: Record<PersistentTableKey, readonly string[]> = {
   consentAcceptances: ["acceptedAt"],
   services: ["createdAt", "updatedAt"],
   weeklyAvailability: ["createdAt", "updatedAt"],
-  availabilityExceptions: ["date", "createdAt", "updatedAt"],
+  availabilityExceptions: ["date", "endDate", "createdAt", "updatedAt"],
   appointmentPackages: ["expiresAt", "acceptedAt", "rejectedAt", "createdAt", "updatedAt"],
   appointments: ["startAt", "endAt", "cancelledAt", "noShowRecordedAt", "createdAt", "updatedAt"],
   appointmentHolds: ["startAt", "endAt", "expiresAt", "createdAt"],
@@ -2943,6 +2942,7 @@ async function applyValidatedDatabaseSnapshot(
     async (tx) => {
       // 1. Limpeza em ordem topológica estrita (filhos -> pais), mantendo FKs sempre ativas
       await tx.patientEmailChangeToken.deleteMany();
+      await tx.passwordResetToken.deleteMany();
       await tx.session.deleteMany();
       await tx.videoMeeting.deleteMany();
       await tx.storedFileShare.deleteMany();
@@ -3054,7 +3054,10 @@ async function applyValidatedDatabaseSnapshot(
       await insertChunks(
         "patients",
         (b) => tx.patient.createMany({ data: b as never[] }),
-        (r) => ({ ...r, tempPassword: null })
+        (r) => {
+          const { tempPassword: _tp, ...rest } = r as any;
+          return rest;
+        }
       );
       await insertChunks("guardians", (b) => tx.guardian.createMany({ data: b as never[] }));
       await insertChunks("consentAcceptances", (b) =>

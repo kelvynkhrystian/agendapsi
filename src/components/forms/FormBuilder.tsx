@@ -24,7 +24,7 @@ import {
   Calendar,
   ToggleLeft,
   HelpCircle,
-} from "lucide-react";
+} from "pulsoicon-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -137,7 +137,7 @@ export default function FormBuilder({ initialData, isEditing = false }: FormBuil
   const [description, setDescription] = useState(initialData?.description || "");
   const [instructions, setInstructions] = useState(initialData?.instructions || "");
   const [status, setStatus] = useState<"DRAFT" | "PUBLISHED">(
-    initialData?.status === "PUBLISHED" ? "PUBLISHED" : "DRAFT"
+    initialData?.status === "DRAFT" ? "DRAFT" : "PUBLISHED"
   );
   const [questions, setQuestions] = useState<FormQuestionItem[]>(
     initialData?.questions && initialData.questions.length > 0
@@ -348,7 +348,14 @@ export default function FormBuilder({ initialData, isEditing = false }: FormBuil
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <Link href="/admin/formularios">
+            <Button variant="outline" size="sm" className="text-xs">
+              Cancelar
+            </Button>
+          </Link>
+
           <Button
+            type="button"
             variant="outline"
             size="sm"
             onClick={() => setIsPreviewOpen(true)}
@@ -360,24 +367,14 @@ export default function FormBuilder({ initialData, isEditing = false }: FormBuil
           </Button>
 
           <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleSave("DRAFT")}
-            disabled={isSaving}
-            className="gap-1.5 text-xs text-amber-600 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/10"
-          >
-            <Save className="w-3.5 h-3.5" />
-            <span>Salvar Rascunho</span>
-          </Button>
-
-          <Button
+            type="button"
             size="sm"
             onClick={() => handleSave("PUBLISHED")}
             disabled={isSaving}
-            className="gap-1.5 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-sm"
+            className="gap-1.5 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-xs"
           >
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>{isSaving ? "Salvando..." : "Publicar Formulário"}</span>
+            <Save className="w-3.5 h-3.5" />
+            <span>{isSaving ? "Salvando..." : "Salvar Formulário"}</span>
           </Button>
         </div>
       </div>

@@ -210,8 +210,9 @@ erDiagram
 | `fullName` | `String` | Sim | Nenhum | Nome civil completo do paciente | `"Mariana Souza"` |
 | `email` | `String` | Sim | Nenhum | E-mail único utilizado para login e notificações | `"mariana.souza@email.com"` |
 | `passwordHash` | `String?` | Não | `null` | Hash bcrypt da senha (nulo antes do primeiro acesso) | `"$2a$10$7s9a8b..."` |
-| `tempPassword` | `String?` | Não | `null` | Senha provisória gerada no primeiro agendamento | `"Psi@9821"` |
 | `mustChangePassword` | `Boolean` | Sim | `false` | Exige troca obrigatória de senha no próximo login | `true` |
+| `failedLogins` | `Int` | Sim | `0` | Contador de tentativas consecutivas de login incorretas | `0` |
+| `lockedUntil` | `DateTime?` | Não | `null` | Timestamp UTC até quando o login está bloqueado por força bruta | `null` |
 | `phone` | `String` | Sim | Nenhum | Telefone celular com DDD (usado para avisos WhatsApp) | `"(11) 99123-4567"` |
 | `cpf` | `String?` | Não | `null` | Cadastro de Pessoa Física (obrigatório se maior de idade) | `"123.456.789-00"` |
 | `birthDate` | `DateTime?` | Não | `null` | Data de nascimento (UTC) | `1995-08-14T00:00:00.000Z` |
@@ -373,6 +374,43 @@ erDiagram
 
 ---
 
+### 3.4.2 Modelo: `PasswordResetToken`
+
+#### A. Identificação
+- **Modelo Prisma:** `PasswordResetToken`
+- **Tabela MySQL:** `PasswordResetToken`
+- **Descrição sucinta:** Tokens criptográficos de alta entropia para redefinição segura de senha esquecida.
+- **Finalidade de negócio:** Permitir que administradores e pacientes redefinam senhas esquecidas de forma autônoma e segura, com expiração estrita de 15 minutos, hash SHA-256 em repouso e invalidação após o primeiro uso.
+- **Módulo do PSI:** Autenticação e Recuperação de Senha (`/redefinir-senha`).
+- **Informações sensíveis:** **Sim** (e-mail e hash criptográfico de redefinição).
+
+#### B. Conteúdo Esperado
+- Registros criados sob demanda quando o usuário aciona o fluxo de recuperação de acesso.
+- O token em texto puro é entregue exclusivamente por link seguro no e-mail ou SMS; o banco armazena apenas o `tokenHash` (SHA-256).
+- Invalidação automática de tokens anteriores do mesmo e-mail e expiração rígida de 15 minutos.
+
+#### C. Dicionário Completo de Campos
+
+| Campo | Tipo | Obrigatório? | Padrão | Significado | Exemplo |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `id` | `String` (cuid) | Sim | `cuid()` | Identificador primário do registro de redefinição | `"clz99a01x000108l0h9z9a99"` |
+| `email` | `String` | Sim | Nenhum | E-mail associado à conta que solicitou redefinição | `"mariana.souza@email.com"` |
+| `tokenHash` | `String` | Sim | Nenhum | Hash criptográfico SHA-256 do token único (64 hex) | `"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"` |
+| `role` | `Role` (Enum) | Sim | `PATIENT` | Papel da conta que solicitou redefinição (`ADMIN` ou `PATIENT`) | `PATIENT` |
+| `expiresAt` | `DateTime` | Sim | Nenhum | Data e hora limite de expiração (15 minutos após emissão) | `2026-11-14T01:30:00.000Z` |
+| `usedAt` | `DateTime?` | Não | `null` | Timestamp UTC do consumo do token | `null` |
+| `ipAddress` | `String?` | Não | `null` | Endereço IP do solicitante para trilha de auditoria | `"189.120.45.10"` |
+| `createdAt` | `DateTime` | Sim | `now()` | Timestamp UTC de criação da solicitação | `2026-11-14T01:15:00.000Z` |
+
+#### D. Relacionamentos
+- Sem chaves estrangeiras rígidas para permitir expiração e descarte assíncrono independente de exclusão de usuário.
+
+#### E. Uso na Aplicação
+- **Telas:** `/recuperar-senha`, `/redefinir-senha`.
+- **Rotas de API:** `/api/auth/recover-password`, `/api/auth/reset-password`.
+
+---
+
 ### 3.5 Modelo: `ConsentAcceptance`
 
 #### A. Identificação
@@ -501,11 +539,13 @@ erDiagram
 | Campo | Tipo | Obrigatório? | Padrão | Significado | Exemplo |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `id` | `String` (cuid) | Sim | `cuid()` | ID primário da exceção | `"cly78a09g000808l0h9h6i89"` |
-| `date` | `DateTime` | Sim | Nenhum | Data da exceção (UTC à meia-noite) | `2026-12-25T00:00:00.000Z` |
+| `date` | `DateTime` | Sim | Nenhum | Data da exceção ou início do período de bloqueio (UTC à meia-noite) | `2026-12-25T00:00:00.000Z` |
+| `endDate` | `DateTime?` | Não | `null` | Data final para períodos de bloqueio/férias (UTC à meia-noite); se nulo, aplica-se apenas a `date` | `2027-01-05T00:00:00.000Z` |
 | `startTime` | `String?` | Não | `null` | Início do bloqueio ou horário especial (`HH:mm`) | `"14:00"` |
 | `endTime` | `String?` | Não | `null` | Fim do bloqueio ou horário especial (`HH:mm`) | `"18:00"` |
 | `isBlocked` | `Boolean` | Sim | `true` | Se `true`, bloqueia agenda; se `false`, abre horário extra | `true` |
 | `reason` | `String?` | Não | `null` | Motivo do bloqueio visível apenas para o profissional | `"Feriado Natalino"` |
+| `isYearlyRecurring` | `Boolean` | Sim | `false` | Se `true`, o bloqueio recorre anualmente no mesmo mês e dia | `true` |
 | `createdAt` | `DateTime` | Sim | `now()` | Data de registro | `2026-11-04T00:00:00.000Z` |
 | `updatedAt` | `DateTime` | Sim | Auto | Data de atualização | `2026-11-04T00:00:00.000Z` |
 

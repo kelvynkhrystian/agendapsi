@@ -99,6 +99,89 @@ export function maskCPF(cpf?: string | null): string {
   return `${cleaned.slice(0, 3)}.***.***-${cleaned.slice(9)}`;
 }
 
+/**
+ * Retorna a data no formato YYYY-MM-DD no fuso horário do consultório (padrão America/Sao_Paulo).
+ */
+export function toLocalDateString(
+  dateInput?: Date | string | null,
+  timezone?: string | null
+): string {
+  const d = dateInput
+    ? typeof dateInput === "string"
+      ? new Date(dateInput)
+      : dateInput
+    : new Date();
+  if (Number.isNaN(d.getTime())) return "";
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: resolveSafeTimezone(timezone),
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
+}
+
+/**
+ * Converte data (YYYY-MM-DD) e hora (HH:mm) do fuso horário informado para um objeto Date UTC exato.
+ */
+export function zonedTimeToUtc(
+  dateStr: string,
+  timeStr: string,
+  timezone?: string | null
+): Date {
+  const safeTz = resolveSafeTimezone(timezone);
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const [hour, minute] = timeStr.split(":").map(Number);
+  const naive = new Date(Date.UTC(year, month - 1, day, hour, minute, 0));
+
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: safeTz,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    hour12: false,
+  });
+
+  const getOffset = (d: Date): number => {
+    const parts = formatter.formatToParts(d);
+    const p: Record<string, string> = {};
+    for (const part of parts) p[part.type] = part.value;
+    const formattedDate = new Date(
+      Date.UTC(
+        parseInt(p.year, 10),
+        parseInt(p.month, 10) - 1,
+        parseInt(p.day, 10),
+        parseInt(p.hour === "24" ? "0" : p.hour, 10),
+        parseInt(p.minute, 10),
+        parseInt(p.second, 10)
+      )
+    );
+    return formattedDate.getTime() - d.getTime();
+  };
+
+  const offset = getOffset(naive);
+  const targetUtc = new Date(naive.getTime() - offset);
+  const offset2 = getOffset(targetUtc);
+  return new Date(naive.getTime() - offset2);
+}
+
+/**
+ * Converte um timestamp UTC para componentes de data e hora no fuso horário do consultório.
+ */
+export function utcToZonedTime(
+  date: Date | string,
+  timezone?: string | null
+): { dateStr: string; timeStr: string } {
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (Number.isNaN(d.getTime())) return { dateStr: "", timeStr: "" };
+  return {
+    dateStr: toLocalDateString(d, timezone),
+    timeStr: formatTime(d, timezone),
+  };
+}
+
 // Re-exporta helpers centralizados de tradução e localização pt-BR
 export * from "./translations";
 

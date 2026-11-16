@@ -1,25 +1,31 @@
 /**
  * Sanitiza HTML customizado para garantir que não contenha scripts executáveis,
- * manipuladores de eventos embutidos ou formulários invasivos.
+ * manipuladores de eventos embutidos, iframes ou elementos invasivos.
+ * Aplica abordagem de desinfecção rigorosa em camadas.
  */
 export function sanitizeCustomHtml(dirtyHtml?: string | null): string {
-  if (!dirtyHtml) return "";
+  if (!dirtyHtml || typeof dirtyHtml !== "string") return "";
 
   let clean = dirtyHtml;
 
-  // Remove scripts
-  clean = clean.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
+  // 1. Remove blocos inteiros com seu conteúdo interno
+  clean = clean.replace(/<(script|style|svg|object|embed|iframe|canvas|audio|video|applet)\b[^<]*(?:(?!<\/\1>)<[^<]*)*<\/\1>/gi, "");
+  clean = clean.replace(/<\/?(script|style|svg|object|embed|iframe|canvas|audio|video|applet|meta|link|base|form|input|button|textarea|select|option)\b[^>]*>/gi, "");
 
-  // Remove tags perigosas: iframe, object, embed, form, meta, link, base
-  clean = clean.replace(/<\/?(iframe|object|embed|form|meta|link|base|applet)\b[^>]*>/gi, "");
+  // 2. Loop para desmantelar tags maliciosas aninhadas (ex: <scr<script>ipt>)
+  let previous: string;
+  do {
+    previous = clean;
+    clean = clean.replace(/<\/?(script|style|svg|object|embed|iframe)\b[^>]*>/gi, "");
+  } while (clean !== previous);
 
-  // Remove manipuladores de eventos on*: onclick, onload, onerror, onmouseover, etc.
-  clean = clean.replace(/\son\w+\s*=\s*(['"]).*?\1/gi, "");
-  clean = clean.replace(/\son\w+\s*=[^\s>]+/gi, "");
+  // 3. Remove manipuladores de eventos on* (precedidos por espaço, barra '/', tab ou início de atributo)
+  clean = clean.replace(/[\s/]+on[a-zA-Z]+\s*=\s*(?:'[^']*'|"[^"]*"|[^\s>]+)/gi, "");
+  clean = clean.replace(/[\s/]+on[a-zA-Z]+[\s=>]/gi, "");
 
-  // Remove javascript: e data: URLs
-  clean = clean.replace(/href\s*=\s*(['"])\s*javascript:[^'"]*\1/gi, 'href="#"');
-  clean = clean.replace(/src\s*=\s*(['"])\s*javascript:[^'"]*\1/gi, 'src=""');
+  // 4. Remove protocolos perigosos em qualquer atributo (href, src, formaction, action)
+  clean = clean.replace(/\b(href|src|action)\s*=\s*(['"])\s*(?:javascript|vbscript|data):[^'"]*\2/gi, '$1="#"');
+  clean = clean.replace(/\b(href|src|action)\s*=\s*(?:javascript|vbscript|data):[^\s>]+/gi, '$1="#"');
 
   return clean;
 }

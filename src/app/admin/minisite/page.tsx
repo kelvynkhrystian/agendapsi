@@ -23,6 +23,7 @@ import {
   buildWhatsAppChatUrl,
 } from "@/lib/minisite-helpers";
 import {
+  AlertTriangle,
   Globe,
   Save,
   ExternalLink,
@@ -139,6 +140,16 @@ export default function AdminMiniSitePage() {
   );
   const [showFloatingWhatsApp, setShowFloatingWhatsApp] = useState(true);
 
+  // Navegação por Abas Independentes do Site & Proteção de Alterações Não Salvas
+  const [activeSectionTab, setActiveSectionTab] = useState<string>("sec-1");
+  const [pendingTabTarget, setPendingTabTarget] = useState<string | null>(null);
+  const [isSavingSection, setIsSavingSection] = useState<string | null>(null);
+  const [sectionSaveFeedback, setSectionSaveFeedback] = useState<{
+    secId: string;
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+  const [baselines, setBaselines] = useState<Record<string, any> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
@@ -358,6 +369,396 @@ export default function AdminMiniSitePage() {
     }));
   };
 
+
+  const isSectionDirty = (secId: string): boolean => {
+    if (!baselines) return false;
+    switch (secId) {
+      case "sec-1": {
+        const b = baselines["sec-1"];
+        if (!b) return false;
+        return (
+          b.clinicName !== clinicName ||
+          b.tagline !== tagline ||
+          b.heroTitle !== heroTitle ||
+          b.heroSubtitle !== heroSubtitle ||
+          JSON.stringify(b.benefits) !== JSON.stringify(benefits)
+        );
+      }
+      case "sec-2": {
+        const b = baselines["sec-2"];
+        if (!b) return false;
+        return JSON.stringify(b) !== JSON.stringify(sectionsConfig.atendimentos);
+      }
+      case "sec-3": {
+        const b = baselines["sec-3"];
+        if (!b) return false;
+        return (
+          JSON.stringify(b.sobre) !== JSON.stringify(sectionsConfig.sobre) ||
+          b.aboutText !== aboutText ||
+          b.bio !== bio
+        );
+      }
+      case "sec-4": {
+        const b = baselines["sec-4"];
+        if (!b) return false;
+        return JSON.stringify(b) !== JSON.stringify(sectionsConfig.diferenciais);
+      }
+      case "sec-5": {
+        const b = baselines["sec-5"];
+        if (!b) return false;
+        return JSON.stringify(b) !== JSON.stringify(sectionsConfig.comoFunciona);
+      }
+      case "sec-6": {
+        const b = baselines["sec-6"];
+        if (!b) return false;
+        return JSON.stringify(b) !== JSON.stringify(sectionsConfig.depoimentos);
+      }
+      case "sec-7": {
+        const b = baselines["sec-7"];
+        if (!b) return false;
+        return (
+          b.address !== address ||
+          b.addressNumber !== addressNumber ||
+          b.addressComplement !== addressComplement ||
+          b.addressNeighborhood !== addressNeighborhood ||
+          b.addressCity !== addressCity ||
+          b.addressState !== addressState ||
+          b.addressPostalCode !== addressPostalCode ||
+          b.googleMapsUrl !== googleMapsUrl ||
+          b.googleMapsEmbedUrl !== googleMapsEmbedUrl ||
+          b.showLocation !== showLocation
+        );
+      }
+      case "sec-8": {
+        const b = baselines["sec-8"];
+        if (!b) return false;
+        return (
+          JSON.stringify(b.chamadaFinal) !== JSON.stringify(sectionsConfig.chamadaFinal) ||
+          b.whatsappDefaultMessage !== whatsappDefaultMessage ||
+          b.showFloatingWhatsApp !== showFloatingWhatsApp
+        );
+      }
+      case "sec-9": {
+        const b = baselines["sec-9"];
+        if (!b) return false;
+        return JSON.stringify(b) !== JSON.stringify(sectionsConfig.rodape);
+      }
+      default:
+        return false;
+    }
+  };
+
+  const discardChanges = (secId: string) => {
+    if (!baselines || !baselines[secId]) return;
+    switch (secId) {
+      case "sec-1": {
+        const b = baselines["sec-1"];
+        setClinicName(b.clinicName);
+        setTagline(b.tagline);
+        setHeroTitle(b.heroTitle);
+        setHeroSubtitle(b.heroSubtitle);
+        setBenefits(b.benefits.map((item: any) => ({ ...item })));
+        break;
+      }
+      case "sec-2": {
+        setSectionsConfig((prev) => ({ ...prev, atendimentos: JSON.parse(JSON.stringify(baselines["sec-2"])) }));
+        break;
+      }
+      case "sec-3": {
+        const b = baselines["sec-3"];
+        setAboutText(b.aboutText);
+        setBio(b.bio);
+        setSectionsConfig((prev) => ({ ...prev, sobre: JSON.parse(JSON.stringify(b.sobre)) }));
+        break;
+      }
+      case "sec-4": {
+        setSectionsConfig((prev) => ({ ...prev, diferenciais: JSON.parse(JSON.stringify(baselines["sec-4"])) }));
+        break;
+      }
+      case "sec-5": {
+        setSectionsConfig((prev) => ({ ...prev, comoFunciona: JSON.parse(JSON.stringify(baselines["sec-5"])) }));
+        break;
+      }
+      case "sec-6": {
+        setSectionsConfig((prev) => ({ ...prev, depoimentos: JSON.parse(JSON.stringify(baselines["sec-6"])) }));
+        break;
+      }
+      case "sec-7": {
+        const b = baselines["sec-7"];
+        setAddress(b.address);
+        setAddressNumber(b.addressNumber);
+        setAddressComplement(b.addressComplement);
+        setAddressNeighborhood(b.addressNeighborhood);
+        setAddressCity(b.addressCity);
+        setAddressState(b.addressState);
+        setAddressPostalCode(b.addressPostalCode);
+        setGoogleMapsUrl(b.googleMapsUrl);
+        setGoogleMapsEmbedUrl(b.googleMapsEmbedUrl);
+        setShowLocation(b.showLocation);
+        break;
+      }
+      case "sec-8": {
+        const b = baselines["sec-8"];
+        setSectionsConfig((prev) => ({ ...prev, chamadaFinal: JSON.parse(JSON.stringify(b.chamadaFinal)) }));
+        setWhatsappDefaultMessage(b.whatsappDefaultMessage);
+        setShowFloatingWhatsApp(b.showFloatingWhatsApp);
+        break;
+      }
+      case "sec-9": {
+        setSectionsConfig((prev) => ({ ...prev, rodape: JSON.parse(JSON.stringify(baselines["sec-9"])) }));
+        break;
+      }
+    }
+  };
+
+  const handleTabClick = (targetTab: string) => {
+    if (targetTab === activeSectionTab) return;
+    if (isSectionDirty(activeSectionTab)) {
+      setPendingTabTarget(targetTab);
+    } else {
+      setActiveSectionTab(targetTab);
+      setSectionSaveFeedback(null);
+    }
+  };
+
+  const handleDiscardAndSwitchTab = () => {
+    if (pendingTabTarget) {
+      discardChanges(activeSectionTab);
+      setActiveSectionTab(pendingTabTarget);
+      setPendingTabTarget(null);
+      setSectionSaveFeedback(null);
+    }
+  };
+
+  const handleSaveSection = async (secId: string) => {
+    setIsSavingSection(secId);
+    setSectionSaveFeedback(null);
+
+    let payload: Record<string, any> = {};
+    let secName = "Seção";
+
+    switch (secId) {
+      case "sec-1":
+        secName = "Início / Hero";
+        payload = {
+          clinicName,
+          tagline,
+          heroTitle,
+          heroSubtitle,
+          benefits,
+          abandonedUrls: Array.from(abandonedIconUrlsRef.current),
+        };
+        break;
+      case "sec-2":
+        secName = "Atendimentos";
+        payload = {
+          sectionsConfig: {
+            atendimentos: sectionsConfig.atendimentos,
+          },
+        };
+        break;
+      case "sec-3":
+        secName = "Sobre Mim";
+        payload = {
+          aboutText,
+          bio,
+          sectionsConfig: {
+            sobre: sectionsConfig.sobre,
+          },
+        };
+        break;
+      case "sec-4":
+        secName = "Diferenciais";
+        payload = {
+          sectionsConfig: {
+            diferenciais: sectionsConfig.diferenciais,
+          },
+          abandonedUrls: Array.from(abandonedIconUrlsRef.current),
+        };
+        break;
+      case "sec-5":
+        secName = "Como Funciona";
+        payload = {
+          sectionsConfig: {
+            comoFunciona: sectionsConfig.comoFunciona,
+          },
+        };
+        break;
+      case "sec-6":
+        secName = "Depoimentos";
+        payload = {
+          sectionsConfig: {
+            depoimentos: sectionsConfig.depoimentos,
+          },
+        };
+        break;
+      case "sec-7":
+        secName = "Localização";
+        payload = {
+          address,
+          addressNumber,
+          addressComplement,
+          addressNeighborhood,
+          addressCity,
+          addressState,
+          addressPostalCode,
+          googleMapsUrl,
+          googleMapsEmbedUrl,
+          showLocation,
+        };
+        break;
+      case "sec-8":
+        secName = "Chamada Final";
+        payload = {
+          whatsappDefaultMessage,
+          showFloatingWhatsApp,
+          sectionsConfig: {
+            chamadaFinal: sectionsConfig.chamadaFinal,
+          },
+        };
+        break;
+      case "sec-9":
+        secName = "Rodapé";
+        payload = {
+          sectionsConfig: {
+            rodape: sectionsConfig.rodape,
+          },
+        };
+        break;
+    }
+
+    try {
+      const res = await fetch("/api/admin/site/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setSectionSaveFeedback({
+          secId,
+          type: "error",
+          message: data.error || `Erro ao salvar ${secName}.`,
+        });
+        return;
+      }
+
+      // Atualiza o baseline apenas desta seção
+      setBaselines((prev: any) => {
+        if (!prev) return prev;
+        const next = { ...prev };
+        switch (secId) {
+          case "sec-1":
+            next["sec-1"] = {
+              clinicName,
+              tagline,
+              heroTitle,
+              heroSubtitle,
+              benefits: benefits.map((item) => ({ ...item })),
+            };
+            break;
+          case "sec-2":
+            next["sec-2"] = JSON.parse(JSON.stringify(sectionsConfig.atendimentos));
+            break;
+          case "sec-3":
+            next["sec-3"] = {
+              sobre: JSON.parse(JSON.stringify(sectionsConfig.sobre)),
+              aboutText,
+              bio,
+            };
+            break;
+          case "sec-4":
+            next["sec-4"] = JSON.parse(JSON.stringify(sectionsConfig.diferenciais));
+            break;
+          case "sec-5":
+            next["sec-5"] = JSON.parse(JSON.stringify(sectionsConfig.comoFunciona));
+            break;
+          case "sec-6":
+            next["sec-6"] = JSON.parse(JSON.stringify(sectionsConfig.depoimentos));
+            break;
+          case "sec-7":
+            next["sec-7"] = {
+              address,
+              addressNumber,
+              addressComplement,
+              addressNeighborhood,
+              addressCity,
+              addressState,
+              addressPostalCode,
+              googleMapsUrl,
+              googleMapsEmbedUrl,
+              showLocation,
+            };
+            break;
+          case "sec-8":
+            next["sec-8"] = {
+              chamadaFinal: JSON.parse(JSON.stringify(sectionsConfig.chamadaFinal)),
+              whatsappDefaultMessage,
+              showFloatingWhatsApp,
+            };
+            break;
+          case "sec-9":
+            next["sec-9"] = JSON.parse(JSON.stringify(sectionsConfig.rodape));
+            break;
+        }
+        return next;
+      });
+
+      if (secId === "sec-1" || secId === "sec-4") {
+        abandonedIconUrlsRef.current.clear();
+      }
+
+      setSectionSaveFeedback({
+        secId,
+        type: "success",
+        message: `Alterações de ${secName} salvas e publicadas com sucesso!`,
+      });
+    } catch {
+      setSectionSaveFeedback({
+        secId,
+        type: "error",
+        message: "Erro de comunicação ao salvar alterações.",
+      });
+    } finally {
+      setIsSavingSection(null);
+    }
+  };
+
+  const renderSectionSaveFooter = (secId: string, label: string) => {
+    const isDirty = isSectionDirty(secId);
+    const isSavingThis = isSavingSection === secId;
+
+    return (
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 mt-6 border-t border-[#E5E5E5] dark:border-[#2C2C2C]">
+        <div className="text-xs">
+          {isDirty ? (
+            <span className="text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+              Alterações não salvas nesta seção
+            </span>
+          ) : (
+            <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Seção salva e atualizada
+            </span>
+          )}
+        </div>
+
+        <Button
+          type="button"
+          onClick={() => handleSaveSection(secId)}
+          disabled={isSavingThis}
+          size="sm"
+          className="w-full sm:w-auto gap-2 bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-[var(--button-fg,#ffffff)] font-medium"
+        >
+          <Save className="h-4 w-4" />
+          <span>{isSavingThis ? "Salvando..." : `Salvar Alterações (${label})`}</span>
+        </Button>
+      </div>
+    );
+  };
+
   const handleRemoveDepoimento = (index: number) => {
     setSectionsConfig((prev) => ({
       ...prev,
@@ -483,29 +884,58 @@ export default function AdminMiniSitePage() {
       </div>
 
       {/* Mapa rápido da ordem das 9 seções do Site */}
-      <nav
-        aria-label="Seções do Site"
-        className="flex flex-wrap items-center gap-1.5 p-2 rounded-xl bg-white dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C]"
-      >
-        {SECTION_NAV_ITEMS.map((item) => (
-          <a
-            key={item.id}
-            href={`#${item.id}`}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white text-[var(--button-outline-fg,var(--primary))] border border-[var(--button-outline-border,rgba(244,81,8,0.22))] hover:bg-[var(--button-outline-hover-bg,#fff7ed)] dark:bg-[#1C1C1C] dark:border-[#2C2C2C] dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5] transition-colors"
-          >
-            <span className="w-4 h-4 rounded-full bg-[var(--primary)]/12 text-[var(--button-outline-fg,var(--primary))] dark:bg-[#292929] dark:text-[#F5F5F5] dark:border dark:border-[#393939] font-bold text-[10px] inline-flex items-center justify-center tabular-nums">
-              {item.number}
-            </span>
-            <span>{item.label}</span>
-          </a>
-        ))}
-      </nav>
+      <div className="w-full overflow-x-auto no-scrollbar scroll-smooth p-1.5 rounded-2xl bg-[#F4F4F5] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] text-xs font-medium">
+        <div className="flex items-center gap-1.5 min-w-max">
+          {SECTION_NAV_ITEMS.map((item) => {
+            const isActive = activeSectionTab === item.id;
+            const isDirty = isSectionDirty(item.id);
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => handleTabClick(item.id)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
+                  isActive
+                    ? "bg-[var(--button-bg,var(--primary))] text-[var(--button-fg,#ffffff)] font-semibold shadow-xs"
+                    : "bg-white text-[var(--button-outline-fg,var(--button-bg,var(--primary)))] border border-[var(--primary)]/20 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/[0.04] dark:bg-[#1C1C1C] dark:border-transparent dark:text-[#D0D0D0] dark:hover:bg-[#242424] dark:hover:text-[#F5F5F5]"
+                }`}
+              >
+                <span
+                  className={`w-4 h-4 rounded-full font-bold text-[10px] inline-flex items-center justify-center tabular-nums ${
+                    isActive
+                      ? "bg-white/25 text-white"
+                      : "bg-[var(--primary)]/15 text-[var(--button-outline-fg,var(--primary))] dark:bg-[#292929] dark:text-[#F5F5F5]"
+                  }`}
+                >
+                  {item.number}
+                </span>
+                <span>{item.label}</span>
+                {isDirty && (
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      isActive ? "bg-white" : "bg-[var(--primary)] animate-pulse"
+                    }`}
+                    title="Alterações não salvas"
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {sectionSaveFeedback && (
+        <Alert variant={sectionSaveFeedback.type === "success" ? "success" : "destructive"}>
+          {sectionSaveFeedback.message}
+        </Alert>
+      )}
 
       {saveMessage && <Alert variant="success">{saveMessage}</Alert>}
       {error && <Alert variant="destructive">{error}</Alert>}
 
-      <form onSubmit={handleSave} className="space-y-6">
+      <div className="space-y-6">
         {/* ================= 1. INÍCIO / HERO ================= */}
+        {activeSectionTab === "sec-1" && (
         <Card id="sec-1" className="scroll-mt-24 border-[#E5E5E5] dark:border-[#2C2C2C]">
           <CardHeader className="border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-4">
             <CardTitle className="text-base flex items-center gap-2">
@@ -733,10 +1163,13 @@ export default function AdminMiniSitePage() {
                 ))}
               </div>
             </div>
+            {renderSectionSaveFooter("sec-1", "Início / Hero")}
           </CardContent>
         </Card>
+      )}
 
         {/* ================= 2. ATENDIMENTOS ================= */}
+        {activeSectionTab === "sec-2" && (
         <Card id="sec-2" className="scroll-mt-24 border-[#E5E5E5] dark:border-[#2C2C2C]">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-4">
             <div>
@@ -845,10 +1278,13 @@ export default function AdminMiniSitePage() {
                 <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
+            {renderSectionSaveFooter("sec-2", "Atendimentos")}
           </CardContent>
         </Card>
+      )}
 
         {/* ================= 3. SOBRE MIM ================= */}
+        {activeSectionTab === "sec-3" && (
         <Card id="sec-3" className="scroll-mt-24 border-[#E5E5E5] dark:border-[#2C2C2C]">
           <CardHeader className="border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-4">
             <CardTitle className="text-base flex items-center gap-2">
@@ -953,10 +1389,13 @@ export default function AdminMiniSitePage() {
                 placeholder="Exibido automaticamente se a biografia estiver em branco."
               />
             </div>
+            {renderSectionSaveFooter("sec-3", "Sobre Mim")}
           </CardContent>
         </Card>
+      )}
 
         {/* ================= 4. DIFERENCIAIS ================= */}
+        {activeSectionTab === "sec-4" && (
         <Card id="sec-4" className="scroll-mt-24 border-[#E5E5E5] dark:border-[#2C2C2C]">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-4">
             <div>
@@ -1156,10 +1595,13 @@ export default function AdminMiniSitePage() {
                 </div>
               ))}
             </div>
+            {renderSectionSaveFooter("sec-4", "Diferenciais")}
           </CardContent>
         </Card>
+      )}
 
         {/* ================= 5. COMO FUNCIONA ================= */}
+        {activeSectionTab === "sec-5" && (
         <Card id="sec-5" className="scroll-mt-24 border-[#E5E5E5] dark:border-[#2C2C2C]">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-4">
             <div>
@@ -1323,10 +1765,13 @@ export default function AdminMiniSitePage() {
                 </div>
               ))}
             </div>
+            {renderSectionSaveFooter("sec-5", "Como Funciona")}
           </CardContent>
         </Card>
+      )}
 
         {/* ================= 6. DEPOIMENTOS ================= */}
+        {activeSectionTab === "sec-6" && (
         <Card id="sec-6" className="scroll-mt-24 border-[#E5E5E5] dark:border-[#2C2C2C]">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-4">
             <div>
@@ -1567,10 +2012,13 @@ export default function AdminMiniSitePage() {
                 ))}
               </div>
             )}
+            {renderSectionSaveFooter("sec-6", "Depoimentos")}
           </CardContent>
         </Card>
+      )}
 
         {/* ================= 7. LOCALIZAÇÃO ================= */}
+        {activeSectionTab === "sec-7" && (
         <Card id="sec-7" className="scroll-mt-24 border-[#E5E5E5] dark:border-[#2C2C2C]">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-4">
             <div>
@@ -1832,10 +2280,13 @@ export default function AdminMiniSitePage() {
                 </div>
               )}
             </div>
+            {renderSectionSaveFooter("sec-7", "Localização")}
           </CardContent>
         </Card>
+      )}
 
         {/* ================= 8. CHAMADA FINAL ================= */}
+        {activeSectionTab === "sec-8" && (
         <Card id="sec-8" className="scroll-mt-24 border-[#E5E5E5] dark:border-[#2C2C2C]">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-4">
             <div>
@@ -1974,10 +2425,13 @@ export default function AdminMiniSitePage() {
                 Fluxo Online Ativo
               </Badge>
             </div>
+            {renderSectionSaveFooter("sec-8", "Chamada Final")}
           </CardContent>
         </Card>
+      )}
 
         {/* ================= 9. RODAPÉ / FOOTER (SEMPRE POR ÚLTIMO) ================= */}
+        {activeSectionTab === "sec-9" && (
         <Card id="sec-9" className="scroll-mt-24 border-[#E5E5E5] dark:border-[#2C2C2C]">
           <CardHeader className="border-b border-[#E5E5E5] dark:border-[#2C2C2C] pb-4">
             <CardTitle className="text-base flex items-center gap-2">
@@ -2185,22 +2639,45 @@ export default function AdminMiniSitePage() {
                 Identificação PSI
               </Badge>
             </div>
+            {renderSectionSaveFooter("sec-9", "Rodapé")}
           </CardContent>
         </Card>
+      )}
 
-        {/* Botão de Salvar Alterações */}
-        <div className="flex justify-end pt-2">
-          <Button
-            type="submit"
-            size="lg"
-            disabled={isSaving}
-            className="w-full sm:w-auto gap-2 bg-[var(--button-bg,var(--primary))] hover:brightness-105 text-[var(--button-fg,#ffffff)]"
-          >
-            <Save className="h-4 w-4" />
-            <span>{isSaving ? "Salvando Alterações..." : "Salvar Alterações do Site"}</span>
-          </Button>
         </div>
-      </form>
+
+      {/* Modal de Confirmação de Alterações Não Salvas */}
+      {pendingTabTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white dark:bg-[#1A1A1A] border border-[#E5E5E5] dark:border-[#2C2C2C] rounded-2xl w-full max-w-sm p-6 shadow-2xl space-y-4 text-xs">
+            <h3 className="font-semibold text-sm text-[#171717] dark:text-[#F5F5F5] flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <span>Alterações não salvas</span>
+            </h3>
+            <p className="text-[#525252] dark:text-[#D4D4D4]">
+              Você possui alterações não salvas. Deseja sair sem salvar?
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E5E5E5] dark:border-[#2C2C2C]">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setPendingTabTarget(null)}
+              >
+                Continuar Editando
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={handleDiscardAndSwitchTab}
+              >
+                Descartar Alterações
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal da Biblioteca de Ícones Compartilhada */}
       <IconPickerModal

@@ -1,5 +1,6 @@
 import { prisma } from "./prisma";
 import { provisionVideoMeeting } from "./video-provider";
+import { toLocalDateString, zonedTimeToUtc, formatTime } from "./utils";
 
 export interface TimeSlot {
   startAt: string; // ISO string
@@ -74,8 +75,15 @@ export async function getAvailableSlotsForDate({
   });
 
   const now = new Date();
-  const minNoticeHours = settings?.minBookingNoticeHours ?? 24;
-  const maxHorizonDays = settings?.maxBookingHorizonDays ?? 30;
+  const safeTz = timezone || settings?.timezone || "America/Sao_Paulo";
+  const minNoticeHours =
+    typeof settings?.minBookingNoticeHours === "number"
+      ? settings.minBookingNoticeHours
+      : 24;
+  const maxHorizonDays =
+    typeof settings?.maxBookingHorizonDays === "number"
+      ? settings.maxBookingHorizonDays
+      : 30;
 
   const minBookingTime = new Date(now.getTime() + minNoticeHours * 3600000);
   const maxBookingTime =
@@ -85,12 +93,12 @@ export async function getAvailableSlotsForDate({
 
   // Monta início e fim do dia no timezone informado
   // dateStr é "YYYY-MM-DD"
-  const [year, month, day] = dateStr.split("-").map(Number);
-  const targetDayStart = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
-  const targetDayEnd = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
+  const targetDayStart = zonedTimeToUtc(dateStr, "00:00", safeTz);
+  const targetDayEnd = new Date(targetDayStart.getTime() + 86400000 - 1);
 
   // Verifica dia da semana (0 = Domingo ... 6 = Sábado) de forma independente do fuso do servidor
-  const dayOfWeek = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const dayOfWeek = new Date(Date.UTC(year, month - 1, day, 12, 0, 0)).getUTCDay();
 
   // 1. Busca disponibilidade semanal configurada
   const weeklyRules = await prisma.weeklyAvailability.findMany({
@@ -98,21 +106,70 @@ export async function getAvailableSlotsForDate({
       dayOfWeek,
       isActive: true,
     },
+    orderBy: {
+      startTime: "asc",
+    },
   });
 
   if (weeklyRules.length === 0) {
     return [];
   }
 
-  // 2. Busca exceções ou bloqueios no dia
-  const exceptions = await prisma.availabilityException.findMany({
+  // 2. Busca exceções ou bloqueios no dia (pontuais, faixas de datas e recorrência anual)
+  // Utiliza margem de 24h para contemplar datas salvas em UTC puro (00:00Z) ou no timezone do sistema
+  const queryStart = new Date(targetDayStart.getTime() - 86400000);
+  const queryEnd = new Date(targetDayEnd.getTime() + 86400000);
+
+  const candidateExceptions = await prisma.availabilityException.findMany({
     where: {
-      date: {
-        gte: targetDayStart,
-        lte: targetDayEnd,
-      },
       isBlocked: true,
+      OR: [
+        {
+          endDate: null,
+          date: { gte: queryStart, lte: queryEnd },
+        },
+        {
+          date: { lte: queryEnd },
+          endDate: { gte: queryStart },
+        },
+        {
+          isYearlyRecurring: true,
+        },
+      ],
     },
+  });
+
+  const exceptions = candidateExceptions.filter((exc) => {
+    if (exc.isYearlyRecurring) {
+      const excStartMonth = exc.date.getUTCMonth() + 1;
+      const excStartDay = exc.date.getUTCDate();
+      if (!exc.endDate) {
+        return excStartMonth === month && excStartDay === day;
+      } else {
+        const excEndMonth = exc.endDate.getUTCMonth() + 1;
+        const excEndDay = exc.endDate.getUTCDate();
+        const targetMMDD = month * 100 + day;
+        const startMMDD = excStartMonth * 100 + excStartDay;
+        const endMMDD = excEndMonth * 100 + excEndDay;
+        if (startMMDD <= endMMDD) {
+          return targetMMDD >= startMMDD && targetMMDD <= endMMDD;
+        } else {
+          return targetMMDD >= startMMDD || targetMMDD <= endMMDD;
+        }
+      }
+    }
+    const resolveCalendarDateStr = (d: Date): string => {
+      // Se salvo como meia-noite UTC (00:00:00.000Z), preserva a data base UTC
+      if (d.getUTCHours() === 0 && d.getUTCMinutes() === 0 && d.getUTCSeconds() === 0) {
+        return d.toISOString().slice(0, 10);
+      }
+      return toLocalDateString(d, safeTz);
+    };
+
+    const excStartDateStr = resolveCalendarDateStr(exc.date);
+    const excEndDateStr = exc.endDate ? resolveCalendarDateStr(exc.endDate) : excStartDateStr;
+
+    return dateStr >= excStartDateStr && dateStr <= excEndDateStr;
   });
 
   // Se houver bloqueio total do dia sem horário especificado
@@ -158,9 +215,12 @@ export async function getAvailableSlotsForDate({
     const [startH, startM] = rule.startTime.split(":").map(Number);
     const [endH, endM] = rule.endTime.split(":").map(Number);
 
-    // Constrói objeto Date em UTC seguindo a grade configurada
-    const periodStart = new Date(Date.UTC(year, month - 1, day, startH, startM));
-    const periodEnd = new Date(Date.UTC(year, month - 1, day, endH, endM));
+    // Constrói objeto Date em UTC convertendo a hora local no timezone da clínica
+    const periodStart = zonedTimeToUtc(dateStr, rule.startTime, safeTz);
+    const periodEnd =
+      rule.endTime === "24:00" || rule.endTime === "23:59"
+        ? new Date(targetDayStart.getTime() + 86400000)
+        : zonedTimeToUtc(dateStr, rule.endTime, safeTz);
 
     let currentCursor = new Date(periodStart);
 
@@ -179,8 +239,8 @@ export async function getAvailableSlotsForDate({
         reason = "Horário já encerrado ou no passado";
       }
 
-      // Valida antecedência mínima quando aplicável
-      if (isAvailable && respectMinNotice && slotStart < minNoticeHoursDate(minBookingTime)) {
+      // Valida antecedência mínima quando aplicável (apenas se minNoticeHours > 0)
+      if (isAvailable && respectMinNotice && minNoticeHours > 0 && slotStart < minBookingTime) {
         isAvailable = false;
         reason = "Antecedência mínima necessária não atingida";
       }
@@ -195,10 +255,8 @@ export async function getAvailableSlotsForDate({
       if (isAvailable) {
         for (const exc of exceptions) {
           if (exc.startTime && exc.endTime) {
-            const [eStartH, eStartM] = exc.startTime.split(":").map(Number);
-            const [eEndH, eEndM] = exc.endTime.split(":").map(Number);
-            const excStart = new Date(Date.UTC(year, month - 1, day, eStartH, eStartM));
-            const excEnd = new Date(Date.UTC(year, month - 1, day, eEndH, eEndM));
+            const excStart = zonedTimeToUtc(dateStr, exc.startTime, safeTz);
+            const excEnd = zonedTimeToUtc(dateStr, exc.endTime, safeTz);
 
             if (intervalsOverlap(slotStart, slotEndWithBuffer, excStart, excEnd)) {
               isAvailable = false;
@@ -234,13 +292,12 @@ export async function getAvailableSlotsForDate({
         }
       }
 
-      const hours = String(slotStart.getUTCHours()).padStart(2, "0");
-      const minutes = String(slotStart.getUTCMinutes()).padStart(2, "0");
+      const formattedTime = formatTime(slotStart, safeTz);
 
       slots.push({
         startAt: slotStart.toISOString(),
         endAt: slotEnd.toISOString(),
-        formattedTime: `${hours}:${minutes}`,
+        formattedTime,
         available: isAvailable,
         reason,
       });
@@ -249,6 +306,9 @@ export async function getAvailableSlotsForDate({
       currentCursor = addMinutes(currentCursor, totalSlotDuration);
     }
   }
+
+  // Ordena os slots cronologicamente
+  slots.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
 
   return slots;
 }
@@ -503,12 +563,14 @@ export async function rescheduleAppointmentAtomic({
     where: { id: "default" },
   });
 
+  const safeTz = settings?.timezone || "America/Sao_Paulo";
+
   // Validação da grade oficial de disponibilidade antes da transação
-  const dateStr = newStartAt.toISOString().slice(0, 10);
+  const dateStr = toLocalDateString(newStartAt, safeTz);
   const availableSlots = await getAvailableSlotsForDate({
     dateStr,
     serviceId: appointment.serviceId,
-    timezone: settings?.timezone || "America/Sao_Paulo",
+    timezone: safeTz,
     excludeAppointmentId: appointmentId,
     respectMinNotice: false,
   });

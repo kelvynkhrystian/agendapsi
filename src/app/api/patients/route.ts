@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, hashPassword } from "@/lib/auth";
@@ -66,7 +67,8 @@ export async function GET(req: NextRequest) {
       orderBy: { fullName: "asc" },
     });
 
-    return NextResponse.json(patients);
+    const safePatients = patients.map(({ passwordHash: _hash, ...safe }) => safe);
+    return NextResponse.json(safePatients);
   } catch (error: unknown) {
     if (error instanceof Error && (error.message === "UNAUTHORIZED" || error.message === "FORBIDDEN")) {
       return NextResponse.json({ error: "Acesso restrito ao administrador." }, { status: 403 });
@@ -106,8 +108,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Gera senha temporária de 8 caracteres
-    const tempPassword = Math.random().toString(36).substring(2, 10);
+    // Gera senha temporária segura de alta entropia (10 caracteres hexadecimais criptográficos)
+    const tempPassword = crypto.randomBytes(5).toString("hex");
     const passwordHash = await hashPassword(tempPassword);
 
     const birthDateObj = data.birthDate ? new Date(data.birthDate) : null;
@@ -123,7 +125,6 @@ export async function POST(req: NextRequest) {
         fullName: data.fullName,
         email: normalizedEmail,
         passwordHash,
-        tempPassword,
         mustChangePassword: true,
         phone: data.phone,
         cpf: data.cpf,
@@ -164,8 +165,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    const { passwordHash: _hash, ...safePatient } = patient;
+
     return NextResponse.json({
-      patient,
+      patient: safePatient,
       tempPassword,
       message: "Paciente cadastrado com senha temporária gerada.",
     }, { status: 201 });

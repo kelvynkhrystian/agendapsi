@@ -100,8 +100,9 @@ model Patient {
   fullName           String
   email              String     @unique
   passwordHash       String?
-  tempPassword       String?
   mustChangePassword Boolean    @default(false)
+  failedLogins       Int        @default(0)
+  lockedUntil        DateTime?
   phone              String
   cpf                String?
   birthDate          DateTime?
@@ -172,6 +173,20 @@ model PatientEmailChangeToken {
   @@index([tokenHash])
 }
 
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  email     String
+  tokenHash String    @unique
+  role      Role      @default(PATIENT)
+  expiresAt DateTime
+  usedAt    DateTime?
+  ipAddress String?
+  createdAt DateTime  @default(now())
+
+  @@index([email])
+  @@index([tokenHash])
+}
+
 model ConsentAcceptance {
   id            String   @id @default(cuid())
   patientId     String
@@ -230,14 +245,16 @@ model WeeklyAvailability {
 }
 
 model AvailabilityException {
-  id        String   @id @default(cuid())
-  date      DateTime
-  startTime String?
-  endTime   String?
-  isBlocked Boolean  @default(true)
-  reason    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 String    @id @default(cuid())
+  date               DateTime
+  endDate            DateTime?
+  startTime          String?
+  endTime            String?
+  isBlocked          Boolean   @default(true)
+  reason             String?
+  isYearlyRecurring  Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 }
 
 model Appointment {
