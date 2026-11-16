@@ -188,7 +188,7 @@ function IntegrationToggle({
   );
 }
 
-type IntegrationTab = "email" | "sms" | "whatsapp";
+type IntegrationTab = "email" | "sms" | "whatsapp" | "pagamentos";
 
 export default function AdminIntegrationsPage() {
   const [activeTab, setActiveTab] = useState<IntegrationTab>("email");
@@ -381,12 +381,12 @@ export default function AdminIntegrationsPage() {
     void fetchSnapshot({ refreshProbes: false, hydrateForms: true });
   }, [fetchSnapshot]);
 
-  // Sincroniza aba inicial pela query string (?tab=email|sms|whatsapp)
+  // Sincroniza aba inicial pela query string (?tab=email|sms|whatsapp|pagamentos)
   useEffect(() => {
     if (typeof window === "undefined") return;
     const param = new URLSearchParams(window.location.search).get("tab");
-    if (param === "email" || param === "sms" || param === "whatsapp") {
-      setActiveTab(param);
+    if (param === "email" || param === "sms" || param === "whatsapp" || param === "pagamentos") {
+      setActiveTab(param as IntegrationTab);
     }
   }, []);
 
@@ -400,8 +400,14 @@ export default function AdminIntegrationsPage() {
   }, [activeTab]);
 
   const handleTabChange = (nextTab: string) => {
-    if (nextTab !== "email" && nextTab !== "sms" && nextTab !== "whatsapp") return;
-    setActiveTab(nextTab);
+    if (
+      nextTab !== "email" &&
+      nextTab !== "sms" &&
+      nextTab !== "whatsapp" &&
+      nextTab !== "pagamentos"
+    )
+      return;
+    setActiveTab(nextTab as IntegrationTab);
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
       url.searchParams.set("tab", nextTab);
