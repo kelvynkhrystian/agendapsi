@@ -1,15 +1,15 @@
 -- AlterTable
-ALTER TABLE `notificationdelivery` MODIFY `channel` ENUM('EMAIL', 'WHATSAPP', 'SMS') NOT NULL;
+ALTER TABLE `NotificationDelivery` MODIFY `channel` ENUM('EMAIL', 'WHATSAPP', 'SMS') NOT NULL;
 
 -- AlterTable
-ALTER TABLE `notificationtemplate` MODIFY `channel` ENUM('EMAIL', 'WHATSAPP', 'SMS') NOT NULL;
+ALTER TABLE `NotificationTemplate` MODIFY `channel` ENUM('EMAIL', 'WHATSAPP', 'SMS') NOT NULL;
 
 -- AlterTable
-ALTER TABLE `patient` ADD COLUMN `smsOptIn` BOOLEAN NOT NULL DEFAULT false,
+ALTER TABLE `Patient` ADD COLUMN `smsOptIn` BOOLEAN NOT NULL DEFAULT false,
     ADD COLUMN `smsOptInAt` DATETIME(3) NULL;
 
 -- AlterTable
-ALTER TABLE `systemsettings` ADD COLUMN `emailDisabledRecoveryStrategy` VARCHAR(191) NOT NULL DEFAULT 'ADMIN_ASSISTED',
+ALTER TABLE `SystemSettings` ADD COLUMN `emailDisabledRecoveryStrategy` VARCHAR(191) NOT NULL DEFAULT 'ADMIN_ASSISTED',
     ADD COLUMN `emailHealthMessage` TEXT NULL,
     ADD COLUMN `emailHealthStatus` VARCHAR(191) NOT NULL DEFAULT 'NOT_CONFIGURED',
     ADD COLUMN `emailLastCheckedAt` DATETIME(3) NULL,

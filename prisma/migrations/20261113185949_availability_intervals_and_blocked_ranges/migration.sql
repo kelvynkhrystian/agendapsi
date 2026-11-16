@@ -1,3 +1,3 @@
 -- AlterTable
-ALTER TABLE `availabilityexception` ADD COLUMN `endDate` DATETIME(3) NULL,
+ALTER TABLE `AvailabilityException` ADD COLUMN `endDate` DATETIME(3) NULL,
     ADD COLUMN `isYearlyRecurring` BOOLEAN NOT NULL DEFAULT false;

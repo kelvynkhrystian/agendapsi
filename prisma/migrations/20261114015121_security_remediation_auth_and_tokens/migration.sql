@@ -5,7 +5,7 @@
 
 */
 -- AlterTable
-ALTER TABLE `patient` DROP COLUMN `tempPassword`,
+ALTER TABLE `Patient` DROP COLUMN `tempPassword`,
     ADD COLUMN `failedLogins` INTEGER NOT NULL DEFAULT 0,
     ADD COLUMN `lockedUntil` DATETIME(3) NULL;
 
