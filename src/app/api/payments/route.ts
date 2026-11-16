@@ -55,10 +55,48 @@ export async function GET(req: NextRequest) {
     let pendingCount = 0;
     let refundedCount = 0;
 
-    const methodCounters = {
+    const methodCounters: Record<
+      string,
+      {
+        method: string;
+        label: string;
+        totalCents: number;
+        realApprovedCents: number;
+        simulatedApprovedCents: number;
+        pendingCents: number;
+        count: number;
+      }
+    > = {
       IN_PERSON: {
         method: "IN_PERSON",
         label: "Presencial",
+        totalCents: 0,
+        realApprovedCents: 0,
+        simulatedApprovedCents: 0,
+        pendingCents: 0,
+        count: 0,
+      },
+      MERCADO_PAGO: {
+        method: "MERCADO_PAGO",
+        label: "Mercado Pago",
+        totalCents: 0,
+        realApprovedCents: 0,
+        simulatedApprovedCents: 0,
+        pendingCents: 0,
+        count: 0,
+      },
+      ASAAS: {
+        method: "ASAAS",
+        label: "Asaas",
+        totalCents: 0,
+        realApprovedCents: 0,
+        simulatedApprovedCents: 0,
+        pendingCents: 0,
+        count: 0,
+      },
+      PAGBANK: {
+        method: "PAGBANK",
+        label: "PagBank",
         totalCents: 0,
         realApprovedCents: 0,
         simulatedApprovedCents: 0,

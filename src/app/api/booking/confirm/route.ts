@@ -5,11 +5,14 @@ import { requireAuth } from "@/lib/auth";
 import { createAtomicAppointment } from "@/lib/schedule";
 import { dispatchNotification } from "@/lib/notifications";
 import { isRestoreInProgress, RESTORE_MAINTENANCE_MESSAGE } from "@/lib/backup";
+import { getPaymentProvider, getDecryptedGatewayCredentials } from "@/lib/payments/registry";
+import { PaymentProviderKey } from "@/lib/payments/types";
 
 const confirmBookingSchema = z.object({
   holdToken: z.string().min(8),
   modality: z.enum(["PRESENTIAL", "ONLINE", "BOTH"]),
-  paymentMethod: z.enum(["ONLINE_SIMULATED", "IN_PERSON", "WHATSAPP_ARRANGED"]).default("ONLINE_SIMULATED"),
+  paymentMethod: z.string().optional().default("ONLINE_SIMULATED"),
+  gatewayProvider: z.enum(["MERCADO_PAGO", "ASAAS", "PAGBANK", "IN_PERSON", "ONLINE_SIMULATED"]).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -65,20 +68,112 @@ export async function POST(req: NextRequest) {
     // Se o serviço não for gratuito, cria o pagamento
     const isFree = hold.service.isFree || hold.service.priceCents === 0;
     let payment = null;
+    let paymentInstructions = "";
 
     if (!isFree) {
-      payment = await prisma.payment.create({
-        data: {
-          appointmentId: appointment.id,
-          patientId: session.userId,
-          amountCents: hold.service.priceCents,
-          status: paymentMethod === "ONLINE_SIMULATED" ? "APPROVED" : "PENDING",
-          method: paymentMethod,
-          isSimulated: paymentMethod === "ONLINE_SIMULATED",
-          confirmedAt: paymentMethod === "ONLINE_SIMULATED" ? new Date() : null,
-          confirmedBy: paymentMethod === "ONLINE_SIMULATED" ? "SIMULATOR" : null,
-        },
-      });
+      const chosenProvider = (
+        result.data.gatewayProvider ||
+        (paymentMethod === "IN_PERSON"
+          ? "IN_PERSON"
+          : paymentMethod === "MERCADO_PAGO"
+          ? "MERCADO_PAGO"
+          : paymentMethod === "ASAAS"
+          ? "ASAAS"
+          : paymentMethod === "PAGBANK"
+          ? "PAGBANK"
+          : "ONLINE_SIMULATED")
+      ) as PaymentProviderKey | "ONLINE_SIMULATED";
+
+      if (chosenProvider === "ONLINE_SIMULATED") {
+        payment = await prisma.payment.create({
+          data: {
+            appointmentId: appointment.id,
+            patientId: session.userId,
+            amountCents: hold.service.priceCents,
+            status: "APPROVED",
+            method: "ONLINE_SIMULATED",
+            gatewayProvider: "SIMULATOR",
+            isSimulated: true,
+            confirmedAt: new Date(),
+            confirmedBy: "SIMULATOR",
+          },
+        });
+      } else if (chosenProvider === "IN_PERSON") {
+        const inPersonGateway = await getDecryptedGatewayCredentials("IN_PERSON");
+        paymentInstructions =
+          inPersonGateway?.instructions ||
+          "O pagamento poderá ser realizado diretamente na recepção em dinheiro, cartão ou Pix no dia do atendimento.";
+
+        payment = await prisma.payment.create({
+          data: {
+            appointmentId: appointment.id,
+            patientId: session.userId,
+            amountCents: hold.service.priceCents,
+            status: "PENDING",
+            method: "IN_PERSON",
+            gatewayProvider: "IN_PERSON",
+            isSimulated: false,
+          },
+        });
+      } else {
+        // Gateway online real: Mercado Pago, Asaas ou PagBank
+        const gatewayData = await getDecryptedGatewayCredentials(chosenProvider);
+        const patientData = await prisma.patient.findUnique({ where: { id: session.userId } });
+
+        payment = await prisma.payment.create({
+          data: {
+            appointmentId: appointment.id,
+            patientId: session.userId,
+            amountCents: hold.service.priceCents,
+            status: "PENDING",
+            method: chosenProvider as any,
+            gatewayProvider: chosenProvider,
+            isSimulated: false,
+          },
+        });
+
+        if (gatewayData && patientData) {
+          try {
+            const providerImpl = getPaymentProvider(chosenProvider);
+            const webhookUrl = `${req.nextUrl.origin}/api/webhooks/payments/${chosenProvider.toLowerCase().replace(/_/g, "")}`;
+            const payResult = await providerImpl.createPayment(
+              {
+                paymentId: payment.id,
+                appointmentId: appointment.id,
+                patient: {
+                  id: patientData.id,
+                  fullName: patientData.fullName,
+                  email: patientData.email,
+                  phone: patientData.phone,
+                  cpf: patientData.cpf,
+                },
+                amountCents: hold.service.priceCents,
+                description: `Agendamento - ${hold.service.name}`,
+                returnUrl: `${req.nextUrl.origin}/paciente`,
+              },
+              gatewayData.credentials,
+              gatewayData.environment,
+              webhookUrl
+            );
+
+            if (payResult.success) {
+              payment = await prisma.payment.update({
+                where: { id: payment.id },
+                data: {
+                  gatewayPaymentId: payResult.gatewayPaymentId,
+                  gatewayStatus: payResult.gatewayStatus,
+                  pixQrCode: payResult.pixQrCode,
+                  pixQrCodeBase64: payResult.pixQrCodeBase64,
+                  checkoutUrl: payResult.checkoutUrl,
+                },
+              });
+              paymentInstructions = payResult.instructions || "";
+            }
+          } catch (payErr) {
+            console.error(`Erro ao gerar cobrança no ${chosenProvider}:`, payErr);
+          }
+        }
+      }
     }
 
     // Busca detalhes do paciente e da clínica
@@ -143,7 +238,12 @@ export async function POST(req: NextRequest) {
       {
         success: true,
         appointment,
-        payment,
+        payment: payment
+          ? {
+              ...payment,
+              instructions: paymentInstructions,
+            }
+          : null,
         message:
           initialStatus === "CONFIRMED"
             ? "Consulta agendada e confirmada com sucesso!"

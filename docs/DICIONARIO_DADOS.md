@@ -690,12 +690,19 @@ erDiagram
 | `patientId` | `String` | Sim | Nenhum | Chave referenciando `Patient.id` | `"cly78a02x000108l0h8a9bc12"` |
 | `amountCents` | `Int` | Sim | Nenhum | Valor total em centavos inteiros de Real | `18000` |
 | `status` | `PaymentStatus` | Sim | `PENDING` | `PENDING`, `APPROVED`, `REJECTED`, `CANCELLED`, `REFUNDED` | `PENDING` |
-| `method` | `PaymentMethod` | Sim | `ONLINE_SIMULATED`| Método: `ONLINE_SIMULATED`, `IN_PERSON`, `WHATSAPP_ARRANGED` | `ONLINE_SIMULATED` |
-| `isSimulated` | `Boolean` | Sim | `true` | Indica se o pagamento ocorreu via simulador interno ou gateway real | `true` |
+| `method` | `PaymentMethod` | Sim | `ONLINE_SIMULATED`| Método: `ONLINE_SIMULATED`, `IN_PERSON`, `WHATSAPP_ARRANGED`, `MERCADO_PAGO`, `ASAAS`, `PAGBANK`, `PIX`, `CREDIT_CARD` | `MERCADO_PAGO` |
+| `isSimulated` | `Boolean` | Sim | `true` | Indica se o pagamento ocorreu via simulador interno ou gateway real | `false` |
+| `gatewayProvider` | `String?` | Não | `null` | Identificador do provedor externo: `"MERCADO_PAGO"`, `"ASAAS"`, `"PAGBANK"`, `"IN_PERSON"` | `"MERCADO_PAGO"` |
+| `gatewayPaymentId` | `String?` | Não | `null` | Identificador da transação retornado pela API do gateway | `"pay_98120348"` |
+| `gatewayStatus` | `String?` | Não | `null` | Status bruto original retornado pelo provedor | `"approved"` |
+| `pixQrCode` | `String?` (Text) | Não | `null` | Código copia-e-cola do Pix para pagamento imediato | `"00020126580014br.gov.bcb.pix..."` |
+| `pixQrCodeBase64` | `String?` (Text) | Não | `null` | Imagem PNG do QR Code Pix codificada em base64 | `"data:image/png;base64,iVBORw..."` |
+| `checkoutUrl` | `String?` (Text) | Não | `null` | Link para checkout hospedado no provedor de pagamento | `"https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=..."` |
+| `metadataJson` | `String?` (Text) | Não | `null` | Metadados adicionais da transação em JSON | `"{\"installments\":1}"` |
 | `externalReference` | `String?` | Não | `null` | ID da transação no gateway externo ou código PIX | `"pix_tx_98120348"` |
 | `idempotencyKey` | `String?` | Não | `null` | Chave única anti-duplicação de cobrança | `"idem_98ab76cd54"` |
 | `confirmedAt` | `DateTime?` | Não | `null` | Data e hora UTC da aprovação do pagamento | `null` |
-| `confirmedBy` | `String?` | Não | `null` | Quem confirmou: `"SYSTEM"` ou ID do Admin | `null` |
+| `confirmedBy` | `String?` | Não | `null` | Quem confirmou: `"SYSTEM"`, `"WEBHOOK_MERCADO_PAGO"` ou ID do Admin | `null` |
 | `createdAt` | `DateTime` | Sim | `now()` | Data de lançamento | `2026-11-04T12:00:00.000Z` |
 | `updatedAt` | `DateTime` | Sim | Auto | Data de modificação | `2026-11-04T12:00:00.000Z` |
 
@@ -747,6 +754,8 @@ erDiagram
 | `paymentId` | `String` | Sim | Nenhum | Chave referenciando `Payment.id` | `"cly78a13k001208l0h9l0m23"` |
 | `amountCents` | `Int` | Sim | Nenhum | Quantia estornada em centavos de Real | `18000` |
 | `reason` | `String?` | Não | `null` | Justificativa do estorno | `"Consulta cancelada com mais de 72h de antecedência"` |
+| `gatewayRefundId` | `String?` | Não | `null` | Identificador único do estorno emitido pelo gateway original | `"ref_123456789"` |
+| `gatewayStatus` | `String?` | Não | `null` | Status bruto do estorno no gateway | `"approved"` |
 | `refundedAt` | `DateTime` | Sim | `now()` | Timestamp UTC da operação de estorno | `2026-11-04T12:05:00.000Z` |
 | `refundedBy` | `String` | Sim | Nenhum | Identificador do Admin que autorizou o estorno | `"cly78a01z000008l0h7k6a1bc"` |
 
@@ -757,10 +766,10 @@ erDiagram
 #### A. Identificação
 - **Modelo Prisma:** `GatewayConfiguration`
 - **Tabela MySQL:** `GatewayConfiguration`
-- **Descrição sucinta:** Slots de configuração para integração com gateways de pagamento futuros (ex: Asaas, Mercado Pago, Pagar.me).
-- **Finalidade de negócio:** Guardar credenciais de API criptografadas e chave do provedor.
-- **Módulo do PSI:** Configurações Financeiras e Integrações.
-- **Informações sensíveis:** **Sim — Crítico** (`configDataEncrypted` contém tokens de API).
+- **Descrição sucinta:** Configurações independentes para múltiplos gateways de pagamento ativos simultaneamente (Mercado Pago, Asaas, PagBank, Pagamento Presencial).
+- **Finalidade de negócio:** Guardar credenciais de API criptografadas, ambiente sandbox/produção, URLs de webhook, estado de saúde e status de conciliação.
+- **Módulo do PSI:** Configurações Financeiras e Integrações (`/admin/integracoes`).
+- **Informações sensíveis:** **Sim — Crítico** (`configDataEncrypted` e `webhookSecretEncrypted` contêm tokens e chaves de assinatura).
 
 #### B. Dicionário Completo de Campos
 
@@ -768,11 +777,49 @@ erDiagram
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `id` | `String` (cuid) | Sim | `cuid()` | ID primário da configuração | `"cly78a16n001508l0h9o3p56"` |
 | `slotNumber` | `Int` | Sim | Nenhum | Número ordinal do slot (campo `@unique`) | `1` |
-| `providerKey` | `String` | Sim | Nenhum | Identificador do provedor: `"ASAAS"`, `"MERCADOPAGO"` | `"MERCADOPAGO"` |
-| `name` | `String` | Sim | Nenhum | Nome amigável do gateway | `"Mercado Pago Produção"` |
+| `providerKey` | `String` | Sim | Nenhum | Identificador do provedor: `"MERCADO_PAGO"`, `"ASAAS"`, `"PAGBANK"`, `"IN_PERSON"` (campo `@unique`) | `"MERCADO_PAGO"` |
+| `name` | `String` | Sim | Nenhum | Nome amigável do gateway | `"Mercado Pago"` |
 | `isEnabled` | `Boolean` | Sim | `false` | Se a integração está ativa para processar cobranças | `false` |
+| `isSandbox` | `Boolean` | Sim | `true` | Se o provedor está operando em ambiente de testes/sandbox | `true` |
+| `isDefault` | `Boolean` | Sim | `false` | Se é o gateway padrão pré-selecionado no agendamento | `true` |
+| `environment` | `String` | Sim | `"SANDBOX"` | Nome do ambiente: `"SANDBOX"` ou `"PRODUCTION"` | `"SANDBOX"` |
 | `configDataEncrypted`| `String?` (Text) | Não | `null` | Payload JSON criptografado com segredos de API | `"aes-256-gcm:..."` |
-| `updatedAt` | `DateTime` | Sim | Auto | Data da última alteração de credenciais | `2026-11-04T12:00:00.000Z` |
+| `webhookUrl` | `String?` | Não | `null` | URL pública configurada para receber notificações de webhook | `"https://consultorio.psi.br/api/webhooks/payments/mercadopago"` |
+| `webhookSecretEncrypted` | `String?` (Text) | Não | `null` | Chave secreta ou token do webhook criptografado para validação | `"enc:v1:..."` |
+| `healthStatus` | `String` | Sim | `"NOT_CONFIGURED"` | Estado de integridade: `"CONNECTED"`, `"ERROR"`, `"NOT_CONFIGURED"`, `"DISCONNECTED"` | `"CONNECTED"` |
+| `healthMessage` | `String?` (Text) | Não | `null` | Mensagem técnica descritiva do último teste de conexão | `"Conexão estabelecida com sucesso"` |
+| `lastCheckedAt` | `DateTime?` | Não | `null` | Data e hora UTC da última checagem de status | `null` |
+| `lastTestedAt` | `DateTime?` | Não | `null` | Data e hora UTC do último teste de conexão disparado | `null` |
+| `lastWebhookReceivedAt` | `DateTime?` | Não | `null` | Data e hora UTC do último webhook processado com sucesso | `null` |
+| `instructions` | `String?` (Text) | Não | `null` | Instruções exibidas ao paciente (útil para Pagamento Presencial) | `"Pagamento na recepção em dinheiro, cartão ou Pix"` |
+| `createdAt` | `DateTime` | Sim | `now()` | Timestamp UTC de criação do slot | `2026-11-16T12:00:00.000Z` |
+| `updatedAt` | `DateTime` | Sim | Auto | Data da última alteração de credenciais | `2026-11-16T12:00:00.000Z` |
+
+---
+
+### 3.16b Modelo: `PaymentWebhookEvent`
+
+#### A. Identificação
+- **Modelo Prisma:** `PaymentWebhookEvent`
+- **Tabela MySQL:** `PaymentWebhookEvent`
+- **Descrição sucinta:** Registro idempotente de eventos e webhooks recebidos dos gateways de pagamento.
+- **Finalidade de negócio:** Garantir processamento estritamente idempotente (prevenção de duplicidade) de notificações de pagamentos, estornos e chargebacks, auditando o payload bruto.
+- **Módulo do PSI:** Integrações de Pagamentos e Webhooks.
+- **Informações sensíveis:** Não diretamente (payload técnico de conciliação).
+
+#### B. Dicionário Completo de Campos
+
+| Campo | Tipo | Obrigatório? | Padrão | Significado | Exemplo |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `id` | `String` (cuid) | Sim | `cuid()` | ID primário do registro de webhook | `"cly78a17p001608l0h9q4r67"` |
+| `provider` | `String` | Sim | Nenhum | Identificador do provedor: `"MERCADO_PAGO"`, `"ASAAS"`, `"PAGBANK"` | `"MERCADO_PAGO"` |
+| `eventId` | `String` | Sim | Nenhum | ID único do evento emitido pelo gateway (usado na chave única anti-duplicação) | `"evt_981234567"` |
+| `eventType` | `String` | Sim | Nenhum | Nome do evento: `"payment.updated"`, `"PAYMENT_RECEIVED"`, `"PAID"` | `"payment.updated"` |
+| `paymentId` | `String?` | Não | `null` | Chave referenciando `Payment.id` conciliado | `"cly78a13k001208l0h9l0m23"` |
+| `payloadJson` | `String` (Text) | Sim | Nenhum | Payload JSON bruto recebido do webhook | `"{\"action\":\"payment.updated\"}"` |
+| `processedStatus` | `String` | Sim | `"PROCESSED"` | Status do processamento: `"PROCESSED"`, `"IGNORED"`, `"FAILED"` | `"PROCESSED"` |
+| `errorMessage` | `String?` (Text) | Não | `null` | Mensagem técnica de falha caso ocorra erro na conciliação | `null` |
+| `receivedAt` | `DateTime` | Sim | `now()` | Timestamp UTC do recebimento do webhook | `2026-11-16T12:00:00.000Z` |
 
 ---
 

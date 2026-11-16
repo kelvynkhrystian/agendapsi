@@ -10,12 +10,14 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WhatsAppIcon } from "@/components/ui/whatsapp-icon";
 import { IntegrationStatusBadge } from "@/components/integrations/integration-status-badge";
+import { PaymentsTab } from "@/components/integrations/payments-tab";
 import { animateTabContent } from "@/lib/animation/gsap";
 import type { HealthStatusMeta, IntegrationHealthStatus } from "@/lib/integrations-health";
 import {
   AlertTriangle,
   Check,
   Copy,
+  CreditCard,
   Eye,
   EyeOff,
   Loader2,
@@ -1140,7 +1142,7 @@ export default function AdminIntegrationsPage() {
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-5 sm:space-y-6">
         {/* Navegação em Abas no padrão exato de Admin -> Lembretes */}
-        <TabsList aria-label="Canais de comunicação" className="grid grid-cols-3 sm:inline-flex w-full sm:w-fit">
+        <TabsList aria-label="Canais de comunicação e pagamentos" className="grid grid-cols-2 sm:grid-cols-4 sm:inline-flex w-full sm:w-fit">
           <TabsTrigger value="email">
             <Mail className="h-4 w-4 shrink-0" />
             <span>E-mail</span>
@@ -1152,6 +1154,10 @@ export default function AdminIntegrationsPage() {
           <TabsTrigger value="whatsapp">
             <MessageCircle className="h-4 w-4 shrink-0" />
             <span>WhatsApp</span>
+          </TabsTrigger>
+          <TabsTrigger value="pagamentos">
+            <CreditCard className="h-4 w-4 shrink-0" />
+            <span>Pagamentos</span>
           </TabsTrigger>
         </TabsList>
 
@@ -2624,6 +2630,11 @@ export default function AdminIntegrationsPage() {
           </form>
         </CardContent>
       </Card>
+          </TabsContent>
+
+          {/* ==================== ABA 4 — PAGAMENTOS ==================== */}
+          <TabsContent value="pagamentos">
+            <PaymentsTab />
           </TabsContent>
         </div>
       </Tabs>

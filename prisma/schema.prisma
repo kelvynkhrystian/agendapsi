@@ -39,6 +39,11 @@ enum PaymentMethod {
   ONLINE_SIMULATED
   IN_PERSON
   WHATSAPP_ARRANGED
+  MERCADO_PAGO
+  ASAAS
+  PAGBANK
+  PIX
+  CREDIT_CARD
 }
 
 enum ConfirmationPolicy {
@@ -340,6 +345,13 @@ model Payment {
   status             PaymentStatus  @default(PENDING)
   method             PaymentMethod  @default(ONLINE_SIMULATED)
   isSimulated        Boolean        @default(true)
+  gatewayProvider    String?
+  gatewayPaymentId   String?
+  gatewayStatus      String?
+  pixQrCode          String?        @db.Text
+  pixQrCodeBase64    String?        @db.Text
+  checkoutUrl        String?        @db.Text
+  metadataJson       String?        @db.Text
   externalReference  String?
   idempotencyKey     String?        @unique
   confirmedAt        DateTime?
@@ -352,6 +364,8 @@ model Payment {
 
   @@index([patientId])
   @@index([status])
+  @@index([gatewayPaymentId])
+  @@index([gatewayProvider])
 }
 
 model PaymentAttempt {
@@ -365,23 +379,53 @@ model PaymentAttempt {
 }
 
 model Refund {
-  id          String   @id @default(cuid())
-  paymentId   String
-  payment     Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
-  amountCents Int
-  reason      String?
-  refundedAt  DateTime @default(now())
-  refundedBy  String
+  id              String   @id @default(cuid())
+  paymentId       String
+  payment         Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  amountCents     Int
+  reason          String?
+  gatewayRefundId String?
+  gatewayStatus   String?
+  refundedAt      DateTime @default(now())
+  refundedBy      String
 }
 
 model GatewayConfiguration {
-  id                  String   @id @default(cuid())
-  slotNumber          Int      @unique
-  providerKey         String
-  name                String
-  isEnabled           Boolean  @default(false)
-  configDataEncrypted String?  @db.Text
-  updatedAt           DateTime @updatedAt
+  id                     String    @id @default(cuid())
+  slotNumber             Int       @unique
+  providerKey            String    @unique
+  name                   String
+  isEnabled              Boolean   @default(false)
+  isSandbox              Boolean   @default(true)
+  isDefault              Boolean   @default(false)
+  environment            String    @default("SANDBOX")
+  configDataEncrypted    String?   @db.Text
+  webhookUrl             String?
+  webhookSecretEncrypted String?   @db.Text
+  healthStatus           String    @default("NOT_CONFIGURED")
+  healthMessage          String?   @db.Text
+  lastCheckedAt          DateTime?
+  lastTestedAt           DateTime?
+  lastWebhookReceivedAt  DateTime?
+  instructions           String?   @db.Text
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+}
+
+model PaymentWebhookEvent {
+  id              String   @id @default(cuid())
+  provider        String
+  eventId         String
+  eventType       String
+  paymentId       String?
+  payloadJson     String   @db.Text
+  processedStatus String   @default("PROCESSED")
+  errorMessage    String?  @db.Text
+  receivedAt      DateTime @default(now())
+
+  @@unique([provider, eventId])
+  @@index([provider])
+  @@index([paymentId])
 }
 
 model AnamnesisTemplate {

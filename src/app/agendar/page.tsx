@@ -10,9 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
-import { MiniSiteHeader } from "@/components/minisite/header";
-import { BookingHeaderWaves } from "@/components/booking/booking-header-waves";
+import { BookingHeader } from "@/components/booking/booking-header";
 import { BookingStepper } from "@/components/booking/booking-stepper";
+import { PatientRegisterForm } from "@/components/auth/patient-register-form";
 import {
   BookingDateTimePicker,
   Slot,
@@ -40,6 +40,8 @@ import {
   Phone,
   Lock,
   AlertTriangle,
+  QrCode,
+  Copy,
 } from "pulsoicon-react";
 
 export const dynamic = "force-dynamic";
@@ -118,6 +120,69 @@ function getServiceIcon(service: Service) {
   return Sparkles;
 }
 
+interface PaymentOption {
+  provider: "MERCADO_PAGO" | "ASAAS" | "PAGBANK" | "IN_PERSON";
+  name: string;
+  isDefault: boolean;
+  instructions?: string | null;
+  isSandbox?: boolean;
+}
+
+interface ConfirmedPaymentData {
+  id: string;
+  amountCents: number;
+  status: string;
+  method: string;
+  gatewayProvider?: string;
+  gatewayPaymentId?: string;
+  pixQrCode?: string | null;
+  pixQrCodeBase64?: string | null;
+  checkoutUrl?: string | null;
+  instructions?: string | null;
+}
+
+function getProviderMeta(provider: string) {
+  switch (provider) {
+    case "MERCADO_PAGO":
+      return {
+        title: "Mercado Pago (Pix e Cartão)",
+        desc: "Pagamento instantâneo via Pix ou cartão com confirmação imediata.",
+        badge: "Online",
+        badgeColor: "bg-sky-50 text-sky-700",
+        icon: CreditCard,
+        iconColor: "text-sky-600",
+      };
+    case "ASAAS":
+      return {
+        title: "Asaas (Pix Automático)",
+        desc: "Pagamento seguro com geração de QR Code Pix imediato.",
+        badge: "Online",
+        badgeColor: "bg-blue-50 text-blue-700",
+        icon: QrCode,
+        iconColor: "text-blue-600",
+      };
+    case "PAGBANK":
+      return {
+        title: "PagBank (Pix e Cartão)",
+        desc: "Pagamento pelo PagBank com Pix instantâneo.",
+        badge: "Online",
+        badgeColor: "bg-emerald-50 text-emerald-700",
+        icon: CreditCard,
+        iconColor: "text-emerald-600",
+      };
+    case "IN_PERSON":
+    default:
+      return {
+        title: "Pagamento Presencial no Consultório",
+        desc: "Acerto realizado no início da consulta (Cartão, Dinheiro ou Pix).",
+        badge: "Presencial",
+        badgeColor: "bg-emerald-50 text-emerald-700",
+        icon: MapPin,
+        iconColor: "text-emerald-600",
+      };
+  }
+}
+
 function BookingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -138,8 +203,13 @@ function BookingPageContent() {
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [slots, setSlots] = useState<Slot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<"ONLINE_SIMULATED" | "IN_PERSON">("ONLINE_SIMULATED");
   const [holdToken, setHoldToken] = useState<string>("");
+
+  // Configurações de Gateways e Pagamento
+  const [availableGateways, setAvailableGateways] = useState<PaymentOption[]>([]);
+  const [selectedGateway, setSelectedGateway] = useState<string>("IN_PERSON");
+  const [confirmedPayment, setConfirmedPayment] = useState<ConfirmedPaymentData | null>(null);
+  const [copiedPix, setCopiedPix] = useState(false);
 
   // Sessão do paciente
   const [currentUser, setCurrentUser] = useState<{ id: string; fullName?: string; name?: string; email?: string } | null>(null);
@@ -150,21 +220,6 @@ function BookingPageContent() {
   const [loginPassword, setLoginPassword] = useState("");
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-
-  // Cadastro de Novo Paciente
-  const [regFullName, setRegFullName] = useState("");
-  const [regEmail, setRegEmail] = useState("");
-  const [regPhone, setRegPhone] = useState("");
-  const [regPassword, setRegPassword] = useState("");
-  const [regConfirmPassword, setRegConfirmPassword] = useState("");
-  const [showRegPassword, setShowRegPassword] = useState(false);
-  const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
-  const [isMinor, setIsMinor] = useState(false);
-  const [guardianFullName, setGuardianFullName] = useState("");
-  const [guardianCpf, setGuardianCpf] = useState("");
-  const [guardianPhone, setGuardianPhone] = useState("");
-  const [guardianRelationship, setGuardianRelationship] = useState("Mãe");
-  const [acceptTerms, setAcceptTerms] = useState(true);
 
   // Estados de carregamento e feedback
   const [isLoading, setIsLoading] = useState(false);
@@ -204,6 +259,19 @@ function BookingPageContent() {
         }
       })
       .catch(() => {});
+
+    fetch("/api/payments/options")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.options) && data.options.length > 0) {
+          setAvailableGateways(data.options);
+          const defaultGw = data.options.find((o: any) => o.isDefault) || data.options[0];
+          if (defaultGw) {
+            setSelectedGateway(defaultGw.provider);
+          }
+        }
+      })
+      .catch((err) => console.error("Erro ao carregar opções de pagamento:", err));
 
     // Recupera rascunho de agendamento salvo no sessionStorage (se houver)
     const savedDraft = sessionStorage.getItem("psi_booking_draft");
@@ -388,69 +456,6 @@ function BookingPageContent() {
     }
   };
 
-  // Cadastro de Novo Paciente na Etapa 3
-  const handleRegisterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    if (regPassword !== regConfirmPassword) {
-      setError("As senhas informadas não coincidem.");
-      return;
-    }
-
-    if (regPassword.length < 8) {
-      setError("A senha deve ter no mínimo 8 caracteres.");
-      return;
-    }
-
-    if (isMinor) {
-      if (!guardianFullName || !guardianCpf || !guardianPhone) {
-        setError("Para pacientes menores de 18 anos, todos os dados do responsável legal são obrigatórios.");
-        return;
-      }
-    }
-
-    setIsLoading(true);
-
-    try {
-      const payload: any = {
-        fullName: regFullName,
-        email: regEmail,
-        password: regPassword,
-        phone: regPhone,
-        isMinor,
-        acceptTerms: true,
-      };
-
-      if (isMinor) {
-        payload.guardianFullName = guardianFullName;
-        payload.guardianCpf = guardianCpf.replace(/\D/g, "");
-        payload.guardianPhone = guardianPhone;
-        payload.guardianRelationship = guardianRelationship;
-      }
-
-      const res = await fetch("/api/auth/register-patient", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Não foi possível concluir o cadastro.");
-        setIsLoading(false);
-        return;
-      }
-
-      setCurrentUser(data.user);
-      setIsLoading(false);
-      setStep(4);
-    } catch {
-      setError("Erro de comunicação ao realizar cadastro.");
-      setIsLoading(false);
-    }
-  };
-
   // Logout para troca de conta
   const handleLogoutAccount = async () => {
     try {
@@ -473,7 +478,8 @@ function BookingPageContent() {
         body: JSON.stringify({
           holdToken,
           modality: selectedModality,
-          paymentMethod,
+          paymentMethod: selectedGateway === "IN_PERSON" ? "IN_PERSON" : selectedGateway,
+          gatewayProvider: selectedGateway,
         }),
       });
 
@@ -490,6 +496,9 @@ function BookingPageContent() {
         return;
       }
 
+      if (data.payment) {
+        setConfirmedPayment(data.payment);
+      }
       sessionStorage.removeItem("psi_booking_draft");
       setIsLoading(false);
       setIsConfirmed(true);
@@ -515,16 +524,12 @@ function BookingPageContent() {
       data-theme="light"
       className="min-h-screen flex flex-col justify-between bg-[#FDFCFB] text-slate-900 selection:bg-[var(--primary)] selection:text-white relative overflow-x-hidden"
     >
-      {/* 1. Ondas Decorativas Dinâmicas com Cores do Tema */}
-      <BookingHeaderWaves />
-
-      {/* 2. Cabeçalho Oficial do MiniSite com Botão Voltar integrado */}
-      <MiniSiteHeader
+      {/* 1. Cabeçalho Oficial Dedicado e Minimalista */}
+      <BookingHeader
         logoHorizontalUrl={site?.logoHorizontalUrl}
         logoUrl={site?.logoUrl}
         clinicName={site?.clinicName}
         professionalName={profile?.displayName || profile?.fullName}
-        crpCrm={profile?.crpCrm}
         shouldShowLocation={site?.showLocation}
         visibleSections={sectionsConfig}
         currentUser={
@@ -535,12 +540,11 @@ function BookingPageContent() {
               }
             : null
         }
-        isBookingPage={true}
         onBack={handleBack}
       />
 
-      {/* 3. Container Principal de Agendamento (Mobile-First) */}
-      <main className="pt-24 sm:pt-28 pb-12 sm:pb-16 px-3.5 sm:px-6 max-w-xl mx-auto w-full flex-1 relative z-10 flex flex-col justify-start">
+      {/* 2. Container Principal de Agendamento (Mobile-First) */}
+      <main className="pt-20 sm:pt-22 md:pt-24 pb-12 sm:pb-16 px-3.5 sm:px-6 max-w-xl mx-auto w-full flex-1 relative z-10 flex flex-col justify-start">
         {/* Stepper Horizontal (Oculto após confirmação de sucesso) */}
         {!isConfirmed && <BookingStepper currentStep={step} />}
 
@@ -599,6 +603,97 @@ function BookingPageContent() {
                       </>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* Informações de Pagamento e Pix Copia e Cola */}
+              {confirmedPayment && (
+                <div className="space-y-3">
+                  {confirmedPayment.pixQrCode && (
+                    <div className="p-4 sm:p-5 bg-amber-50/70 border border-amber-200/90 rounded-2xl text-left space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
+                          <QrCode className="w-4 h-4 text-amber-700" />
+                          <span>Pagamento Instantâneo via Pix</span>
+                        </div>
+                        <span className="text-[10px] font-semibold bg-amber-200/70 text-amber-900 px-2 py-0.5 rounded-full">
+                          Aguardando Pagamento
+                        </span>
+                      </div>
+
+                      {confirmedPayment.pixQrCodeBase64 && (
+                        <div className="flex justify-center py-2">
+                          <img
+                            src={
+                              confirmedPayment.pixQrCodeBase64.startsWith("data:")
+                                ? confirmedPayment.pixQrCodeBase64
+                                : `data:image/png;base64,${confirmedPayment.pixQrCodeBase64}`
+                            }
+                            alt="QR Code Pix"
+                            className="w-44 h-44 rounded-xl border border-amber-200 bg-white p-2 shadow-xs"
+                          />
+                        </div>
+                      )}
+
+                      <p className="text-[11px] text-amber-800 leading-relaxed">
+                        Abra o app do seu banco, escolha <strong>Pix Copia e Cola</strong> e cole o código abaixo para pagar:
+                      </p>
+
+                      <div className="relative">
+                        <input
+                          readOnly
+                          value={confirmedPayment.pixQrCode}
+                          className="w-full text-[11px] font-mono bg-white border border-amber-300 rounded-xl px-3 py-2.5 pr-28 text-slate-800 focus:outline-none"
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => {
+                            if (confirmedPayment.pixQrCode) {
+                              navigator.clipboard.writeText(confirmedPayment.pixQrCode);
+                              setCopiedPix(true);
+                              setTimeout(() => setCopiedPix(false), 3000);
+                            }
+                          }}
+                          className="absolute right-1 top-1 h-8 text-[11px] px-3 rounded-lg shadow-xs"
+                        >
+                          {copiedPix ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 mr-1 text-emerald-300" /> Copiado!
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5 mr-1" /> Copiar Pix
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {confirmedPayment.checkoutUrl && (
+                    <div className="p-4 bg-sky-50/80 border border-sky-200 rounded-2xl text-left space-y-2">
+                      <span className="text-xs font-bold text-sky-900 block">Link de Pagamento do Gateway</span>
+                      <p className="text-[11px] text-sky-700">
+                        Você também pode concluir o pagamento diretamente pelo ambiente seguro:
+                      </p>
+                      <a
+                        href={confirmedPayment.checkoutUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-sky-600 hover:bg-sky-700 px-4 py-2.5 rounded-xl shadow-xs transition-colors"
+                      >
+                        Abrir Pagamento Seguro <ArrowRight className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  )}
+
+                  {confirmedPayment.instructions && (
+                    <div className="p-4 bg-slate-50 border border-slate-200/90 rounded-2xl text-left space-y-1">
+                      <span className="text-xs font-bold text-slate-800 block">Instruções de Pagamento</span>
+                      <p className="text-xs text-slate-600 leading-relaxed">{confirmedPayment.instructions}</p>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1005,203 +1100,14 @@ function BookingPageContent() {
                       </Button>
                     </form>
                   ) : (
-                    /* 7.2 Cadastro: Novo paciente */
-                    <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
-                      <div className="space-y-1">
-                        <label className="block text-xs font-semibold text-slate-700">
-                          Nome Completo *
-                        </label>
-                        <div className="relative">
-                          <Input
-                            required
-                            placeholder="Ex: Maria dos Santos"
-                            value={regFullName}
-                            onChange={(e) => setRegFullName(e.target.value)}
-                            className="h-11 rounded-xl text-xs pl-9"
-                          />
-                          <User className="w-4 h-4 text-slate-400 absolute left-3 top-3.5 pointer-events-none" />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="block text-xs font-semibold text-slate-700">
-                          E-mail *
-                        </label>
-                        <div className="relative">
-                          <Input
-                            type="email"
-                            required
-                            placeholder="seu@email.com"
-                            value={regEmail}
-                            onChange={(e) => setRegEmail(e.target.value)}
-                            className="h-11 rounded-xl text-xs pl-9"
-                          />
-                          <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3.5 pointer-events-none" />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="block text-xs font-semibold text-slate-700">
-                          Telefone / WhatsApp *
-                        </label>
-                        <div className="relative">
-                          <Input
-                            type="tel"
-                            required
-                            placeholder="(11) 99999-9999"
-                            value={regPhone}
-                            onChange={(e) => setRegPhone(formatPhoneInput(e.target.value))}
-                            className="h-11 rounded-xl text-xs pl-9"
-                          />
-                          <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3.5 pointer-events-none" />
-                        </div>
-                      </div>
-
-                      {/* Paciente Menor de Idade (Proteção de Menores e LGPD) */}
-                      <div className="pt-1 pb-1">
-                        <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-slate-700">
-                          <input
-                            type="checkbox"
-                            checked={isMinor}
-                            onChange={(e) => setIsMinor(e.target.checked)}
-                            className="rounded accent-[var(--primary)]"
-                          />
-                          <span className="font-medium">O paciente é menor de 18 anos?</span>
-                        </label>
-
-                        {isMinor && (
-                          <div className="mt-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3">
-                            <span className="text-[11px] font-bold text-slate-800 block">
-                              Dados do Responsável Legal (Obrigatório)
-                            </span>
-
-                            <Input
-                              label="Nome do Responsável *"
-                              required
-                              placeholder="Nome completo do responsável"
-                              value={guardianFullName}
-                              onChange={(e) => setGuardianFullName(e.target.value)}
-                              className="h-10 text-xs"
-                            />
-
-                            <div className="grid grid-cols-2 gap-2">
-                              <Input
-                                label="CPF do Responsável *"
-                                required
-                                placeholder="000.000.000-00"
-                                value={guardianCpf}
-                                onChange={(e) => setGuardianCpf(formatCPFInput(e.target.value))}
-                                className="h-10 text-xs"
-                              />
-
-                              <Input
-                                label="WhatsApp do Responsável *"
-                                type="tel"
-                                required
-                                placeholder="(11) 99999-9999"
-                                value={guardianPhone}
-                                onChange={(e) => setGuardianPhone(formatPhoneInput(e.target.value))}
-                                className="h-10 text-xs"
-                              />
-                            </div>
-
-                            <div className="space-y-1">
-                              <label className="block text-[11px] font-medium text-slate-700">
-                                Grau de Parentesco
-                              </label>
-                              <select
-                                value={guardianRelationship}
-                                onChange={(e) => setGuardianRelationship(e.target.value)}
-                                className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-xs"
-                              >
-                                <option value="Mãe">Mãe</option>
-                                <option value="Pai">Pai</option>
-                                <option value="Tutor Legal">Tutor Legal</option>
-                                <option value="Outro">Outro</option>
-                              </select>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <label className="block text-xs font-semibold text-slate-700">
-                            Senha * (mín. 8 caracteres)
-                          </label>
-                          <div className="relative">
-                            <Input
-                              type={showRegPassword ? "text" : "password"}
-                              required
-                              placeholder="Mínimo 8 dígitos"
-                              value={regPassword}
-                              onChange={(e) => setRegPassword(e.target.value)}
-                              className="h-11 rounded-xl text-xs pl-9 pr-9"
-                            />
-                            <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3.5 pointer-events-none" />
-                            <button
-                              type="button"
-                              onClick={() => setShowRegPassword((p) => !p)}
-                              className="absolute right-2.5 top-3 text-slate-400 hover:text-slate-600 p-1"
-                            >
-                              {showRegPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="block text-xs font-semibold text-slate-700">
-                            Confirmar Senha *
-                          </label>
-                          <div className="relative">
-                            <Input
-                              type={showRegConfirmPassword ? "text" : "password"}
-                              required
-                              placeholder="Repita a senha"
-                              value={regConfirmPassword}
-                              onChange={(e) => setRegConfirmPassword(e.target.value)}
-                              className="h-11 rounded-xl text-xs pl-9 pr-9"
-                            />
-                            <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3.5 pointer-events-none" />
-                            <button
-                              type="button"
-                              onClick={() => setShowRegConfirmPassword((p) => !p)}
-                              className="absolute right-2.5 top-3 text-slate-400 hover:text-slate-600 p-1"
-                            >
-                              {showRegConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      <label className="flex items-start gap-2 pt-1 cursor-pointer select-none text-[11px] text-slate-500">
-                        <input
-                          type="checkbox"
-                          checked={acceptTerms}
-                          onChange={(e) => setAcceptTerms(e.target.checked)}
-                          required
-                          className="mt-0.5 rounded accent-[var(--primary)] shrink-0"
-                        />
-                        <span>
-                          Concordo com os{" "}
-                          <Link href="/termos" target="_blank" className="text-[var(--primary)] underline">
-                            Termos de Uso
-                          </Link>{" "}
-                          e a{" "}
-                          <Link href="/privacidade" target="_blank" className="text-[var(--primary)] underline">
-                            Política de Privacidade
-                          </Link>.
-                        </span>
-                      </label>
-
-                      <Button
-                        type="submit"
-                        isLoading={isLoading}
-                        className="w-full h-12 rounded-xl text-sm font-semibold shadow-xs mt-2"
-                      >
-                        Cadastrar e Continuar
-                      </Button>
-                    </form>
+                    /* 7.2 Cadastro: Novo paciente (compartilhado com /cadastro e /login) */
+                    <PatientRegisterForm
+                      onSuccess={(user) => {
+                        setCurrentUser(user);
+                        setStep(4);
+                      }}
+                      submitLabel="Criar Conta e Continuar"
+                    />
                   )}
                 </div>
               )}
@@ -1285,81 +1191,75 @@ function BookingPageContent() {
                   </h3>
 
                   <div className="space-y-2.5">
-                    {/* Opção 1: Pagamento Online */}
-                    <div
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setPaymentMethod("ONLINE_SIMULATED")}
-                      className={`p-4 rounded-2xl border transition-all cursor-pointer select-none flex items-start gap-3 ${
-                        paymentMethod === "ONLINE_SIMULATED"
-                          ? "border-[var(--primary)] bg-[var(--primary)]/[0.04] shadow-xs ring-1 ring-[var(--primary)]"
-                          : "border-slate-200 bg-white hover:border-slate-300"
-                      }`}
-                    >
-                      <div
-                        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 transition-all ${
-                          paymentMethod === "ONLINE_SIMULATED"
-                            ? "bg-[var(--primary)] text-white"
-                            : "border-2 border-slate-300 bg-white"
-                        }`}
-                      >
-                        {paymentMethod === "ONLINE_SIMULATED" && (
-                          <div className="w-2 h-2 rounded-full bg-white" />
-                        )}
-                      </div>
+                    {(availableGateways.length > 0
+                      ? availableGateways
+                      : ([
+                          {
+                            provider: "IN_PERSON",
+                            name: "Pagamento Presencial no Consultório",
+                            isDefault: true,
+                            instructions:
+                              "Acerto realizado no início da consulta (Cartão, Dinheiro ou Pix)",
+                          },
+                        ] as PaymentOption[])
+                    ).map((gw) => {
+                      const isSelected = selectedGateway === gw.provider;
+                      const meta = getProviderMeta(gw.provider);
+                      const Icon = meta.icon;
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <CreditCard className="w-4 h-4 text-[var(--primary)] shrink-0" />
-                          <span className="text-xs font-bold text-slate-900">
-                            Pagamento Online (Cartão de Crédito ou Pix)
-                          </span>
+                      return (
+                        <div
+                          key={gw.provider}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setSelectedGateway(gw.provider)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setSelectedGateway(gw.provider);
+                            }
+                          }}
+                          className={`p-4 rounded-2xl border transition-all cursor-pointer select-none flex items-start gap-3 ${
+                            isSelected
+                              ? "border-[var(--primary)] bg-[var(--primary)]/[0.04] shadow-xs ring-1 ring-[var(--primary)]"
+                              : "border-slate-200 bg-white hover:border-slate-300"
+                          }`}
+                        >
+                          <div
+                            className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+                              isSelected
+                                ? "bg-[var(--primary)] text-white"
+                                : "border-2 border-slate-300 bg-white"
+                            }`}
+                          >
+                            {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Icon className={`w-4 h-4 ${meta.iconColor} shrink-0`} />
+                              <span className="text-xs font-bold text-slate-900">
+                                {gw.name || meta.title}
+                              </span>
+                              {gw.isSandbox && (
+                                <span className="text-[9px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.2 rounded-md">
+                                  Sandbox
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-slate-500 mt-0.5">
+                              {gw.instructions || meta.desc}
+                            </p>
+                          </div>
+
+                          {gw.isDefault && (
+                            <span className="text-[10px] font-bold text-[var(--primary)] bg-[var(--primary)]/10 px-2 py-0.5 rounded-full shrink-0">
+                              Padrão
+                            </span>
+                          )}
                         </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5">
-                          Confirmação imediata com comprovante eletrônico
-                        </p>
-                      </div>
-
-                      <span className="text-[10px] font-bold text-[var(--primary)] bg-[var(--primary)]/10 px-2 py-0.5 rounded-full shrink-0">
-                        Recomendado
-                      </span>
-                    </div>
-
-                    {/* Opção 2: Pagamento Presencial no Consultório */}
-                    <div
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setPaymentMethod("IN_PERSON")}
-                      className={`p-4 rounded-2xl border transition-all cursor-pointer select-none flex items-start gap-3 ${
-                        paymentMethod === "IN_PERSON"
-                          ? "border-[var(--primary)] bg-[var(--primary)]/[0.04] shadow-xs ring-1 ring-[var(--primary)]"
-                          : "border-slate-200 bg-white hover:border-slate-300"
-                      }`}
-                    >
-                      <div
-                        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 transition-all ${
-                          paymentMethod === "IN_PERSON"
-                            ? "bg-[var(--primary)] text-white"
-                            : "border-2 border-slate-300 bg-white"
-                        }`}
-                      >
-                        {paymentMethod === "IN_PERSON" && (
-                          <div className="w-2 h-2 rounded-full bg-white" />
-                        )}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
-                          <span className="text-xs font-bold text-slate-900">
-                            Pagamento Presencial no Consultório
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5">
-                          Acerto realizado no início da consulta (Cartão, Dinheiro ou Pix)
-                        </p>
-                      </div>
-                    </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

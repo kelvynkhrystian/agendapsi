@@ -31,7 +31,10 @@ interface PaymentItem {
   id: string;
   amountCents: number;
   status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED" | "REFUNDED";
-  method: "ONLINE_SIMULATED" | "IN_PERSON" | "WHATSAPP_ARRANGED";
+  method: string;
+  gatewayProvider?: string | null;
+  gatewayPaymentId?: string | null;
+  gatewayStatus?: string | null;
   isSimulated: boolean;
   confirmedAt?: string;
   createdAt: string;
@@ -51,6 +54,7 @@ interface PaymentItem {
     amountCents: number;
     reason?: string;
     refundedAt: string;
+    gatewayRefundId?: string | null;
   }>;
 }
 
@@ -97,8 +101,11 @@ export default function AdminFinancePage() {
 
   // Modal Estorno
   const [refundPayment, setRefundPayment] = useState<PaymentItem | null>(null);
+  const [refundType, setRefundType] = useState<"FULL" | "PARTIAL">("FULL");
+  const [refundAmountStr, setRefundAmountStr] = useState("");
   const [refundReason, setRefundReason] = useState("");
   const [isRefunding, setIsRefunding] = useState(false);
+  const [refundError, setRefundError] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   const fetchPayments = () => {
@@ -141,30 +148,67 @@ export default function AdminFinancePage() {
     }
   };
 
+  // Abre o modal de estorno com valores calculados
+  const handleOpenRefundModal = (p: PaymentItem) => {
+    setRefundPayment(p);
+    setRefundType("FULL");
+    setRefundReason("");
+    setRefundError(null);
+    const totalRefunded = p.refunds.reduce((acc, r) => acc + r.amountCents, 0);
+    const available = p.amountCents - totalRefunded;
+    setRefundAmountStr((available / 100).toFixed(2).replace(".", ","));
+  };
+
   // Processamento de Estorno
   const handleProcessRefund = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!refundPayment) return;
     setIsRefunding(true);
+    setRefundError(null);
+
+    const totalRefunded = refundPayment.refunds.reduce((acc, r) => acc + r.amountCents, 0);
+    const availableCents = refundPayment.amountCents - totalRefunded;
+
+    let centsToRefund = availableCents;
+    if (refundType === "PARTIAL") {
+      const parsed = parseFloat(refundAmountStr.replace(/\./g, "").replace(",", "."));
+      if (isNaN(parsed) || parsed <= 0) {
+        setRefundError("Informe um valor numérico válido para o estorno parcial.");
+        setIsRefunding(false);
+        return;
+      }
+      centsToRefund = Math.round(parsed * 100);
+      if (centsToRefund > availableCents) {
+        setRefundError(`O valor excede o saldo disponível para estorno (${formatBRL(availableCents)}).`);
+        setIsRefunding(false);
+        return;
+      }
+    }
 
     try {
       const res = await fetch(`/api/payments/${refundPayment.id}/refund`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason: refundReason }),
+        body: JSON.stringify({
+          amountCents: centsToRefund,
+          reason: refundReason,
+        }),
       });
 
-      if (res.ok) {
-        setRefundPayment(null);
-        setRefundReason("");
+      const data = await res.json();
+      if (!res.ok) {
+        setRefundError(data.error || "Não foi possível processar o estorno no provedor de pagamento.");
         setIsRefunding(false);
-        setActionMessage("Estorno processado com sucesso!");
-        fetchPayments();
-      } else {
-        setIsRefunding(false);
+        return;
       }
-    } catch (e) {
-      console.error(e);
+
+      setRefundPayment(null);
+      setRefundReason("");
+      setIsRefunding(false);
+      setActionMessage("Estorno processado com sucesso!");
+      fetchPayments();
+    } catch (e: unknown) {
+      setRefundError("Erro de comunicação ao enviar solicitação de estorno.");
       setIsRefunding(false);
     }
   };
@@ -457,7 +501,7 @@ export default function AdminFinancePage() {
                             variant="outline"
                             size="sm"
                             className="w-full h-9 text-xs gap-1.5 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:border-red-900/50 dark:hover:bg-red-950/40"
-                            onClick={() => setRefundPayment(p)}
+                            onClick={() => handleOpenRefundModal(p)}
                           >
                             <RotateCcw className="h-3.5 w-3.5 text-current" />
                             <span>Estornar</span>
@@ -552,7 +596,7 @@ export default function AdminFinancePage() {
                               variant="outline"
                               size="sm"
                               className="h-8 text-xs text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:border-red-900/50 dark:hover:bg-red-950/40"
-                              onClick={() => setRefundPayment(p)}
+                              onClick={() => handleOpenRefundModal(p)}
                             >
                               <RotateCcw className="h-3.5 w-3.5 text-current" />
                               <span>Estornar</span>
@@ -573,38 +617,124 @@ export default function AdminFinancePage() {
         </CardContent>
       </Card>
 
-      {/* Modal de Estorno */}
-      {refundPayment && (
-        <Modal
-          isOpen={!!refundPayment}
-          onClose={() => setRefundPayment(null)}
-          title="Processar Estorno de Pagamento"
-          description={`Valor original: ${formatBRL(refundPayment.amountCents)} — Paciente: ${refundPayment.patient.fullName}`}
-        >
-          <form onSubmit={handleProcessRefund} className="space-y-4 text-xs">
-            <Alert variant="warning" title="Atenção ao Estorno">
-              Esta ação registrará o cancelamento financeiro e atualizará o status do pagamento para Estornado.
-            </Alert>
+      {/* Modal de Estorno Autorizado */}
+      {refundPayment && (() => {
+        const totalRefunded = refundPayment.refunds.reduce((acc, r) => acc + r.amountCents, 0);
+        const availableCents = refundPayment.amountCents - totalRefunded;
+        const providerName = formatPaymentMethod(refundPayment.gatewayProvider || refundPayment.method);
 
-            <Input
-              label="Motivo do Estorno"
-              placeholder="Ex: Cancelamento de sessão solicitado pelo paciente"
-              value={refundReason}
-              onChange={(e) => setRefundReason(e.target.value)}
-              required
-            />
+        return (
+          <Modal
+            isOpen={!!refundPayment}
+            onClose={() => setRefundPayment(null)}
+            title="Autorizar Estorno de Pagamento"
+            description={`Paciente: ${refundPayment.patient.fullName}`}
+          >
+            <form onSubmit={handleProcessRefund} className="space-y-4 text-xs">
+              {refundError && (
+                <Alert variant="destructive" className="py-2.5">
+                  {refundError}
+                </Alert>
+              )}
 
-            <div className="grid grid-cols-2 sm:flex sm:justify-end gap-2 pt-2">
-              <Button type="button" variant="ghost" onClick={() => setRefundPayment(null)} className="w-full sm:w-auto">
-                Cancelar
-              </Button>
-              <Button type="submit" variant="destructive" isLoading={isRefunding} className="w-full sm:w-auto">
-                Confirmar Estorno
-              </Button>
-            </div>
-          </form>
-        </Modal>
-      )}
+              {/* Detalhes do Pagamento Original */}
+              <div className="rounded-xl border border-slate-200 dark:border-[#2C2C2C] bg-slate-50/70 dark:bg-[#1E1E1E] p-3.5 space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 dark:text-slate-400">Provedor Original:</span>
+                  <Badge variant="outline" className="font-semibold text-slate-800 dark:text-slate-200">
+                    {providerName}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 dark:text-slate-400">Valor Original da Cobrança:</span>
+                  <span className="font-mono font-bold text-slate-900 dark:text-white">
+                    {formatBRL(refundPayment.amountCents)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center pt-1 border-t border-slate-200/60 dark:border-[#2C2C2C]">
+                  <span className="text-slate-700 dark:text-slate-300 font-semibold">Saldo Disponível para Estorno:</span>
+                  <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">
+                    {formatBRL(availableCents)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Opção de Estorno Integral ou Parcial */}
+              <div className="space-y-2">
+                <label className="font-semibold text-slate-800 dark:text-slate-200 block">
+                  Modalidade do Estorno
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="flex items-center gap-2 p-2.5 border rounded-xl cursor-pointer transition-colors bg-white dark:bg-[#242424] border-slate-200 dark:border-[#333]">
+                    <input
+                      type="radio"
+                      name="refundType"
+                      value="FULL"
+                      checked={refundType === "FULL"}
+                      onChange={() => setRefundType("FULL")}
+                      className="accent-[var(--primary)]"
+                    />
+                    <span className="font-medium">Estorno Total</span>
+                  </label>
+                  <label className="flex items-center gap-2 p-2.5 border rounded-xl cursor-pointer transition-colors bg-white dark:bg-[#242424] border-slate-200 dark:border-[#333]">
+                    <input
+                      type="radio"
+                      name="refundType"
+                      value="PARTIAL"
+                      checked={refundType === "PARTIAL"}
+                      onChange={() => setRefundType("PARTIAL")}
+                      className="accent-[var(--primary)]"
+                    />
+                    <span className="font-medium">Estorno Parcial</span>
+                  </label>
+                </div>
+              </div>
+
+              {refundType === "PARTIAL" && (
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-800 dark:text-slate-200">
+                    Valor a Estornar (R$)
+                  </label>
+                  <Input
+                    placeholder="0,00"
+                    value={refundAmountStr}
+                    onChange={(e) => setRefundAmountStr(e.target.value)}
+                    required
+                  />
+                  <span className="text-[11px] text-slate-500">
+                    Máximo permitido: {formatBRL(availableCents)}
+                  </span>
+                </div>
+              )}
+
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-800 dark:text-slate-200">
+                  Motivo do Estorno (Obrigatório)
+                </label>
+                <Input
+                  placeholder="Ex: Cancelamento solicitado pelo paciente com antecedência"
+                  value={refundReason}
+                  onChange={(e) => setRefundReason(e.target.value)}
+                  required
+                />
+              </div>
+
+              <Alert variant="warning" className="py-2.5 text-[11px]">
+                O estorno será processado diretamente junto ao provedor <strong>{providerName}</strong>. Esta ação não pode ser desfeita.
+              </Alert>
+
+              <div className="grid grid-cols-2 sm:flex sm:justify-end gap-2 pt-2">
+                <Button type="button" variant="ghost" onClick={() => setRefundPayment(null)} className="w-full sm:w-auto">
+                  Cancelar
+                </Button>
+                <Button type="submit" variant="destructive" isLoading={isRefunding} className="w-full sm:w-auto">
+                  Confirmar e Processar Estorno
+                </Button>
+              </div>
+            </form>
+          </Modal>
+        );
+      })()}
     </div>
   );
 }

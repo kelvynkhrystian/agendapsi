@@ -16,7 +16,6 @@ import {
   HelpCircle,
   Home,
   ChevronRight,
-  ArrowLeft,
 } from "pulsoicon-react";
 import { extractFirstName, getUserInitials } from "@/lib/header-profile";
 
@@ -38,8 +37,6 @@ export interface MiniSiteHeaderProps {
     comoFunciona?: boolean;
   };
   currentUser?: HeaderUser | null;
-  isBookingPage?: boolean;
-  onBack?: () => void;
 }
 
 const DESKTOP_PILL_HEIGHT_CLASS = "h-[50px] lg:h-[54px]";
@@ -66,8 +63,6 @@ export function MiniSiteHeader({
   shouldShowLocation = false,
   visibleSections,
   currentUser = null,
-  isBookingPage = false,
-  onBack,
 }: MiniSiteHeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -224,12 +219,6 @@ export function MiniSiteHeader({
   };
 
   const handleMobileNavClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-    if (typeof window !== "undefined" && window.location.pathname !== "/") {
-      setIsMenuOpen(false);
-      document.body.style.overflow = "";
-      window.location.href = `/#${id}`;
-      return;
-    }
     e.preventDefault();
     setIsMenuOpen(false);
     document.body.style.overflow = "";
@@ -248,10 +237,6 @@ export function MiniSiteHeader({
   };
 
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-    if (typeof window !== "undefined" && window.location.pathname !== "/") {
-      window.location.href = `/#${id}`;
-      return;
-    }
     e.preventDefault();
     const el = document.getElementById(id);
     if (el) {
@@ -321,53 +306,40 @@ export function MiniSiteHeader({
               : "px-1 bg-transparent border-0 rounded-none shadow-none backdrop-blur-none outline-none"
           }`}
         >
-          {/* LADO ESQUERDO: Botão Voltar (se página de agendamento) + Logo Horizontal Oficial */}
-          <div className="flex items-center gap-1.5 min-w-0">
-            {isBookingPage && onBack ? (
-              <button
-                type="button"
-                onClick={onBack}
-                aria-label="Voltar"
-                className="w-10 h-10 -ml-1 rounded-full flex items-center justify-center text-slate-800 hover:text-slate-950 hover:bg-black/5 active:bg-black/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 cursor-pointer shrink-0"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </button>
-            ) : null}
-
-            <Link
-              id="hero-header-mobile-logo"
-              href="/"
-              onClick={handleLogoClick}
-              className="min-h-[44px] flex items-center shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/50 cursor-pointer min-w-0"
-              aria-label="Voltar ao início"
-            >
-              {logoHorizontalUrl ? (
-                <img
-                  src={logoHorizontalUrl}
-                  alt={neutralFallbackName}
-                  className="h-[21px] sm:h-6 w-auto max-w-[128px] sm:max-w-[158px] object-contain transition-transform active:scale-98"
-                />
-              ) : logoUrl ? (
-                <img
-                  src={logoUrl}
-                  alt={neutralFallbackName}
-                  className="h-[21px] sm:h-6 w-auto max-w-[98px] object-contain rounded-sm"
-                />
-              ) : (
-                <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                  <div className="w-6 h-6 rounded bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-serif font-black text-[15px] shrink-0">
-                    Ψ
-                  </div>
-                  <span className="text-[14px] sm:text-[15px] font-semibold tracking-tight text-slate-900 truncate max-w-[120px] min-[375px]:max-w-[160px] sm:max-w-[200px]">
-                    {neutralFallbackName}
-                  </span>
+          {/* LADO ESQUERDO: Logo Horizontal Oficial ampliada em 1.5x no mobile com alvo tátil acessível */}
+          <Link
+            id="hero-header-mobile-logo"
+            href="/"
+            onClick={handleLogoClick}
+            className="min-h-[44px] min-w-[44px] flex items-center shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/50 cursor-pointer"
+            aria-label="Voltar ao início"
+          >
+            {logoHorizontalUrl ? (
+              <img
+                src={logoHorizontalUrl}
+                alt={neutralFallbackName}
+                className="h-[21px] sm:h-6 w-auto max-w-[128px] sm:max-w-[158px] object-contain transition-transform active:scale-98"
+              />
+            ) : logoUrl ? (
+              <img
+                src={logoUrl}
+                alt={neutralFallbackName}
+                className="h-[21px] sm:h-6 w-auto max-w-[98px] object-contain rounded-sm"
+              />
+            ) : (
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className="w-6 h-6 rounded bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-serif font-black text-[15px] shrink-0">
+                  Ψ
                 </div>
-              )}
-            </Link>
-          </div>
+                <span className="text-[15px] sm:text-[16px] font-semibold tracking-tight text-slate-900 truncate max-w-[96px] min-[375px]:max-w-[128px] sm:max-w-[190px]">
+                  {neutralFallbackName}
+                </span>
+              </div>
+            )}
+          </Link>
 
-          {/* CENTRO: Selo CRP/CRM no cabeçalho mobile (apenas quando não em página de agendamento) */}
-          {crpCrm && !isBookingPage ? (
+          {/* CENTRO: Selo CRP/CRM no cabeçalho mobile entre a logo e o botão do menu */}
+          {crpCrm ? (
             <div
               id="hero-header-mobile-crp"
               className="flex-1 min-w-0 flex items-center justify-center px-0.5"
@@ -390,7 +362,7 @@ export function MiniSiteHeader({
             aria-expanded={isMenuOpen}
             aria-controls="mobile-navigation-menu"
             className={`w-11 h-11 inline-flex items-center justify-center rounded-full bg-transparent text-slate-800 hover:text-slate-950 hover:bg-black/5 active:bg-black/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 cursor-pointer shrink-0 ${
-              isMenuOpen ? "-mr-2" : "-mr-1"
+              isMenuOpen ? "-mr-2" : "-mr-1.5"
             }`}
           >
             {isMenuOpen ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
@@ -408,18 +380,8 @@ export function MiniSiteHeader({
         }`}
       >
         <div className="grid grid-cols-[1fr_auto_1fr] items-center w-full max-w-6xl xl:max-w-7xl mx-auto px-4 lg:px-6 pointer-events-none">
-          {/* LADO ESQUERDO: Botão Voltar (se página de agendamento) + Logo Horizontal Oficial Sem Rótulo "PSI" */}
-          <div id="hero-header-logo" ref={logoRef} className="flex items-center justify-start pointer-events-auto gap-3">
-            {isBookingPage && onBack ? (
-              <button
-                type="button"
-                onClick={onBack}
-                aria-label="Voltar"
-                className="w-10 h-10 rounded-full flex items-center justify-center text-slate-700 hover:text-slate-950 hover:bg-black/5 active:bg-black/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40 cursor-pointer shrink-0 border border-slate-200/80 bg-white/80 shadow-xs"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </button>
-            ) : null}
+          {/* LADO ESQUERDO: Logo Horizontal Oficial Sem Rótulo "PSI" */}
+          <div id="hero-header-logo" ref={logoRef} className="flex items-center justify-start pointer-events-auto">
             <Link
               href="/"
               onClick={handleLogoClick}
@@ -442,7 +404,7 @@ export function MiniSiteHeader({
                 <div className="flex items-center gap-2.5">
                   <div
                     className={`w-8 h-8 md:w-9 md:h-9 rounded-lg flex items-center justify-center font-serif font-black text-lg transition-colors duration-[250ms] ${
-                      isBookingPage || isScrolled
+                      isScrolled
                         ? "bg-[var(--primary)]/10 text-[var(--primary)]"
                         : "bg-[var(--primary)]/10 lg:bg-white/15 text-[var(--primary)] lg:text-white"
                     }`}
@@ -451,7 +413,7 @@ export function MiniSiteHeader({
                   </div>
                   <span
                     className={`text-base lg:text-lg tracking-tight font-semibold transition-colors duration-[250ms] ${
-                      isBookingPage || isScrolled ? "text-slate-900" : "text-slate-900 lg:text-white"
+                      isScrolled ? "text-slate-900" : "text-slate-900 lg:text-white"
                     }`}
                   >
                     {neutralFallbackName}

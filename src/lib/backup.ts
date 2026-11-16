@@ -26,6 +26,7 @@ export const MAX_ARCHIVE_ENTRIES = 25000;
 
 export const REDACTED_SECRET_FIELDS = [
   "GatewayConfiguration.configDataEncrypted",
+  "GatewayConfiguration.webhookSecretEncrypted",
   "SystemSettings.smtpPass",
   "SystemSettings.textbeeApiKey",
   "SystemSettings.whatsappApiToken",
@@ -973,6 +974,7 @@ export async function createFullBackupArchive({
         const gatewayConfigurations = gatewayConfigurationsRaw.map((g) => ({
           ...g,
           configDataEncrypted: null,
+          webhookSecretEncrypted: null,
         }));
 
         const systemSettings = systemSettingsRaw.map((s) => ({
@@ -2114,7 +2116,13 @@ const TABLE_DATE_FIELDS: Record<PersistentTableKey, readonly string[]> = {
   payments: ["confirmedAt", "createdAt", "updatedAt"],
   paymentAttempts: ["createdAt"],
   refunds: ["refundedAt"],
-  gatewayConfigurations: ["updatedAt"],
+  gatewayConfigurations: [
+    "createdAt",
+    "updatedAt",
+    "lastCheckedAt",
+    "lastTestedAt",
+    "lastWebhookReceivedAt",
+  ],
   anamnesisTemplates: ["createdAt", "updatedAt"],
   anamnesisSubmissions: ["reviewedAt", "createdAt", "updatedAt"],
   clinicalRecords: ["sessionDate", "createdAt", "updatedAt"],
