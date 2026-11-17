@@ -2,6 +2,20 @@ import { PaymentStatus, PaymentMethod } from "@prisma/client";
 
 export type PaymentProviderKey = "MERCADO_PAGO" | "ASAAS" | "PAGBANK" | "IN_PERSON";
 
+export const PROVIDER_SLUG_MAP: Record<string, PaymentProviderKey> = {
+  mercadopago: "MERCADO_PAGO",
+  asaas: "ASAAS",
+  pagbank: "PAGBANK",
+  presencial: "IN_PERSON",
+};
+
+export const PROVIDER_KEY_TO_SLUG: Record<PaymentProviderKey, string> = {
+  MERCADO_PAGO: "mercadopago",
+  ASAAS: "asaas",
+  PAGBANK: "pagbank",
+  IN_PERSON: "presencial",
+};
+
 export type PaymentEnvironment = "SANDBOX" | "PRODUCTION";
 
 export type ProviderHealthStatus = "CONNECTED" | "ERROR" | "NOT_CONFIGURED" | "DISCONNECTED";

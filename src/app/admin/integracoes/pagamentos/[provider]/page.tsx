@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { PaymentProviderConfigPage, PROVIDER_SLUG_MAP } from "@/components/integrations/payment-provider-form";
+import { PaymentProviderConfigPage } from "@/components/integrations/payment-provider-form";
+import { PROVIDER_SLUG_MAP } from "@/lib/payments/types";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,8 @@ interface PageProps {
 }
 
 export default async function PaymentProviderPage({ params }: PageProps) {
-  const { provider } = await params;
+  const resolvedParams = await params;
+  const provider = resolvedParams?.provider || "";
   const providerKey = PROVIDER_SLUG_MAP[provider.toLowerCase()];
 
   if (!providerKey) {

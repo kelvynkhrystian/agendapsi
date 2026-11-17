@@ -30,21 +30,15 @@ import {
   Store,
 } from "pulsoicon-react";
 import { cn } from "@/lib/utils";
-import type { GatewayConfigDTO, PaymentProviderKey, PaymentEnvironment } from "@/lib/payments/types";
+import {
+  type GatewayConfigDTO,
+  type PaymentProviderKey,
+  type PaymentEnvironment,
+  PROVIDER_SLUG_MAP,
+  PROVIDER_KEY_TO_SLUG,
+} from "@/lib/payments/types";
 
-export const PROVIDER_SLUG_MAP: Record<string, PaymentProviderKey> = {
-  mercadopago: "MERCADO_PAGO",
-  asaas: "ASAAS",
-  pagbank: "PAGBANK",
-  presencial: "IN_PERSON",
-};
-
-export const PROVIDER_KEY_TO_SLUG: Record<PaymentProviderKey, string> = {
-  MERCADO_PAGO: "mercadopago",
-  ASAAS: "asaas",
-  PAGBANK: "pagbank",
-  IN_PERSON: "presencial",
-};
+export { PROVIDER_SLUG_MAP, PROVIDER_KEY_TO_SLUG };
 
 interface ProviderMeta {
   key: PaymentProviderKey;
