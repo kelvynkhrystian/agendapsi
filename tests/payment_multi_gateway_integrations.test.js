@@ -186,16 +186,30 @@ test("9. Pagamento Presencial: Independência de API Externa e Confirmação Man
 });
 
 test("10. Interface do Usuário: Abas de Integrações, Financeiro e Agendamento Público", () => {
-  // Aba Pagamentos em Admin -> Integrações
+  // Aba Pagamentos em Admin -> Integrações (Visão Geral com 4 Cards Compactos)
   const tabCompPath = path.join(process.cwd(), "src", "components", "integrations", "payments-tab.tsx");
   assert.ok(fs.existsSync(tabCompPath), "payments-tab.tsx deve existir em src/components/integrations/");
   const tabSrc = fs.readFileSync(tabCompPath, "utf-8");
-  assert.ok(tabSrc.includes("Mercado Pago"), "Deve exibir Mercado Pago");
-  assert.ok(tabSrc.includes("Asaas"), "Deve exibir Asaas");
-  assert.ok(tabSrc.includes("PagBank"), "Deve exibir PagBank");
-  assert.ok(tabSrc.includes("Pagamento Presencial"), "Deve exibir Pagamento Presencial");
-  assert.ok(tabSrc.includes("webhookUrl"), "Deve exibir URL do webhook");
-  assert.ok(tabSrc.includes("isSandbox"), "Deve conter alternador de Sandbox / Produção");
+  assert.ok(tabSrc.includes("MERCADO_PAGO"), "Deve mapear Mercado Pago");
+  assert.ok(tabSrc.includes("ASAAS"), "Deve mapear Asaas");
+  assert.ok(tabSrc.includes("PAGBANK"), "Deve mapear PagBank");
+  assert.ok(tabSrc.includes("IN_PERSON"), "Deve mapear Pagamento Presencial");
+  assert.ok(tabSrc.includes("ToggleSwitch"), "Deve conter ToggleSwitch animado");
+  assert.ok(tabSrc.includes("isSandbox"), "Deve exibir indicador de Sandbox / Produção");
+
+  // Página dedicada de configuração de cada provedor
+  const formCompPath = path.join(process.cwd(), "src", "components", "integrations", "payment-provider-form.tsx");
+  assert.ok(fs.existsSync(formCompPath), "payment-provider-form.tsx deve existir");
+  const formSrc = fs.readFileSync(formCompPath, "utf-8");
+  assert.ok(formSrc.includes("webhookUrl"), "Deve exibir URL do webhook na página dedicada");
+  assert.ok(formSrc.includes("Mercado Pago"), "Deve exibir Mercado Pago");
+  assert.ok(formSrc.includes("Asaas"), "Deve exibir Asaas");
+  assert.ok(formSrc.includes("PagBank"), "Deve exibir PagBank");
+  assert.ok(formSrc.includes("Pagamento Presencial"), "Deve exibir Pagamento Presencial");
+
+  // Rota dedicada /admin/integracoes/pagamentos/[provider]
+  const routePagePath = path.join(process.cwd(), "src", "app", "admin", "integracoes", "pagamentos", "[provider]", "page.tsx");
+  assert.ok(fs.existsSync(routePagePath), "Página de rota dinâmica de pagamento deve existir");
 
   // Inclusão da 4ª aba em /admin/integracoes
   const integracoesPagePath = path.join(process.cwd(), "src", "app", "admin", "integracoes", "page.tsx");

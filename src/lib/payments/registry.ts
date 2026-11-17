@@ -208,8 +208,20 @@ export async function getDecryptedGatewayCredentials(providerKey: PaymentProvide
 export async function getActivePaymentOptions() {
   await initializeDefaultGateways();
 
+  // Apenas gateways habilitados e devidamente configurados (ou presenciais) ficam disponíveis para os pacientes
   const activeGateways = await prisma.gatewayConfiguration.findMany({
-    where: { isEnabled: true },
+    where: {
+      isEnabled: true,
+      OR: [
+        { providerKey: "IN_PERSON" },
+        {
+          AND: [
+            { configDataEncrypted: { not: null } },
+            { healthStatus: { not: "NOT_CONFIGURED" } },
+          ],
+        },
+      ],
+    },
     orderBy: [{ isDefault: "desc" }, { slotNumber: "asc" }],
   });
 

@@ -3227,33 +3227,6 @@ export default function AdminSettingsPage() {
 
                       <CardContent className="space-y-3 text-xs pt-0 flex-1 flex flex-col justify-between">
                         <div className="space-y-3">
-                          <div className="p-3 bg-[#F8F8F8] dark:bg-[#141414] border border-[#E5E5E5] dark:border-[#2C2C2C] rounded-xl space-y-2 text-[11px] text-[#525252] dark:text-[#A6A6A6]">
-                            <div className="font-semibold text-[#171717] dark:text-[#F5F5F5] flex items-center gap-1.5">
-                              <Sparkles className="h-3.5 w-3.5 text-[var(--primary)]" />
-                              <span>Teleconsulta Nativa e Privada:</span>
-                            </div>
-                            <ul className="space-y-1.5 pl-1 text-[11px] leading-relaxed text-[#525252] dark:text-[#A6A6A6]">
-                              <li className="flex items-start gap-1.5">
-                                <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                                <span>
-                                  <strong>Zero configuração manual:</strong> sinalização WebRTC provisionada de forma automática pelo sistema.
-                                </span>
-                              </li>
-                              <li className="flex items-start gap-1.5">
-                                <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                                <span>
-                                  <strong>Privacidade clínica:</strong> transmissão direta (P2P) criptografada ponta a ponta entre psicólogo e paciente.
-                                </span>
-                              </li>
-                              <li className="flex items-start gap-1.5">
-                                <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                                <span>
-                                  <strong>Navegador nativo:</strong> funciona em computadores, celulares e tablets sem necessidade de instalar aplicativos externos.
-                                </span>
-                              </li>
-                            </ul>
-                          </div>
-
                           <Button
                             type="button"
                             variant="outline"
